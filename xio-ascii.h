@@ -1,4 +1,4 @@
-/* $Id: xio-ascii.h,v 1.4 2006/07/23 07:30:49 gerhard Exp $ */
+/* source: xio-ascii.h */
 /* Copyright Gerhard Rieger 2002-2006 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

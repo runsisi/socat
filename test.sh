@@ -1,5 +1,5 @@
 #! /bin/bash
-# $Id: test.sh,v 1.134 2007/03/06 21:06:20 gerhard Exp $
+# source: test.sh
 # Copyright Gerhard Rieger 2001-2007
 # Published under the GNU General Public License V.2, see file COPYING
 

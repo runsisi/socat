@@ -1,5 +1,5 @@
 #! /bin/sh
-# $Id: daemon.sh,v 1.4 2001/10/29 09:52:47 gerhard Exp $
+# source: daemon.sh
 # Copyright Gerhard Rieger 2001
 # Published under the GNU General Public License V.2, see file COPYING
 

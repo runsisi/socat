@@ -1,5 +1,5 @@
 #! /bin/sh
-# $Id: ftp.sh,v 1.11 2006/12/28 07:27:01 gerhard Exp $
+# source: ftp.sh
 # Copyright Gerhard Rieger 2001-2006
 # Published under the GNU General Public License V.2, see file COPYING
 

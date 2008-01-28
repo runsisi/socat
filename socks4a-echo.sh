@@ -1,5 +1,5 @@
 #! /bin/bash
-# $Id: socks4a-echo.sh,v 1.2 2004/08/25 16:01:30 gerhard Exp $
+# source: socks4a-echo.sh
 #set -vx
 
 # Copyright Gerhard Rieger 2004

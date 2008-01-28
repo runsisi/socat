@@ -1,5 +1,5 @@
 #! /bin/bash
-# $Id: readline-test.sh,v 1.1 2003/12/23 21:28:12 gerhard Exp $
+# source: readline-test.sh
 # Copyright Gerhard Rieger 2003
 # Published under the GNU General Public License V.2, see file COPYING
 

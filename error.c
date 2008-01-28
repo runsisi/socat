@@ -1,4 +1,4 @@
-/* $Id: error.c,v 1.29 2007/02/08 18:22:23 gerhard Exp $ */
+/* source: error.c */
 /* Copyright Gerhard Rieger 2001-2007 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

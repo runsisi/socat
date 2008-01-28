@@ -1,4 +1,4 @@
-/* $Id: sslcls.c,v 1.8 2007/02/26 21:30:58 gerhard Exp $ */
+/* source: sslcls.c */
 /* Copyright Gerhard Rieger 2001-2007 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

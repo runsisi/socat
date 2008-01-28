@@ -1,4 +1,4 @@
-/* $Id: xio.h,v 1.66 2007/03/06 21:25:51 gerhard Exp $ */
+/* source: xio.h */
 /* Copyright Gerhard Rieger 2001-2007 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

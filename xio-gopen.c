@@ -1,4 +1,4 @@
-/* $Id: xio-gopen.c,v 1.32 2007/02/08 18:36:44 gerhard Exp $ */
+/* source: xio-gopen.c */
 /* Copyright Gerhard Rieger 2001-2007 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

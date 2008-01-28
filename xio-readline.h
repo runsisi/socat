@@ -1,4 +1,4 @@
-/* $Id: xio-readline.h,v 1.4 2003/12/23 21:38:59 gerhard Exp $ */
+/* source: xio-readline.h */
 /* Copyright Gerhard Rieger 2002, 2003 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

@@ -1,4 +1,4 @@
-/* $Id: dalan.c,v 1.8 2004/06/20 21:49:11 gerhard Exp $ */
+/* source: dalan.c */
 /* Copyright Gerhard Rieger 2001-2004 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

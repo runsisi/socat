@@ -1,4 +1,4 @@
-/* $Id: xio-file.c,v 1.21 2007/03/06 21:07:25 gerhard Exp $ */
+/* source: xio-file.c */
 /* Copyright Gerhard Rieger 2001-2007 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

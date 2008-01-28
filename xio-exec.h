@@ -1,4 +1,4 @@
-/* $Id: xio-exec.h,v 1.6 2002/05/19 08:05:36 gerhard Exp $ */
+/* source: xio-exec.h */
 /* Copyright Gerhard Rieger 2001, 2002 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

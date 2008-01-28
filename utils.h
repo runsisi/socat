@@ -1,4 +1,4 @@
-/* $Id: utils.h,v 1.7 2007/02/08 18:36:16 gerhard Exp $ */
+/* source: utils.h */
 /* Copyright Gerhard Rieger 2001-2007 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

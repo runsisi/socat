@@ -1,4 +1,4 @@
-/* $Id: hostan.c,v 1.2 2007/03/06 21:02:01 gerhard Exp $ */
+/* source: hostan.c */
 /* Copyright Gerhard Rieger 2006-2007 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

@@ -1,4 +1,4 @@
-/* $Id: xiolayer.h,v 1.5 2005/08/18 19:56:05 gerhard Exp $ */
+/* source: xiolayer.h */
 /* Copyright Gerhard Rieger 2001-2005 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

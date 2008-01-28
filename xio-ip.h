@@ -1,4 +1,4 @@
-/* $Id: xio-ip.h,v 1.11 2007/03/06 21:19:18 gerhard Exp $ */
+/* source: xio-ip.h */
 /* Copyright Gerhard Rieger 2001-2007 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

@@ -1,4 +1,4 @@
-/* $Id: xiomodes.h,v 1.13 2007/03/06 21:22:29 gerhard Exp $ */
+/* source: xiomodes.h */
 /* Copyright Gerhard Rieger 2001-2007 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

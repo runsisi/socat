@@ -1,5 +1,5 @@
 #! /bin/sh
-# $Id: gatherinfo.sh,v 1.12 2007/03/06 21:01:07 gerhard Exp $
+# source: gatherinfo.sh
 # Copyright Gerhard Rieger 2001, 2002
 # Published under the GNU General Public License V.2, see file COPYING
 

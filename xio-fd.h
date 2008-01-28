@@ -1,4 +1,4 @@
-/* $Id: xio-fd.h,v 1.12 2006/12/28 07:35:50 gerhard Exp $ */
+/* source: xio-fd.h */
 /* Copyright Gerhard Rieger 2001-2006 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

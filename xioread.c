@@ -1,4 +1,4 @@
-/* $Id: xioread.c,v 1.38 2007/03/06 21:20:07 gerhard Exp $ */
+/* source: xioread.c */
 /* Copyright Gerhard Rieger 2001-2007 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

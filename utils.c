@@ -1,4 +1,4 @@
-/* $Id: utils.c,v 1.17 2007/02/08 18:36:16 gerhard Exp $ */
+/* source: utils.c */
 /* Copyright Gerhard Rieger 2001-2007 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

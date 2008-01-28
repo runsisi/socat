@@ -1,4 +1,4 @@
-/* $Id: xio-openssl.c,v 1.33 2007/02/26 21:31:40 gerhard Exp $ */
+/* source: xio-openssl.c */
 /* Copyright Gerhard Rieger 2002-2007 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

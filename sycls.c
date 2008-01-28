@@ -1,4 +1,4 @@
-/* $Id: sycls.c,v 1.75 2007/03/06 21:04:12 gerhard Exp $ */
+/* source: sycls.c */
 /* Copyright Gerhard Rieger 2001-2007 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

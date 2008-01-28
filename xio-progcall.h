@@ -1,4 +1,4 @@
-/* $Id: xio-progcall.h,v 1.13 2006/02/08 19:37:15 gerhard Exp $ */
+/* source: xio-progcall.h */
 /* Copyright Gerhard Rieger 2001-2006 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

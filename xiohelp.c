@@ -1,4 +1,4 @@
-/* $Id: xiohelp.c,v 1.19 2007/02/05 21:07:07 gerhard Exp $ */
+/* source: xiohelp.c */
 /* Copyright Gerhard Rieger 2001-2007 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

@@ -1,4 +1,4 @@
-/* $Id: xiosigchld.c,v 1.21 2006/12/28 14:38:38 gerhard Exp $ */
+/* source: xiosigchld.c */
 /* Copyright Gerhard Rieger 2001-2006 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

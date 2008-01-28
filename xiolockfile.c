@@ -1,4 +1,4 @@
-/* $Id: xiolockfile.c,v 1.2 2006/02/08 19:51:24 gerhard Exp $ */
+/* source: xiolockfile.c */
 /* Copyright Gerhard Rieger 2005-2006 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

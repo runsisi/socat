@@ -1,4 +1,4 @@
-/* $Id: xio-tcpwrap.c,v 1.4 2007/02/05 19:48:00 gerhard Exp $ */
+/* source: xio-tcpwrap.c */
 /* Copyright Gerhard Rieger 2006-2007 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

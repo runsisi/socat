@@ -1,4 +1,4 @@
-/* $Id: filan_main.c,v 1.19 2006/07/12 21:59:15 gerhard Exp $ */
+/* source: filan_main.c */
 /* Copyright Gerhard Rieger 2001-2006 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

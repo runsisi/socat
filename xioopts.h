@@ -1,4 +1,4 @@
-/* $Id: xioopts.h,v 1.70 2007/03/06 21:19:46 gerhard Exp $ */
+/* source: xioopts.h */
 /* Copyright Gerhard Rieger 2001-2007 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

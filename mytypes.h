@@ -1,4 +1,4 @@
-/* $Id: mytypes.h,v 1.4 2006/05/06 14:15:47 gerhard Exp $ */
+/* source: mytypes.h */
 /* Copyright Gerhard Rieger 2001-2006 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

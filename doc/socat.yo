@@ -1,4 +1,4 @@
-COMMENT($Id: socat.yo,v 1.99 2007/03/06 20:56:24 gerhard Exp $)
+COMMENT(source: socat.yo)
 mailto(socat@dest-unreach.org)
 
 def(unix)(0)(UN*X)

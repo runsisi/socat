@@ -1,5 +1,5 @@
 #! /bin/sh
-# $Id: mail.sh,v 1.11 2005/09/10 16:48:38 gerhard Exp $
+# source: mail.sh
 # Copyright Gerhard Rieger 2001-2005
 # Published under the GNU General Public License V.2, see file COPYING
 

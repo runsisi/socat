@@ -1,4 +1,4 @@
-/* $Id: xio-termios.h,v 1.11 2006/05/31 19:23:43 gerhard Exp $ */
+/* source: xio-termios.h */
 /* Copyright Gerhard Rieger 2001-2006 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

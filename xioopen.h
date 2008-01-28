@@ -1,4 +1,4 @@
-/* $Id: xioopen.h,v 1.22 2006/05/12 20:14:05 gerhard Exp $ */
+/* source: xioopen.h */
 /* Copyright Gerhard Rieger 2001-2006 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

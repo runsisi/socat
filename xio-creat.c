@@ -1,4 +1,4 @@
-/* $Id: xio-creat.c,v 1.16 2006/07/13 06:39:01 gerhard Exp $ */
+/* source: xio-creat.c */
 /* Copyright Gerhard Rieger 2001-2006 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

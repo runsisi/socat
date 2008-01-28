@@ -1,5 +1,5 @@
 #! /bin/bash
-# $Id: socks4echo.sh,v 1.4 2006/03/21 18:48:53 gerhard Exp $
+# source: socks4echo.sh
 
 # Copyright Gerhard Rieger 2004-2006
 # Published under the GNU General Public License V.2, see file COPYING

@@ -1,4 +1,4 @@
-/* $Id: xioshutdown.c,v 1.21 2007/01/25 21:36:11 gerhard Exp $ */
+/* source: xioshutdown.c */
 /* Copyright Gerhard Rieger 2001-2007 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

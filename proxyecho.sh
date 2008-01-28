@@ -1,5 +1,5 @@
 #! /bin/bash
-# $Id: proxyecho.sh,v 1.5 2004/06/06 17:33:22 gerhard Exp $
+# source: proxyecho.sh
 # Copyright Gerhard Rieger 2003
 # Published under the GNU General Public License V.2, see file COPYING
 

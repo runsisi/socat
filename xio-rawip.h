@@ -1,4 +1,4 @@
-/* $Id: xio-rawip.h,v 1.13 2007/02/05 19:56:34 gerhard Exp $ */
+/* source: xio-rawip.h */
 /* Copyright Gerhard Rieger 2001-2007 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

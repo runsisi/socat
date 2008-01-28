@@ -1,4 +1,4 @@
-/* $Id: xio-system.h,v 1.4 2001/11/04 17:19:20 gerhard Exp $ */
+/* source: xio-system.h */
 /* Copyright Gerhard Rieger 2001 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

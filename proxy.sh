@@ -1,5 +1,5 @@
 #! /bin/bash
-# $Id: proxy.sh,v 1.3 2004/07/11 07:55:57 gerhard Exp $
+# source: proxy.sh
 # Copyright Gerhard Rieger 2003-2004
 # Published under the GNU General Public License V.2, see file COPYING
 

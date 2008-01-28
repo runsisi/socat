@@ -1,4 +1,4 @@
-/* $Id: fdname.c,v 1.9 2007/02/08 18:27:00 gerhard Exp $ */
+/* source: fdname.c */
 /* Copyright Gerhard Rieger 2003-2007 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

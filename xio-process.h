@@ -1,4 +1,4 @@
-/* $Id: xio-process.h,v 1.7 2002/10/01 19:37:51 gerhard Exp $ */
+/* source: xio-process.h */
 /* Copyright Gerhard Rieger 2001, 2002 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

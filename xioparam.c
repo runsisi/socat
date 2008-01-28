@@ -1,4 +1,4 @@
-/* $Id: xioparam.c,v 1.10 2006/06/19 20:30:24 gerhard Exp $ */
+/* source: xioparam.c */
 /* Copyright Gerhard Rieger 2001-2006 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

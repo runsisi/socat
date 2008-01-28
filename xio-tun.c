@@ -1,4 +1,4 @@
-/* $Id: xio-tun.c,v 1.2 2007/03/06 21:13:35 gerhard Exp $ */
+/* source: xio-tun.c */
 /* Copyright Gerhard Rieger 2007 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

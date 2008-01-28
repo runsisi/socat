@@ -1,4 +1,4 @@
-/* $Id: compat.h,v 1.32 2006/06/19 20:28:52 gerhard Exp $ */
+/* source: compat.h */
 /* Copyright Gerhard Rieger 2001-2006 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

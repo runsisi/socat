@@ -1,4 +1,4 @@
-/* $Id: nestlex.c,v 1.4 2006/06/23 17:04:36 gerhard Exp $ */
+/* source: nestlex.c */
 /* Copyright Gerhard Rieger 2006 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

@@ -1,4 +1,4 @@
-/* $Id: xio-proxy.h,v 1.6 2006/05/31 19:17:57 gerhard Exp $ */
+/* source: xio-proxy.h */
 /* Copyright Gerhard Rieger 2002-2006 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

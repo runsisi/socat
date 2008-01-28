@@ -1,4 +1,4 @@
-/* $Id: xiodiag.h,v 1.2 2001/11/04 17:13:22 gerhard Exp $ */
+/* source: xiodiag.h */
 /* Copyright Gerhard Rieger 2001 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

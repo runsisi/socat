@@ -1,4 +1,4 @@
-/* $Id: xiosysincludes.h,v 1.4 2001/12/27 16:52:34 gerhard Exp $ */
+/* source: xiosysincludes.h */
 /* Copyright Gerhard Rieger 2001 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

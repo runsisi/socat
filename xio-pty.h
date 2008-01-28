@@ -1,4 +1,4 @@
-/* $Id: xio-pty.h,v 1.2 2004/10/24 13:49:53 gerhard Exp $ */
+/* source: xio-pty.h */
 /* Copyright Gerhard Rieger 2002-2004 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

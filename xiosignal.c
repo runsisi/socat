@@ -1,4 +1,4 @@
-/* $Id: xiosignal.c,v 1.2 2003/12/23 21:22:38 gerhard Exp $ */
+/* source: xiosignal.c */
 /* Copyright Gerhard Rieger 2001-2003 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

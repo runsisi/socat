@@ -1,4 +1,4 @@
-/* $Id: xio-udp.h,v 1.12 2007/02/05 19:57:09 gerhard Exp $ */
+/* source: xio-udp.h */
 /* Copyright Gerhard Rieger 2001-2007 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

@@ -1,4 +1,4 @@
-/* $Id: xio-ext2.c,v 1.1 2006/05/07 17:06:53 gerhard Exp $ */
+/* source: xio-ext2.c */
 /* Copyright Gerhard Rieger 2005-2006 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

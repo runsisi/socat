@@ -1,4 +1,4 @@
-/* $Id: xio-ipapp.h,v 1.13 2006/05/19 05:54:39 gerhard Exp $ */
+/* source: xio-ipapp.h */
 /* Copyright Gerhard Rieger 2001-2006 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

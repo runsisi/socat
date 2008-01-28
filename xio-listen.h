@@ -1,4 +1,4 @@
-/* $Id: xio-listen.h,v 1.10 2006/07/13 06:44:53 gerhard Exp $ */
+/* source: xio-listen.h */
 /* Copyright Gerhard Rieger 2001-2006 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

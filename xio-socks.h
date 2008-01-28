@@ -1,4 +1,4 @@
-/* $Id: xio-socks.h,v 1.6 2004/06/06 19:03:28 gerhard Exp $ */
+/* source: xio-socks.h */
 /* Copyright Gerhard Rieger 2001-2004 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

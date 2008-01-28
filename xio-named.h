@@ -1,4 +1,4 @@
-/* $Id: xio-named.h,v 1.8 2006/03/18 20:04:31 gerhard Exp $ */
+/* source: xio-named.h */
 /* Copyright Gerhard Rieger 2001-2006 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

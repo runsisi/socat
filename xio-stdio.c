@@ -1,4 +1,4 @@
-/* $Id: xio-stdio.c,v 1.18 2006/12/28 14:07:01 gerhard Exp $ */
+/* source: xio-stdio.c */
 /* Copyright Gerhard Rieger 2001-2006 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

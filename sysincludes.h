@@ -1,4 +1,4 @@
-/* $Id: sysincludes.h,v 1.23 2007/03/06 21:04:58 gerhard Exp $ */
+/* source: sysincludes.h */
 /* Copyright Gerhard Rieger 2001-2007 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

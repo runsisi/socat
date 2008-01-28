@@ -1,4 +1,4 @@
-/* $Id: xioexit.c,v 1.10 2005/03/13 12:19:11 gerhard Exp $ */
+/* source: xioexit.c */
 /* Copyright Gerhard Rieger 2001-2005 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

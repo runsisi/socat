@@ -1,4 +1,4 @@
-/* $Id: xio-socket.h,v 1.16 2006/12/30 23:04:21 gerhard Exp $ */
+/* source: xio-socket.h */
 /* Copyright Gerhard Rieger 2001-2006 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
