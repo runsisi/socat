@@ -83,6 +83,11 @@ OSFILES = Config/Makefile.Linux-2-6-16 Config/config.Linux-2-6-16.h \
 
 all: progs doc
 
+scmclean: gitclean
+
+gitclean: distclean docclean
+	rm -f Makefile.bak configure
+
 doc: doc/socat.1 doc/socat.html
 
 docclean:

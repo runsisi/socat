@@ -1,5 +1,7 @@
 
 new features:
+	new make target "gitclean"
+
 	docu source doc/socat.yo released
 
 ####################### V 1.6.0.0:
