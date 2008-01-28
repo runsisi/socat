@@ -4,6 +4,9 @@ new features:
 
 	docu source doc/socat.yo released
 
+corrections:
+	make uninstall  did not uninstall procan
+
 ####################### V 1.6.0.0:
 
 new features:

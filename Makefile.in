@@ -134,7 +134,7 @@ install: progs doc/socat.1
 
 uninstall:
 	rm -f $(DESTDIR)$(BINDEST)/socat
-	rm -f $(DESTDIR)$(BINDEST)/procat
+	rm -f $(DESTDIR)$(BINDEST)/procan
 	rm -f $(DESTDIR)$(BINDEST)/filan
 	rm -f $(DESTDIR)$(MANDEST)/man1/socat.1
 
