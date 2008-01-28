@@ -225,6 +225,18 @@ doc/socat-multicast.html is a short tutorial for multicast and broadcast
 communications.
 doc/socat-tun shows how to build a virtual network between two hosts.
 
+socat.1 and socat.html can be generated from socat.yo (which is released with
+socat 1.6.1 and later) using the yodl document language package. Maintenance
+of yodl had been discontinued by its author
+(http://www.xs4all.nl/~jantien/yodl/) (there seems to be a revival at
+http://yodl.sourceforge.net/ though). For socat, the old version 1.31 is used;
+an rpm is still distributed with recent OpenSuSE versions (confirmed for
+OpenSuSE 10.1 in suse/i586/yodl-1.31.18-1142.i586.rpm). It appears to install
+smoothly also under RedHat Linux. After yodl 1.31 installation, the following
+correction must be performed in /usr/share/yodl/shared.yo in two places:
+< whenhtml(htmlcommand(<!)ARG1+htmlcommand(>)))
+> whenhtml(htmlcommand(<!--)ARG1+htmlcommand(-->)))
+
 
 license
 -------

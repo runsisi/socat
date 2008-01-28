@@ -81,7 +81,18 @@ OSFILES = Config/Makefile.Linux-2-6-16 Config/config.Linux-2-6-16.h \
 	Config/Makefile.Tru64-5-1B Config/config.Tru64-5-1B.h 
 
 
-all: progs
+all: progs doc
+
+doc: doc/socat.1 doc/socat.html
+
+docclean:
+	rm -f doc/socat.1 doc/socat.html
+
+doc/socat.1: doc/socat.yo
+	yodl2man -o $@ $+
+
+doc/socat.html: doc/socat.yo
+	yodl2html -o $@ $+
 
 progs: $(PROGS)
 
