@@ -7,6 +7,8 @@ new features:
 corrections:
 	make uninstall  did not uninstall procan
 
+	fixed lots of weaknesses in test.sh
+
 ####################### V 1.6.0.0:
 
 new features:

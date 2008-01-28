@@ -1434,15 +1434,13 @@ testecho () {
     #$ECHO "testing $title (test $num)... \c"
     $PRINTF "test $F_n %s... " $num "$title"
     #echo "$da" |$cmd >"$tf" 2>"$te"
-#set -vx
-    (echo "$da"; sleep $T) |$SOCAT $opts "$arg1" "$arg2" >"$tf" 2>"$te" &
+    (echo "$da"; sleep $T) |($SOCAT $opts "$arg1" "$arg2" >"$tf" 2>"$te"; echo $? >"$td/test$N.rc") &
     export rc1=$!
     #sleep 5 && kill $rc1 2>/dev/null &
 #    rc2=$!
     wait $rc1
 #    kill $rc2 2>/dev/null
-#set +vx
-    if [ "$?" != 0 ]; then
+    if [ "$(cat "$td/test$N.rc")" != 0 ]; then
 	$PRINTF "$FAILED: $SOCAT:\n"
 	echo "$SOCAT $opts $arg1 $arg2"
 	cat "$te"
@@ -1474,7 +1472,7 @@ testod () {
     local te="$td/test$N.stderr"
     local tdiff="$td/test$N.diff"
     local dain="$(date)"
-    local daout="$(echo "$dain" |od -c)"
+    local daout="$(echo "$dain" |$OD_C)"
     $PRINTF "test $F_n %s... " $num "$title"
     (echo "$dain"; sleep $T) |$SOCAT $opts "$arg1" "$arg2" >"$tf" 2>"$te"
     if [ "$?" != 0 ]; then
@@ -1816,7 +1814,7 @@ gentestcert () {
     local name="$1"
     if [ -f $name.key -a -f $name.crt -a -f $name.pem ]; then return; fi
     openssl genrsa $OPENSSL_RAND -out $name.key 768 >/dev/null 2>&1
-    openssl req -new -config testcert.conf -key $name.key -x509 -out $name.crt >/dev/null 2>&1
+    openssl req -new -config testcert.conf -key $name.key -x509 -out $name.crt -days 3653 >/dev/null 2>&1
     cat $name.key $name.crt >$name.pem
 }
 
@@ -1826,7 +1824,7 @@ gentestdsacert () {
     if [ -f $name.key -a -f $name.crt -a -f $name.pem ]; then return; fi
     openssl dsaparam -out $name-dsa.pem 512 >/dev/null 2>&1
     openssl dhparam -dsaparam -out $name-dh.pem 512 >/dev/null 2>&1
-    openssl req -newkey dsa:$name-dsa.pem -keyout $name.key -nodes -x509 -config testcert.conf -out $name.crt >/dev/null 2>&1
+    openssl req -newkey dsa:$name-dsa.pem -keyout $name.key -nodes -x509 -config testcert.conf -out $name.crt -days 3653 >/dev/null 2>&1
     cat $name-dsa.pem $name-dh.pem $name.key $name.crt >$name.pem
 }
 
@@ -1999,7 +1997,11 @@ esac
 N=$((N+1))
 
 
+# test: send EOF to exec'ed sub process, let it finished its operation, and 
+# check if the sub process returns its data before terminating.
 NAME=EXECSOCKETFLUSH
+# idea: have socat exec'ing od; send data and EOF, and check if the od'ed data
+# arrives.
 case "$TESTS" in
 *%functions%*|*%exec%*|*%$NAME%*)
 TEST="$NAME: call to od via exec with socketpair"
@@ -2288,13 +2290,15 @@ CMD1="$SOCAT $opts TCP4-LISTEN:$tsl,reuseaddr PIPE"
 CMD2="$SOCAT $opts stdin!!stdout TCP4:$ts"
 printf "test $F_n $TEST... " $N
 $CMD1 >"$tf" 2>"${te}1" &
+pid1=$!
 waittcp4port $tsl 1
 echo "$da" |$CMD2 >>"$tf" 2>>"${te}2"
 if [ $? -ne 0 ]; then
    $PRINTF "$FAILED: $SOCAT:\n"
    echo "$CMD1 &"
+   cat "${te}1"
    echo "$CMD2"
-   cat "$te"
+   cat "${te}2"
    numFAIL=$((numFAIL+1))
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
@@ -2304,7 +2308,9 @@ else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
    numOK=$((numOK+1))
-fi ;;
+fi
+kill $pid1 2>/dev/null
+wait ;;
 esac
 PORT=$((PORT+1))
 N=$((N+1))
@@ -5115,7 +5121,7 @@ NAME=UNIEXECEOF
 case "$TESTS" in
 *%functions%*|*%$NAME%*)
 TEST="$NAME: give exec'd write-only process a chance to flush (-u)"
-testod "$N" "$TEST" "" exec:'od -c' "$opts -u"
+testod "$N" "$TEST" "" exec:"$OD_C" "$opts -u"
 esac
 N=$((N+1))
 
@@ -5124,7 +5130,7 @@ NAME=REVEXECEOF
 case "$TESTS" in
 *%functions%*|*%$NAME%*)
 TEST="$NAME: give exec'd write-only process a chance to flush (-U)"
-testod "$N" "$TEST" exec:'od -c' "-" "$opts -U"
+testod "$N" "$TEST" exec:"$OD_C" "-" "$opts -U"
 esac
 N=$((N+1))
 
@@ -5864,7 +5870,10 @@ NAME=RAWIP6RECVFROM
 case "$TESTS" in
 *%functions%*|*%ip%*|*%ip6%*|*%rawip%*|*%rawip6%*|*%dgram%*|*%root%*|*%$NAME%*)
 TEST="$NAME: raw IPv6 datagram by self addressing"
-if [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
+if ! feat=$(testaddrs ip6 rawip) || ! runsip6 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
@@ -6092,7 +6101,7 @@ NAME=RAWIP6RECV
 case "$TESTS" in
 *%functions%*|*%ip6%*|*%dgram%*|*%rawip%*|*%rawip6%*|*%recv%*|*%root%*|*%$NAME%*)
 TEST="$NAME: raw IPv6 receive"
-if ! feat=$(testaddrs ip6 rawip) || ! runsip4 >/dev/null; then
+if ! feat=$(testaddrs ip6 rawip) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
@@ -6806,7 +6815,7 @@ if ! testoptions cool-write >/dev/null; then
     numCANT=$((numCANT+1))
 else
 #set -vx
-ti="$td/test$N.file"
+ti="$td/test$N.pipe"
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
@@ -6910,12 +6919,12 @@ if [ $? -ne 0 ]; then
    echo "$CMD1 &"
    echo "$CMD2"
    cat "${te}1a" "${te}1b" "${te}2"
-    $PRINTF "$FAILED: $SOCAT:\n"
+    numFAIL=$((numFAIL+1))
 elif ! echo -e "$da1a\n$da1b" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
    cat "${te}1a" "${te}1b" "${te}2"
-    $PRINTF "$FAILED: $SOCAT:\n"
+    numFAIL=$((numFAIL+1))
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1a" "${te}1b" "${te}2"; fi
@@ -7525,6 +7534,7 @@ touch "$ts"	# make a file with same name, so non-abstract fails
 eval "$SRV 2>${te}s &"
 pids=$!
 #waitfile "$ts"
+sleep 1
 echo "$da1" |eval "$CMD" >"${tf}1" 2>"${te}1"
 if [ $? -ne 0 ]; then
     kill "$pids" 2>/dev/null
@@ -7575,6 +7585,7 @@ printf "test $F_n $TEST... " $N
 touch "$ts1"	# make a file with same name, so non-abstract fails
 $CMD1 2>"${te}1" &
 pid1="$!"
+sleep 1
 echo "$da" |$CMD2 >>"$tf" 2>>"${te}2"
 rc2=$?
 kill "$pid1" 2>/dev/null; wait
@@ -7621,6 +7632,7 @@ touch "$ts1"	# make a file with same name, so non-abstract fails
 $CMD1 >"$tf" 2>"${te}1" &
 pid1="$!"
 #waitfile $ts1 1
+sleep 1
 echo "$da" |$CMD2 2>>"${te}2"
 rc2="$?"
 i=0; while [ ! -s "$tf" -a "$i" -lt 10 ]; do  usleep 100000; i=$((i+1));  done
@@ -7650,7 +7662,7 @@ N=$((N+1))
 NAME=OPENSSLREAD
 # socat determined availability of data using select(). With openssl, the
 # following situation might occur:
-# a SSL data block with more than 8192 bytes (socat defaults blocksize) 
+# a SSL data block with more than 8192 bytes (socats default blocksize) 
 # arrives; socat calls SSL_read, and the SSL routine reads the complete block.
 # socat then reads 8192 bytes from the SSL layer, the rest remains buffered.
 # If the TCP connection stays idle for some time, the data in the SSL layer
@@ -7679,6 +7691,7 @@ printf "test $F_n $TEST... " $N
 #
 $CMD1 2>"${te}1" >"$tf" &
 pid=$!	# background process id
+waittcp4port $PORT
 (echo "$da"; sleep 2) |$CMD2 2>"${te}2"
 if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     $PRINTF "$FAILED: $SOCAT:\n"
@@ -7694,6 +7707,7 @@ else
    numOK=$((numOK+1))
 fi
 fi
+wait ;;
 esac
 N=$((N+1))
 
@@ -7711,8 +7725,7 @@ TEST="$NAME: trigger EOF after that many bytes, even when socket idle"
 # we try to transfer data in the other direction then; if transfer succeeds,
 # the process did not terminate and the bug is still there.
 if false; then
-    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo $feat| tr 'a-z' 'A-Z') not avail
-able${NORMAL}\n" $N
+    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo $feat| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
 tr="$td/test$N.ref"
