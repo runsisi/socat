@@ -1,5 +1,5 @@
 /* source: xio-ip.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for IP related functions */
@@ -113,7 +113,7 @@ int xiogetaddrinfo(const char *node, const char *service,
 		   int family, int socktype, int protocol,
 		   union sockaddr_union *sau, socklen_t *socklen,
 		   unsigned long res_opts0, unsigned long res_opts1) {
-   int port = -1;
+   int port = -1;	/* port number in network byte order */
    char *numnode = NULL;
    size_t nodelen;
    unsigned long save_res_opts = 0;
@@ -144,7 +144,7 @@ int xiogetaddrinfo(const char *node, const char *service,
       with NIS), so we handle this specially */
    if (service && isdigit(service[0]&0xff)) {
       char *extra;
-      port = strtoul(service, &extra, 0);
+      port = htons(strtoul(service, &extra, 0));
       if (*extra != '\0') {
 	 Warn2("xiogetaddrinfo(, \"%s\", ...): extra trailing data \"%s\"",
 	       service, extra);
@@ -230,6 +230,7 @@ int xiogetaddrinfo(const char *node, const char *service,
 #endif
 	 return STAT_RETRYLATER;
       }
+      service = NULL;	/* do not resolve later again */
 
       record = res;
       if (family == PF_UNSPEC && xioopts.preferred_ip == '0') {
@@ -396,15 +397,15 @@ int xiogetaddrinfo(const char *node, const char *service,
 
 #if WITH_TCP || WITH_UDP
    if (service) {
-      port = parseport(service, family);
+      port = parseport(service, protocol);
    }
    if (port >= 0) {
       switch (family) {
 #if WITH_IP4
-      case PF_INET:  sau->ip4.sin_port  = htons(port); break;
+      case PF_INET:  sau->ip4.sin_port  = port; break;
 #endif /* WITH_IP4 */
 #if WITH_IP6
-      case PF_INET6: sau->ip6.sin6_port = htons(port); break;
+      case PF_INET6: sau->ip6.sin6_port = port; break;
 #endif /* WITH_IP6 */
       }
    }      

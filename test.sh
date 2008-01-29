@@ -7848,6 +7848,54 @@ PORT=$((PORT+1))
 N=$((N+1))
 
 
+# test if service name resolution works; this was buggy in 1.5 and 1.6.0.0
+NAME=TCP4SERVICE
+case "$TESTS" in
+*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
+TEST="$NAME: echo via connection to TCP V4 socket"
+# select a tcp entry from /etc/services, have a server listen on the port 
+# number and connect using the service name; with the bug, connection will to a
+# wrong port
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+# find a service entry we do not need root for (>=1024; here >=1100 for ease)
+SERVENT="$(grep '^[a-z][a-z]*  *[1-9][1-9][0-9][0-9]/tcp' /etc/services |head -n 1)"
+SERVICE="$(echo $SERVENT |cut -d' ' -f1)"
+PORT="$(echo $SERVENT |sed 's/.* \([1-9][0-9]*\).*/\1/')"
+tsl="$PORT"
+ts="127.0.0.1:$SERVICE"
+da=$(date)
+CMD1="$SOCAT $opts TCP4-LISTEN:$tsl,reuseaddr PIPE"
+CMD2="$SOCAT $opts stdin!!stdout TCP4:$ts"
+printf "test $F_n $TEST... " $N
+$CMD1 >"$tf" 2>"${te}1" &
+pid1=$!
+waittcp4port $tsl 1
+echo "$da" |$CMD2 >>"$tf" 2>>"${te}2"
+if [ $? -ne 0 ]; then
+   $PRINTF "$FAILED: $SOCAT:\n"
+   echo "$CMD1 &"
+   cat "${te}1"
+   echo "$CMD2"
+   cat "${te}2"
+   numFAIL=$((numFAIL+1))
+elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
+   $PRINTF "$FAILED\n"
+   cat "$tdiff"
+   numFAIL=$((numFAIL+1))
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
+   numOK=$((numOK+1))
+fi
+kill $pid1 2>/dev/null
+wait ;;
+esac
+#PORT=$((PORT+1))
+N=$((N+1))
+
+
 echo "summary: $((N-1)) tests; $numOK ok, $numFAIL failed, $numCANT could not be performed"
 
 if [ "$numFAIL" -gt 0 ]; then
