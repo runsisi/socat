@@ -1,5 +1,5 @@
 nl source: configure.in
-dnl Copyright Gerhard Rieger 2001-2007
+dnl Copyright Gerhard Rieger 2001-2008
 dnl Published under the GNU General Public License V.2, see file COPYING
 
 dnl Process this file with autoconf to produce a configure script.
@@ -1161,7 +1161,7 @@ AC_MSG_RESULT($ac_cv_have_z_modifier)
 
 dnl find the number of bits we must shift a value to match the given mask
 dnl (e.g., mask 0x00f0 requires shifting with 4)
-## NOTE: some platforms only need on '\' to escape '"' in string constant
+## NOTE: some platforms only need one '\' to escape '"' in string constant
 define(AC_SHIFT_OFFSET,[
 AC_CACHE_CHECK(shift offset of $1, $2,
 [LIBS1="$LIBS"; LIBS=""	# avoid libwrap allow_severity undefined

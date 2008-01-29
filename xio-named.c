@@ -1,5 +1,5 @@
 /* source: xio-named.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for filesystem entry functions */
@@ -22,7 +22,7 @@ const struct optdesc opt_unlink_early= { "unlink-early",NULL, OPT_UNLINK_EARLY,G
 const struct optdesc opt_unlink_late = { "unlink-late", NULL, OPT_UNLINK_LATE, GROUP_NAMED, PH_PASTOPEN, TYPE_BOOL, OFUNC_SPEC };
 const struct optdesc opt_unlink_close  = { "unlink-close", NULL, OPT_UNLINK_CLOSE, GROUP_NAMED, PH_LATE,  TYPE_BOOL, OFUNC_SPEC };
 const struct optdesc opt_umask       = { "umask",       NULL, OPT_UMASK,       GROUP_NAMED, PH_EARLY,  TYPE_MODET, OFUNC_SPEC };
-#endif /* _WITH_NAMED */
+#endif /* WITH_NAMED */
 
 /* applies to fd all options belonging to phase */
 int applyopts_named(const char *filename, struct opt *opts, unsigned int phase) {
@@ -213,4 +213,4 @@ int _xioopen_open(const char *path, int rw, struct opt *opts) {
    return fd;
 }
 
-#endif /* WITH_NAMED */
+#endif /* _WITH_NAMED */

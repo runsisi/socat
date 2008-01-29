@@ -1,5 +1,5 @@
 /* source: xio-pipe.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening addresses of pipe type */
@@ -74,7 +74,7 @@ static int xioopen_fifo_unnamed(xiofile_t *sock, struct opt *opts) {
 }
 
 
-/* open a named pipe/fifo */
+/* open a named or unnamed pipe/fifo */
 static int xioopen_fifo(int argc, const char *argv[], struct opt *opts, int xioflags, xiofile_t *fd, unsigned groups, int dummy1, int dummy2, int dummy3) {
    const char *pipename = argv[1];
    int rw = (xioflags & XIO_ACCMODE);

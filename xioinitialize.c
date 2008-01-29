@@ -1,5 +1,5 @@
 /* source: xioinitialize.c */
-/* Copyright Gerhard Rieger 2001-2006 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for the initialize function */
@@ -127,8 +127,8 @@ void xiodroplocks(void) {
 /* consider an invokation like this:
    socat -u exec:'some program that accepts data' tcp-l:...,fork
    we do not want the program to be killed by the first tcp-l sub process, it's
-   better if it survives all sub processes. Thus, it must not be killed if the
-   sub process delivers EOF. Also, a socket that is reused in sub processes
+   better if it survives all sub processes. Thus, it must not be killed when
+   the sub process delivers EOF. Also, a socket that is reused in sub processes
    should not be shut down (affects the connection), but closed (affects only
    sub processes copy of file descriptor) */
 static int xio_nokill(xiofile_t *sock) {

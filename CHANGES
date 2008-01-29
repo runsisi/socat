@@ -9,7 +9,7 @@ corrections:
 
 	fixed lots of weaknesses in test.sh
 
-	corrected some bugs and typos in doc/socat.yo, EXAMPLES
+	corrected some bugs and typos in doc/socat.yo, EXAMPLES, C comments
 
 ####################### V 1.6.0.0:
 
