@@ -11,6 +11,9 @@ corrections:
 
 	corrected some bugs and typos in doc/socat.yo, EXAMPLES, C comments
 
+further changes:
+	added test OPENSSLEOF for OpenSSL half close
+
 ####################### V 1.6.0.0:
 
 new features:

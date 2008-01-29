@@ -1,6 +1,6 @@
 #! /bin/bash
 # source: test.sh
-# Copyright Gerhard Rieger 2001-2007
+# Copyright Gerhard Rieger 2001-2008
 # Published under the GNU General Public License V.2, see file COPYING
 
 # perform lots of tests on socat
@@ -3458,6 +3458,52 @@ pid=$!	# background process id
 waittcp6port $PORT
 echo "$da" |$CMD >$tf 2>"${te}2"
 if ! echo "$da" |diff - "$tf" >"$tdiff"; then
+    $PRINTF "$FAILED: $SOCAT:\n"
+    echo "$CMD2 &"
+    echo "$CMD"
+    cat "${te}1"
+    cat "${te}2"
+    cat "$tdiff"
+    numFAIL=$((numFAIL+1))
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
+   numOK=$((numOK+1))
+fi
+kill $pid 2>/dev/null
+wait
+fi
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+# does our OpenSSL implementation support halfclose?
+NAME=OPENSSLEOF
+case "$TESTS" in
+*%functions%*|*%openssl%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
+TEST="$NAME: openssl half close"
+# have an SSL server that executes "$OD_C" and see if EOF on the SSL client
+# brings the result of od to the client
+if ! testaddrs openssl >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+elif ! testaddrs listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+gentestcert testsrv
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da=$(date)
+CMD2="$SOCAT $opts OPENSSL-LISTEN:$PORT,pf=ip4,reuseaddr,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 exec:'$OD_C'"
+CMD="$SOCAT $opts - openssl:$LOCALHOST:$PORT,verify=0,$SOCAT_EGD"
+printf "test $F_n $TEST... " $N
+eval "$CMD2 2>\"${te}1\" &"
+pid=$!	# background process id
+waittcp4port $PORT
+echo "$da" |$CMD >$tf 2>"${te}2"
+if ! echo "$da" |$OD_C |diff - "$tf" >"$tdiff"; then
     $PRINTF "$FAILED: $SOCAT:\n"
     echo "$CMD2 &"
     echo "$CMD"
