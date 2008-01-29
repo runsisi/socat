@@ -1,5 +1,5 @@
 /* source: xio-progcall.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains common code dealing with program calls (exec, system) */
@@ -283,7 +283,8 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 	 return STAT_RETRYLATER;
       }
       applyopts_cloexec(ptyfd, popts);/*!*/
-      if (fd->howtoend = END_UNSPEC) {
+      /* exec:...,pty did not kill child process under some circumstances */
+      if (fd->howtoend == END_UNSPEC) {
 	 fd->howtoend = END_CLOSE_KILL;
       }
 

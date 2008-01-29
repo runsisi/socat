@@ -5,6 +5,10 @@ new features:
 	docu source doc/socat.yo released
 
 corrections:
+	exec:...,pty did not kill child process under some circumstances; fixed
+	by correcting typo in xio-progcall.c (problem reported by
+	Ralph Forsythe) 
+
 	corrected some print statements and variable names
 
 	make uninstall  did not uninstall procan

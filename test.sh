@@ -7796,6 +7796,58 @@ fi
 esac
 N=$((N+1))
 
+
+# test: there was a bug with exec:...,pty that did not kill the exec'd sub
+# process under some circumstances.
+NAME=EXECPTYKILL
+case "$TESTS" in
+*%functions%*|*%bugs%*|*%exec%*|*%$NAME%*)
+TEST="$NAME: exec:...,pty explicitely kills sub process"
+# we want to check if the exec'd sub process is kill in time
+# for this we have a shell script that generates a file after two seconds;
+# it should be killed after one second, so if the file was generated the test
+# has failed
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+ts="$td/test$N.sock"
+tda="$td/test$N.data"
+tsh="$td/test$N.sh"
+tdiff="$td/test$N.diff"
+cat >"$tsh" <<EOF
+sleep 1; echo; sleep 1;  touch "$tda"; echo
+EOF
+chmod a+x "$tsh"
+CMD1="$SOCAT $opts -U UNIX-LISTEN:$ts,fork EXEC:$tsh,pty"
+CMD="$SOCAT $opts /dev/null UNIX-CONNECT:$ts"
+printf "test $F_n $TEST... " $N
+$CMD1 2>"${te}2" &
+pid1=$!
+sleep 1
+waitfile $ts 1
+$CMD 2>>"${te}1" >>"$tf"
+usleep 2500000
+kill "$pid1" 2>/dev/null
+wait
+if [ $? -ne 0 ]; then
+    $PRINTF "$FAILED: $SOCAT:\n"
+    echo "$CMD1 &"
+    echo "$CMD2"
+    cat "${te}1" "${te}2"
+    numFAIL=$((numFAIL+1))
+elif [ -f "$tda" ]; then
+    $PRINTF "$FAILED\n"
+    cat "${te}1" "${te}2"
+    numFAIL=$((numFAIL+1))
+else
+    $PRINTF "$OK\n"
+    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
+    numOK=$((numOK+1))
+fi ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
 echo "summary: $((N-1)) tests; $numOK ok, $numFAIL failed, $numCANT could not be performed"
 
 if [ "$numFAIL" -gt 0 ]; then
