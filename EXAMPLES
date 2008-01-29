@@ -43,7 +43,7 @@ $ socat -,raw,echo=0 tcp:172.16.181.130:2023
 // wait for a connection on port 8000; do not wait for request, but immediately
 // start a shell that sends reply headers and an empty line; then echo all
 // incoming data back to client
-$ socat TCP-LISTEN:8000,crlf SYSTEM:"echo HTTP/1.0 200; echo Content-Type: text/plain; echo; cat"
+$ socat TCP-LISTEN:8000,crlf SYSTEM:"echo HTTP/1.0 200; echo Content-Type\: text/plain; echo; cat"
 
 ///////////////////////////////////////////////////////////////////////////////
 // for communicating with an attached modem, I had reasonable results with
@@ -210,7 +210,7 @@ $ gdb ./filan
 // note: some OS's do not need "-e" for echo to print control characters
 // note: chat might send bytes one by one
 // with AIX, a similar program is available under the name "pppdial"
-$ socat -d -d system:'/usr/sbin/chat "220 " "HELO loopback" "250 " "MAIL FROM: <hugo@localhost>" "250 " "RCPT TO: root" "250 " "DATA" "354 " "test1'$(echo -e "\r.")'" "250 " "QUIT"',pty,echo=0,cr tcp:localhost:25,crlf,nodelay
+$ socat -d -d tcp:localhost:25,crlf,nodelay exec:'/usr/sbin/chat -v -s "\"220 \"" "\"HELO loopback\"" "\"250 \"" "\"MAIL FROM: <hugo@localhost>\"" "\"250 \"" "\"RCPT TO: root\"" "\"250 \"" "\"DATA\"" "\"354 \"" "\"test1'$(echo -e "\r.")'\"" "\"250 \"" "\"QUIT\"" "\"221 \""',pty,echo=0,cr
 
 //////////////////////////////////////////////////////////////////////////////
 // IP6
@@ -235,10 +235,10 @@ $ socat -,icanon=0,echo=0 tcp:target:5555; reset
 // access local display from ssh server, when ssh port forwarding is disabled
 // socat must be installed on ssh server host
 // might have to use xauth...
-// this example is one-shot, because ',' cannot be passed to remote socat
-xterm1$ socat -d -d exec:"ssh target ~/bin/socat -d -d unix-l:/tmp/.X11-unix/X1 -" unix:/tmp/.X11-unix/X0
+// this example is one-shot because ssh can handle only one channel
+xterm1$ socat -d -d exec:"ssh www.dest-unreach.org rm -f /tmp/.X11-unix/X9; ~/bin/socat -d -d unix-l\:/tmp/.X11-unix/X9\,fork -" unix:/tmp/.X11-unix/X/
 xterm2$ ssh target
-target$ DISPLAY=:1 myxapplication
+target$ DISPLAY=:9 myxapplication
 
 // touch with perms:
 // no race condition for perms (applied with creat() call)
@@ -262,7 +262,7 @@ socat -,echo=0,icanon=0 exec:'ssh server',pty,setsid,ctty
 // 2) from XWindows (DISPLAY !); again 10 seconds
 (sleep 10; echo "ls"; sleep 1) |socat - exec:'ssh server',pty,setsid
 // 3) from script
-(echo PASSWORD; echo ls; sleep 1) |./socat - exec:'ssh server',pty,setsid,ctty
+(sleep 5; echo PASSWORD; echo ls; sleep 1) |./socat - exec:'ssh server',pty,setsid,ctty
 
 
 // download with proxy CONNECT
@@ -317,10 +317,10 @@ $ xclock -display localhost:30
 // and for improved security:
 # socat -d -d TCP-L:80,bind=fw-addr3,su=nobody,fork TCP:dmz-www3:80
 
-// pass an arbitrary IP protocol through your firewall (answers won't work)
+// proxy an arbitrary IP protocol over your firewall (answers won't work)
 # socat -d -d IP:0.0.0.0:150,bind=fwnonsec IP:sec-host:150,bind=fwsec
 
-// pass an unsupported IP protocol through your firewall, point to point
+// proxy an unsupported IP protocol over your firewall, point to point
 // end points see firewall interfaces as IP peers!
 # socat -d -d IP:nonsec-host:150,bind=fwnonsec IP:sec-host:150,bind=fwsec
 // note that, for IPsec, you might face problems that are known with NAT

@@ -1716,14 +1716,14 @@ dit(bf(tt(ip-add-membership=<multicast-address:interface-address:interface-index
    The indices of active network interfaces can be shown using the utility
    procan().
 label(OPTION_IP_MULTICAST_IF)
-dif(bf(tt(ip-multicast-if=<hostname>)))
+dit(bf(tt(ip-multicast-if=<hostname>)))
    Specifies hostname or address of the network interface to be used for
    multicast traffic.
 label(OPTION_IP_MULTICAST_LOOP)
-dif(bf(tt(ip-multicast-loop=<bool>)))
+dit(bf(tt(ip-multicast-loop=<bool>)))
    Specifies if outgoing multicast traffic should loop back to the interface.
 label(OPTION_IP_MULTICAST_TTL)
-dif(bf(tt(ip-multicast-ttl=<byte>)))
+dit(bf(tt(ip-multicast-ttl=<byte>)))
    Sets the TTL used for outgoing multicast traffic. Default is 1.
 label(OPTION_RES_DEBUG)dit(bf(tt(res-debug)))
 label(OPTION_RES_AAONLY)dit(bf(tt(res-aaonly)))
@@ -2145,7 +2145,7 @@ label(OPTION_ISIG)dit(bf(tt(isig=<bool>)))
 label(OPTION_ISPEED)dit(bf(tt(ispeed=<unsigned-int>)))
    Set the baud rate for incoming data on this line.nl()
    See also: link(ospeed)(OPTION_OSPEED), link(b19200)(OPTION_B19200)
-label(OPTION_ISTRIP)dif(bf(tt(istrip=<bool>)))
+label(OPTION_ISTRIP)dit(bf(tt(istrip=<bool>)))
 label(OPTION_IUCLC)dit(bf(tt(iuclc=<bool>)))
 label(OPTION_IXANY)dit(bf(tt(ixany=<bool>)))
 label(OPTION_IXOFF)dit(bf(tt(ixoff=<bool>)))
@@ -2690,7 +2690,7 @@ mancommand(\fB(sleep 5; echo PASSWORD; sleep 5; echo ls; sleep 1) |
 socat - EXEC:'ssh -l user server',pty,setsid,ctty\fP)
 mancommand(\.fi)
 
-htmlcommand(<dt><code><strong>(echo PASSWORD; sleep 5; echo ls; sleep 1) |</strong><br>
+htmlcommand(<dt><code><strong>(sleep 5; echo PASSWORD; sleep 5; echo ls; sleep 1) |</strong><br>
 <strong>socat - EXEC:'ssh -l user server',pty,setsid,ctty</strong></code><dd>)
 
 link(EXEC)(ADDRESS_EXEC)'utes an ssh session to server. Uses a link(pty)(OPTION_PTY) for communication between socat() and

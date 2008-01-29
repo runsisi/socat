@@ -9,6 +9,8 @@ corrections:
 
 	fixed lots of weaknesses in test.sh
 
+	corrected some bugs and typos in doc/socat.yo, EXAMPLES
+
 ####################### V 1.6.0.0:
 
 new features:
