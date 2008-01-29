@@ -1,5 +1,5 @@
 /* source: dalan.c */
-/* Copyright Gerhard Rieger 2001-2004 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* idea of a low level data description language. currently only a most
@@ -79,7 +79,7 @@ int dalan(const char *line, char *data, size_t *p, size_t n) {
   size_t p1 = *p;
   char c;
 
-  fputs(line, stderr); fputc('\n', stderr);
+  /*fputs(line, stderr); fputc('\n', stderr);*/
   while (c = *line++) {
     switch (c) {
     case ' ':

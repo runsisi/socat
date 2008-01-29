@@ -5,6 +5,8 @@ new features:
 	docu source doc/socat.yo released
 
 corrections:
+	corrected some print statements and variable names
+
 	make uninstall  did not uninstall procan
 
 	fixed lots of weaknesses in test.sh
