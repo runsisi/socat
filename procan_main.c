@@ -32,6 +32,7 @@ int main(int argc, const char *argv[]) {
 #if WITH_HELP
       case '?': case 'h': procan_usage(stdout); exit(0);
 #endif /* WITH_HELP */
+      case 'c': procan_cdefs(stdout); exit(0);
 #if LATER
       case 'V': procan_version(stdout); exit(0);
       case 'l': diag_set(arg1[0][2], &arg1[0][3]); break;
@@ -79,6 +80,7 @@ static void procan_usage(FILE *fd) {
 #if WITH_HELP
    fputs("      -?|-h  print a help text describing command line options\n", fd);
 #endif
+   fputs("      -c     print values of compile time C defines\n", fd);
 #if LATER
    fputs("      -d     increase verbosity (use up to 4 times; 2 are recommended)\n", fd);
 #endif

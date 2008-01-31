@@ -1,5 +1,5 @@
 # source: Makefile.in
-# Copyright Gerhard Rieger 2001-2007
+# Copyright Gerhard Rieger 2001-2008
 # Published under the GNU General Public License V.2, see file COPYING
 
 # note: @...@ forms are filled in by configure script
@@ -50,7 +50,7 @@ XIOSRCS = xioinitialize.c xiohelp.c xioparam.c xiodiag.c xioopen.c xioopts.c \
 	xio-pty.c xio-openssl.c \
 	xio-ascii.c xiolockfile.c xio-tcpwrap.c xio-ext2.c xio-tun.c
 XIOOBJS = $(XIOSRCS:.c=.o)
-UTLSRCS = error.c dalan.c procan.c hostan.c fdname.c sysutils.c utils.c nestlex.c @FILAN@ @SYCLS@ @SSLCLS@
+UTLSRCS = error.c dalan.c procan.c procan-cdefs.c hostan.c fdname.c sysutils.c utils.c nestlex.c @FILAN@ @SYCLS@ @SSLCLS@
 UTLOBJS = $(UTLSRCS:.c=.o)
 CFILES = $(XIOSRCS) $(UTLSRCS) socat.c procan_main.c filan_main.c
 OFILES = $(CFILES:.c=.o)
@@ -107,7 +107,7 @@ depend: $(CFILES) $(HFILES)
 socat: socat.o libxio.a
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ socat.o libxio.a $(CLIBS)
 
-PROCAN_OBJS=procan_main.o procan.o hostan.o error.o sycls.o sysutils.o utils.o
+PROCAN_OBJS=procan_main.o procan.o procan-cdefs.o hostan.o error.o sycls.o sysutils.o utils.o
 procan: $(PROCAN_OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(PROCAN_OBJS) $(CLIBS)
 
