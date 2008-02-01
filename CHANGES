@@ -22,6 +22,11 @@ corrections:
 	ABSTRACT-CONNECT, ABSTRACT-CLIENT, SOCKSA, SOCKS4A
 	(thanks to Fernanda G Weiden for reporting this problem)
 
+	fixed a bug where sub processes would become zombies because the master
+	process caught SIGCHLD but did not wait(). this affected addresses
+	UDP-RECVFROM, IP-RECVFROM, UNIX-RECVFROM, ABSTRACT-RECVFROM
+	(thanks to Evan Borgstrom for reporting this problem)
+
 	corrected some print statements and variable names
 
 	make uninstall  did not uninstall procan
