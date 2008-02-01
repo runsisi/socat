@@ -12,6 +12,10 @@ corrections:
 	service name resolution failed due to byte order mistake
 	(thanks to James Sainsbury for reporting this problem)
 
+	socat would hang when invoked with many file descriptors already opened
+	fix: replaced FOPEN_MAX with FD_SETSIZE
+	thanks to Daniel Lucq for reporting this problem.
+
 	corrected some print statements and variable names
 
 	make uninstall  did not uninstall procan

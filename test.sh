@@ -7896,6 +7896,47 @@ esac
 N=$((N+1))
 
 
+# test: up to socat 1.6.0.0, the highest file descriptor supported in socats
+# transfer engine was FOPEN_MAX-1; this usually worked fine but would fail when
+# socat was invoked with many file descriptors already opened. socat would 
+# just hang in the select() call. Thanks to Daniel Lucq for reporting this
+# problem. 
+# FOPEN_MAX on different OS's:
+#   OS			FOPEN_	ulimit	ulimit	FD_
+#			MAX	-H -n	-S -n	SETSIZE
+#   Linux 2.6:		16	1024	1024	1024
+#   HP-UX 11.11:	60	2048	2048	2048
+#   FreeBSD:		20	11095	11095	1024
+#   Cygwin:		20	unlimit	256	64
+#   AIX:		32767	65534		65534
+NAME=EXCEED_FOPEN_MAX
+case "$TESTS" in
+*%functions%*|*%maxfds%*|*%$NAME%*)
+TEST="$NAME: more than FOPEN_MAX FDs in use"
+# this test opens a number of FDs before socat is invoked. socat will have to
+# allocate higher FD numbers and thus hang if it cannot handle them.
+REDIR=
+#set -vx
+FOPEN_MAX=$($PROCAN -c 2>/dev/null |grep '^#define[ ][ ]*FOPEN_MAX' |awk '{print($3);}')
+if [ -z "$FOPEN_MAX" ]; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}could not determine FOPEN_MAX${NORMAL}\n" "$N"
+    numCANT=$((numCANT+1))
+else
+OPEN_FILES=$FOPEN_MAX	# more than the highest FOPEN_MAX
+i=3; while [ "$i" -lt "$OPEN_FILES" ]; do
+    REDIR="$REDIR $i>&2"
+    i=$((i+1))
+done
+#echo "$REDIR"
+#testecho "$N" "$TEST" "" "pipe" "$opts -T 3" "" 1 
+#set -vx
+eval testecho "\"$N\"" "\"$TEST\"" "\"\"" "pipe" "\"$opts -T 1\"" 1 $REDIR
+#set +vx
+fi # could determine FOPEN_MAX
+esac
+N=$((N+1))
+
+
 echo "summary: $((N-1)) tests; $numOK ok, $numFAIL failed, $numCANT could not be performed"
 
 if [ "$numFAIL" -gt 0 ]; then

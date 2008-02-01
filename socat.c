@@ -1,5 +1,5 @@
 /* source: socat.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this is the main source, including command line option parsing, general
@@ -658,17 +658,17 @@ int childleftdata(xiofile_t *xfd) {
 	 /*0 FD_SET(XIO_GETRDFD(xfd), &expt);*/
       }
       do {
-	 retval = Select(FOPEN_MAX, &in, &out, &expt, &time0);
+	 retval = Select(FD_SETSIZE, &in, &out, &expt, &time0);
       } while (retval < 0 && errno == EINTR);
 
       if (retval < 0) {
 #if HAVE_FDS_BITS
 	 Error5("select(%d, &0x%lx, &0x%lx, &0x%lx, {0}): %s",
-		FOPEN_MAX, in.fds_bits[0], out.fds_bits[0],
+		FD_SETSIZE, in.fds_bits[0], out.fds_bits[0],
 		expt.fds_bits[0], strerror(errno));
 #else
 	 Error5("select(%d, &0x%lx, &0x%lx, &0x%lx, {0}): %s",
-		FOPEN_MAX, in.__fds_bits[0], out.__fds_bits[0],
+		FD_SETSIZE, in.__fds_bits[0], out.__fds_bits[0],
 		expt.__fds_bits[0], strerror(errno));
 #endif
 	 return -1;
@@ -835,7 +835,7 @@ int _socat(void) {
 	       FD_SET(XIO_GETWRFD(sock1), &out);
 	    }
 	 }
-	 retval = Select(FOPEN_MAX, &in, &out, &expt, to);
+	 retval = Select(FD_SETSIZE, &in, &out, &expt, to);
 	 _errno = errno;
 	 if (retval < 0 && errno == EINTR) {
 	    Info1("select(): %s", strerror(errno));
@@ -851,12 +851,12 @@ int _socat(void) {
       if (retval < 0) {
 #if HAVE_FDS_BITS
 	    Error7("select(%d, &0x%lx, &0x%lx, &0x%lx, %s%lu): %s",
-		   FOPEN_MAX, in.fds_bits[0], out.fds_bits[0],
+		   FD_SETSIZE, in.fds_bits[0], out.fds_bits[0],
 		   expt.fds_bits[0], to?"&":"NULL/", to?to->tv_sec:0,
 		   strerror(errno));
 #else
 	    Error7("select(%d, &0x%lx, &0x%lx, &0x%lx, %s%lu): %s",
-		   FOPEN_MAX, in.__fds_bits[0], out.__fds_bits[0],
+		   FD_SETSIZE, in.__fds_bits[0], out.__fds_bits[0],
 		   expt.__fds_bits[0], to?"&":"NULL/", to?to->tv_sec:0,
 		   strerror(errno));
 #endif
