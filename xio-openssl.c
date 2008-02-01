@@ -1,5 +1,5 @@
 /* source: xio-openssl.c */
-/* Copyright Gerhard Rieger 2002-2007 */
+/* Copyright Gerhard Rieger 2002-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the implementation of the openssl addresses */
@@ -266,6 +266,10 @@ static int
 	 }
 #endif /* WITH_RETRY */
       default: return STAT_NORETRY;
+      }
+
+      if (dofork) {
+	 xiosetchilddied();	/* set SIGCHLD handler */
       }
 
 #if WITH_RETRY

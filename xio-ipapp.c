@@ -1,5 +1,5 @@
 /* source: xio-ipapp.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for TCP and UDP related options */
@@ -55,6 +55,10 @@ int xioopen_ipapp_connect(int argc, const char *argv[], struct opt *opts,
 			       them, &themlen, us, &uslen, &needbind, &lowport,
 			       &socktype) != STAT_OK) {
       return STAT_NORETRY;
+   }
+
+   if (dofork) {
+      xiosetchilddied();	/* set SIGCHLD handler */
    }
 
    if (xioopts.logopt == 'm') {

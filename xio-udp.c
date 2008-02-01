@@ -1,5 +1,5 @@
 /* source: xio-udp.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for handling UDP addresses */
@@ -163,6 +163,10 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
       fd->stream.para.socket.ip.dosourceport = true;
    }
    retropt_bool(opts, OPT_LOWPORT, &fd->stream.para.socket.ip.lowport);
+
+   if (dofork) {
+      xiosetchilddied();	/* set SIGCHLD handler */
+   }
 
    while (true) {	/* we loop with fork or prohibited packets */
       /* now wait for some packet on this datagram socket, get its sender

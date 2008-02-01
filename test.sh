@@ -7979,6 +7979,56 @@ esac
 N=$((N+1))
 
 
+# there was a bug with udp-listen and fork: terminating sub processes became
+# zombies because the master process did not catch SIGCHLD
+NAME=UDP4LISTEN_SIGCHLD
+case "$TESTS" in
+*%functions%*|*%ip4%*|*%ipapp%*|*%udp%*|*%$NAME%*)
+TEST="$NAME: test if UDP4-LISTEN child becomes zombie"
+# idea: run a udp-listen process with fork and -T. Connect once, so a sub
+# process is forked off. Make some transfer and wait until the -T timeout is
+# over. Now check for the child process: if it is zombie the test failed. 
+# Correct is that child process terminated
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+tsl=$PORT
+ts="$LOCALHOST:$tsl"
+da=$(date)
+CMD1="$SOCAT $opts -T 0.5 UDP4-LISTEN:$tsl,reuseaddr,fork PIPE"
+CMD2="$SOCAT $opts - UDP4:$ts"
+printf "test $F_n $TEST... " $N
+$CMD1 >"$tf" 2>"${te}1" &
+pid1=$!
+waitudp4port $tsl 1
+echo "$da" |$CMD2 >>"$tf" 2>>"${te}2"
+rc2=$?
+sleep 1
+#read -p ">"
+l="$(childprocess $pid1)"
+kill $pid1 2>/dev/null; wait
+if [ $rc2 -ne 0 ]; then
+    $PRINTF "$NO_RESULT\n"	# already handled in test UDP4STREAM
+    numCANT=$((numCANT+1))
+elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
+    $PRINTF "$NO_RESULT\n"	# already handled in test UDP4STREAM
+    numCANT=$((numCANT+1))
+elif $(isdefunct "$l"); then
+    $PRINTF "$FAILED: $SOCAT:\n"
+    echo "$CMD1 &"
+    echo "$CMD2"
+    cat "${te}1" "${te}2"
+    numFAIL=$((numFAIL+1))
+else
+    $PRINTF "$OK\n"
+    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
+    numOK=$((numOK+1))
+fi ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
 echo "summary: $((N-1)) tests; $numOK ok, $numFAIL failed, $numCANT could not be performed"
 
 if [ "$numFAIL" -gt 0 ]; then

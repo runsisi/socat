@@ -1,5 +1,5 @@
 /* source: xio-listen.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for listen socket options */
@@ -115,28 +115,9 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
 
    if (applyopts_single(xfd, opts, PH_INIT) < 0)  return -1;
 
-#if 1
    if (dofork) {
-#if HAVE_SIGACTION
-      struct sigaction act;
-      memset(&act, 0, sizeof(struct sigaction));
-      act.sa_flags   = SA_NOCLDSTOP|SA_RESTART
-#ifdef SA_NOMASK
-	 |SA_NOMASK
-#endif
-	 ;
-      act.sa_handler = childdied;
-      if (Sigaction(SIGCHLD, &act, NULL) < 0) {
-	 /*! man does not say that errno is defined */
-	 Warn2("sigaction(SIGCHLD, %p, NULL): %s", childdied, strerror(errno));
-      }
-#else /* HAVE_SIGACTION */
-      if (Signal(SIGCHLD, childdied) == SIG_ERR) {
-	 Warn2("signal(SIGCHLD, %p): %s", childdied, strerror(errno));
-      }
-#endif /* !HAVE_SIGACTION */
+      xiosetchilddied();	/* set SIGCHLD handler */
    }
-#endif /* 1 */
 
    if ((xfd->fd = Socket(pf, socktype, proto)) < 0) {
       Msg4(level,

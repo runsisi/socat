@@ -16,6 +16,12 @@ corrections:
 	fix: replaced FOPEN_MAX with FD_SETSIZE
 	thanks to Daniel Lucq for reporting this problem.
 
+	fixed bugs where sub processes would become zombies because the master
+	process did not catch SIGCHLD. this affected addresses UDP-LISTEN,
+	UDP-CONNECT, TCP-CONNECT, OPENSSL, PROXY, UNIX-CONNECT, UNIX-CLIENT,
+	ABSTRACT-CONNECT, ABSTRACT-CLIENT, SOCKSA, SOCKS4A
+	(thanks to Fernanda G Weiden for reporting this problem)
+
 	corrected some print statements and variable names
 
 	make uninstall  did not uninstall procan

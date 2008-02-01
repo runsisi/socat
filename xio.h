@@ -388,6 +388,7 @@ extern pid_t diedunknown3;
 extern pid_t diedunknown4;
 
 extern int xiosetsigchild(xiofile_t *xfd, int (*callback)(struct single *));
+extern int xiosetchilddied(void);
 extern int xio_opt_signal(pid_t pid, int signum);
 extern void childdied(int signum);
 

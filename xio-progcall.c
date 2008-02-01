@@ -399,9 +399,8 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
    /*0   if ((optpr = copyopts(*copts, GROUP_PROCESS)) == NULL)
      return STAT_RETRYLATER;*/
    retropt_bool(*copts, OPT_STDERR, &withstderr);
-   if (Signal(SIGCHLD, childdied) == SIG_ERR) {
-      Warn2("signal(SIGCHLD, %p): %s", childdied, strerror(errno));
-   }
+
+   xiosetchilddied();	/* set SIGCHLD handler */
 
    if (withfork) {
       const char *forkwaitstring;
