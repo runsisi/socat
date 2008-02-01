@@ -1525,6 +1525,47 @@ testoptions () {
     return 0
 }
 
+# check if a process with given pid exists; print its ps line
+# if yes: prints line to stdout, returns 0
+# if not: prints ev.message to stderr, returns 1
+ifprocess () {
+    local l
+    case "$UNAME" in
+    Linux) l="$(ps -fade |grep "^.........$(printf %5u $1)")" ;;
+    esac
+    if [ -z "$l" ]; then
+	return 1;
+    fi
+    echo "$l"
+    return 0
+}
+
+# check if the given pid exists and has child processes
+# if yes: prints child process lines to stdout, returns 0
+# if not: prints ev.message to stderr, returns 1
+childprocess () {
+    local l
+    case "$UNAME" in
+    Linux) l="$(ps -fade |grep "^...............$(printf %5u $1)")" ;;
+    esac
+    if [ -z "$l" ]; then
+	return 1;
+    fi
+    echo "$l"
+    return 0
+}
+
+# check if the given process line refers to a defunct (zombie) process
+# yes: returns 0
+# no: returns 1
+isdefunct () {
+    local l
+    case "$UNAME" in
+    Linux) l="$(echo "$1" |grep ' <defunct>$')" ;;
+    esac
+    [ -n "$l" ];
+}
+
 unset HAVENOT_IP4
 # check if an IP4 loopback interface exists
 runsip4 () {
@@ -7739,6 +7780,7 @@ $CMD1 2>"${te}1" >"$tf" &
 pid=$!	# background process id
 waittcp4port $PORT
 (echo "$da"; sleep 2) |$CMD2 2>"${te}2"
+kill "$pid" 2>/dev/null; wait
 if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     $PRINTF "$FAILED: $SOCAT:\n"
     echo "$CMD1"
