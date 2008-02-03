@@ -29,6 +29,9 @@ corrections:
 
 	corrected option handling with STDIO; usecase: cool-write
 
+	corrected name of option intervall to interval (old form still valid
+	for us German speaking guys)
+
 	corrected some print statements and variable names
 
 	make uninstall  did not uninstall procan

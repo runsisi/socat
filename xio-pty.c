@@ -1,5 +1,5 @@
 /* source: xio-pty.c */
-/* Copyright Gerhard Rieger 2002-2007 */
+/* Copyright Gerhard Rieger 2002-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for creating pty addresses */
@@ -25,7 +25,7 @@ const struct addrdesc addr_pty = { "pty",   3, xioopen_pty, GROUP_NAMED|GROUP_FD
 const struct optdesc opt_symbolic_link = { "symbolic-link", "link", OPT_SYMBOLIC_LINK, GROUP_PTY, PH_LATE, TYPE_FILENAME, OFUNC_SPEC, 0, 0 };
 #if HAVE_POLL
 const struct optdesc opt_pty_wait_slave = { "pty-wait-slave", "wait-slave", OPT_PTY_WAIT_SLAVE, GROUP_PTY, PH_EARLY, TYPE_BOOL,   OFUNC_SPEC, 0, 0 };
-const struct optdesc opt_pty_intervall  = { "pty-intervall",  NULL,         OPT_PTY_INTERVALL,  GROUP_PTY, PH_EARLY, TYPE_TIMESPEC, OFUNC_SPEC, 0, 0 };
+const struct optdesc opt_pty_intervall  = { "pty-interval",  NULL,         OPT_PTY_INTERVALL,  GROUP_PTY, PH_EARLY, TYPE_TIMESPEC, OFUNC_SPEC, 0, 0 };
 #endif /* HAVE_POLL */
 
 static int xioopen_pty(int argc, const char *argv[], struct opt *opts, int xioflags, xiofile_t *xfd, unsigned groups, int dummy1, int dummy2, int dummy3) {

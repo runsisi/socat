@@ -1789,7 +1789,7 @@ Platforms: all
    Linux, FreeBSD, NetBSD, and on Tru64 with openpty. 
 
 
-Option: pty-intervall
+Option: pty-interval
 
 Type: TIMESPEC
 Option group: PTY
@@ -1799,7 +1799,7 @@ Platforms: all
    When the wait-slave option is set, socat periodically checks the HUP
    condition using poll() to find if the pty's slave side has been
    opened. The default 
-   polling intervall is 1s. Use the pty-intervall option to change this value.
+   polling interval is 1s. Use the pty-interval option to change this value.
 
 
 ===============================================================================
@@ -3008,7 +3008,7 @@ Option group: IP_TCP
 Phase: PASTSOCKET
 Platforms: Linux
 
-Sets the TCP_KEEPINTVL value of the socket with setsockopt(). Intervall between
+Sets the TCP_KEEPINTVL value of the socket with setsockopt(). Interval between
 keepalives (in seconds?)
 
 
@@ -4703,7 +4703,7 @@ Number of retries before the connection or listen attempt is aborted.
 Default is 0, which means just one attempt. 
 
 
-Option: intervall=<double>
+Option: interval=<double>
 
 Type: TIMESPEC
 Option group: RETRY

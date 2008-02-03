@@ -163,7 +163,7 @@ label(option_t)dit(bf(tt(-t))tt(<timeout>))
    down. Then, socat() waits <timeout> [link(timeval)(TYPE_TIMEVAL)] seconds
    before terminating. Default is 0.5 seconds. This timeout only applies to
    addresses where write and read part can be closed independently. When during
-   the timeout intervall the read part gives EOF, socat terminates without
+   the timeout interval the read part gives EOF, socat terminates without
    awaiting the timeout.
 label(option_T)dit(bf(tt(-T))tt(<timeout>))
    Total inactivity timeout: when socat is already in the transfer loop and
@@ -1774,7 +1774,7 @@ label(OPTION_KEEPIDLE)dit(bf(tt(keepidle=<seconds>)))
    Sets the idle time before sending the first keepalive to <seconds>
    [link(int)(TYPE_INT)].
 label(OPTION_KEEPINTVL)dit(bf(tt(keepintvl=<seconds>)))
-   Sets the intervall between two keepalives to <seconds>
+   Sets the interval between two keepalives to <seconds>
    [link(int)(TYPE_INT)]. 
 label(OPTION_LINGER2)dit(bf(tt(linger2=<seconds>)))
    Sets the time to keep the socket in FIN-WAIT-2 state to <seconds>
@@ -2227,11 +2227,11 @@ label(OPTION_PTY_WAIT_SLAVE)dit(bf(tt(wait-slave)))
    system call. And it depends on an undocumented behaviour of pty's, so it
    does not work on all operating systems. It has successfully been tested on
    Linux, FreeBSD, NetBSD, and on Tru64 with openpty. 
-label(OPTION_PTY_INTERVALL)dit(bf(tt(pty-intervall=<seconds>)))
+label(OPTION_PTY_INTERVAL)dit(bf(tt(pty-interval=<seconds>)))
    When the link(wait-slave)(OPTION_PTY_WAIT_SLAVE) option is set, socat
    periodically checks the HUP condition using tt(poll()) to find if the pty's
-   slave side has been opened. The default polling intervall is 1s. Use the
-   pty-intervall option [link(timeval)(TYPE_TIMEVAL)] to change this value.
+   slave side has been opened. The default polling interval is 1s. Use the
+   pty-interval option [link(timeval)(TYPE_TIMEVAL)] to change this value.
 enddit()
 
 
@@ -2326,7 +2326,7 @@ startdit()
 label(OPTION_RETRY)dit(bf(tt(retry=<num>)))
    Number of retries before the connection or listen attempt is aborted. 
    Default is 0, which means just one attempt. 
-label(OPTION_INTERVALL)dit(bf(tt(intervall=<timespec>)))
+label(OPTION_INTERVAL)dit(bf(tt(interval=<timespec>)))
    Time between consecutive attempts (seconds, 
    [link(timespec)(TYPE_TIMESPEC)]). Default is 1 second.
 label(OPTION_FOREVER)dit(bf(tt(forever)))

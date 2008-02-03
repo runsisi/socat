@@ -370,11 +370,11 @@ filloptionvalues() {
     esac
     # PTY
     case "$OPTS" in
-    *,pty-intervall,*) OPTS=$(echo "$OPTS" |sed "s/,pty-intervall,/,pty-intervall=$INTERFACE,/g");;
+    *,pty-interval,*) OPTS=$(echo "$OPTS" |sed "s/,pty-interval,/,pty-interval=$INTERFACE,/g");;
     esac
     # RETRY
     case "$OPTS" in
-    *,intervall,*) OPTS=$(echo "$OPTS" |sed "s/,intervall,/,intervall=1,/g");;
+    *,interval,*) OPTS=$(echo "$OPTS" |sed "s/,interval,/,interval=1,/g");;
     esac
     # READLINE
     case "$OPTS" in
@@ -4400,7 +4400,7 @@ da=$(date)
 # this is the server in the protected network that we want to reach
 CMD1="$SOCAT -lpserver $opts tcp4-l:$PORT,reuseaddr,bind=$LOCALHOST echo"
 # this is the double client in the protected network
-CMD2="$SOCAT -lp2client $opts tcp4:$LOCALHOST:$((PORT+1)),retry=10,intervall=1 tcp4:$LOCALHOST:$PORT"
+CMD2="$SOCAT -lp2client $opts tcp4:$LOCALHOST:$((PORT+1)),retry=10,interval=1 tcp4:$LOCALHOST:$PORT"
 # this is the double server in the outside network
 CMD3="$SOCAT -lp2server $opts tcp4-l:$((PORT+2)),reuseaddr,bind=$LOCALHOST tcp4-l:$((PORT+1)),reuseaddr,bind=$LOCALHOST"
 # this is the outside client that wants to use the protected server
@@ -4461,7 +4461,7 @@ CMD2="$SOCAT $opts -lpproxy tcp4-l:$((PORT+1)),reuseaddr,bind=$LOCALHOST,fork ex
 # this is our proxy connect wrapper in the protected network
 CMD3="$SOCAT $opts -lpwrapper tcp4-l:$((PORT+2)),reuseaddr,bind=$LOCALHOST,fork proxy:$LOCALHOST:$LOCALHOST:$((PORT+3)),pf=ip4,proxyport=$((PORT+1)),resolve"
 # this is our double client in the protected network using SSL
-#CMD4="$SOCAT $opts -lp2client ssl:$LOCALHOST:$((PORT+2)),pf=ip4,retry=10,intervall=1,cert=testcli.pem,cafile=testsrv.crt,$SOCAT_EGD tcp4:$LOCALHOST:$PORT"
+#CMD4="$SOCAT $opts -lp2client ssl:$LOCALHOST:$((PORT+2)),pf=ip4,retry=10,interval=1,cert=testcli.pem,cafile=testsrv.crt,$SOCAT_EGD tcp4:$LOCALHOST:$PORT"
 CMD4="$SOCAT $opts -lp2client ssl:$LOCALHOST:$((PORT+2)),pf=ip4,cert=testcli.pem,cafile=testsrv.crt,$SOCAT_EGD tcp4:$LOCALHOST:$PORT"
 # this is the double server in the outside network
 CMD5="$SOCAT $opts -lp2server -t1 tcp4-l:$((PORT+4)),reuseaddr,bind=$LOCALHOST ssl-l:$((PORT+3)),pf=ip4,reuseaddr,bind=$LOCALHOST,$SOCAT_EGD,cert=testsrv.pem,cafile=testcli.crt"
@@ -4541,7 +4541,7 @@ CMD2="$SOCAT $opts -lpproxy -t1 tcp4-l:$((PORT+1)),reuseaddr,bind=$LOCALHOST,for
 # this is our proxy connect wrapper in the protected network
 CMD3="$SOCAT $opts -lpwrapper -t3 tcp4-l:$((PORT+2)),reuseaddr,bind=$LOCALHOST,fork proxy:$LOCALHOST:$LOCALHOST:$((PORT+3)),pf=ip4,proxyport=$((PORT+1)),resolve"
 # this is our double client in the protected network using SSL
-CMD4="$SOCAT $opts -lp2client -t3 ssl:$LOCALHOST:$((PORT+2)),retry=10,intervall=1,cert=testcli.pem,cafile=testsrv.crt,verify,fork,$SOCAT_EGD tcp4:$LOCALHOST:$PORT"
+CMD4="$SOCAT $opts -lp2client -t3 ssl:$LOCALHOST:$((PORT+2)),retry=10,interval=1,cert=testcli.pem,cafile=testsrv.crt,verify,fork,$SOCAT_EGD tcp4:$LOCALHOST:$PORT"
 # this is the double server in the outside network
 CMD5="$SOCAT $opts -lp2server -t4 tcp4-l:$((PORT+4)),reuseaddr,bind=$LOCALHOST,fork ssl-l:$((PORT+3)),pf=ip4,reuseaddr,bind=$LOCALHOST,$SOCAT_EGD,cert=testsrv.pem,cafile=testcli.crt,retry=10"
 # this is the outside client that wants to use the protected server
