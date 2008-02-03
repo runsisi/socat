@@ -29,6 +29,9 @@ corrections:
 
 	corrected option handling with STDIO; usecase: cool-write
 
+	fixed small bugs on systems with struct ip_mreq without struct ip_mreqn
+	(thanks to Roland Illig for sending a patch)
+
 	corrected name of option intervall to interval (old form still valid
 	for us German speaking guys)
 

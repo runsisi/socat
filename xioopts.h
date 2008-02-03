@@ -1,5 +1,5 @@
 /* source: xioopts.h */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xioopts_h_included
@@ -49,7 +49,9 @@ enum e_types {
    TYPE_LONGLONG,	/* long long */
    TYPE_OFF32,		/* off_t */
    TYPE_OFF64,		/* off64_t */
+#if HAVE_STRUCT_IP_MREQ || HAVE_STRUCT_IP_MREQN
    TYPE_IP_MREQN,	/* for  struct ip_mreq  or  struct ip_mreqn */
+#endif
    TYPE_IP4NAME,	/* IPv4 hostname or address */
 
    TYPE_2BYTE = TYPE_USHORT
