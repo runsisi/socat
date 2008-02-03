@@ -6895,7 +6895,7 @@ N=$((N+1))
 
 NAME=COOLWRITE
 case "$TESTS" in
-*%functions%*|*%timeout%*|*%ignoreeof%*|*%$NAME%*)
+*%functions%*|*%timeout%*|*%ignoreeof%*|*%coolwrite%*|*%$NAME%*)
 TEST="$NAME: option cool-write"
 if ! testoptions cool-write >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}option cool-write not available${NORMAL}\n" $N
@@ -6915,6 +6915,53 @@ $CMD1 2>"${te}1" &
 bg=$!	# background process id
 sleep 1
 (echo .; sleep 1; echo) |$CMD 2>"$te"
+rc=$?
+kill $bg 2>/dev/null; wait
+if [ $rc -ne 0 ]; then
+    $PRINTF "$FAILED: $SOCAT:\n"
+    echo "$CMD &"
+    cat "$te"
+    numFAIL=$((numFAIL+1))
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat "$te"; fi
+   numOK=$((numOK+1))
+fi
+fi # testoptions
+esac
+N=$((N+1))
+
+
+# test if option coolwrite can be applied to bidirectional address stdio
+# this failed up to socat 1.6.0.0
+NAME=COOLSTDIO
+case "$TESTS" in
+*%functions%*|*%timeout%*|*%ignoreeof%*|*%coolwrite%*|*%$NAME%*)
+TEST="$NAME: option cool-write on bidirectional stdio"
+# this test starts a socat reader that terminates after receiving one+ 
+# bytes (option readbytes); and a test process that sends two bytes via
+# named pipe to the receiving process and, a second later, sends another
+# byte. The last write will fail with "broken pipe"; if option coolwrite
+# has been applied successfully, socat will terminate with 0 (OK),
+# otherwise with error.
+if ! testoptions cool-write >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}option cool-write not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+#set -vx
+ti="$td/test$N.pipe"
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="$(date) $RANDOM"
+# a reader that will terminate after 1 byte
+CMD1="$SOCAT $opts -u pipe:\"$ti\",readbytes=1 /dev/null"
+CMD="$SOCAT $opts -,cool-write pipe >\"$ti\""
+printf "test $F_n $TEST... " $N
+$CMD1 2>"${te}1" &
+bg=$!	# background process id
+sleep 1
+(echo .; sleep 1; echo) |eval "$CMD" 2>"$te"
 rc=$?
 kill $bg 2>/dev/null; wait
 if [ $rc -ne 0 ]; then

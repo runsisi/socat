@@ -1,5 +1,5 @@
 /* source: xio-stdio.c */
-/* Copyright Gerhard Rieger 2001-2006 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening addresses stdio type */
@@ -29,8 +29,8 @@ const struct addrdesc addr_stderr = { "stderr", 2, xioopen_stdfd, GROUP_FD|GROUP
 /* process a bidirectional "stdio" or "-" argument with options.
    generate a dual address. */
 int xioopen_stdio_bi(xiofile_t *sock) {
-   struct opt *opts1, *opts2, *optspr;
-   unsigned int groups1 = addr_stdio.groups, groups2 = addr_stdio.groups;
+   struct opt *optspr;
+   unsigned int groups1 = addr_stdio.groups;
    int result;
 
    if (xioopen_makedual(sock) < 0) {
@@ -67,9 +67,6 @@ int xioopen_stdio_bi(xiofile_t *sock) {
    }
 #endif /* WITH_TERMIOS */
 
-   if (applyopts_single(&sock->stream, sock->stream.opts, PH_INIT) < 0)  return -1;
-   applyopts(-1, sock->stream.opts, PH_INIT);
-
    /* options here are one-time and one-direction, no second use */
    retropt_bool(sock->stream.opts, OPT_IGNOREEOF, &sock->dual.stream[0]->ignoreeof);
 
@@ -77,38 +74,59 @@ int xioopen_stdio_bi(xiofile_t *sock) {
    if ((optspr = copyopts(sock->stream.opts, GROUP_PROCESS)) == NULL) {
       return -1;
    }
+   /* here we copy opts, because most have to be applied twice! */
+   if ((sock->dual.stream[1]->opts = copyopts(sock->stream.opts, GROUP_FD|GROUP_APPL|(groups1&~GROUP_PROCESS))) == NULL) {
+      return -1;
+   }
+   sock->dual.stream[0]->opts = sock->stream.opts;
+   sock->stream.opts = NULL;
+
+   if (applyopts_single(sock->dual.stream[0],
+			sock->dual.stream[0]->opts, PH_INIT)
+       < 0)
+      return -1;
+   if (applyopts_single(sock->dual.stream[1],
+			sock->dual.stream[1]->opts, PH_INIT)
+       < 0)
+      return -1;
+   applyopts(-1, sock->dual.stream[0]->opts, PH_INIT);
+   applyopts(-1, sock->dual.stream[1]->opts, PH_INIT);
    if ((result = applyopts(-1, optspr, PH_EARLY)) < 0)
       return result;
    if ((result = applyopts(-1, optspr, PH_PREOPEN)) < 0)
       return result;
 
-   /* here we copy opts, because most have to be applied twice! */
-   if ((opts1 = copyopts(sock->stream.opts, GROUP_FD|GROUP_APPL|(groups1&~GROUP_PROCESS))) == NULL) {
-      return -1;
-   }
-
    /* apply options to first FD */
-   if ((result = applyopts(sock->dual.stream[0]->fd, opts1, PH_ALL)) < 0) {
+   if ((result =
+	applyopts(sock->dual.stream[0]->fd,
+		  sock->dual.stream[0]->opts, PH_ALL))
+       < 0) {
       return result;
    }
-   if ((result = _xio_openlate(sock->dual.stream[0], opts1)) < 0) {
+   if ((result = _xio_openlate(sock->dual.stream[0],
+			       sock->dual.stream[0]->opts)) < 0) {
       return result;
    }
+#if 0
+   /* ignore this opt */
+   retropt_bool(sock->dual.stream[0]->opts, OPT_COOL_WRITE);
+#endif
 
-   if ((opts2 = copyopts(sock->stream.opts, GROUP_FD|GROUP_APPL|(groups2&~GROUP_PROCESS))) == NULL) {
-      return -1;
-   }
    /* apply options to second FD */
-   if ((result = applyopts(sock->dual.stream[1]->fd, opts2, PH_ALL)) < 0) {
+   if ((result = applyopts(sock->dual.stream[1]->fd,
+			   sock->dual.stream[1]->opts, PH_ALL)) < 0) {
       return result;
    }
-   if ((result = _xio_openlate(sock->dual.stream[1], opts2)) < 0) {
+   if ((result = _xio_openlate(sock->dual.stream[1],
+			       sock->dual.stream[1]->opts)) < 0) {
       return result;
    }
 
+#if 0
    if ((result = _xio_openlate(sock->dual.stream[1], optspr)) < 0) {
       return result;
    }
+#endif
 
    Notice("reading from and writing to stdio");
    return 0;

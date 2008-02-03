@@ -27,6 +27,8 @@ corrections:
 	UDP-RECVFROM, IP-RECVFROM, UNIX-RECVFROM, ABSTRACT-RECVFROM
 	(thanks to Evan Borgstrom for reporting this problem)
 
+	corrected option handling with STDIO; usecase: cool-write
+
 	corrected some print statements and variable names
 
 	make uninstall  did not uninstall procan
