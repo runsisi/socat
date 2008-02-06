@@ -21,6 +21,7 @@ static int iffan(FILE *outfile);
 
 int hostan(FILE *outfile) {
 #if WITH_SOCKET
+   fprintf(outfile, "\nIP INTERFACES\n");
    iffan(outfile);
 #endif
    return 0;
