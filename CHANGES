@@ -29,6 +29,8 @@ corrections:
 
 	corrected option handling with STDIO; usecase: cool-write
 
+	configure --disable-pty  also disabled option waitlock
+
 	fixed small bugs on systems with struct ip_mreq without struct ip_mreqn
 	(thanks to Roland Illig for sending a patch)
 

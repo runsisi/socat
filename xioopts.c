@@ -1535,7 +1535,9 @@ const struct optname optionnames[] = {
 #endif
 #if HAVE_PTY && HAVE_POLL
 	IF_PTY    ("wait-slave",	&opt_pty_wait_slave)
+#endif /* HAVE_PTY && HAVE_POLL */
 	IF_ANY    ("waitlock",	&opt_waitlock)
+#if HAVE_PTY && HAVE_POLL
 	IF_PTY    ("waitslave",	&opt_pty_wait_slave)
 #endif /* HAVE_PTY && HAVE_POLL */
 #ifdef VWERASE
