@@ -83,3 +83,15 @@ A: Probably, in a second attempt you set the correct LD_LIBARY_PATH for socat,
 but it had not been set during the ./configure run, or you did not "make clean"
 before running configure. Try it again:
    make distclean; ./configure; make
+
+
+Q: A socat process, run in background from an interactive shell, is always
+stopped with all its child processes after about 5 minutes. killall -9 socat is
+required to clean the system and allow socat to be started again.
+
+A: The terminal (window) might have the TOSTOP flag set and one of the socat
+processes wants to write to the terminal. Clear this flag in your shell:
+   stty -tostop
+and start socat again.
+Thanks to Philippe Teuwen for reporting this situation.
+
