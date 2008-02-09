@@ -1,4 +1,4 @@
-/* source: procan.c */
+/* source: procan-cdefs.c */
 /* Copyright Gerhard Rieger 2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 

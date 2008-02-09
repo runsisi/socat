@@ -1,4 +1,6 @@
 
+####################### V 1.6.0.1:
+
 new features:
 	new make target "gitclean"
 

@@ -10,7 +10,7 @@ def(Filan)(0)(bf(Filan))
 def(procan)(0)(bf(procan))
 def(Procan)(0)(bf(Procan))
 
-manpage(socat)(1)(March 2007)(socat)()
+manpage(socat)(1)(Feb 2008)(socat)()
 
 whenhtml(
 label(CONTENTS)

@@ -76,7 +76,7 @@ install
 
 Get the tarball and extract it:
 	gtar xzf socat.tar.gz
-	cd socat-1.6.0.0
+	cd socat-1.6.0.1
 	./configure
 	make
 	su
@@ -226,7 +226,7 @@ communications.
 doc/socat-tun shows how to build a virtual network between two hosts.
 
 socat.1 and socat.html can be generated from socat.yo (which is released with
-socat 1.6.1 and later) using the yodl document language package. Maintenance
+socat 1.6.0.1 and later) using the yodl document language package. Maintenance
 of yodl had been discontinued by its author
 (http://www.xs4all.nl/~jantien/yodl/) (there seems to be a revival at
 http://yodl.sourceforge.net/ though). For socat, the old version 1.31 is used;
