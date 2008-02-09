@@ -1,5 +1,5 @@
 /* source: procan_main.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 const char copyright[] = "procan by Gerhard Rieger - send bug reports to socat@dest-unreach.org";
