@@ -1531,7 +1531,12 @@ testoptions () {
 ifprocess () {
     local l
     case "$UNAME" in
-    Linux) l="$(ps -fade |grep "^.........$(printf %5u $1)")" ;;
+    AIX)     l="$(ps -fade |grep "^........ $(printf %6u $1)")" ;;
+    FreeBSD) l="$(ps -faje |grep "^........ $(printf %5u $1)")" ;;
+    HP-UX)   l="$(ps -fade |grep "^........ $(printf %5u $1)")" ;;
+    Linux)   l="$(ps -fade |grep "^........ $(printf %5u $1)")" ;;
+    SunOS)   l="$(ps -fade |grep "^........ $(printf %5u $1)")" ;;
+    *)       l="$(ps -fade |grep "^[^ ][^ ]*[ ][ ]*$(printf %5u $1) ")" ;;
     esac
     if [ -z "$l" ]; then
 	return 1;
@@ -1546,8 +1551,12 @@ ifprocess () {
 childprocess () {
     local l
     case "$UNAME" in
-    Linux) l="$(ps -fade |grep "^...............$(printf %5u $1)")" ;;
-    esac
+    AIX)     l="$(ps -fade |grep "^........ ...... $(printf %6u $1)")" ;;
+    FreeBSD) l="$(ps -faje |grep "^........ ..... $(printf %5u $1)")" ;;
+    HP-UX)   l="$(ps -fade |grep "^........ ..... $(printf %5u $1)")" ;;
+    Linux)   l="$(ps -fade |grep "^........ ..... $(printf %5u $1)")" ;;
+    SunOS)   l="$(ps -fade |grep "^........ ..... $(printf %5u $1)")" ;;
+    *)       l="$(ps -fade |grep "^[^ ][^ ]*[ ][ ]*[0-9][0-9]**[ ][ ]*$(printf %5u $1) ")" ;;    esac
     if [ -z "$l" ]; then
 	return 1;
     fi
@@ -1561,7 +1570,12 @@ childprocess () {
 isdefunct () {
     local l
     case "$UNAME" in
-    Linux) l="$(echo "$1" |grep ' <defunct>$')" ;;
+    AIX)     l="$(echo "$1" |grep ' <defunct>$')" ;;
+    FreeBSD) l="$(echo "$1" |grep ' <defunct>$')" ;;
+    HP-UX)   l="$(echo "$1" |grep ' <defunct>$')" ;;
+    Linux)   l="$(echo "$1" |grep ' <defunct>$')" ;;
+    SunOS)   l="$(echo "$1" |grep ' <defunct>$')" ;;
+    *)       l="$(echo "$1" |grep ' <defunct>$')" ;;
     esac
     [ -n "$l" ];
 }
@@ -7949,7 +7963,7 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 # find a service entry we do not need root for (>=1024; here >=1100 for ease)
-SERVENT="$(grep '^[a-z][a-z]*  *[1-9][1-9][0-9][0-9]/tcp' /etc/services |head -n 1)"
+SERVENT="$(grep '^[a-z][a-z]*[^!-~][^!-~]*[1-9][1-9][0-9][0-9]/tcp' /etc/services |head -n 1)"
 SERVICE="$(echo $SERVENT |cut -d' ' -f1)"
 PORT="$(echo $SERVENT |sed 's/.* \([1-9][0-9]*\).*/\1/')"
 tsl="$PORT"
@@ -7998,6 +8012,7 @@ N=$((N+1))
 #   FreeBSD:		20	11095	11095	1024
 #   Cygwin:		20	unlimit	256	64
 #   AIX:		32767	65534		65534
+#   SunOS 8:		20			1024
 NAME=EXCEED_FOPEN_MAX
 case "$TESTS" in
 *%functions%*|*%maxfds%*|*%$NAME%*)
@@ -8030,7 +8045,7 @@ N=$((N+1))
 # zombies because the master process did not catch SIGCHLD
 NAME=UDP4LISTEN_SIGCHLD
 case "$TESTS" in
-*%functions%*|*%ip4%*|*%ipapp%*|*%udp%*|*%$NAME%*)
+*%functions%*|*%ip4%*|*%ipapp%*|*%udp%*|*%zombie%*|*%$NAME%*)
 TEST="$NAME: test if UDP4-LISTEN child becomes zombie"
 # idea: run a udp-listen process with fork and -T. Connect once, so a sub
 # process is forked off. Make some transfer and wait until the -T timeout is
@@ -8077,10 +8092,10 @@ N=$((N+1))
 
 
 # there was a bug with udp-recvfrom and fork: terminating sub processes became
-# zombies because the master process did caught SIGCHLD but did not wait()
+# zombies because the master process caught SIGCHLD but did not wait()
 NAME=UDP4RECVFROM_SIGCHLD
 case "$TESTS" in
-*%functions%*|*%ip4%*|*%udp%*|*%dgram%*|*%$NAME%*)
+*%functions%*|*%ip4%*|*%udp%*|*%dgram%*|*%zombie%*|*%$NAME%*)
 TEST="$NAME: test if UDP4-RECVFROM child becomes zombie"
 # idea: run a udp-recvfrom process with fork and -T. Sent it one packet, so a
 # sub process is forked off. Make some transfer and wait until the -T timeout
