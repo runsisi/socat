@@ -236,7 +236,7 @@ $ socat -,icanon=0,echo=0 tcp:target:5555; reset
 // socat must be installed on ssh server host
 // might have to use xauth...
 // this example is one-shot because ssh can handle only one channel
-xterm1$ socat -d -d exec:"ssh www.dest-unreach.org rm -f /tmp/.X11-unix/X9; ~/bin/socat -d -d unix-l\:/tmp/.X11-unix/X9\,fork -" unix:/tmp/.X11-unix/X/
+xterm1$ socat -d -d exec:"ssh www.dest-unreach.org rm -f /tmp/.X11-unix/X9; ~/bin/socat -d -d unix-l\:/tmp/.X11-unix/X9\,fork -" unix:/tmp/.X11-unix/X0
 xterm2$ ssh target
 target$ DISPLAY=:9 myxapplication
 
