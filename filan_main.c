@@ -1,5 +1,5 @@
 /* source: filan_main.c */
-/* Copyright Gerhard Rieger 2001-2006 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 const char copyright[] = "filan by Gerhard Rieger - see http://www.dest-unreach.org/socat/";
@@ -23,7 +23,8 @@ static void filan_usage(FILE *fd);
 int main(int argc, const char *argv[]) {
    const char **arg1, *a;
    const char *filename = NULL, *waittimetxt;
-   unsigned int m = 0, n = 1024;	/* this is default on my Linux */
+   unsigned int m = 0;		/* first FD (default) */
+   unsigned int n = 1024;	/* last excl.; this is default on my Linux */
    unsigned int i;
    int style = 0;
    struct timespec waittime = { 0, 0 };
@@ -57,7 +58,7 @@ int main(int argc, const char *argv[]) {
 	    }
 	 }
          m = strtoul(a, (char **)&a, 0);
-	 n = m+1;
+	 n = m;
 	 break;
       case 'n': if (arg1[0][2]) {
 	    a = *arg1+2;
@@ -168,6 +169,9 @@ int main(int argc, const char *argv[]) {
 #endif
 	 filan_file(filename, fdout);
       } else {
+	 if (m == n) {
+	    ++n;
+	 }
 	 for (i = m; i < n; ++i) {
 	    filan_fd(i, fdout);
 	 }
@@ -189,12 +193,16 @@ int main(int argc, const char *argv[]) {
 	    Debug2("open(\"%s\", O_RDONLY|O_NOCTTY|O_NONBLOCK|O_LARGEFILE, 0700): %s",
 		   filename, strerror(errno));
 	 }
-	 fdname(filename, fd, fdout);
+	 fdname(filename, fd, fdout, NULL);
 #endif
-	 fdname(filename, -1, fdout);
+	 fdname(filename, -1, fdout, NULL);
       } else {
-	 for (i = m; i < n; ++i) {
-	    fdname("", i, fdout);
+	 if (m == n) {
+	    fdname("", m, fdout, NULL);
+	 } else {
+	    for (i = m; i < n; ++i) {
+	       fdname("", i, fdout, "%5u ");
+	    }
 	 }
       }
    }
