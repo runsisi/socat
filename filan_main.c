@@ -24,7 +24,7 @@ int main(int argc, const char *argv[]) {
    const char **arg1, *a;
    const char *filename = NULL, *waittimetxt;
    unsigned int m = 0;		/* first FD (default) */
-   unsigned int n = 1024;	/* last excl.; this is default on my Linux */
+   unsigned int n = FD_SETSIZE;	/* last excl. */
    unsigned int i;
    int style = 0;
    struct timespec waittime = { 0, 0 };
@@ -233,7 +233,7 @@ static void filan_usage(FILE *fd) {
    fputs("      -ls            log to stderr (default if no other log)\n", fd);
 #endif
    fputs("      -i<fdnum>      only analyze this fd\n", fd);
-   fputs("      -n<fdnum>      analyze all fds from 0 up to fdnum-1 (default: 1024)\n", fd);
+   fprintf(fd, "      -n<fdnum>      analyze all fds from 0 up to fdnum-1 (default: %u)\n", FD_SETSIZE);
    fputs("      -s             simple output with just type and socket address or path\n", fd);
 /*   fputs("      -c             alternate device visualization\n", fd);*/
    fputs("      -f<filename>   analyze file system entry\n", fd);
