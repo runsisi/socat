@@ -285,6 +285,12 @@ $ socat -d -d -d -d - udp-datagram:224.0.0.2:6666,bind=:6666,ip-add-membership=2
 // packets leave via wrong interface (set route: ...)
 // socket bound to specific address
 
+//=============================================================================
+// IOCTL
+
+// open CD drive (given value valid on Linux)
+$ socat /dev/cdrom,o-nonblock,ioctl-void=0x5309 -
+
 ===============================================================================
 
 // not tested, just ideas, or have problems

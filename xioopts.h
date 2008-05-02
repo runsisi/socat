@@ -53,6 +53,9 @@ enum e_types {
    TYPE_IP_MREQN,	/* for  struct ip_mreq  or  struct ip_mreqn */
 #endif
    TYPE_IP4NAME,	/* IPv4 hostname or address */
+   TYPE_INT_INT,	/* 2 parameters: first is int, second is int */
+   TYPE_INT_BIN,	/* 2 parameters: first is int, second is binary */
+   TYPE_INT_STRING,	/* 2 parameters: first is int, second is req string */
 
    TYPE_2BYTE = TYPE_USHORT
 } ;
@@ -64,7 +67,8 @@ enum e_func {
    OFUNC_SEEK32,	/* lseek(): arg1 is whence (SEEK_SET etc.) */
    OFUNC_SEEK64,	/* lseek64(): arg1 is whence (SEEK_SET etc.) */
    OFUNC_FCNTL,		/* fcntl(, ): arg1 is cmd */
-   OFUNC_IOCTL,		/* ioctl(): arg1 is request */
+   OFUNC_IOCTL,		/* ioctl(): arg1 of option description is request, arg2
+			   is int setrequest */
    OFUNC_IOCTL_MASK_LONG,	/* arg1 is getrequest, arg2 is setrequest:
 			   ioctl(arg1, ); |= arg3; ioctl(arg2, ); */
    OFUNC_SOCKOPT,	/* setsockopt() */
@@ -329,6 +333,11 @@ enum e_optcode {
 #if 0	/* see Linux: man 7 netlink; probably not what we need yet */
    OPT_IO_SIOCGIFNAME,
 #endif
+   OPT_IOCTL_BIN,	/* generic ioctl with binary value (pointed to) */
+   OPT_IOCTL_INT,	/* generic ioctl with integer value */
+   OPT_IOCTL_INTP,	/* generic ioctl with integer value (pointed to) */
+   OPT_IOCTL_STRING,	/* generic ioctl with integer value (pointed to) */
+   OPT_IOCTL_VOID,	/* generic ioctl without value */
    OPT_IP_ADD_MEMBERSHIP,
 #ifdef IP_HDRINCL
    OPT_IP_HDRINCL,

@@ -583,6 +583,12 @@ const struct optname optionnames[] = {
 	IF_RETRY  ("interval",	&opt_intervall)
 	IF_RETRY  ("intervall",	&opt_intervall)
 	IF_TERMIOS("intr",	&opt_vintr)
+	IF_ANY    ("ioctl",	&opt_ioctl_void)
+	IF_ANY    ("ioctl-bin",	&opt_ioctl_bin)
+	IF_ANY    ("ioctl-int",	&opt_ioctl_int)
+	IF_ANY    ("ioctl-intp",	&opt_ioctl_intp)
+	IF_ANY    ("ioctl-string",	&opt_ioctl_string)
+	IF_ANY    ("ioctl-void",	&opt_ioctl_void)
 #ifdef IP_ADD_MEMBERSHIP
 	IF_IP     ("ip-add-membership",	&opt_ip_add_membership)
 #endif
@@ -1967,6 +1973,71 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	       (*opts)[i].value.u_linger.l_linger);
 	 break;
 #endif /* HAVE_STRUCT_LINGER */
+      case TYPE_INT_INT:
+	 if (!assign) {
+	    Error1("option \"%s\": values required", a0);
+	    continue;
+	 }
+	 {
+	    char *rest;
+	    (*opts)[i].value.u_int = strtoul(token, &rest, 0);
+	    if (*rest != ':') {
+	       Error1("option \"%s\": 2 arguments required",
+		      ent->desc->defname);
+	    }
+	    ++rest;
+	    (*opts)[i].value2.u_int = strtoul(rest, &rest, 0);
+	 }
+	 Info3("setting option \"%s\" to %d:%d", ent->desc->defname,
+	       (*opts)[i].value.u_int, (*opts)[i].value2.u_int);
+	 break;
+      case TYPE_INT_BIN:
+	 if (!assign) {
+	    Error1("option \"%s\": values required", a0);
+	    continue;
+	 }
+	 {
+	    char *rest;
+	    (*opts)[i].value.u_int = strtoul(token, &rest, 0);
+	    if (*rest != ':') {
+	       Error1("option \"%s\": 2 arguments required",
+		      ent->desc->defname);
+	    }
+	    ++rest;
+	    optlen = 0;
+	    if ((result = dalan(rest, optbuf, &optlen, sizeof(optbuf))) != 0) {
+	       Error1("parseopts(): problem with \"%s\" data", rest);
+	       continue;
+	    }
+	    if (((*opts)[i].value2.u_bin.b_data = memdup(optbuf, optlen)) == NULL) {
+	       Error1("memdup(, "F_Zu"): out of memory", optlen);
+	       return -1;
+	    }
+	    (*opts)[i].value2.u_bin.b_len = optlen;
+	 }
+	 Info2("setting option \"%s\" to %d:..."/*!!!*/, ent->desc->defname,
+	       (*opts)[i].value.u_int);
+	 break;
+      case TYPE_INT_STRING:
+	 if (!assign) {
+	    Error1("option \"%s\": values required", a0);
+	    continue;
+	 }
+	 {
+	    char *rest;
+	    (*opts)[i].value.u_int = strtoul(token, &rest, 0);
+	    if (*rest != ':') {
+	       Error1("option \"%s\": 2 arguments required",
+		      ent->desc->defname);
+	    }
+	    ++rest;
+	    if (((*opts)[i].value2.u_string = strdup(token)) == NULL) {
+	       Error("out of memory"); return -1;
+	    }
+	 }
+	 Info3("setting option \"%s\" to %d:\"$s\"", ent->desc->defname,
+	       (*opts)[i].value.u_int, (*opts)[i].value2.u_string);
+	 break;
 #if defined(HAVE_STRUCT_IP_MREQ) || defined (HAVE_STRUCT_IP_MREQN)
       case TYPE_IP_MREQN:
 	 {
@@ -2998,6 +3069,72 @@ int applyopts(int fd, struct opt *opts, unsigned int phase) {
 	       }
 	    }
 	    break;
+	 case OPT_IOCTL_VOID:
+	    switch (opt->desc->type) {
+	    case TYPE_INT:
+	       if (Ioctl(fd, opt->value.u_int, NULL) < 0) {
+		  Error3("ioctl(%d, 0x%x, NULL): %s",
+			 fd, opt->value.u_int, strerror(errno));
+		  opt->desc = ODESC_ERROR; ++opt; continue;
+	       }
+	       break;
+	    default:
+	       Error1("ioctl() data type %d not implemented", opt->desc->type);
+	    }
+	    break;
+	 case OPT_IOCTL_INT:
+	    switch (opt->desc->type) {
+	    case TYPE_INT_INT:
+	       if (Ioctl_int(fd, opt->value.u_int, opt->value2.u_int) < 0) {
+		  Error4("ioctl(%d, %d, %p): %s",
+			 fd, opt->value.u_int, opt->value2.u_int, strerror(errno));
+		  opt->desc = ODESC_ERROR; ++opt; continue;
+	       }
+	       break;
+	    default:
+	       Error1("ioctl() data type %d not implemented", opt->desc->type);
+	    }
+	    break;
+	 case OPT_IOCTL_INTP:
+	    switch (opt->desc->type) {
+	    case TYPE_INT_INT:
+	       if (Ioctl(fd, opt->value.u_int, (void *)&opt->value2.u_int) < 0) {
+		  Error4("ioctl(%d, 0x%x, %p): %s",
+			 fd, opt->value.u_int, (void *)&opt->value2.u_int, strerror(errno));
+		  opt->desc = ODESC_ERROR; ++opt; continue;
+	       }
+	       break;
+	    default:
+	       Error1("ioctl() data type %d not implemented", opt->desc->type);
+	    }
+	    break;
+	 case OPT_IOCTL_BIN:
+	    switch (opt->desc->type) {
+	    case TYPE_INT_BIN:
+	       if (Ioctl(fd, opt->value.u_int, (void *)opt->value2.u_bin.b_data) < 0) {
+		  Error4("ioctl(%d, 0x%x, %p): %s",
+			 fd, opt->value.u_int, (void *)opt->value2.u_bin.b_data, strerror(errno));
+		  opt->desc = ODESC_ERROR; ++opt; continue;
+	       }
+	       break;
+	    default:
+	       Error1("ioctl() data type %d not implemented", opt->desc->type);
+	    }
+	    break;
+	 case OPT_IOCTL_STRING:
+	    switch (opt->desc->type) {
+	    case TYPE_INT_STRING:
+	       if (Ioctl(fd, opt->value.u_int, (void *)opt->value2.u_string) < 0) {
+		  Error4("ioctl(%d, 0x%x, %p): %s",
+			 fd, opt->value.u_int, (void *)opt->value2.u_string, strerror(errno));
+		  opt->desc = ODESC_ERROR; ++opt; continue;
+	       }
+	       break;
+	    default:
+	       Error1("ioctl() data type %d not implemented", opt->desc->type);
+	    }
+	    break;
+	       
 	 default: Error1("applyopts(): option \"%s\" not implemented",
 			 opt->desc->defname);
 	    opt->desc = ODESC_ERROR; ++opt; continue;

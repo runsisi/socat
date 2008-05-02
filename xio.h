@@ -355,6 +355,7 @@ union integral {
 struct opt {
    const struct optdesc *desc;
    union integral value;
+   union integral value2;
 } ;
 
 extern const char *PIPESEP;

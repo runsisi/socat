@@ -1,5 +1,5 @@
 /* source: sycls.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* explicit system call and C library trace function, for those who miss strace
@@ -587,6 +587,16 @@ int Ioctl(int d, int request, void *argp) {
       Debug3("ioctl(%d, 0x%x, 0x%p)", d, request, argp);
    }
    retval = ioctl(d, request, argp);
+   _errno = errno;
+   Debug1("ioctl() -> %d", retval);
+   errno = _errno;
+   return retval;
+}
+
+int Ioctl_int(int d, int request, int arg) {
+   int retval, _errno;
+   Debug3("ioctl(%d, 0x%x, %d)", d, request, arg);
+   retval = ioctl(d, request, arg);
    _errno = errno;
    Debug1("ioctl() -> %d", retval);
    errno = _errno;

@@ -8447,6 +8447,64 @@ esac
 N=$((N+1))
 
 
+# test the generic ioctl-void option
+NAME=IOCTL_VOID
+case "$TESTS" in
+*%functions%*|*%ip4%*|*%udp%*|*%dgram%*|*%$NAME%*)
+TEST="$NAME: test the ioctl-void option"
+# there are not many ioctls that apply to non global resources and do not
+# require root. TIOCEXCL seems to fit:
+# process 0 provides a pty;
+# process 1 opens it with the TIOCEXCL ioctl; 
+# process 2 opens it too and fails with "device or resource busy" only when the
+# previous ioctl was successful
+if [ "$UNAME" != Linux ]; then
+    # we need access to more loopback addresses
+    $PRINTF "test $F_n $TEST... ${YELLOW}only on Linux${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+tp="$td/test$N.pty"
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="$(date)"
+CMD0="$SOCAT $opts PTY,LINK=$tp pipe"
+CMD1="$SOCAT $opts - file:$tp,ioctl-void=0x540c,raw,echo=0"
+CMD2="$SOCAT $opts - file:$tp,raw,echo=0"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+waitfile $tp 1
+(echo "$da"; sleep 2) |$CMD1 >"$tf" 2>"${te}1" &	# this should always work
+pid1=$!
+usleep 1000000
+$CMD2 >/dev/null 2>"${te}2" </dev/null
+rc2=$?
+kill $pid0 $pid1 2>/dev/null; wait
+if ! echo "$da" |diff - "$tf"; then
+    $PRINTF "${YELLOW}phase 1 failed{NORMAL}\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    numCANT=$((numCANT+1))
+elif [ $rc2 -eq 0 ]; then
+    $PRINTF "$FAILED: $SOCAT:\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    echo "$CMD2"
+    cat "${te}0" "${te}1" "${te}2"
+    numFAIL=$((numFAIL+1))
+else
+    $PRINTF "$OK\n"
+    if [ -n "$debug" ]; then cat "${te}0" "${te}1" "${te}2"; fi
+    numOK=$((numOK+1))
+fi
+fi # !Linux
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
 echo "summary: $((N-1)) tests; $numOK ok, $numFAIL failed, $numCANT could not be performed"
 
 if [ "$numFAIL" -gt 0 ]; then

@@ -1,5 +1,5 @@
 /* source: sycls.h */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __sycls_h_included
@@ -64,6 +64,7 @@ int Ftruncate64(int fd, off64_t length);
 #endif /* HAVE_FTRUNCATE64 */
 int Flock(int fd, int operation);
 int Ioctl(int d, int request, void *argp);
+int Ioctl_int(int d, int request, int arg);
 int Close(int fd);
 int Fchown(int fd, uid_t owner, gid_t group);
 int Fchmod(int fd, mode_t mode);
@@ -195,6 +196,7 @@ void Add_history(const char *string);
 #define Ftruncate64(f,l) ftruncate64(f,l)
 #define Flock(f,o) flock(f,o)
 #define Ioctl(d,r,a) ioctl(d,r,a)
+#define Ioctl_int(d,r,a) ioctl(d,r,a)
 #define Close(f) close(f)
 #define Fchown(f,o,g) fchown(f,o,g)
 #define Fchmod(f,m) fchmod(f,m)

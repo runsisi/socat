@@ -1,4 +1,8 @@
 
+new features:
+	added address options IOCTL-VOID, IOCTL-INT, IOCTL-INTP, IOCTL-STRING,
+	IOCTL-BIN for generic ioctl() calls.
+
 corrections:
 	some raw IP and UNIX datagram modes failed on BSD systems
 
