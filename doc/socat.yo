@@ -1653,6 +1653,22 @@ COMMENT(label(OPTION_USEIFBUFS)dit(bf(tt(useifbufs)))
 label(OPTION_PROTOCOL_FAMILY)dit(bf(tt(pf=<string>)))
    Forces the use of the specified IP version. <string> can be
    something like "ip4" or "ip6".
+label(OPTION_SETSOCKOPT_INT)dit(bf(tt(setsockopt-int=<level>:<optname>:<optval>)))
+   Invokes tt(setsockopt()) for the socket with the given parameters. tt(level)
+   [link(int)(TYPE_INT)] specifies the second argument to tt(setsockopt())
+   which specifies the layer, e.g. SOL_TCP (=6 on Linux) for TCP, or SOL_SOCKET
+   (=1 on Linux) for the socket layer. tt(optname) [link(int)(TYPE_INT)]
+   selects the third argument to tt(setsockopt()) option. For the actual
+   integer values you might have to look up the appropriate include file of
+   your system. The 4th tt(setsockopt()) parameter, tt(value)
+   [link(int)(TYPE_INT)], is passed to the function per pointer, and the length
+   parameter to the tt(setsockopt()) call is derived from this type.
+label(OPTION_SETSOCKOPT_BIN)dit(bf(tt(setsockopt-bin=<level>:<optname>:<optval>)))
+   Like tt(setsockopt-int), but <optval> is expected in link(dalan)(TYPE_DATA)
+   format and specifies an arbitrary sequence of bytes.
+label(OPTION_SETSOCKOPT_STRING)dit(bf(tt(setsockopt-string=<level>:<optname>:<optval>)))
+   Like tt(setsockopt-int), but <optval> must be a link(string)(TYPE_STRING).
+   This string is passed to the function with trailing null character.
 enddit()
 
 startdit()enddit()nl()

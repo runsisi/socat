@@ -50,6 +50,9 @@ extern const struct optdesc opt_fiosetown;
 extern const struct optdesc opt_siocspgrp;
 extern const struct optdesc opt_bind;
 extern const struct optdesc opt_protocol_family;
+extern const struct optdesc opt_setsockopt_int;
+extern const struct optdesc opt_setsockopt_bin;
+extern const struct optdesc opt_setsockopt_string;
 
 extern int retropt_socket_pf(struct opt *opts, int *pf);
 

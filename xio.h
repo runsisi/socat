@@ -356,6 +356,7 @@ struct opt {
    const struct optdesc *desc;
    union integral value;
    union integral value2;
+   union integral value3;
 } ;
 
 extern const char *PIPESEP;

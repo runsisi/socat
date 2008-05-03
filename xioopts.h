@@ -56,6 +56,9 @@ enum e_types {
    TYPE_INT_INT,	/* 2 parameters: first is int, second is int */
    TYPE_INT_BIN,	/* 2 parameters: first is int, second is binary */
    TYPE_INT_STRING,	/* 2 parameters: first is int, second is req string */
+   TYPE_INT_INT_INT,	/* 3 params: first and second are int, 3rd is int */
+   TYPE_INT_INT_BIN,	/* 3 params: first and second are int, 3rd is binary */
+   TYPE_INT_INT_STRING,	/* 3 params: first and second are int, 3rd is string */
 
    TYPE_2BYTE = TYPE_USHORT
 } ;
@@ -542,6 +545,9 @@ enum e_optcode {
    OPT_SETGID_EARLY,
    OPT_SETPGID,
    OPT_SETSID,
+   OPT_SETSOCKOPT_BIN,
+   OPT_SETSOCKOPT_INT,
+   OPT_SETSOCKOPT_STRING,
    OPT_SETUID,
    OPT_SETUID_EARLY,
    OPT_SIGHUP,

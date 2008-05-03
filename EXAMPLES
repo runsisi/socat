@@ -286,10 +286,26 @@ $ socat -d -d -d -d - udp-datagram:224.0.0.2:6666,bind=:6666,ip-add-membership=2
 // socket bound to specific address
 
 //=============================================================================
-// IOCTL
+// GENERIC FUNCTION CALLS
 
-// open CD drive (given value valid on Linux)
+// ioctl(): open CD drive (given value valid on Linux)
+// on my Linux system I find in /usr/include/linux/cdrom.h the define:
+// #define CDROMEJECT           0x5309 /* Ejects the cdrom media */
+// the following command makes something like ioctl(fd, CDROMEJECT, NULL)
 $ socat /dev/cdrom,o-nonblock,ioctl-void=0x5309 -
+
+// setsockopt(): SO_REUSEADDR
+// the following command performs - beyond lots of overhead - something like:
+// myint=1; setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &myint, sizeof(myint))
+$ socat -u udp-recv:7777,setsockopt-int=1:2:1 -
+// setsockopt(): SO_BINDTODEVICE
+
+// ways to apply SO_BINDTODEVICE without using the special socat address option
+// so-bindtodevice:
+// with string argument:
+$ sudo ./socat tcp-l:7777,setsockopt-string=1:25:eth0 pipe
+// with binary argument:
+$ sudo ./socat tcp-l:7777,setsockopt-bin=1:25:x6574683000 pipe
 
 ===============================================================================
 

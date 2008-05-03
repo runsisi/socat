@@ -1,7 +1,10 @@
 
 new features:
-	added address options IOCTL-VOID, IOCTL-INT, IOCTL-INTP, IOCTL-STRING,
-	IOCTL-BIN for generic ioctl() calls.
+	added address options ioctl-void, ioctl-int, ioctl-intp, ioctl-string,
+	ioctl-bin for generic ioctl() calls.
+
+	added address options setsockopt-int, setsockopt-bin, and
+	setsockopt-string
 
 corrections:
 	some raw IP and UNIX datagram modes failed on BSD systems

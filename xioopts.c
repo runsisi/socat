@@ -1196,6 +1196,9 @@ const struct optname optionnames[] = {
 #if WITH_EXEC || WITH_SYSTEM
 	IF_EXEC   ("setsid",	&opt_setsid)
 #endif
+	IF_SOCKET ("setsockopt-bin",	&opt_setsockopt_bin)
+	IF_SOCKET ("setsockopt-int",	&opt_setsockopt_int)
+	IF_SOCKET ("setsockopt-string",	&opt_setsockopt_string)
 	IF_ANY    ("setuid",	&opt_setuid)
 	IF_ANY    ("setuid-early",	&opt_setuid_early)
 #if WITH_EXEC || WITH_SYSTEM
@@ -2031,12 +2034,96 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 		      ent->desc->defname);
 	    }
 	    ++rest;
-	    if (((*opts)[i].value2.u_string = strdup(token)) == NULL) {
+	    if (((*opts)[i].value2.u_string = strdup(rest)) == NULL) {
 	       Error("out of memory"); return -1;
 	    }
 	 }
-	 Info3("setting option \"%s\" to %d:\"$s\"", ent->desc->defname,
+	 Info3("setting option \"%s\" to %d:\"%s\"", ent->desc->defname,
 	       (*opts)[i].value.u_int, (*opts)[i].value2.u_string);
+	 break;
+      case TYPE_INT_INT_INT:
+	 if (!assign) {
+	    Error1("option \"%s\": values required", a0);
+	    continue;
+	 }
+	 {
+	    char *rest;
+	    (*opts)[i].value.u_int = strtoul(token, &rest, 0);
+	    if (*rest != ':') {
+	       Error1("option \"%s\": 3 arguments required",
+		      ent->desc->defname);
+	    }
+	    ++rest;
+	    (*opts)[i].value2.u_int = strtoul(rest, &rest, 0);
+	    if (*rest != ':') {
+	       Error1("option \"%s\": 3 arguments required",
+		      ent->desc->defname);
+	    }
+	    ++rest;
+	    (*opts)[i].value3.u_int = strtoul(rest, &rest, 0);
+	 }
+	 Info4("setting option \"%s\" to %d:%d:%d", ent->desc->defname,
+	       (*opts)[i].value.u_int, (*opts)[i].value2.u_int, (*opts)[i].value3.u_int);
+	 break;
+      case TYPE_INT_INT_BIN:
+	 if (!assign) {
+	    Error1("option \"%s\": values required", a0);
+	    continue;
+	 }
+	 {
+	    char *rest;
+	    (*opts)[i].value.u_int = strtoul(token, &rest, 0);
+	    if (*rest != ':') {
+	       Error1("option \"%s\": 3 arguments required",
+		      ent->desc->defname);
+	    }
+	    ++rest;
+	    (*opts)[i].value2.u_int = strtoul(rest, &rest, 0);
+	    if (*rest != ':') {
+	       Error1("option \"%s\": 3 arguments required",
+		      ent->desc->defname);
+	    }
+	    ++rest;
+	    optlen = 0;
+	    if ((result = dalan(rest, optbuf, &optlen, sizeof(optbuf))) != 0) {
+	       Error1("parseopts(): problem with \"%s\" data", rest);
+	       continue;
+	    }
+	    if (((*opts)[i].value3.u_bin.b_data = memdup(optbuf, optlen)) == NULL) {
+	       Error1("memdup(, "F_Zu"): out of memory", optlen);
+	       return -1;
+	    }
+	    (*opts)[i].value3.u_bin.b_len = optlen;
+	 }
+	 Info3("setting option \"%s\" to %d:%d:..."/*!!!*/, ent->desc->defname,
+	       (*opts)[i].value.u_int, (*opts)[i].value2.u_int);
+	 break;
+      case TYPE_INT_INT_STRING:
+	 if (!assign) {
+	    Error1("option \"%s\": values required", a0);
+	    continue;
+	 }
+	 {
+	    char *rest;
+	    (*opts)[i].value.u_int = strtoul(token, &rest, 0);
+	    if (*rest != ':') {
+	       Error1("option \"%s\": 3 arguments required",
+		      ent->desc->defname);
+	    }
+	    ++rest;
+	    (*opts)[i].value2.u_int = strtoul(rest, &rest, 0);
+	    if (*rest != ':') {
+	       Error1("option \"%s\": 3 arguments required",
+		      ent->desc->defname);
+	    }
+	    ++rest;
+	    if (((*opts)[i].value3.u_string = strdup(rest)) == NULL) {
+	       Error("out of memory"); return -1;
+	    }
+	 }
+	 Info4("setting option \"%s\" to %d:%d:\"%s\"", ent->desc->defname,
+	       (*opts)[i].value.u_int, (*opts)[i].value2.u_int,
+	       (*opts)[i].value3.u_int);
 	 break;
 #if defined(HAVE_STRUCT_IP_MREQ) || defined (HAVE_STRUCT_IP_MREQN)
       case TYPE_IP_MREQN:
@@ -3132,6 +3219,53 @@ int applyopts(int fd, struct opt *opts, unsigned int phase) {
 	       break;
 	    default:
 	       Error1("ioctl() data type %d not implemented", opt->desc->type);
+	    }
+	    break;
+	 case OPT_SETSOCKOPT_INT:
+	    switch (opt->desc->type) {
+	    case TYPE_INT_INT_INT:
+	       if (Setsockopt(fd, opt->value.u_int, opt->value2.u_int,
+			      &opt->value3.u_int, sizeof(int)) < 0) {
+		  Error6("setsockopt(%d, %d, %d, {%d}, "F_Zu"): %s",
+			 fd, opt->value.u_int, opt->value2.u_int,
+			 opt->value3.u_int, sizeof(int), strerror(errno));
+	       }
+	       break;
+	    default:
+	       Error1("setsockopt() data type %d not implemented",
+		      opt->desc->type);
+	    }
+	    break;
+	 case OPT_SETSOCKOPT_BIN:
+	    switch (opt->desc->type) {
+	    case TYPE_INT_INT_BIN:
+	       if (Setsockopt(fd, opt->value.u_int, opt->value2.u_int,
+			      opt->value3.u_bin.b_data, opt->value3.u_bin.b_len) < 0) {
+		  Error5("setsockopt(%d, %d, %d, {...}, "F_Zu"): %s",
+			 fd, opt->value.u_int, opt->value2.u_int,
+			 opt->value3.u_bin.b_len, strerror(errno));
+	       }
+	       break;
+	    default:
+	       Error1("setsockopt() data type %d not implemented",
+		      opt->desc->type);
+	    }
+	    break;
+	 case OPT_SETSOCKOPT_STRING:
+	    switch (opt->desc->type) {
+	    case TYPE_INT_INT_STRING:
+	       if (Setsockopt(fd, opt->value.u_int, opt->value2.u_int,
+			      opt->value3.u_string,
+			      strlen(opt->value3.u_string)+1) < 0) {
+		  Error6("setsockopt(%d, %d, %d, \"%s\", "F_Zu"): %s",
+			 fd, opt->value.u_int, opt->value2.u_int,
+			 opt->value3.u_string, strlen(opt->value3.u_string)+1,
+			 strerror(errno));
+	       }
+	       break;
+	    default:
+	       Error1("setsockopt() data type %d not implemented",
+		      opt->desc->type);
 	    }
 	    break;
 	       
