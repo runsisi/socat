@@ -7,6 +7,8 @@ corrections:
 	RECVFROM addresses with FORK option hung after processing the first
 	packet.
 
+	corrected a few mistakes that caused compiler warnings on 64bit hosts
+
 ####################### V 1.6.0.1:
 
 new features:

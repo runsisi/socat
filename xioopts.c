@@ -2030,7 +2030,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 #if WITH_IP4
       case TYPE_IP4NAME:
 	 {
-	    struct sockaddr_in sa;  size_t salen = sizeof(sa);
+	    struct sockaddr_in sa;  socklen_t salen = sizeof(sa);
 	    const char *ends[] = { NULL };
 	    const char *nests[] = { "[","]", NULL };
 	    char buff[512], *buffp=buff; size_t bufspc = sizeof(buff)-1;
@@ -3515,9 +3515,9 @@ mc:ifname|ifind
 mc:addr
 */
 	       union sockaddr_union sockaddr1;
-	       size_t socklen1 = sizeof(sockaddr1.ip4);
+	       socklen_t socklen1 = sizeof(sockaddr1.ip4);
 	       union sockaddr_union sockaddr2;
-	       size_t socklen2 = sizeof(sockaddr2.ip4);
+	       socklen_t socklen2 = sizeof(sockaddr2.ip4);
 
 	       /* first parameter is alway multicast address */
 	       /*! result */
@@ -3613,7 +3613,7 @@ mc:addr
 	    {
 	       struct ipv6_mreq ip6_mreq = {{{{0}}}};
 	       union sockaddr_union sockaddr1;
-	       size_t socklen1 = sizeof(sockaddr1.ip6);
+	       socklen_t socklen1 = sizeof(sockaddr1.ip6);
 
 	       /* always two parameters */
 	       /* first parameter is multicast address */

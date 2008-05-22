@@ -1,5 +1,5 @@
 /* source: error.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* the logging subsystem */
@@ -100,7 +100,7 @@ void diag_set(char what, const char *arg) {
 		   sizeof(facilitynames)/sizeof(struct wordent))) == NULL) {
 	    Error1("unknown syslog facility \"%s\"", arg);
 	 } else {
-	    diagopts.logfacility = (int)keywd->desc;
+	    diagopts.logfacility = (int)(size_t)keywd->desc;
 	 }
       }
       openlog(diagopts.progname, LOG_PID, diagopts.logfacility);
