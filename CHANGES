@@ -4,6 +4,9 @@ corrections:
 	with the first received packet an error occurred:
 	socket_init(): unknown address family 0
 
+	RECVFROM addresses with FORK option hung after processing the first
+	packet.
+
 ####################### V 1.6.0.1:
 
 new features:

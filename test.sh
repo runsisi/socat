@@ -8195,6 +8195,54 @@ PORT=$((PORT+1))
 N=$((N+1))
 
 
+# there was a bug in *-recvfrom with fork: due to an error in the appropriate
+# signal handler the master process would hang after forking off the first
+# child process.
+NAME=UDP4RECVFROM_FORK
+case "$TESTS" in
+*%functions%*|*%ip4%*|*%udp%*|*%dgram%*|*%$NAME%*)
+TEST="$NAME: test if UDP4-RECVFROM handles more than one packet"
+# idea: run a UDP4-RECVFROM process with fork and -T. Send it one packet;
+# send it a second packet and check if this is processed properly. If yes, the
+# test succeeded.
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+tsp=$PORT
+ts="$LOCALHOST:$tsp"
+da=$(date)
+CMD1="$SOCAT $opts -T 2 UDP4-RECVFROM:$tsp,reuseaddr,fork PIPE"
+CMD2="$SOCAT $opts -T 1 - UDP4-SENDTO:$ts"
+printf "test $F_n $TEST... " $N
+$CMD1 >/dev/null 2>"${te}1" &
+pid1=$!
+waitudp4port $tsp 1
+echo "$da" |$CMD2 >/dev/null 2>>"${te}2"	# this should always work
+rc2a=$?
+sleep 1
+echo "$da" |$CMD2 >"$tf" 2>>"${te}3"		# this would fail when bug
+rc2b=$?
+kill $pid1 2>/dev/null; wait
+if [ $rc2b -ne 0 ]; then
+    $PRINTF "$NO_RESULT\n"
+    numCANT=$((numCANT+1))
+elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
+    $PRINTF "$FAILED: $SOCAT:\n"
+    echo "$CMD1 &"
+    echo "$CMD2"
+    cat "${te}1" "${te}2" "${te}3"
+    cat "$tdiff"
+    numFAIL=$((numFAIL+1))
+else
+    $PRINTF "$OK\n"
+    if [ -n "$debug" ]; then cat "${te}1" "${te}2" "${te}3"; fi
+    numOK=$((numOK+1))
+fi ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
 echo "summary: $((N-1)) tests; $numOK ok, $numFAIL failed, $numCANT could not be performed"
 
 if [ "$numFAIL" -gt 0 ]; then

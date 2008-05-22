@@ -509,8 +509,26 @@ int _xioopen_dgram_sendto(/* them is already in xfd->peersa */
 }
 
 
-static pid_t xio_waitingfor;
-static bool xio_hashappened;
+/* when the recvfrom address (with option fork) receives a packet it keeps this
+   packet in the IP stacks input queue and forks a sub process. The sub process
+   then reads this packet for processing its data.
+   There is a problem because the parent process would find the same packet
+   again if it calls select()/poll() before the client process reads the
+   packet.
+   To solve this problem we implement the following mechanism:
+   The sub process sends a SIGUSR1 when it has read the packet (or a SIGCHLD if
+   it dies before). The parent process waits until it receives that signal and
+   only then continues to listen.
+   To prevent a signal from another process to trigger our loop, we pass the
+   pid of the sub process to the signal handler in xio_waitingfor. The signal
+   handler sets xio_hashappened if the pid matched.
+*/
+static pid_t xio_waitingfor;	/* info from recv loop to signal handler:
+				   indicates the pid that of the child process
+				   that should send us the USR1 signal */
+static bool xio_hashappened;	/* info from signal handler to loop: child
+				   process has read ("consumed") the packet */
+/* this is the signal handler for USR1 and CHLD */
 void xiosigaction_hasread(int signum, siginfo_t *siginfo, void *ucontext) {
    pid_t pid;
    int _errno;
@@ -519,30 +537,35 @@ void xiosigaction_hasread(int signum, siginfo_t *siginfo, void *ucontext) {
    Debug5("xiosigaction_hasread(%d, {%d,%d,%d,"F_pid"}, )",
 	  signum, siginfo->si_signo, siginfo->si_errno, siginfo->si_code,
 	  siginfo->si_pid);
-   _errno = errno;
-   do {
-      pid = Waitpid(-1, &status, WNOHANG);
-      if (pid == 0) {
-	 Msg(wassig?E_INFO:E_WARN,
-	     "waitpid(-1, {}, WNOHANG): no child has exited");
-	 Info("childdied() finished");
-	 errno = _errno;
-	 return;
-      } else if (pid < 0 && errno == ECHILD) {
-	 Msg1(wassig?E_INFO:E_WARN,
-	      "waitpid(-1, {}, WNOHANG): %s", strerror(errno));
-	 Info("childdied() finished");
-	 errno = _errno;
-	 return;
-      }
-      wassig = true;
-      if (pid < 0) {
-	 Warn2("waitpid(-1, {%d}, WNOHANG): %s", status, strerror(errno));
-	 Info("childdied() finished");
-	 errno = _errno;
-	 return;
-      }
-   } while (1);
+   if (signum == SIGCHLD) {
+      _errno = errno;
+      do {
+	 pid = Waitpid(-1, &status, WNOHANG);
+	 if (pid == 0) {
+	    Msg(wassig?E_INFO:E_WARN,
+		"waitpid(-1, {}, WNOHANG): no child has exited");
+	    Info("childdied() finished");
+	    errno = _errno;
+	    Debug("xiosigaction_hasread() ->");
+	    return;
+	 } else if (pid < 0 && errno == ECHILD) {
+	    Msg1(wassig?E_INFO:E_WARN,
+		 "waitpid(-1, {}, WNOHANG): %s", strerror(errno));
+	    Info("childdied() finished");
+	    errno = _errno;
+	    Debug("xiosigaction_hasread() ->");
+	    return;
+	 }
+	 wassig = true;
+	 if (pid < 0) {
+	    Warn2("waitpid(-1, {%d}, WNOHANG): %s", status, strerror(errno));
+	    Info("childdied() finished");
+	    errno = _errno;
+	    Debug("xiosigaction_hasread() ->");
+	    return;
+	 }
+      } while (1);
+   }
    if (xio_waitingfor == siginfo->si_pid) {
       xio_hashappened = true;
    }
