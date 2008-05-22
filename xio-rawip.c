@@ -253,6 +253,7 @@ int xioopen_rawip_recv(int argc, const char *argv[], struct opt *opts,
 		       int pf, int socktype, int dummy3) {
    const char *protname = argv[1];
    char *garbage;
+   bool needbind = false;
    union sockaddr_union us;
    socklen_t uslen = sizeof(us);
    int ipproto;
@@ -286,16 +287,18 @@ int xioopen_rawip_recv(int argc, const char *argv[], struct opt *opts,
 #endif
    }
 
-   if (retropt_bind(opts, pf, socktype, ipproto, &us.soa, &uslen, 1,
+   if (retropt_bind(opts, pf, socktype, ipproto, &/*us.soa*/xfd->stream.para.socket.la.soa, &uslen, 1,
 		    xfd->stream.para.socket.ip.res_opts[0],
-		    xfd->stream.para.socket.ip.res_opts[1]) !=
+		    xfd->stream.para.socket.ip.res_opts[1]) ==
        STAT_OK) {
+      needbind = true;
+   } else {
       /* pf is required during xioread checks */
       xfd->stream.para.socket.la.soa.sa_family = pf;
    }
 
    xfd->stream.dtype = XIODATA_RECV_SKIPIP;
-   result = _xioopen_dgram_recv(&xfd->stream, xioflags, NULL/*&us.soa*/, uslen,
+   result = _xioopen_dgram_recv(&xfd->stream, xioflags, &/*us.soa*/xfd->stream.para.socket.la.soa, uslen,
 				opts, pf, socktype, ipproto, E_ERROR);
    _xio_openlate(&xfd->stream, opts);
    return result;

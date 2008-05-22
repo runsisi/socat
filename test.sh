@@ -8141,6 +8141,60 @@ PORT=$((PORT+1))
 N=$((N+1))
 
 
+# test: there was a bug with ip*-recv and bind option: it would not bind, and
+# with the first received packet an error:
+# socket_init(): unknown address family 0
+# occurred
+NAME=RAWIP4RECVBIND
+case "$TESTS" in
+*%functions%*|*%ip4%*|*%dgram%*|*%rawip%*|*%rawip4%*|*%recv%*|*%root%*|*%$NAME%*)
+TEST="$NAME: raw IPv4 receive with bind"
+# idea: start a socat process with ip4-recv:...,bind=... and send it a packet
+# if the packet passes the test succeeded
+if [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+ts1p=$PROTO; PROTO=$((PROTO+1))
+ts1a="127.0.0.1"
+ts1="$ts1a:$ts1p"
+da=$(date)
+CMD1="$SOCAT $opts -u IP4-RECV:$ts1p,bind=$ts1a,reuseaddr -"
+CMD2="$SOCAT $opts -u - IP4-SENDTO:$ts1"
+printf "test $F_n $TEST... " $N
+$CMD1 >"$tf" 2>"${te}1" &
+pid1="$!"
+waitip4proto $ts1p 1
+echo "$da" |$CMD2 2>>"${te}2"
+rc2="$?"
+#ls -l $tf
+i=0; while [ ! -s "$tf" -a "$i" -lt 10 ]; do  usleep 100000; i=$((i+1));  done
+kill "$pid1" 2>/dev/null; wait
+if [ "$rc2" -ne 0 ]; then
+   $PRINTF "$FAILED: $SOCAT:\n"
+   echo "$CMD1 &"
+   echo "$CMD2"
+   cat "${te}1"
+   cat "${te}2"
+    numFAIL=$((numFAIL+1))
+elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
+   $PRINTF "$FAILED\n"
+   cat "$tdiff"
+    numFAIL=$((numFAIL+1))
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat $te; fi
+   numOK=$((numOK+1))
+fi
+fi # must be root ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
 echo "summary: $((N-1)) tests; $numOK ok, $numFAIL failed, $numCANT could not be performed"
 
 if [ "$numFAIL" -gt 0 ]; then

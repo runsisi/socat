@@ -1,4 +1,9 @@
 
+corrections:
+	there was a bug in ip*-recv with bind option: it did not bind, and
+	with the first received packet an error occurred:
+	socket_init(): unknown address family 0
+
 ####################### V 1.6.0.1:
 
 new features:
