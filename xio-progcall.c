@@ -44,7 +44,8 @@ const struct optdesc opt_sigquit = { "sigquit",   NULL, OPT_SIGQUIT,     GROUP_P
 int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 		struct single *fd,
 		unsigned groups,
-		   struct opt **copts	/* in: opts; out: opts for child */
+		   struct opt **copts,	/* in: opts; out: opts for child */
+		   int *duptostderr	/* out: redirect stderr to output fd */
 		) {
    struct opt *popts;	/* parent process options */
    int numleft;
@@ -261,7 +262,7 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 	    }
 	    if (tn == NULL) {
 	       Error("could not open pty");
-	       return STAT_NORETRY;
+	       return -1;
 	    }
 #endif
 	    Info1("opened pseudo terminal %s", tn);
@@ -280,7 +281,7 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 #endif /* HAVE_OPENPTY */
       free(*copts);
       if ((*copts = moveopts(popts, GROUP_TERMIOS|GROUP_FORK|GROUP_EXEC|GROUP_PROCESS)) == NULL) {
-	 return STAT_RETRYLATER;
+	 return -1;
       }
       applyopts_cloexec(ptyfd, popts);/*!*/
       /* exec:...,pty did not kill child process under some circumstances */
@@ -307,7 +308,7 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
       if (rw != XIO_WRONLY) {
 	 if (Pipe(rdpip) < 0) {
 	    Error2("pipe(%p): %s", rdpip, strerror(errno));
-	    return STAT_RETRYLATER;
+	    return -1;
 	 }
       }
       /*0 Info2("pipe({%d,%d})", rdpip[0], rdpip[1]);*/
@@ -315,7 +316,7 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
       free(*copts);
       if ((*copts = moveopts(popts, GROUP_FORK|GROUP_EXEC|GROUP_PROCESS))
 	  == NULL) {
-	 return STAT_RETRYLATER;
+	 return -1;
       }
 
       popts2 = copyopts(popts, GROUP_ALL);
@@ -330,7 +331,7 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
       if (rw != XIO_RDONLY) {
 	 if (Pipe(wrpip) < 0) {
 	    Error2("pipe(%p): %s", wrpip, strerror(errno));
-	    return STAT_RETRYLATER;
+	    return -1;
 	 }
       }
       /*0 Info2("pipe({%d,%d})", wrpip[0], wrpip[1]);*/
@@ -364,13 +365,13 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
       if (result < 0) {
 	 Error5("socketpair(%d, %d, %d, %p): %s",
 		d, type, protocol, sv, strerror(errno));
-	 return STAT_RETRYLATER;
+	 return -1;
       }
       /*0 Info5("socketpair(%d, %d, %d, {%d,%d})",
 	d, type, protocol, sv[0], sv[1]);*/
       free(*copts);
       if ((*copts = moveopts(popts, GROUP_FORK|GROUP_EXEC|GROUP_PROCESS)) == NULL) {
-	 return STAT_RETRYLATER;
+	 return -1;
       }
       applyopts(sv[0], *copts, PH_PASTSOCKET);
       applyopts(sv[1], popts, PH_PASTSOCKET);
@@ -397,7 +398,7 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
       if (applyopts_single(fd, popts, PH_LATE) < 0)  return -1;
    }
    /*0   if ((optpr = copyopts(*copts, GROUP_PROCESS)) == NULL)
-     return STAT_RETRYLATER;*/
+     return -1;*/
    retropt_bool(*copts, OPT_STDERR, &withstderr);
 
    xiosetchilddied();	/* set SIGCHLD handler */
@@ -409,7 +410,7 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
       pid = Fork();
       if (pid < 0) {
 	 Error1("fork(): %s", strerror(errno));
-	 return STAT_RETRYLATER;
+	 return -1;
       }
       /* gdb recommends to have env controlled sleep after fork */
       if (forkwaitstring = getenv("SOCAT_FORK_WAIT")) {
@@ -438,13 +439,13 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 	    if (rw != XIO_RDONLY && fdi != ttyfd) {
 	       if (Dup2(ttyfd, fdi) < 0) {
 		  Error3("dup2(%d, %d): %s", ttyfd, fdi, strerror(errno));
-		  return STAT_RETRYLATER; }
+		  return -1; }
 	       /*0 Info2("dup2(%d, %d)", ttyfd, fdi);*/
 	    }
 	    if (rw != XIO_WRONLY && fdo != ttyfd) {
 	       if (Dup2(ttyfd, fdo) < 0) {
 		  Error3("dup2(%d, %d): %s", ttyfd, fdo, strerror(errno));
-		  return STAT_RETRYLATER; }
+		  return -1; }
 	       /*0 Info2("dup2(%d, %d)", ttyfd, fdo);*/
 	    }
 	    if ((rw == XIO_RDONLY || fdi != ttyfd) &&
@@ -466,7 +467,7 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 	       if (fdi == rdpip[1]) {	/* a conflict here */
 		  if ((tmpi = Dup(wrpip[0])) < 0) {
 		     Error2("dup(%d): %s", wrpip[0], strerror(errno));
-		     return STAT_RETRYLATER;
+		     return -1;
 		  }
 		  /*0 Info2("dup(%d) -> %d", wrpip[0], tmpi);*/
 		  rdpip[1] = tmpi;
@@ -474,7 +475,7 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 	       if (fdo == wrpip[0]) {	/* a conflict here */
 		  if ((tmpo = Dup(rdpip[1])) < 0) {
 		     Error2("dup(%d): %s", rdpip[1], strerror(errno));
-		     return STAT_RETRYLATER;
+		     return -1;
 		  }
 		  /*0 Info2("dup(%d) -> %d", rdpip[1], tmpo);*/
 		  wrpip[0] = tmpo;
@@ -483,7 +484,7 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 	       if (rw != XIO_WRONLY && rdpip[1] != fdo) {
 		  if (Dup2(rdpip[1], fdo) < 0) {
 		     Error3("dup2(%d, %d): %s", rdpip[1], fdo, strerror(errno));
-		     return STAT_RETRYLATER;
+		     return -1;
 		  }
 		  Close(rdpip[1]);
 		  /*0 Info2("dup2(%d, %d)", rdpip[1], fdo);*/
@@ -492,7 +493,7 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 	       if (rw != XIO_RDONLY && wrpip[0] != fdi) {
 		  if (Dup2(wrpip[0], fdi) < 0) {
 		     Error3("dup2(%d, %d): %s", wrpip[0], fdi, strerror(errno));
-		     return STAT_RETRYLATER;
+		     return -1;
 		  }
 		  Close(wrpip[0]);
 		  /*0 Info2("dup2(%d, %d)", wrpip[0], fdi);*/
@@ -509,13 +510,13 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 	       if (rw != XIO_RDONLY && fdi != sv[1]) {
 		  if (Dup2(sv[1], fdi) < 0) {
 		     Error3("dup2(%d, %d): %s", sv[1], fdi, strerror(errno));
-		     return STAT_RETRYLATER; }
+		     return -1; }
 		  /*0 Info2("dup2(%d, %d)", sv[1], fdi);*/
 	       }
 	       if (rw != XIO_WRONLY && fdo != sv[1]) {
 		  if (Dup2(sv[1], fdo) < 0) {
 		     Error3("dup2(%d, %d): %s", sv[1], fdo, strerror(errno));
-		     return STAT_RETRYLATER; }
+		     return -1; }
 		  /*0 Info2("dup2(%d, %d)", sv[1], fdo);*/
 	       }
 	       if (fdi != sv[1] && fdo != sv[1]) {
@@ -530,36 +531,6 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 	 applyopts(-1, *copts, PH_LATE);
 	 applyopts(-1, *copts, PH_LATE2);
       }
-
-      /* what to do with stderr? */
-      if (withstderr) {
-	 /* handle it just like ordinary process output, i.e. copy output fd */
-	 if (!withfork) {
-	    if (Dup2(fdo, 2) < 0) {
-	       Error2("dup2(%d, 2): %s", fdo, strerror(errno));
-	    }
-	    /*0 Info1("dup2(%d, 2)", fdo);*/
-	 } else
-#if HAVE_PTY
-	 if (usepty) {
-	    if (Dup2(ttyfd, 2) < 0) {
-	       Error2("dup2(%d, 2): %s", ttyfd, strerror(errno));
-	    }
-	    /*0 Info1("dup2(%d, 2)", ttyfd);*/
-	 } else
-#endif /* HAVE_PTY */
-	 if (usepipes) {
-	    if (Dup2(/*rdpip[1]*/ fdo, 2) < 0) {
-	       Error2("dup2(%d, 2): %s", /*rdpip[1]*/ fdo, strerror(errno));
-	    }
-	    /*0 Info1("dup2(%d, 2)", rdpip[1]);*/
-	 } else {
-	    if (Dup2(sv[1], 2) < 0) {
-	       Error2("dup2(%d, 2): %s", sv[1], strerror(errno));
-	    }
-	    /*0 Info1("dup2(%d, 2)", sv[1]);*/
-	 }
-      }
       _xioopen_setdelayeduser();
       /* set group before user - maybe you are not permitted afterwards */
       if (retropt_gidt(*copts, OPT_SETGID, &group) >= 0) {
@@ -568,6 +539,12 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
       if (retropt_uidt(*copts, OPT_SETUID, &user) >= 0) {
 	 Setuid(user);
       }
+      if (withstderr) {
+	 *duptostderr = fdo;
+      } else {
+	 *duptostderr = -1;
+      }
+
       return 0;	/* indicate child process */
    }
 

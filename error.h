@@ -1,5 +1,5 @@
 /* source: error.h */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __error_h_included
@@ -202,7 +202,8 @@ extern void diag_set(char what, const char *arg);
 extern void diag_set_int(char what, int arg);
 extern int diag_get_int(char what);
 extern const char *diag_get_string(char what);
-
+extern int diag_dup(void);
+extern int diag_dup2(int newfd);
 extern void msg(int level, const char *format, ...);
 
 #endif /* !defined(__error_h_included) */

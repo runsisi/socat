@@ -5713,11 +5713,29 @@ esac
 N=$((N+1))
 
 
+# there was an error in address EXEC with options pipes,stderr
 NAME=EXECPIPESSTDERR
 case "$TESTS" in
 *%functions%*|*%$NAME%*)
 TEST="$NAME: simple echo via exec of cat with pipes,stderr"
 testecho "$N" "$TEST" "" "exec:$CAT,pipes,stderr" "$opts"
+esac
+N=$((N+1))
+
+# EXEC and SYSTEM with stderr injected socat messages into the data stream. 
+NAME=EXECSTDERRLOG
+case "$TESTS" in
+*%functions%*|*%$NAME%*)
+TEST="$NAME: simple echo via exec of cat with pipes,stderr"
+SAVE_opts="$opts"
+# make sure at least two -d are there
+case "$opts" in
+*-d*-d*) ;;
+*-d*) opts="$opts -d" ;;
+*) opts="-d -d" ;;
+esac
+testecho "$N" "$TEST" "" "exec:$CAT,pipes,stderr" "$opts"
+opts="$SAVE_opts"
 esac
 N=$((N+1))
 

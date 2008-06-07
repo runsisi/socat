@@ -39,7 +39,6 @@ struct diag_opts {
    const char *progname;
    int msglevel;
    int exitlevel;
-   int logstderr;
    int syslog;
    FILE *logfile;
    int logfacility;
@@ -51,7 +50,7 @@ struct diag_opts {
 
 
 struct diag_opts diagopts =
-  { NULL, E_ERROR, E_ERROR, 1, 0, NULL, LOG_DAEMON, false, 0 } ;
+  { NULL, E_ERROR, E_ERROR, 0, NULL, LOG_DAEMON, false, 0 } ;
 
 static void _msg(int level, const char *buff, const char *syslp);
 
@@ -89,7 +88,21 @@ static struct wordent facilitynames[] = {
 } ;
 
 
+static int diaginitialized;
+static int diag_init(void) {
+   if (diaginitialized) {
+      return 0;
+   }
+   diaginitialized = 1;
+   /* gcc with GNU libc refuses to set this in the initializer */
+   diagopts.logfile = stderr;
+   return 0;
+}
+#define DIAG_INIT ((void)(diaginitialized || diag_init()))
+
+
 void diag_set(char what, const char *arg) {
+   DIAG_INIT;
    switch (what) {
       const struct wordent *keywd;
 
@@ -104,14 +117,24 @@ void diag_set(char what, const char *arg) {
 	 }
       }
       openlog(diagopts.progname, LOG_PID, diagopts.logfacility);
-      diagopts.logstderr = false; break;
-   case 'f': if ((diagopts.logfile = fopen(arg, "a")) == NULL) {
+      if (diagopts.logfile != NULL && diagopts.logfile != stderr) {
+	 fclose(diagopts.logfile);
+      }
+      diagopts.logfile = NULL;
+      break;
+   case 'f':
+      if (diagopts.logfile != NULL && diagopts.logfile != stderr) {
+	 fclose(diagopts.logfile);
+      }
+      if ((diagopts.logfile = fopen(arg, "a")) == NULL) {
 	  Error2("cannot open log file \"%s\": %s", arg, strerror(errno));
 	  break;
-      } else {
-	 diagopts.logstderr = false; break;
       }
-   case 's': diagopts.logstderr = true; break;	/* logging to stderr is default */
+   case 's':
+      if (diagopts.logfile != NULL && diagopts.logfile != stderr) {
+	 fclose(diagopts.logfile);
+      }
+      diagopts.logfile = stderr; break;	/* logging to stderr is default */
    case 'p': diagopts.progname = arg;
       openlog(diagopts.progname, LOG_PID, diagopts.logfacility);
       break;
@@ -122,6 +145,7 @@ void diag_set(char what, const char *arg) {
 }
 
 void diag_set_int(char what, int arg) {
+   DIAG_INIT;
    switch (what) {
    case 'D': diagopts.msglevel = arg; break;
    case 'e': diagopts.exitlevel = arg; break;
@@ -138,9 +162,10 @@ void diag_set_int(char what, int arg) {
 }
 
 int diag_get_int(char what) {
+   DIAG_INIT;
    switch (what) {
    case 'y': return diagopts.syslog;
-   case 's': return diagopts.logstderr;
+   case 's': return diagopts.logfile == stderr;
    case 'd': case 'D': return diagopts.msglevel;
    case 'e': return diagopts.exitlevel;
    }
@@ -148,6 +173,7 @@ int diag_get_int(char what) {
 }
 
 const char *diag_get_string(char what) {
+   DIAG_INIT;
    switch (what) {
    case 'p': return diagopts.progname;
    }
@@ -170,6 +196,7 @@ void msg(int level, const char *format, ...) {
    size_t bytes;
    va_list ap;
 
+   DIAG_INIT;
    if (level < diagopts.msglevel)  return;
    va_start(ap, format);
 #if HAVE_GETTIMEOFDAY || 1
@@ -236,9 +263,6 @@ void msg(int level, const char *format, ...) {
 
 
 static void _msg(int level, const char *buff, const char *syslp) {
-   if (diagopts.logstderr) {
-      fputs(buff, stderr); fflush(stderr);
-   }
    if (diagopts.syslog) {
       /* prevent format string attacks (thanks to CoKi) */
       syslog(syslevel[level], "%s", syslp);
@@ -246,4 +270,25 @@ static void _msg(int level, const char *buff, const char *syslp) {
    if (diagopts.logfile) {
       fputs(buff, diagopts.logfile); fflush(diagopts.logfile);
    }
+}
+
+
+/* use a new log output file descriptor that is dup'ed from the current one.
+   this is useful when socat logs to stderr but fd 2 should be redirected to
+   serve other purposes */
+int diag_dup(void) {
+   int newfd;
+
+   DIAG_INIT;
+   if (diagopts.logfile == NULL) {
+      return -1;
+   }
+   newfd = dup(fileno(diagopts.logfile));
+   if (diagopts.logfile != stderr) {
+      fclose(diagopts.logfile);
+   }
+   if (newfd >= 0) {
+      diagopts.logfile = fdopen(newfd, "w");
+   }
+   return newfd;
 }

@@ -9,6 +9,9 @@ corrections:
 
 	corrected a few mistakes that caused compiler warnings on 64bit hosts
 
+	EXEC and SYSTEM with stderr injected socat messages into the data
+	stream. test: EXECSTDERRLOG
+
 ####################### V 1.6.0.1:
 
 new features:

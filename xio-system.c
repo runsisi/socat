@@ -31,10 +31,11 @@ static int xioopen_system(int argc, const char *argv[], struct opt *opts,
 		) {
    int status;
    char *path = NULL;
+   int duptostderr;
    int result;
    const char *string = argv[1];
 
-   status = _xioopen_foxec(xioflags, &fd->stream, groups, &opts);
+   status = _xioopen_foxec(xioflags, &fd->stream, groups, &opts, &duptostderr);
    if (status < 0)  return status;
    if (status == 0) {	/* child */
       int numleft;
@@ -50,6 +51,11 @@ static int xioopen_system(int argc, const char *argv[], struct opt *opts,
 	 return STAT_NORETRY;
       }
 
+      /* only now redirect stderr */
+      if (duptostderr >= 0) {
+	 diag_dup();
+	 Dup2(duptostderr, 2);
+      }
       Info1("executing shell command \"%s\"", string);
       result = System(string);
       if (result != 0) {
