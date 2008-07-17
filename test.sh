@@ -8261,6 +8261,41 @@ PORT=$((PORT+1))
 N=$((N+1))
 
 
+# there was a bug in parsing the arguments of exec: consecutive spaces resulted
+# in additional empty arguments
+NAME=EXECSPACES
+case "$TESTS" in
+*%functions%*|*%exec%*|*%parse%*|*%$NAME%*)
+TEST="$NAME: correctly parse exec with consecutive spaces"
+$PRINTF "test $F_n $TEST... " $N
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+da="test$N $(date) $RANDOM"
+tdiff="$td/test$N.diff"
+# put the test data as first argument after two spaces. expect the data in the
+# first argument of the exec'd command.
+$SOCAT $opts -u "exec:\"bash -c \\\"echo \$1\\\"  \\\"\\\" \\\"$da\\\"\"" - >"$tf" 2>"$te"
+rc=$?
+echo "$da" |diff - "$tf" >"$tdiff"
+if [ "$rc" -ne 0 ]; then
+    $PRINTF "$FAILED: $SOCAT:\n"
+    cat "$te"
+    numFAIL=$((numFAIL+1))
+elif [ -s "$tdiff" ]; then
+    $PRINTF "$FAILED: $SOCAT:\n"
+    echo diff:
+    cat "$tdiff"
+    if [ -n "$debug" ]; then cat $te; fi
+    numFAIL=$((numFAIL+1))
+else
+    $PRINTF "$OK\n"
+    if [ -n "$debug" ]; then cat $te; fi
+    numOK=$((numOK+1))
+fi
+esac
+N=$((N+1))
+
+
 echo "summary: $((N-1)) tests; $numOK ok, $numFAIL failed, $numCANT could not be performed"
 
 if [ "$numFAIL" -gt 0 ]; then

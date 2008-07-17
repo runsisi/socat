@@ -83,11 +83,11 @@ static int xioopen_exec(int argc, const char *argv[], struct opt *opts,
       if (pargv[0] == NULL)  pargv[0] = token;  else  ++pargv[0];
       pargc = 1;
       while (*strp == ' ') {
+	 while (*++strp == ' ')  ;
 	 if ((pargc & 0x07) == 0) {
 	    pargv = Realloc(pargv, (pargc+8)*sizeof(char *));
 	    if (pargv == NULL)  return STAT_RETRYLATER;
 	 }
-	 ++strp;
 	 pargv[pargc++] = tokp;
 	 if (nestlex(&strp, &tokp, &len, ends, hquotes, squotes, nests,
 		     true, true, false) < 0) {

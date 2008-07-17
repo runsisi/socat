@@ -12,6 +12,10 @@ corrections:
 	EXEC and SYSTEM with stderr injected socat messages into the data
 	stream. test: EXECSTDERRLOG
 
+	when the EXEC address got a string with consecutive spaces it created
+	additional empty arguments (thanks to Olivier Hervieu for reporting
+	this bug)
+
 ####################### V 1.6.0.1:
 
 new features:
