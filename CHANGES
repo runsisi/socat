@@ -16,6 +16,8 @@ corrections:
 	additional empty arguments (thanks to Olivier Hervieu for reporting
 	this bug)
 
+	improved test.sh script
+
 ####################### V 1.6.0.1:
 
 new features:
