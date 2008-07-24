@@ -83,12 +83,16 @@ bool havelock;
 
 int main(int argc, const char *argv[]) {
    const char **arg1, *a;
+   char *mainwaitstring;
    char buff[10];
    double rto;
    int i, argc0, result;
    struct utsname ubuf;
    int lockrc;
 
+   if (mainwaitstring = getenv("SOCAT_MAIN_WAIT")) {
+       sleep(atoi(mainwaitstring));
+   }
    diag_set('p', strchr(argv[0], '/') ? strrchr(argv[0], '/')+1 : argv[0]);
 
    /* we must init before applying options because env settings have lower
@@ -642,37 +646,32 @@ int socat(const char *address1, const char *address2) {
    returns >0 if child died and left data
 */
 int childleftdata(xiofile_t *xfd) {
-   fd_set in, out, expt;
+   struct pollfd in;
+   int timeout = 0;	/* milliseconds */
    int retval;
+
    /* have to check if a child process died before, but left read data */
    if (XIO_READABLE(xfd) &&
        (XIO_RDSTREAM(xfd)->howtoend == END_KILL ||
 	XIO_RDSTREAM(xfd)->howtoend == END_CLOSE_KILL ||
 	XIO_RDSTREAM(xfd)->howtoend == END_SHUTDOWN_KILL) &&
        XIO_RDSTREAM(xfd)->para.exec.pid == 0) {
-      struct timeval time0 = { 0,0 };
 
-      FD_ZERO(&in); FD_ZERO(&out); FD_ZERO(&expt);
       if (XIO_READABLE(xfd) && !(XIO_RDSTREAM(xfd)->eof >= 2 && !XIO_RDSTREAM(xfd)->ignoreeof)) {
-	 FD_SET(XIO_GETRDFD(xfd), &in);
-	 /*0 FD_SET(XIO_GETRDFD(xfd), &expt);*/
+	 in.fd = XIO_GETRDFD(xfd);
+	 in.events = POLLIN/*|POLLRDBAND*/;
+	 in.revents = 0;
       }
       do {
-	 retval = Select(FD_SETSIZE, &in, &out, &expt, &time0);
+	 retval = xiopoll(&in, 1, timeout);
       } while (retval < 0 && errno == EINTR);
 
       if (retval < 0) {
-#if HAVE_FDS_BITS
-	 Error5("select(%d, &0x%lx, &0x%lx, &0x%lx, {0}): %s",
-		FD_SETSIZE, in.fds_bits[0], out.fds_bits[0],
-		expt.fds_bits[0], strerror(errno));
-#else
-	 Error5("select(%d, &0x%lx, &0x%lx, &0x%lx, {0}): %s",
-		FD_SETSIZE, in.__fds_bits[0], out.__fds_bits[0],
-		expt.__fds_bits[0], strerror(errno));
-#endif
+	 Error4("xiopoll({%d,%0o}, 1, %d): %s",
+		in.fd, in.events, timeout, strerror(errno));
 	 return -1;
-      } else if (retval == 0) {
+      }
+      if (retval == 0) {
 	 Info("terminated child did not leave data for us");
 	 XIO_RDSTREAM(xfd)->eof = 2;
 	 xfd->stream.eof = 2;
@@ -694,7 +693,11 @@ bool maywr2;		/* sock2 can be written to, according to select() */
    and their options are set/applied
    returns -1 on error or 0 on success */
 int _socat(void) {
-   fd_set in, out, expt;
+   struct pollfd fds[4],
+       *fd1in  = &fds[0],
+       *fd1out = &fds[1],
+       *fd2in  = &fds[2],
+       *fd2out = &fds[3];
    int retval;
    unsigned char *buff;
    ssize_t bytes1, bytes2;
@@ -747,7 +750,7 @@ int _socat(void) {
 	   XIO_GETRDFD(sock2), XIO_GETWRFD(sock2));
    while (XIO_RDSTREAM(sock1)->eof <= 1 ||
 	  XIO_RDSTREAM(sock2)->eof <= 1) {
-      struct timeval timeout, *to = NULL;
+      int timeout;
 
       Debug6("data loop: sock1->eof=%d, sock2->eof=%d, closing=%d, wasaction=%d, total_to={"F_tv_sec"."F_tv_usec"}",
 	     XIO_RDSTREAM(sock1)->eof, XIO_RDSTREAM(sock2)->eof,
@@ -783,59 +786,77 @@ int _socat(void) {
 
       if (polling) {
 	 /* there is a ignoreeof poll timeout, use it */
-	 timeout = socat_opts.pollintv;
-	 to = &timeout;
+	 timeout = 1000*socat_opts.pollintv.tv_sec +
+	     socat_opts.pollintv.tv_usec/1000;	/*!!! overflow?*/
       } else if (socat_opts.total_timeout.tv_sec != 0 ||
 		 socat_opts.total_timeout.tv_usec != 0) {
 	 /* there might occur a total inactivity timeout */
-	 timeout = socat_opts.total_timeout;
-	 to = &timeout;
+	 timeout = 1000*socat_opts.total_timeout.tv_sec +
+	    socat_opts.total_timeout.tv_usec/1000;
       } else {
-	 to = NULL;
+	 timeout = -1;	/* forever */
       }
 
       if (closing>=1) {
 	 /* first eof already occurred, start end timer */
-	 timeout = socat_opts.closwait;
-	 to = &timeout;
+	 timeout = 1000*socat_opts.closwait.tv_sec +
+	    socat_opts.closwait.tv_usec/1000;
 	 closing = 2;
       }
 
       do {
 	 int _errno;
-	 FD_ZERO(&in); FD_ZERO(&out); FD_ZERO(&expt);
 
 	 childleftdata(sock1);
 	 childleftdata(sock2);
 
 	 if (closing>=1) {
 	    /* first eof already occurred, start end timer */
-	    timeout = socat_opts.closwait;
-	    to = &timeout;
+	    timeout = 1000*socat_opts.closwait.tv_sec +
+	       socat_opts.closwait.tv_usec/1000;
 	    closing = 2;
 	 }
 
+	 /* now the fds are assigned */
 	 if (XIO_READABLE(sock1) &&
 	     !(XIO_RDSTREAM(sock1)->eof > 1 && !XIO_RDSTREAM(sock1)->ignoreeof) &&
 	     !socat_opts.righttoleft) {
 	    if (!mayrd1) {
-	       FD_SET(XIO_GETRDFD(sock1), &in);
+		fd1in->fd = XIO_GETRDFD(sock1);
+		fd1in->events = POLLIN;
+	    } else {
+		fd1in->fd = -1;
 	    }
 	    if (!maywr2) {
-	       FD_SET(XIO_GETWRFD(sock2), &out);
+		fd2out->fd = XIO_GETWRFD(sock2);
+		fd2out->events = POLLOUT;
+	    } else {
+		fd2out->fd = -1;
 	    }
+	 } else {
+	     fd1in->fd = -1;
+	     fd2out->fd = -1;
 	 }
 	 if (XIO_READABLE(sock2) &&
 	     !(XIO_RDSTREAM(sock2)->eof > 1 && !XIO_RDSTREAM(sock2)->ignoreeof) &&
 	     !socat_opts.lefttoright) {
 	    if (!mayrd2) {
-	       FD_SET(XIO_GETRDFD(sock2), &in);
+		fd2in->fd = XIO_GETRDFD(sock2);
+		fd2in->events = POLLIN;
+	    } else {
+		fd2in->fd = -1;
 	    }
 	    if (!maywr1) {
-	       FD_SET(XIO_GETWRFD(sock1), &out);
+		fd1out->fd = XIO_GETWRFD(sock1);
+		fd1out->events = POLLOUT;
+	    } else {
+		fd1out->fd = -1;
 	    }
+	 } else {
+	     fd1out->fd = -1;
+	     fd2in->fd = -1;
 	 }
-	 retval = Select(FD_SETSIZE, &in, &out, &expt, to);
+	 retval = xiopoll(fds, 4, timeout);
 	 _errno = errno;
 	 if (retval < 0 && errno == EINTR) {
 	    Info1("select(): %s", strerror(errno));
@@ -849,17 +870,10 @@ int _socat(void) {
 	 */
 
       if (retval < 0) {
-#if HAVE_FDS_BITS
-	    Error7("select(%d, &0x%lx, &0x%lx, &0x%lx, %s%lu): %s",
-		   FD_SETSIZE, in.fds_bits[0], out.fds_bits[0],
-		   expt.fds_bits[0], to?"&":"NULL/", to?to->tv_sec:0,
-		   strerror(errno));
-#else
-	    Error7("select(%d, &0x%lx, &0x%lx, &0x%lx, %s%lu): %s",
-		   FD_SETSIZE, in.__fds_bits[0], out.__fds_bits[0],
-		   expt.__fds_bits[0], to?"&":"NULL/", to?to->tv_sec:0,
-		   strerror(errno));
-#endif
+	 Error10("xiopoll({%d,%0o}{%d,%0o}{%d,%0o}{%d,%0o}, 4, %d): %s",
+		 fds[0].fd, fds[0].events, fds[1].fd, fds[1].events,
+		 fds[2].fd, fds[2].events, fds[3].fd, fds[3].events,
+		 timeout, strerror(errno));
 	    return -1;
       } else if (retval == 0) {
 	 Info2("select timed out (no data within %ld.%06ld seconds)",
@@ -884,17 +898,17 @@ int _socat(void) {
       }
 
       if (XIO_READABLE(sock1) && XIO_GETRDFD(sock1) >= 0 &&
-	  FD_ISSET(XIO_GETRDFD(sock1), &in)) {
+	  (fd1in->revents&(POLLIN|POLLHUP|POLLERR))) {
 	 mayrd1 = true;
       }
       if (XIO_READABLE(sock2) && XIO_GETRDFD(sock2) >= 0 &&
-	  FD_ISSET(XIO_GETRDFD(sock2), &in)) {
+	  (fd2in->revents&(POLLIN|POLLHUP|POLLERR))) {
 	 mayrd2 = true;
       }
-      if (XIO_GETWRFD(sock1) >= 0 && FD_ISSET(XIO_GETWRFD(sock1), &out)) {
+      if (XIO_GETWRFD(sock1) >= 0 && (fd1out->revents&(POLLOUT|POLLERR))) {
 	 maywr1 = true;
       }
-      if (XIO_GETWRFD(sock2) >= 0 && FD_ISSET(XIO_GETWRFD(sock2), &out)) {
+      if (XIO_GETWRFD(sock2) >= 0 && (fd2out->revents&(POLLOUT|POLLERR))) {
 	 maywr2 = true;
       }
 

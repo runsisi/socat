@@ -269,19 +269,21 @@ int _xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
       if (errno == EINPROGRESS) {
 	 if (xfd->para.socket.connect_timeout.tv_sec  != 0 ||
 	     xfd->para.socket.connect_timeout.tv_usec != 0) {
-	    struct timeval timeout;
-	    fd_set readfds, writefds, exceptfds;
+	    int timeout;
+	    struct pollfd writefd;
 	    int result;
+
 	    Info4("connect(%d, %s, "F_Zd"): %s",
 		  xfd->fd, sockaddr_info(them, themlen, infobuff, sizeof(infobuff)),
 		  themlen, strerror(errno));
-	    timeout = xfd->para.socket.connect_timeout;
-	    FD_ZERO(&readfds);  FD_ZERO(&writefds);  FD_ZERO(&exceptfds);
-	    FD_SET(xfd->fd, &readfds);  FD_SET(xfd->fd, &writefds);
-	    result =
-	       Select(xfd->fd+1, &readfds, &writefds, &exceptfds, &timeout);
+	    timeout = 1000*xfd->para.socket.connect_timeout.tv_sec +
+		xfd->para.socket.connect_timeout.tv_usec/1000;
+	    writefd.fd = xfd->fd;
+	    writefd.events = (POLLIN|POLLHUP|POLLERR);
+	    result = Poll(&writefd, 1, timeout);
 	    if (result < 0) {
-	       Msg2(level, "select(%d,,,,): %s", xfd->fd+1, strerror(errno));
+	       Msg3(level, "poll({%d,POLLIN|POLLHUP|POLLER},,%d): %s",
+		    xfd->fd, timeout, strerror(errno));
 	       return STAT_RETRYLATER;
 	    }
 	    if (result == 0) {
@@ -290,7 +292,7 @@ int _xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
 		    strerror(ETIMEDOUT));
 	       return STAT_RETRYLATER;
 	    }
-	    if (FD_ISSET(xfd->fd, &readfds)) {
+	    if (writefd.revents & POLLOUT) {
 #if 0
 	       unsigned char dummy[1];
 	       Read(xfd->fd, &dummy, 1);	/* get error message */
@@ -726,16 +728,16 @@ int _xioopen_dgram_recvfrom(struct single *xfd, int xioflags,
 
       /* loop until select() returns valid */
       do {
-	 fd_set in, out, expt;
+	 struct pollfd readfd;
 	 /*? int level = E_ERROR;*/
 	 if (us != NULL) {
 	    Notice1("receiving on %s", sockaddr_info(us, uslen, lisname, sizeof(lisname)));
 	 } else {
 	    Notice1("receiving IP protocol %u", proto);
 	 }
-	 FD_ZERO(&in); FD_ZERO(&out); FD_ZERO(&expt);
-	 FD_SET(xfd->fd, &in);
-	 if (Select(xfd->fd+1, &in, &out, &expt, NULL) > 0) {
+	 readfd.fd = xfd->fd;
+	 readfd.events = POLLIN;
+	 if (Poll(&readfd, 1, -1) > 0) {
 	    break;
 	 }
 
@@ -743,7 +745,7 @@ int _xioopen_dgram_recvfrom(struct single *xfd, int xioflags,
 	    continue;
 	 }
 
-	 Msg2(level, "select(, {%d}): %s", xfd->fd, strerror(errno));
+	 Msg2(level, "poll({%d,,},,-1): %s", xfd->fd, strerror(errno));
 	 Close(xfd->fd);
 	 return STAT_RETRYLATER;
       } while (true);

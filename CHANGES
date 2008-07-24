@@ -22,6 +22,9 @@ corrections:
 
 	improved test.sh script
 
+	replaced the select() calls by poll() to cleanly fix the problems with
+	many file descriptors already open
+
 ####################### V 1.6.0.1:
 
 new features:

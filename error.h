@@ -50,6 +50,8 @@
 #define Error6(m,a1,a2,a3,a4,a5,a6) msg(E_ERROR,m,a1,a2,a3,a4,a5,a6)
 #define Error7(m,a1,a2,a3,a4,a5,a6,a7) msg(E_ERROR,m,a1,a2,a3,a4,a5,a6,a7)
 #define Error8(m,a1,a2,a3,a4,a5,a6,a7,a8) msg(E_ERROR,m,a1,a2,a3,a4,a5,a6,a7,a8)
+#define Error9(m,a1,a2,a3,a4,a5,a6,a7,a8,a9) msg(E_ERROR,m,a1,a2,a3,a4,a5,a6,a7,a8,a9)
+#define Error10(m,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10) msg(E_ERROR,m,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10)
 #else /* !(WITH_MSGLEVEL >= E_ERROR) */
 #define Error(m)
 #define Error1(m,a1)
@@ -60,6 +62,8 @@
 #define Error6(m,a1,a2,a3,a4,a5,a6)
 #define Error7(m,a1,a2,a3,a4,a5,a6,a7)
 #define Error8(m,a1,a2,a3,a4,a5,a6,a7,a8)
+#define Error9(m,a1,a2,a3,a4,a5,a6,a7,a8,a9)
+#define Error10(m,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10)
 #endif /* !(WITH_MSGLEVEL <= E_ERROR) */
 
 #if WITH_MSGLEVEL <= E_WARN

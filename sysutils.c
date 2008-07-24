@@ -1,5 +1,5 @@
 /* source: sysutils.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* translate socket addresses into human readable form */
@@ -400,6 +400,17 @@ const char *hstrerror(int err) {
    return h_messages[err];
 }
 #endif /* !HAVE_HSTRERROR */
+
+
+/* this function behaves like poll(). It tries to do so even when the poll()
+   system call is not available. */
+int xiopoll(struct pollfd fds[], nfds_t nfds, int timeout) {
+#if HAVE_POLL
+    return Poll(fds, nfds, timeout);
+#else /* HAVE_POLL */
+    /*!!! wrap around Select() */
+#endif /* !HAVE_POLL */
+}
    
 
 #if WITH_TCP || WITH_UDP

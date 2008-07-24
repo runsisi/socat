@@ -84,7 +84,7 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
    union sockaddr_union themunion;
    union sockaddr_union *them = &themunion;
    int socktype = SOCK_DGRAM;
-   fd_set in, out, expt;
+   struct pollfd readfd;
    bool dofork = false;
    pid_t pid;
    char *rangename;
@@ -205,9 +205,9 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
 
       Notice1("listening on UDP %s",
 	      sockaddr_info(&us.soa, uslen, infobuff, sizeof(infobuff)));
-      FD_ZERO(&in); FD_ZERO(&out); FD_ZERO(&expt);
-      FD_SET(fd->stream.fd, &in);
-      while (Select(fd->stream.fd+1, &in, &out, &expt, NULL) < 0) {
+      readfd.fd = fd->stream.fd;
+      readfd.events = POLLIN|POLLERR;
+      while (Poll(&readfd, 1, -1) < 0) {
 	 if (errno != EINTR)  break;
       }
 

@@ -677,9 +677,21 @@ int Chmod(const char *path, mode_t mode) {
 /* we only show the first struct pollfd; hope this is enough for most cases. */
 int Poll(struct pollfd *ufds, unsigned int nfds, int timeout) {
    int result;
-   Debug4("poll({%d, 0x%02hx, }, %u, %d)", ufds[0].fd, ufds[0].events, nfds, timeout);
+   if (nfds == 4) {
+      Debug10("poll({%d,0x%02hx,}{%d,0x%02hx,}{%d,0x%02hx,}{%d,0x%02hx,}, , %u, %d)",
+	      ufds[0].fd, ufds[0].events, ufds[1].fd, ufds[1].events,
+	      ufds[2].fd, ufds[2].events, ufds[3].fd, ufds[3].events,
+	      nfds, timeout);
+   } else {
+      Debug4("poll({%d,0x%02hx,}, , %u, %d)", ufds[0].fd, ufds[0].events, nfds, timeout);
+   }
    result = poll(ufds, nfds, timeout);
-   Debug2("poll(, {,, 0x%02hx}) -> %d", ufds[0].revents, result);
+   if (nfds == 4) {
+      Debug5("poll(, {,,0x%02hx}{,,0x%02hx}{,,0x%02hx}{,,0x%02hx}) -> %d",
+	     ufds[0].revents, ufds[1].revents, ufds[2].revents, ufds[3].revents, result);
+   } else {
+      Debug2("poll(, {,,0x%02hx}) -> %d", ufds[0].revents, result);
+   }
    return result;
 }
 #endif /* HAVE_POLL */

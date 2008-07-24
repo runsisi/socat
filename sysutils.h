@@ -90,6 +90,8 @@ extern int getusergroups(const char *user, gid_t *list, size_t *ngroups);
 extern const char *hstrerror(int err);
 #endif
 
+extern int xiopoll(struct pollfd fds[], nfds_t nfds, int timeout);
+
 extern int parseport(const char *portname, int proto);
 
 extern int ifindexbyname(const char *ifname);
