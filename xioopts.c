@@ -1046,8 +1046,8 @@ const struct optname optionnames[] = {
 #ifdef SO_PROTOTYPE
 	IF_SOCKET ("prototype",	&opt_so_prototype)
 #endif
-	IF_PROXY  ("proxy-authorization",	&opt_proxy_authorization)
 	IF_PROXY  ("proxy-auth",	&opt_proxy_authorization)
+	IF_PROXY  ("proxy-authorization",	&opt_proxy_authorization)
 	IF_PROXY  ("proxy-resolve",	&opt_proxy_resolve)
 	IF_PROXY  ("proxyauth",	&opt_proxy_authorization)
 	IF_PROXY  ("proxyport",	&opt_proxyport)
@@ -1304,7 +1304,7 @@ const struct optname optionnames[] = {
 #ifdef SO_USELOOPBACK /* AIX433, Solaris */
 	IF_SOCKET ("so-useloopback",	&opt_so_useloopback)
 #endif /* SO_USELOOPBACK */
- 	IF_SOCKS4 ("socksport",	&opt_socksport)
+	IF_SOCKS4 ("socksport",	&opt_socksport)
 	IF_SOCKS4 ("socksuser",	&opt_socksuser)
 	IF_IPAPP  ("sourceport",	&opt_sourceport)
 	IF_IPAPP  ("sp",	&opt_sourceport)
@@ -1714,12 +1714,8 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
       case TYPE_BYTE:
 	 {
 	  unsigned long ul;
-	  if (token) {
-	     char *rest;
-	     ul = strtoul(token, &rest/*!*/, 0);
-	  } else {
-	    ul = 1;
-	  }
+	  char *rest;
+	  ul = strtoul(token, &rest/*!*/, 0);
 	  if (ul > UCHAR_MAX) {
 	    Error3("parseopts(%s): byte value exceeds limit (%lu vs. %u), using max",
 		   a0, ul, UCHAR_MAX);
