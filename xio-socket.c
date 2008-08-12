@@ -129,9 +129,9 @@ const struct optdesc opt_connect_timeout = { "connect-timeout", NULL, OPT_CONNEC
 const struct optdesc opt_protocol_family = { "protocol-family", "pf", OPT_PROTOCOL_FAMILY, GROUP_SOCKET, PH_PRESOCKET,  TYPE_STRING,  OFUNC_SPEC };
 
 /* generic setsockopt() options */
-const struct optdesc opt_setsockopt_int    = { "setsockopt-int",    "sockopt-int",    OPT_SETSOCKOPT_INT,    GROUP_SOCKET,PH_PASTSOCKET,TYPE_INT_INT_INT,    OFUNC_SPEC, 0, 0 };
-const struct optdesc opt_setsockopt_bin    = { "setsockopt-bin",    "sockopt-bin",    OPT_SETSOCKOPT_BIN,    GROUP_SOCKET,PH_PASTSOCKET,TYPE_INT_INT_BIN,    OFUNC_SPEC, 0, 0 };
-const struct optdesc opt_setsockopt_string = { "setsockopt-string", "sockopt-string", OPT_SETSOCKOPT_STRING, GROUP_SOCKET,PH_PASTSOCKET,TYPE_INT_INT_STRING, OFUNC_SPEC, 0, 0 };
+const struct optdesc opt_setsockopt_int    = { "setsockopt-int",    "sockopt-int",    OPT_SETSOCKOPT_INT,        GROUP_SOCKET,PH_PASTSOCKET,TYPE_INT_INT_INT,     OFUNC_SOCKOPT_GENERIC, 0, 0 };
+const struct optdesc opt_setsockopt_bin    = { "setsockopt-bin",    "sockopt-bin",    OPT_SETSOCKOPT_BIN,        GROUP_SOCKET,PH_PASTSOCKET,TYPE_INT_INT_BIN,     OFUNC_SOCKOPT_GENERIC, 0, 0 };
+const struct optdesc opt_setsockopt_string = { "setsockopt-string", "sockopt-string", OPT_SETSOCKOPT_STRING,     GROUP_SOCKET,PH_PASTSOCKET,TYPE_INT_INT_STRING,  OFUNC_SOCKOPT_GENERIC, 0, 0 };
 
 
 /* a subroutine that is common to all socket addresses that want to connect

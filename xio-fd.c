@@ -77,8 +77,8 @@ const struct optdesc opt_cool_write = { "cool-write", "coolwrite", OPT_COOL_WRIT
 const struct optdesc opt_end_close = { "end-close", "close", OPT_END_CLOSE, GROUP_FD, PH_INIT, TYPE_CONST, OFUNC_OFFSET, (bool)&((xiofile_t *)0)->stream.howtoend, END_CLOSE };
 
 /****** generic ioctl() options ******/
-const struct optdesc opt_ioctl_void   = { "ioctl-void",  "ioctl",    OPT_IOCTL_VOID,  GROUP_FD, PH_FD, TYPE_INT,       OFUNC_SPEC, 0, 0, 0 };
-const struct optdesc opt_ioctl_int    = { "ioctl-int",   NULL,       OPT_IOCTL_INT,   GROUP_FD, PH_FD, TYPE_INT_INT,   OFUNC_SPEC, 0, 0, 0 };
-const struct optdesc opt_ioctl_intp   = { "ioctl-intp",  NULL,       OPT_IOCTL_INTP,  GROUP_FD, PH_FD, TYPE_INT_INT,   OFUNC_SPEC, 0, 0, 0 };
-const struct optdesc opt_ioctl_bin    = { "ioctl-bin",   NULL,       OPT_IOCTL_BIN,   GROUP_FD, PH_FD, TYPE_INT_BIN,   OFUNC_SPEC, 0, 0, 0 };
-const struct optdesc opt_ioctl_string = { "ioctl-string",NULL,       OPT_IOCTL_STRING,GROUP_FD, PH_FD, TYPE_INT_STRING,OFUNC_SPEC, 0, 0, 0 };
+const struct optdesc opt_ioctl_void   = { "ioctl-void",  "ioctl",    OPT_IOCTL_VOID,  GROUP_FD, PH_FD, TYPE_INT,       OFUNC_IOCTL_GENERIC, 0, 0, 0 };
+const struct optdesc opt_ioctl_int    = { "ioctl-int",   NULL,       OPT_IOCTL_INT,   GROUP_FD, PH_FD, TYPE_INT_INT,   OFUNC_IOCTL_GENERIC, 0, 0, 0 };
+const struct optdesc opt_ioctl_intp   = { "ioctl-intp",  NULL,       OPT_IOCTL_INTP,  GROUP_FD, PH_FD, TYPE_INT_INTP,  OFUNC_IOCTL_GENERIC, 0, 0, 0 };
+const struct optdesc opt_ioctl_bin    = { "ioctl-bin",   NULL,       OPT_IOCTL_BIN,   GROUP_FD, PH_FD, TYPE_INT_BIN,   OFUNC_IOCTL_GENERIC, 0, 0, 0 };
+const struct optdesc opt_ioctl_string = { "ioctl-string",NULL,       OPT_IOCTL_STRING,GROUP_FD, PH_FD, TYPE_INT_STRING,OFUNC_IOCTL_GENERIC, 0, 0, 0 };

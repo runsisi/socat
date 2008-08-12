@@ -8450,7 +8450,7 @@ N=$((N+1))
 # test the generic ioctl-void option
 NAME=IOCTL_VOID
 case "$TESTS" in
-*%functions%*|*%ip4%*|*%udp%*|*%dgram%*|*%$NAME%*)
+*%functions%*|*%pty%*|*%generic%*|*%$NAME%*)
 TEST="$NAME: test the ioctl-void option"
 # there are not many ioctls that apply to non global resources and do not
 # require root. TIOCEXCL seems to fit:
@@ -8459,7 +8459,7 @@ TEST="$NAME: test the ioctl-void option"
 # process 2 opens it too and fails with "device or resource busy" only when the
 # previous ioctl was successful
 if [ "$UNAME" != Linux ]; then
-    # we need access to more loopback addresses
+    # we use the numeric value of TIOCEXL which is system dependent
     $PRINTF "test $F_n $TEST... ${YELLOW}only on Linux${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
@@ -8482,7 +8482,7 @@ $CMD2 >/dev/null 2>"${te}2" </dev/null
 rc2=$?
 kill $pid0 $pid1 2>/dev/null; wait
 if ! echo "$da" |diff - "$tf"; then
-    $PRINTF "${YELLOW}phase 1 failed{NORMAL}\n"
+    $PRINTF "${YELLOW}phase 1 failed${NORMAL}\n"
     echo "$CMD0 &"
     echo "$CMD1"
     numCANT=$((numCANT+1))
@@ -8496,6 +8496,76 @@ elif [ $rc2 -eq 0 ]; then
 else
     $PRINTF "$OK\n"
     if [ -n "$debug" ]; then cat "${te}0" "${te}1" "${te}2"; fi
+    numOK=$((numOK+1))
+fi
+fi # !Linux
+ ;;
+esac
+N=$((N+1))
+
+
+# test the generic setsockopt-int option
+NAME=SETSOCKOPT_INT
+case "$TESTS" in
+*%functions%*|*%ip4%*|*%tcp%*|*%generic%*|*%$NAME%*)
+TEST="$NAME: test the setsockopt-int option"
+# there are not many socket options that apply to non global resources, do not
+# require root, do not require a network connection, and can easily be
+# tested. SO_REUSEADDR seems to fit:
+# process 0 provides a tcp listening socket with reuseaddr;
+# process 1 connects to this port; thus the port is connected but no longer
+# listening
+# process 2 tries to listen on this port with SO_REUSEADDR, will fail if the
+# (generically specified) SO_REUSEADDR socket options did not work
+# process 3 connects to this port; only if it is successful the test is ok
+if [ "$UNAME" != Linux ]; then
+    # we use the numeric value of SO_REUSEADDR which might be system dependent
+    $PRINTF "test $F_n $TEST... ${YELLOW}only on Linux${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+tp="$PORT"
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="$(date)"
+# level=SOL_SOCKET=1, optname=SO_REUSEADDR=2, value=1
+CMD0="$SOCAT $opts TCP4-L:$tp,setsockopt-int=1:2:1 PIPE"
+CMD1="$SOCAT $opts - TCP:localhost:$tp"
+CMD2="$CMD0"
+CMD3="$CMD1"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+waittcp4port $tp 1
+(echo "$da"; sleep 3) |$CMD1 >"$tf" 2>"${te}1" &	# this should always work
+pid1=$!
+usleep 1000000
+$CMD2 >/dev/null 2>"${te}2" &
+pid2=$!
+waittcp4port $tp 1
+(echo "$da") |$CMD3 >"${tf}3" 2>"${te}3"
+rc3=$?
+kill $pid0 $pid1 $pid2 2>/dev/null; wait
+if ! echo "$da" |diff - "$tf"; then
+    $PRINTF "${YELLOW}phase 1 failed${NORMAL}\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    numCANT=$((numCANT+1))
+elif [ $rc3 -ne 0 ]; then
+    $PRINTF "$FAILED: $SOCAT:\n"
+    echo "$CMD2 &"
+    echo "$CMD3"
+    cat "${te}2" "${te}3"
+    numFAIL=$((numFAIL+1))
+elif ! echo "$da" |diff - "${tf}3"; then
+    $PRINTF "$FAILED: $SOCAT:\n"
+    echo "$CMD2 &"
+    echo "$CMD3"
+    echo "$da" |diff - "${tf}3"
+    numCANT=$((numCANT+1))
+else
+    $PRINTF "$OK\n"
+    if [ -n "$debug" ]; then cat "${te}0" "${te}1" "${te}2" "${te}3"; fi
     numOK=$((numOK+1))
 fi
 fi # !Linux

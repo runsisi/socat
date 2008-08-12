@@ -1313,6 +1313,9 @@ const struct optname optionnames[] = {
 #ifdef SO_USELOOPBACK /* AIX433, Solaris */
 	IF_SOCKET ("so-useloopback",	&opt_so_useloopback)
 #endif /* SO_USELOOPBACK */
+	IF_SOCKET ("sockopt-bin",	&opt_setsockopt_bin)
+	IF_SOCKET ("sockopt-int",	&opt_setsockopt_int)
+	IF_SOCKET ("sockopt-string",	&opt_setsockopt_string)
 	IF_SOCKS4 ("socksport",	&opt_socksport)
 	IF_SOCKS4 ("socksuser",	&opt_socksuser)
 	IF_IPAPP  ("sourceport",	&opt_sourceport)
@@ -2761,6 +2764,48 @@ int applyopts(int fd, struct opt *opts, unsigned int phase) {
 	    opt->desc = ODESC_ERROR; ++opt; continue;
 	 }
 
+      } else if (opt->desc->func == OFUNC_IOCTL_GENERIC) {
+	 switch (opt->desc->type) {
+	 case TYPE_INT:
+	    if (Ioctl(fd, opt->value.u_int, NULL) < 0) {
+	       Error3("ioctl(%d, 0x%x, NULL): %s",
+		      fd, opt->value.u_int, strerror(errno));
+	       opt->desc = ODESC_ERROR; ++opt; continue;
+	    }
+	    break;
+	 case TYPE_INT_INT:
+	    if (Ioctl_int(fd, opt->value.u_int, opt->value2.u_int) < 0) {
+	       Error4("ioctl(%d, %d, %p): %s",
+		      fd, opt->value.u_int, opt->value2.u_int, strerror(errno));
+	       opt->desc = ODESC_ERROR; ++opt; continue;
+	    }
+	    break;
+	 case TYPE_INT_INTP:
+	    if (Ioctl(fd, opt->value.u_int, (void *)&opt->value2.u_int) < 0) {
+	       Error4("ioctl(%d, 0x%x, %p): %s",
+		      fd, opt->value.u_int, (void *)&opt->value2.u_int, strerror(errno));
+	       opt->desc = ODESC_ERROR; ++opt; continue;
+	    }
+	    break;
+	 case TYPE_INT_BIN:
+	    if (Ioctl(fd, opt->value.u_int, (void *)opt->value2.u_bin.b_data) < 0) {
+	       Error4("ioctl(%d, 0x%x, %p): %s",
+		      fd, opt->value.u_int, (void *)opt->value2.u_bin.b_data, strerror(errno));
+	       opt->desc = ODESC_ERROR; ++opt; continue;
+	    }
+	    break;
+	 case TYPE_INT_STRING:
+	    if (Ioctl(fd, opt->value.u_int, (void *)opt->value2.u_string) < 0) {
+	       Error4("ioctl(%d, 0x%x, %p): %s",
+		      fd, opt->value.u_int, (void *)opt->value2.u_string, strerror(errno));
+	       opt->desc = ODESC_ERROR; ++opt; continue;
+	    }
+	    break;
+	 default:
+	    Error1("ioctl() data type %d not implemented",
+		   opt->desc->type);
+	 }
+
 #if WITH_SOCKET
       } else if (opt->desc->func == OFUNC_SOCKOPT) {
 	 if (0) {
@@ -2937,6 +2982,38 @@ int applyopts(int fd, struct opt *opts, unsigned int phase) {
 	    Error2("internal: option \"%s\": unimplemented type %d",
 		   opt->desc->defname, opt->desc->type);
 	    break;
+	 }
+      } else if (opt->desc->func == OFUNC_SOCKOPT_GENERIC) {
+	 switch (opt->desc->type) {
+	 case TYPE_INT_INT_INT:
+	    if (Setsockopt(fd, opt->value.u_int, opt->value2.u_int,
+			   &opt->value3.u_int, sizeof(int)) < 0) {
+	       Error6("setsockopt(%d, %d, %d, {%d}, "F_Zu"): %s",
+		      fd, opt->value.u_int, opt->value2.u_int,
+		      opt->value3.u_int, sizeof(int), strerror(errno));
+	    }
+	    break;
+	 case TYPE_INT_INT_BIN:
+	    if (Setsockopt(fd, opt->value.u_int, opt->value2.u_int,
+			   opt->value3.u_bin.b_data, opt->value3.u_bin.b_len) < 0) {
+	       Error5("setsockopt(%d, %d, %d, {...}, "F_Zu"): %s",
+		      fd, opt->value.u_int, opt->value2.u_int,
+		      opt->value3.u_bin.b_len, strerror(errno));
+	    }
+	    break;
+	 case TYPE_INT_INT_STRING:
+	    if (Setsockopt(fd, opt->value.u_int, opt->value2.u_int,
+			   opt->value3.u_string,
+			   strlen(opt->value3.u_string)+1) < 0) {
+	       Error6("setsockopt(%d, %d, %d, \"%s\", "F_Zu"): %s",
+		      fd, opt->value.u_int, opt->value2.u_int,
+		      opt->value3.u_string, strlen(opt->value3.u_string)+1,
+		      strerror(errno));
+	    }
+	    break;
+	 default:
+	    Error1("setsockopt() data type %d not implemented",
+		   opt->desc->type);
 	 }
 #endif /* WITH_SOCKET */
 	 
@@ -3156,119 +3233,7 @@ int applyopts(int fd, struct opt *opts, unsigned int phase) {
 	       }
 	    }
 	    break;
-	 case OPT_IOCTL_VOID:
-	    switch (opt->desc->type) {
-	    case TYPE_INT:
-	       if (Ioctl(fd, opt->value.u_int, NULL) < 0) {
-		  Error3("ioctl(%d, 0x%x, NULL): %s",
-			 fd, opt->value.u_int, strerror(errno));
-		  opt->desc = ODESC_ERROR; ++opt; continue;
-	       }
-	       break;
-	    default:
-	       Error1("ioctl() data type %d not implemented", opt->desc->type);
-	    }
-	    break;
-	 case OPT_IOCTL_INT:
-	    switch (opt->desc->type) {
-	    case TYPE_INT_INT:
-	       if (Ioctl_int(fd, opt->value.u_int, opt->value2.u_int) < 0) {
-		  Error4("ioctl(%d, %d, %p): %s",
-			 fd, opt->value.u_int, opt->value2.u_int, strerror(errno));
-		  opt->desc = ODESC_ERROR; ++opt; continue;
-	       }
-	       break;
-	    default:
-	       Error1("ioctl() data type %d not implemented", opt->desc->type);
-	    }
-	    break;
-	 case OPT_IOCTL_INTP:
-	    switch (opt->desc->type) {
-	    case TYPE_INT_INT:
-	       if (Ioctl(fd, opt->value.u_int, (void *)&opt->value2.u_int) < 0) {
-		  Error4("ioctl(%d, 0x%x, %p): %s",
-			 fd, opt->value.u_int, (void *)&opt->value2.u_int, strerror(errno));
-		  opt->desc = ODESC_ERROR; ++opt; continue;
-	       }
-	       break;
-	    default:
-	       Error1("ioctl() data type %d not implemented", opt->desc->type);
-	    }
-	    break;
-	 case OPT_IOCTL_BIN:
-	    switch (opt->desc->type) {
-	    case TYPE_INT_BIN:
-	       if (Ioctl(fd, opt->value.u_int, (void *)opt->value2.u_bin.b_data) < 0) {
-		  Error4("ioctl(%d, 0x%x, %p): %s",
-			 fd, opt->value.u_int, (void *)opt->value2.u_bin.b_data, strerror(errno));
-		  opt->desc = ODESC_ERROR; ++opt; continue;
-	       }
-	       break;
-	    default:
-	       Error1("ioctl() data type %d not implemented", opt->desc->type);
-	    }
-	    break;
-	 case OPT_IOCTL_STRING:
-	    switch (opt->desc->type) {
-	    case TYPE_INT_STRING:
-	       if (Ioctl(fd, opt->value.u_int, (void *)opt->value2.u_string) < 0) {
-		  Error4("ioctl(%d, 0x%x, %p): %s",
-			 fd, opt->value.u_int, (void *)opt->value2.u_string, strerror(errno));
-		  opt->desc = ODESC_ERROR; ++opt; continue;
-	       }
-	       break;
-	    default:
-	       Error1("ioctl() data type %d not implemented", opt->desc->type);
-	    }
-	    break;
-	 case OPT_SETSOCKOPT_INT:
-	    switch (opt->desc->type) {
-	    case TYPE_INT_INT_INT:
-	       if (Setsockopt(fd, opt->value.u_int, opt->value2.u_int,
-			      &opt->value3.u_int, sizeof(int)) < 0) {
-		  Error6("setsockopt(%d, %d, %d, {%d}, "F_Zu"): %s",
-			 fd, opt->value.u_int, opt->value2.u_int,
-			 opt->value3.u_int, sizeof(int), strerror(errno));
-	       }
-	       break;
-	    default:
-	       Error1("setsockopt() data type %d not implemented",
-		      opt->desc->type);
-	    }
-	    break;
-	 case OPT_SETSOCKOPT_BIN:
-	    switch (opt->desc->type) {
-	    case TYPE_INT_INT_BIN:
-	       if (Setsockopt(fd, opt->value.u_int, opt->value2.u_int,
-			      opt->value3.u_bin.b_data, opt->value3.u_bin.b_len) < 0) {
-		  Error5("setsockopt(%d, %d, %d, {...}, "F_Zu"): %s",
-			 fd, opt->value.u_int, opt->value2.u_int,
-			 opt->value3.u_bin.b_len, strerror(errno));
-	       }
-	       break;
-	    default:
-	       Error1("setsockopt() data type %d not implemented",
-		      opt->desc->type);
-	    }
-	    break;
-	 case OPT_SETSOCKOPT_STRING:
-	    switch (opt->desc->type) {
-	    case TYPE_INT_INT_STRING:
-	       if (Setsockopt(fd, opt->value.u_int, opt->value2.u_int,
-			      opt->value3.u_string,
-			      strlen(opt->value3.u_string)+1) < 0) {
-		  Error6("setsockopt(%d, %d, %d, \"%s\", "F_Zu"): %s",
-			 fd, opt->value.u_int, opt->value2.u_int,
-			 opt->value3.u_string, strlen(opt->value3.u_string)+1,
-			 strerror(errno));
-	       }
-	       break;
-	    default:
-	       Error1("setsockopt() data type %d not implemented",
-		      opt->desc->type);
-	    }
-	    break;
-	       
+
 	 default: Error1("applyopts(): option \"%s\" not implemented",
 			 opt->desc->defname);
 	    opt->desc = ODESC_ERROR; ++opt; continue;
