@@ -2,7 +2,8 @@
 /* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
-/* this file contains the source for socket related functions */
+/* this file contains the source for socket related functions, and the
+   implementation of generic socket addresses */
 
 #include "xiosysincludes.h"
 
@@ -18,9 +19,54 @@
 #include "xio-ip6.h"
 #endif /* WITH_IP6 */
 #include "xio-ip.h"
+#include "xio-listen.h"
 #include "xio-ipapp.h"	/*! not clean */
 #include "xio-tcpwrap.h"
 
+
+static
+int xioopen_socket_connect(int argc, const char *argv[], struct opt *opts,
+			   int xioflags, xiofile_t *xfd, unsigned groups,
+			   int dummy1, int dummy2, int dummy3);
+static
+int xioopen_socket_listen(int argc, const char *argv[], struct opt *opts,
+			  int xioflags, xiofile_t *xfd, unsigned groups,
+			  int dummy1, int dummy2, int dummy3);
+static
+int xioopen_socket_sendto(int argc, const char *argv[], struct opt *opts,
+			  int xioflags, xiofile_t *xfd, unsigned groups,
+			  int dummy1, int dummy2, int dummy3);
+static
+int xioopen_socket_datagram(int argc, const char *argv[], struct opt *opts,
+			    int xioflags, xiofile_t *xfd, unsigned groups,
+			    int dummy1, int dummy2, int dummy3);
+static
+int xioopen_socket_recvfrom(int argc, const char *argv[], struct opt *opts,
+			    int xioflags, xiofile_t *xfd, unsigned groups,
+			    int dummy1, int socktype, int dummy3);
+static
+int xioopen_socket_recv(int argc, const char *argv[], struct opt *opts,
+			int xioflags, xiofile_t *xfd, unsigned groups, 
+			int dumy1, int dummy2, int dummy3);
+
+static
+int _xioopen_socket_sendto(const char *pfname, const char *type,
+			   const char *proto, const char *address,
+			   struct opt *opts, int xioflags, xiofile_t *xxfd,
+			   unsigned groups);
+
+
+/* generic socket addresses */
+const struct addrdesc xioaddr_socket_connect = { "socket-connect",     1, xioopen_socket_connect,  GROUP_FD|GROUP_SOCKET|GROUP_CHILD|GROUP_RETRY, 0, 0, 0 HELP(":<domain>:<protocol>:<remote-address>") };
+const struct addrdesc xioaddr_socket_listen  = { "socket-listen",      1, xioopen_socket_listen,   GROUP_FD|GROUP_SOCKET|GROUP_LISTEN|GROUP_RANGE|GROUP_CHILD|GROUP_RETRY, 0, 0, 0 HELP(":<domain>:<protocol>:<local-address>") };
+const struct addrdesc xioaddr_socket_sendto  = { "socket-sendto",      3, xioopen_socket_sendto,   GROUP_FD|GROUP_SOCKET,                         0, 0, 0 HELP(":<domain>:<type>:<protocol>:<remote-address>") };
+const struct addrdesc xioaddr_socket_datagram= { "socket-datagram",    3, xioopen_socket_datagram, GROUP_FD|GROUP_SOCKET|GROUP_RANGE,             0, 0, 0 HELP(":<domain>:<type>:<protocol>:<remote-address>") };
+const struct addrdesc xioaddr_socket_recvfrom= { "socket-recvfrom",    3, xioopen_socket_recvfrom, GROUP_FD|GROUP_SOCKET|GROUP_RANGE|GROUP_CHILD, 0, 0, 0 HELP(":<domain>:<type>:<protocol>:<local-address>") };
+const struct addrdesc xioaddr_socket_recv    = { "socket-recv",        1, xioopen_socket_recv,     GROUP_FD|GROUP_SOCKET|GROUP_RANGE,             0, 0, 0 HELP(":<domain>:<type>:<protocol>:<local-address>") };
+
+
+/* the following options apply not only to generic socket addresses but to all
+   addresses that have anything to do with sockets */
 const struct optdesc opt_so_debug    = { "so-debug",    "debug", OPT_SO_DEBUG,    GROUP_SOCKET, PH_PASTSOCKET, TYPE_INT,  OFUNC_SOCKOPT, SOL_SOCKET, SO_DEBUG };
 #ifdef SO_ACCEPTCONN /* AIX433 */
 const struct optdesc opt_so_acceptconn={ "so-acceptconn","acceptconn",OPT_SO_ACCEPTCONN,GROUP_SOCKET,PH_PASTSOCKET,TYPE_INT,  OFUNC_SOCKOPT, SOL_SOCKET, SO_ACCEPTCONN};
@@ -132,6 +178,498 @@ const struct optdesc opt_protocol_family = { "protocol-family", "pf", OPT_PROTOC
 const struct optdesc opt_setsockopt_int    = { "setsockopt-int",    "sockopt-int",    OPT_SETSOCKOPT_INT,        GROUP_SOCKET,PH_PASTSOCKET,TYPE_INT_INT_INT,     OFUNC_SOCKOPT_GENERIC, 0, 0 };
 const struct optdesc opt_setsockopt_bin    = { "setsockopt-bin",    "sockopt-bin",    OPT_SETSOCKOPT_BIN,        GROUP_SOCKET,PH_PASTSOCKET,TYPE_INT_INT_BIN,     OFUNC_SOCKOPT_GENERIC, 0, 0 };
 const struct optdesc opt_setsockopt_string = { "setsockopt-string", "sockopt-string", OPT_SETSOCKOPT_STRING,     GROUP_SOCKET,PH_PASTSOCKET,TYPE_INT_INT_STRING,  OFUNC_SOCKOPT_GENERIC, 0, 0 };
+
+static
+int xioopen_socket_connect(int argc, const char *argv[], struct opt *opts,
+			   int xioflags, xiofile_t *xxfd, unsigned groups,
+			   int dummy1, int dummy2, int dummy3) {
+   struct single *xfd = &xxfd->stream;
+   const char *pfname = argv[1];
+   const char *protname = argv[2];
+   const char *address = argv[3];
+   char *garbage;
+   int pf;
+   int proto;
+   int socktype = SOCK_STREAM;
+   int needbind = 0;
+   union sockaddr_union them;  socklen_t themlen;
+   union sockaddr_union us;    socklen_t uslen = sizeof(us);
+   int result;
+
+   if (argc != 4) {
+      Error2("%s: wrong number of parameters (%d instead of 3)",
+	     argv[0], argc-1);
+      return STAT_NORETRY;
+   }
+
+   pf = strtoul(pfname, &garbage, 0);
+   if (*garbage != '\0') {
+      Warn1("garbage in parameter: \"%s\"", garbage);
+   }
+
+   proto = strtoul(protname, &garbage, 0);
+   if (*garbage != '\0') {
+      Warn1("garbage in parameter: \"%s\"", garbage);
+   }
+
+   retropt_socket_pf(opts, &pf);
+   retropt_int(opts, OPT_SO_TYPE, &socktype);
+   /*retropt_int(opts, OPT_IP_PROTOCOL, &proto);*/
+   xfd->howtoend = END_SHUTDOWN;
+
+   applyopts(-1, opts, PH_INIT);
+   if (applyopts_single(xfd, opts, PH_INIT) < 0)  return -1;
+   applyopts(-1, opts, PH_EARLY);
+
+   themlen = 0;
+   if ((result =
+	dalan(address, (char *)&them.soa.sa_data, &themlen, sizeof(them)))
+       < 0) {
+      Error1("data too long: \"%s\"", address);
+   } else if (result > 0) {
+      Error1("syntax error in \"%s\"", address);
+   }      
+   them.soa.sa_family = pf;
+   themlen +=
+#if HAVE_STRUCT_SOCKADDR_SALEN
+      sizeof(them.soa.sa_len) +
+#endif
+      sizeof(them.soa.sa_family);
+
+   xfd->dtype = XIOREAD_STREAM|XIOWRITE_STREAM;
+
+   socket_init(0, &us);
+   if (retropt_bind(opts, 0 /*pf*/, socktype, proto, (struct sockaddr *)&us, &uslen, 3,
+		    0, 0)
+       != STAT_NOACTION) {
+      needbind = true;
+      us.soa.sa_family = pf;
+   }
+
+   if ((result =
+	xioopen_connect(xfd,
+			needbind?(struct sockaddr *)&us:NULL, uslen,
+			(struct sockaddr *)&them, themlen,
+			opts, pf, socktype, proto, false)) != 0) {
+      return result;
+   }
+   if ((result = _xio_openlate(xfd, opts)) < 0) {
+      return result;
+   }
+   return STAT_OK;
+}
+
+static
+int xioopen_socket_listen(int argc, const char *argv[], struct opt *opts,
+			  int xioflags, xiofile_t *xxfd, unsigned groups,
+			  int dummy1, int dummy2, int dummy3) {
+   struct single *xfd = &xxfd->stream;
+   const char *pfname = argv[1];
+   const char *protname = argv[2];
+   const char *usname = argv[3];
+   char *garbage;
+   int pf;
+   int proto;
+   int socktype = SOCK_STREAM;
+   union sockaddr_union us;  socklen_t uslen;
+   struct opt *opts0;
+   int result;
+
+   if (argc != 4) {
+      Error2("%s: wrong number of parameters (%d instead of 3)",
+	     argv[0], argc-1);
+      return STAT_NORETRY;
+   }
+
+   pf = strtoul(pfname, &garbage, 0);
+   if (*garbage != '\0') {
+      Warn1("garbage in parameter: \"%s\"", garbage);
+   }
+
+   proto = strtoul(protname, &garbage, 0);
+   if (*garbage != '\0') {
+      Warn1("garbage in parameter: \"%s\"", garbage);
+   }
+
+   retropt_socket_pf(opts, &pf);
+   retropt_int(opts, OPT_SO_TYPE, &socktype);
+   /*retropt_int(opts, OPT_IP_PROTOCOL, &proto);*/
+   xfd->howtoend = END_SHUTDOWN;
+
+   socket_init(0, &us);
+   uslen = 0;
+   if ((result =
+	dalan(usname, (char *)&us.soa.sa_data, &uslen, sizeof(us)))
+       < 0) {
+      Error1("data too long: \"%s\"", usname);
+   } else if (result > 0) {
+      Error1("syntax error in \"%s\"", usname);
+   }
+   uslen += sizeof(us.soa.sa_family)
+#if HAVE_STRUCT_SOCKADDR_SALEN
+      + sizeof(us.soa.sa_len)
+#endif
+      ;
+   us.soa.sa_family = pf;
+
+   if (applyopts_single(xfd, opts, PH_INIT) < 0)  return -1;
+   applyopts(-1, opts, PH_INIT);
+   applyopts(-1, opts, PH_EARLY);
+
+   opts0 = copyopts(opts, GROUP_ALL);
+
+   if ((result =
+	xioopen_listen(xfd, xioflags,
+		       (struct sockaddr *)&us, uslen,
+		       opts, opts0, 0/*instead of pf*/, socktype, proto))
+       != STAT_OK)
+      return result;
+   return STAT_OK;
+}
+
+/* we expect the form: ...:domain:type:protocol:remote-address */
+static
+int xioopen_socket_sendto(int argc, const char *argv[], struct opt *opts,
+			  int xioflags, xiofile_t *xxfd, unsigned groups,
+			  int dummy1, int dummy2, int dummy3) {
+   int result;
+
+   if (argc != 5) {
+      Error2("%s: wrong number of parameters (%d instead of 4)",
+	     argv[0], argc-1);
+      return STAT_NORETRY;
+   }
+   if ((result =
+	   _xioopen_socket_sendto(argv[1], argv[2], argv[3], argv[4],
+				  opts, xioflags, xxfd, groups))
+       != STAT_OK) {
+      return result;
+   }
+   _xio_openlate(&xxfd->stream, opts);
+   return STAT_OK;
+}
+
+static
+int _xioopen_socket_sendto(const char *pfname, const char *type,
+			   const char *protname, const char *address,
+			   struct opt *opts, int xioflags, xiofile_t *xxfd,
+			   unsigned groups) {
+   xiosingle_t *xfd = &xxfd->stream;
+   char *garbage;
+   union sockaddr_union us = {{0}};
+   socklen_t uslen = 0;
+   socklen_t themlen = 0;
+   int pf;
+   int socktype = SOCK_RAW;
+   int proto;
+   bool needbind = false;
+   char *bindstring = NULL;
+   int result;
+
+   pf = strtoul(pfname, &garbage, 0);
+   if (*garbage != '\0') {
+      Warn1("garbage in parameter: \"%s\"", garbage);
+   }
+
+   socktype = strtoul(type, &garbage, 0);
+   if (*garbage != '\0') {
+      Warn1("garbage in parameter: \"%s\"", garbage);
+   }
+
+   proto = strtoul(protname, &garbage, 0);
+   if (*garbage != '\0') {
+      Warn1("garbage in parameter: \"%s\"", garbage);
+   }
+
+   retropt_socket_pf(opts, &pf);
+   retropt_int(opts, OPT_SO_TYPE, &socktype);
+   /*retropt_int(opts, OPT_IP_PROTOCOL, &proto);*/
+   xfd->howtoend = END_SHUTDOWN;
+
+   xfd->peersa.soa.sa_family = pf;
+   themlen = 0;
+   if ((result =
+	dalan(address, (char *)&xfd->peersa.soa.sa_data, &themlen,
+	      sizeof(xfd->peersa)))
+       < 0) {
+      Error1("data too long: \"%s\"", address);
+   } else if (result > 0) {
+      Error1("syntax error in \"%s\"", address);
+   }      
+   xfd->salen = themlen + sizeof(sa_family_t)
+#if HAVE_STRUCT_SOCKADDR_SALEN
+      + sizeof(xfd->peersa.soa.sa_len)
+#endif
+      ;
+#if HAVE_STRUCT_SOCKADDR_SALEN
+   xfd->peersa.soa.sa_len =
+      sizeof(xfd->peersa.soa.sa_len) + sizeof(xfd->peersa.soa.sa_family) +
+      themlen;
+#endif
+
+   /* ...res_opts[] */
+   if (applyopts_single(xfd, opts, PH_INIT) < 0)  return -1;
+   applyopts(-1, opts, PH_INIT);
+
+   if (pf == PF_UNSPEC) {
+      pf = xfd->peersa.soa.sa_family;
+   }
+
+   xfd->dtype = XIODATA_RECVFROM;
+
+   if (retropt_string(opts, OPT_BIND, &bindstring) == 0) {
+      uslen = 0;
+      if ((result =
+	   dalan(bindstring, (char *)&us.soa.sa_data, &uslen, sizeof(us)))
+	  < 0) {
+	 Error1("data too long: \"%s\"", bindstring);
+      } else if (result > 0) {
+	 Error1("syntax error in \"%s\"", bindstring);
+      }
+      us.soa.sa_family = pf;
+      uslen += sizeof(sa_family_t)
+#if HAVE_STRUCT_SOCKADDR_SALEN
+	 + sizeof(us.soa.sa_len)
+#endif
+	 ;
+      needbind = true;
+   }
+
+   return
+      _xioopen_dgram_sendto(needbind?&us:NULL, uslen,
+			  opts, xioflags, xfd, groups, pf, socktype, proto);
+}
+
+
+/* we expect the form: ...:domain:socktype:protocol:local-address */
+static
+int xioopen_socket_recvfrom(int argc, const char *argv[], struct opt *opts,
+		     int xioflags, xiofile_t *xxfd, unsigned groups,
+		     int dummy, int summy2, int dummy3) {
+   struct single *xfd = &xxfd->stream;
+   const char *pfname = argv[1];
+   const char *typename = argv[2];
+   const char *protname = argv[3];
+   const char *address = argv[4];
+   char *garbage;
+   union sockaddr_union *us = &xfd->para.socket.la;
+   socklen_t uslen = sizeof(*us);
+   int pf, socktype, proto;
+   char *rangename;
+   int result;
+
+   if (argc != 5) {
+      Error2("%s: wrong number of parameters (%d instead of 4)",
+	     argv[0], argc-1);
+      return STAT_NORETRY;
+   }
+
+   pf = strtoul(pfname, &garbage, 0);
+   if (*garbage != '\0') {
+      Warn1("garbage in parameter: \"%s\"", garbage);
+   }
+
+   socktype = strtoul(typename, &garbage, 0);
+   if (*garbage != '\0') {
+      Warn1("garbage in parameter: \"%s\"", garbage);
+   }
+
+   proto = strtoul(protname, &garbage, 0);
+   if (*garbage != '\0') {
+      Warn1("garbage in parameter: \"%s\"", garbage);
+   }
+
+   retropt_socket_pf(opts, &pf);
+   retropt_int(opts, OPT_SO_TYPE, &socktype);
+   /*retropt_int(opts, OPT_IP_PROTOCOL, &proto);*/
+   xfd->howtoend = END_NONE;
+
+   uslen = 0;
+   if ((result =
+	dalan(address, (char *)&us->soa.sa_data, &uslen, sizeof(*us)))
+       < 0) {
+      Error1("data too long: \"%s\"", address);
+   } else if (result > 0) {
+      Error1("syntax error in \"%s\"", address);
+   }      
+   us->soa.sa_family = pf;
+   uslen += sizeof(us->soa.sa_family)
+#if HAVE_STRUCT_SOCKADDR_SALEN
+      + sizeof(us->soa.sa_len);
+#endif
+      ;
+   xfd->dtype = XIOREAD_RECV|XIOWRITE_SENDTO;
+
+   if (retropt_string(opts, OPT_RANGE, &rangename) >= 0) {
+      if (xioparserange(rangename, 0, &xfd->para.socket.range) < 0) {
+	 return STAT_NORETRY;
+      }
+      xfd->para.socket.dorange = true;
+      free(rangename);
+   }
+
+   if ((result =
+	_xioopen_dgram_recvfrom(xfd, xioflags, &us->soa, uslen,
+				opts, pf, socktype, proto, E_ERROR))
+       != STAT_OK) {
+      return result;
+   }
+   _xio_openlate(xfd, opts);
+   return STAT_OK;
+}
+
+/* we expect the form: ...:domain:type:protocol:local-address */
+static
+int xioopen_socket_recv(int argc, const char *argv[], struct opt *opts,
+		       int xioflags, xiofile_t *xxfd, unsigned groups,
+		       int dummy1, int dummy2, int dummy3) {
+   struct single *xfd = &xxfd->stream;
+   const char *pfname = argv[1];
+   const char *typename = argv[2];
+   const char *protname = argv[3];
+   const char *address = argv[4];
+   char *garbage;
+   union sockaddr_union us;
+   socklen_t uslen = sizeof(us);
+   int pf, socktype, proto;
+   char *rangename;
+   int result;
+
+   if (argc != 5) {
+      Error2("%s: wrong number of parameters (%d instead of 4)",
+	     argv[0], argc-1);
+      return STAT_NORETRY;
+   }
+
+   pf = strtoul(pfname, &garbage, 0);
+   if (*garbage != '\0') {
+      Warn1("garbage in parameter: \"%s\"", garbage);
+   }
+
+   socktype = strtoul(typename, &garbage, 0);
+   if (*garbage != '\0') {
+      Warn1("garbage in parameter: \"%s\"", garbage);
+   }
+
+   proto = strtoul(protname, &garbage, 0);
+   if (*garbage != '\0') {
+      Warn1("garbage in parameter: \"%s\"", garbage);
+   }
+
+   retropt_socket_pf(opts, &pf);
+   retropt_int(opts, OPT_SO_TYPE, &socktype);
+   /*retropt_int(opts, OPT_IP_PROTOCOL, &proto);*/
+   xfd->howtoend = END_NONE;
+
+   uslen = 0;
+   if ((result =
+	dalan(address, (char *)&us.soa.sa_data, &uslen, sizeof(us)))
+       < 0) {
+      Error1("data too long: \"%s\"", address);
+   } else if (result > 0) {
+      Error1("syntax error in \"%s\"", address);
+   }      
+   us.soa.sa_family = pf;
+   uslen += sizeof(sa_family_t)
+#if HAVE_STRUCT_SOCKADDR_SALEN
+      +sizeof(us.soa.sa_len)
+#endif
+      ;
+   xfd->dtype = XIOREAD_RECV;
+   xfd->para.socket.la.soa.sa_family = pf;
+
+   if (retropt_string(opts, OPT_RANGE, &rangename) >= 0) {
+      if (xioparserange(rangename, 0, &xfd->para.socket.range) < 0) {
+	 return STAT_NORETRY;
+      }
+      xfd->para.socket.dorange = true;
+      free(rangename);
+   }
+
+   if ((result =
+	_xioopen_dgram_recv(xfd, xioflags, &us.soa,
+			    uslen, opts, pf, socktype, proto, E_ERROR))
+       != STAT_OK) {
+      return result;
+   }
+   _xio_openlate(xfd, opts);
+   return STAT_OK;
+}
+
+
+/* we expect the form: ...:domain:type:protocol:remote-address */
+static
+int xioopen_socket_datagram(int argc, const char *argv[], struct opt *opts,
+			    int xioflags, xiofile_t *xxfd, unsigned groups,
+			    int dummy1, int dummy2, int dummy3) {
+   xiosingle_t *xfd = &xxfd->stream;
+   const char *pfname = argv[1];
+   const char *typename = argv[2];
+   const char *protname = argv[3];
+   const char *address = argv[4];
+   char *garbage;
+   char *rangename;
+   socklen_t themlen;
+   int pf;
+   int result;
+
+   if (argc != 5) {
+      Error2("%s: wrong number of parameters (%d instead of 4)",
+	     argv[0], argc-1);
+      return STAT_NORETRY;
+   }
+
+   pf = strtoul(pfname, &garbage, 0);
+   if (*garbage != '\0') {
+      Warn1("garbage in parameter: \"%s\"", garbage);
+   }
+
+   retropt_socket_pf(opts, &pf);
+   /*retropt_int(opts, OPT_IP_PROTOCOL, &proto);*/
+   xfd->howtoend = END_SHUTDOWN;
+
+   xfd->peersa.soa.sa_family = pf;
+   themlen = 0;
+   if ((result =
+	dalan(address, (char *)&xfd->peersa.soa.sa_data, &themlen,
+	      sizeof(xfd->peersa)))
+       < 0) {
+      Error1("data too long: \"%s\"", address);
+   } else if (result > 0) {
+      Error1("syntax error in \"%s\"", address);
+   }
+   xfd->salen = themlen + sizeof(sa_family_t);
+#if HAVE_STRUCT_SOCKADDR_SALEN
+   xfd->peersa.soa.sa_len =
+      sizeof(xfd->peersa.soa.sa_len) + sizeof(xfd->peersa.soa.sa_family) +
+      themlen;
+#endif
+
+   if ((result =
+	_xioopen_socket_sendto(pfname, typename, protname, address,
+			       opts, xioflags, xxfd, groups))
+       != STAT_OK) {
+      return result;
+   }
+
+   xfd->dtype = XIOREAD_RECV|XIOWRITE_SENDTO;
+
+   xfd->para.socket.la.soa.sa_family = xfd->peersa.soa.sa_family;
+
+   /* which reply sockets will accept - determine by range option */
+   if (retropt_string(opts, OPT_RANGE, &rangename) >= 0) {
+      if (xioparserange(rangename, 0, &xfd->para.socket.range) < 0) {
+	 free(rangename);
+	 return STAT_NORETRY;
+      }
+      xfd->para.socket.dorange = true;
+      xfd->dtype |= XIOREAD_RECV_CHECKRANGE;
+      free(rangename);
+   }
+
+   _xio_openlate(xfd, opts);
+   return STAT_OK;
+}
 
 
 /* a subroutine that is common to all socket addresses that want to connect
@@ -658,9 +1196,9 @@ int _xioopen_dgram_recvfrom(struct single *xfd, int xioflags,
    }
 #endif /* WITH_UNIX */
 
-#if WITH_IP4 /*|| WITH_IP6*/
+   /* for generic sockets, this has already been retrieved */
    if (retropt_string(opts, OPT_RANGE, &rangename) >= 0) {
-      if (parserange(rangename, pf, &xfd->para.socket.range)
+      if (xioparserange(rangename, pf, &xfd->para.socket.range)
 	  < 0) {
 	 free(rangename);
 	 return STAT_NORETRY;
@@ -668,7 +1206,6 @@ int _xioopen_dgram_recvfrom(struct single *xfd, int xioflags,
       free(rangename);
       xfd->para.socket.dorange = true;
    }
-#endif
 
 #if (WITH_TCP || WITH_UDP) && WITH_LIBWRAP
    xio_retropt_tcpwrap(xfd, opts);
@@ -913,7 +1450,7 @@ int _xioopen_dgram_recv(struct single *xfd, int xioflags,
 
 #if WITH_IP4 /*|| WITH_IP6*/
    if (retropt_string(opts, OPT_RANGE, &rangename) >= 0) {
-      if (parserange(rangename, pf, &xfd->para.socket.range)
+      if (xioparserange(rangename, pf, &xfd->para.socket.range)
 	  < 0) {
 	 free(rangename);
 	 return STAT_NORETRY;
@@ -1032,17 +1569,17 @@ int xiogetpacketsrc(int fd, union sockaddr_union *pa, socklen_t *palen) {
 }
 
 
-int xiocheckrange(union sockaddr_union *sa, union xiorange_union *range) {
+int xiocheckrange(union sockaddr_union *sa, struct xiorange *range) {
    switch (sa->soa.sa_family) {
 #if WITH_IP4
    case PF_INET:
       return
-	 xiocheckrange_ip4(&sa->ip4, &range->ip4);
+	 xiocheckrange_ip4(&sa->ip4, range);
 #endif /* WITH_IP4 */
 #if WITH_IP6
    case PF_INET6:
       return
-	 xiocheckrange_ip6(&sa->ip6, &range->ip6);
+	 xiocheckrange_ip6(&sa->ip6, range);
 #endif /* WITH_IP6 */
    }
    return -1;
@@ -1131,6 +1668,109 @@ int xiocheckpeer(xiosingle_t *xfd,
 #endif /* (WITH_TCP || WITH_UDP) && WITH_LIBWRAP */
 
    return 0;	/* permitted */
+}
+
+
+/* parses a network specification consisting of an address and a mask. */
+int xioparsenetwork(const char *rangename, int pf, struct xiorange *range) {
+   size_t addrlen = 0, masklen = 0;
+   int result;
+
+  switch (pf) {
+#if WITH_IP4
+  case PF_INET:
+      return xioparsenetwork_ip4(rangename, range);
+   break;
+#endif /* WITH_IP4 */
+#if WITH_IP6
+   case PF_INET6:
+      return xioparsenetwork_ip6(rangename, range);
+      break;
+#endif /* WITH_IP6 */
+  case PF_UNSPEC:
+    {
+     char *addrname;
+     const char *maskname;
+     if ((maskname = strchr(rangename, ':')) == NULL) {
+	Error1("syntax error in range \"%s\": use <addr>:<mask>", rangename);
+	return STAT_NORETRY;
+     }
+     ++maskname;	/* skip ':' */
+     if ((addrname = Malloc(maskname-rangename)) == NULL) {
+	return STAT_NORETRY;
+     }
+     strncpy(addrname, rangename, maskname-rangename-1);
+     result =
+	dalan(addrname, (char *)&range->netaddr.soa.sa_data, &addrlen,
+	      sizeof(range->netaddr)-(size_t)(&((struct sockaddr *)0)->sa_data)
+	      /* data length */);
+     if (result < 0) {
+	Error1("data too long: \"%s\"", addrname);
+	free(addrname); return STAT_NORETRY;
+     } else if (result > 0) {
+	Error1("syntax error in \"%s\"", addrname);
+	free(addrname); return STAT_NORETRY;
+     }
+     free(addrname); 
+     result =
+	dalan(maskname, (char *)&range->netmask.soa.sa_data, &masklen,
+	      sizeof(range->netaddr)-(size_t)(&((struct sockaddr *)0)->sa_data)
+	      /* data length */);
+     if (result < 0) {
+	Error1("data too long: \"%s\"", maskname);
+	return STAT_NORETRY;
+     } else if (result > 0) {
+	Error1("syntax error in \"%s\"", maskname);
+	return STAT_NORETRY;
+     }
+	 if (addrlen != masklen) {
+	    Error2("network address is "F_Zu" bytes long, mask is "F_Zu" bytes long",
+		   addrlen, masklen);
+	    /* recover by padding the shorter component with 0 */
+	    memset((char *)&range->netaddr.soa.sa_data+addrlen, 0,
+		   MAX(0, addrlen-masklen));
+	    memset((char *)&range->netmask.soa.sa_data+masklen, 0,
+		   MAX(0, masklen-addrlen));
+	 }
+    }
+    break;
+  default:
+     Error1("range option not supported with address family %d", pf);
+     return STAT_NORETRY;
+  }
+  return STAT_OK;
+}
+
+/* parses a string of form address/bits or address:mask, and fills the fields 
+   of the range union. The addr component is masked with mask. */
+int xioparserange(const char *rangename, int pf, struct xiorange *range) {
+   int i;
+   if (xioparsenetwork(rangename, pf, range) < 0) {
+      return -1;
+   }
+   /* we have parsed the address and mask; now we make sure that the stored
+      address has 0 where mask is 0, to simplify comparisions */
+   switch (pf) {
+#if WITH_IP4
+   case PF_INET:
+      range->netaddr.ip4.sin_addr.s_addr &= range->netmask.ip4.sin_addr.s_addr;
+      break;
+#endif /* WITH_IP4 */
+#if WITH_IP6
+   case PF_INET6:
+      return xiorange_ip6andmask(range);
+      break;
+#endif /* WITH_IP6 */
+   case PF_UNSPEC:
+      for (i = 0; i < sizeof(range->netaddr); ++i) {
+	 ((char *)&range->netaddr)[i] &= ((char *)&range->netmask)[i];
+      }
+      break;
+   default:
+      Error1("range option not supported with address family %d", pf);
+      return STAT_NORETRY;
+   }
+   return 0;
 }
 
 #endif /* _WITH_SOCKET */

@@ -68,6 +68,7 @@ void dalan_init(void) {
 
 /* read data description from line, write result to data; do not write
    so much data that *p exceeds n !
+   p must be initialized to 0.
    return 0 on success,
    -1 if the data was cut due to n limit,
    1 if a syntax error occurred

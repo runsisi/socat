@@ -75,10 +75,25 @@ int procan_cdefs(FILE *outfile) {
 #ifdef CSIZE
    fprintf(outfile, "#define CSIZE 0%011o\n", CSIZE);
 #endif
+#ifdef TIOCEXCL
+   fprintf(outfile, "#define TIOCEXCL 0x%lx\n", (unsigned long)TIOCEXCL);
+#endif
 
    /* stdio constants */
 #ifdef FOPEN_MAX
    fprintf(outfile, "#define FOPEN_MAX %u\n", FOPEN_MAX);
 #endif
+
+   /* socket constants */
+#ifdef SOCK_DGRAM
+   fprintf(outfile, "#define SOCK_DGRAM %d\n", SOCK_DGRAM);
+#endif
+#ifdef SOL_SOCKET
+   fprintf(outfile, "#define SOL_SOCKET 0x%x\n", SOL_SOCKET);
+#endif
+#ifdef SO_REUSEADDR
+   fprintf(outfile, "#define SO_REUSEADDR %d\n", SO_REUSEADDR);
+#endif
+
    return 0;
 }

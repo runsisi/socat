@@ -47,13 +47,13 @@
 #  endif
 #endif
 
-#if WITH_UNIX || WITH_IP4 || WITH_IP6 || WITH_SOCKS4 || WITH_RAWIP
-#  define WITH_SOCKET 1
+#if WITH_UNIX || WITH_IP4 || WITH_IP6 || WITH_SOCKS4 || WITH_RAWIP || WITH_GENERICSOCKET
+#  define _WITH_SOCKET 1
 #else
-#  undef WITH_SOCKET
+#  undef _WITH_SOCKET
 #endif
 
-#if !WITH_SOCKET
+#if !_WITH_SOCKET
 #  undef WITH_LISTEN
 #endif
 
@@ -61,7 +61,7 @@
 #  undef WITH_LIBWRAP
 #endif
 
-#if WITH_SOCKET || WITH_TUN
+#if WITH_GENERICSOCKET || WITH_TUN
 #  define _WITH_SOCKET 1
 #endif
 

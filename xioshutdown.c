@@ -1,5 +1,5 @@
 /* source: xioshutdown.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this is the source of the extended shutdown function */
@@ -65,7 +65,7 @@ int xioshutdown(xiofile_t *sock, int how) {
 		  sock->stream.para.exec.fdout, strerror(errno));
 	 } 
       }
-#if WITH_SOCKET
+#if _WITH_SOCKET
    } else if (sock->stream.howtoend == END_SHUTDOWN) {
       if ((result = Shutdown(sock->stream.fd, how)) < 0) {
 	 Info3("shutdown(%d, %d): %s",
@@ -107,7 +107,7 @@ int xioshutdown(xiofile_t *sock, int how) {
 	 sock->stream.eof = 2;
 	 sock->stream.fd = -1;
       }
-#endif /* WITH_SOCKET */
+#endif /* _WITH_SOCKET */
 #if 0
    } else {
       Error1("xioshutdown(): bad data type specification %d", sock->stream.dtype);

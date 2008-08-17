@@ -139,7 +139,7 @@ int statname(const char *file, int fd, int filetype, FILE *outfile) {
       if (file) fprintf(outfile, " %s", file);
       break;
    case (S_IFSOCK>>12): /* 12, socket */
-#if WITH_SOCKET
+#if _WITH_SOCKET
       if (fd >= 0) {
 	 result = sockname(fd, outfile);
       } else if (file) {
@@ -150,7 +150,7 @@ int statname(const char *file, int fd, int filetype, FILE *outfile) {
 #else
       Error("SOCKET support not compiled in");
       return -1;
-#endif /* !WITH_SOCKET */
+#endif /* !_WITH_SOCKET */
       break;
    }
    /* ioctl() */
@@ -185,7 +185,7 @@ int cdevname(int fd, FILE *outfile) {
 }
 
 
-#if WITH_SOCKET
+#if _WITH_SOCKET
 int sockname(int fd, FILE *outfile) {
 #define FDNAME_OPTLEN 256
 #define FDNAME_NAMELEN 256
@@ -320,7 +320,7 @@ int sockname(int fd, FILE *outfile) {
 #undef FDNAME_OPTLEN
 #undef FDNAME_NAMELEN
 }
-#endif /* WITH_SOCKET */
+#endif /* _WITH_SOCKET */
 
 
 

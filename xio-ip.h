@@ -1,5 +1,5 @@
 /* source: xio-ip.h */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_ip_h_included
@@ -39,10 +39,5 @@ extern int xiogetaddrinfo(const char *node, const char *service,
 			  int family, int socktype, int protocol,
 			  union sockaddr_union *sa, socklen_t *socklen,
 			  unsigned long res_opts0, unsigned long res_opts1);
-extern
-int xioparsenetwork(const char *rangename, int pf,
-		    union xiorange_union *range);
-extern 
-int parserange(const char *rangename, int pf, union xiorange_union *range);
 
 #endif /* !defined(__xio_ip_h_included) */

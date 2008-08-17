@@ -177,7 +177,7 @@ typedef struct single {
 	 union sockaddr_union la;	/* local socket address */
 	 bool emptyiseof;	/* with dgram: empty packet means EOF */
 	 bool dorange;
-	 union xiorange_union range;	/* restrictions for peer address */
+	 struct xiorange range;	/* restrictions for peer address */
 #if _WITH_IP4 || _WITH_IP6
 	 struct {
 	    unsigned int res_opts[2];	/* bits to be set in _res.options are

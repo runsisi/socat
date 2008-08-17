@@ -1,6 +1,6 @@
 #! /bin/bash
 # source: readline-test.sh
-# Copyright Gerhard Rieger 2003
+# Copyright Gerhard Rieger 2003-2008
 # Published under the GNU General Public License V.2, see file COPYING
 
 # script that simulates a simple program with authentication.
@@ -29,8 +29,9 @@ trap "$ECHO $0 got SIGQUIT" QUIT
 # print banner
 $ECHO "$BANNER"
 
-read -r  -p "$($ECHO "$USERPROMPT")" USERNAME
-read -rs -p "$PWDPROMPT"  PASSWORD
+# on (some) ksh read -p does not mean prompt
+$ECHO "$USERPROMPT\c"; read -r USERNAME
+$ECHO "$PWDPROMPT\c"; read -rs PASSWORD
 $ECHO
 
 if [ "$USERNAME" != "$CREDUSER" -o "$PASSWORD" != "$CREDPASS" ]; then
@@ -38,7 +39,7 @@ if [ "$USERNAME" != "$CREDUSER" -o "$PASSWORD" != "$CREDPASS" ]; then
     exit -1
 fi
 
-while read -r -p "$PROMPT" COMMAND; do
+while $ECHO "$PROMPT\c"; read -r COMMAND; do
     if [ "$COMMAND" = "exit" ]; then
 	break;
     fi

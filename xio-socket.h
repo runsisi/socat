@@ -5,6 +5,13 @@
 #ifndef __xio_socket_h_included
 #define __xio_socket_h_included 1
 
+extern const struct addrdesc xioaddr_socket_connect;
+extern const struct addrdesc xioaddr_socket_listen;
+extern const struct addrdesc xioaddr_socket_sendto;
+extern const struct addrdesc xioaddr_socket_datagram;
+extern const struct addrdesc xioaddr_socket_recvfrom;
+extern const struct addrdesc xioaddr_socket_recv;
+
 extern const struct optdesc opt_connect_timeout;
 extern const struct optdesc opt_so_debug;
 extern const struct optdesc opt_so_acceptconn;
@@ -89,5 +96,10 @@ int xiogetpacketsrc(int fd, union sockaddr_union *pa, socklen_t *palen);
 extern
 int xiocheckpeer(xiosingle_t *xfd,
 		 union sockaddr_union *pa, union sockaddr_union *la);
+extern
+int xioparsenetwork(const char *rangename, int pf,
+		    struct xiorange *range);
+extern 
+int xioparserange(const char *rangename, int pf, struct xiorange *range);
 
 #endif /* !defined(__xio_socket_h_included) */

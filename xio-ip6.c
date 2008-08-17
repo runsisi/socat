@@ -1,5 +1,5 @@
 /* source: xio-ip6.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for IP6 related functions */
@@ -21,15 +21,15 @@ const struct optdesc opt_ipv6_v6only = { "ipv6-v6only", "ipv6only", OPT_IPV6_V6O
 const struct optdesc opt_ipv6_join_group = { "ipv6-join-group", "join-group", OPT_IPV6_JOIN_GROUP, GROUP_SOCK_IP6, PH_PASTBIND, TYPE_IP_MREQN, OFUNC_SOCKOPT, SOL_IPV6, IPV6_JOIN_GROUP };
 #endif
 
-int xioparsenetwork_ip6(const char *rangename, struct xiorange_ip6 *range) {
+int xioparsenetwork_ip6(const char *rangename, struct xiorange *range) {
    char *delimpos;	/* absolute address of delimiter */
    size_t delimind;	/* index of delimiter in string */
    int bits;
    char *baseaddr;
    union sockaddr_union sockaddr;
    socklen_t sockaddrlen = sizeof(sockaddr);
-   union xioin6_u *rangeaddr = (union xioin6_u *)&range->addr;
-   union xioin6_u *rangemask = (union xioin6_u *)&range->mask;
+   union xioin6_u *rangeaddr = (union xioin6_u *)&range->netaddr.ip6.sin6_addr;
+   union xioin6_u *rangemask = (union xioin6_u *)&range->netmask.ip6.sin6_addr;
    union xioin6_u *nameaddr = (union xioin6_u *)&sockaddr.ip6.sin6_addr;
 
    if (rangename[0] != '[' || rangename[strlen(rangename)-1] != ']') {
@@ -87,7 +87,7 @@ int xioparsenetwork_ip6(const char *rangename, struct xiorange_ip6 *range) {
    return 0;
 }
 
-int xiorange_ip6andmask(struct xiorange_ip6 *range) {
+int xiorange_ip6andmask(struct xiorange *range) {
    int i;
 #if 0
    range->addr.s6_addr32[0] &= range->mask.s6_addr32[0];
@@ -96,7 +96,8 @@ int xiorange_ip6andmask(struct xiorange_ip6 *range) {
    range->addr.s6_addr32[3] &= range->mask.s6_addr32[3];
 #else
    for (i = 0; i < 16; ++i) {
-      range->addr.s6_addr[i] &= range->mask.s6_addr[i];
+      range->netaddr.ip6.sin6_addr.s6_addr[i] &=
+	 range->netmask.ip6.sin6_addr.s6_addr[i];
    }
 #endif
    return 0;
@@ -104,12 +105,12 @@ int xiorange_ip6andmask(struct xiorange_ip6 *range) {
 
 /* check if peer address is within permitted range.
    return >= 0 if so. */
-int xiocheckrange_ip6(struct sockaddr_in6 *pa, struct xiorange_ip6 *range) {
+int xiocheckrange_ip6(struct sockaddr_in6 *pa, struct xiorange *range) {
    union xioin6_u masked;
    int i;
    char peername[256];
-   union xioin6_u *rangeaddr = (union xioin6_u *)&range->addr;
-   union xioin6_u *rangemask = (union xioin6_u *)&range->mask;
+   union xioin6_u *rangeaddr = (union xioin6_u *)&range->netaddr.ip6.sin6_addr;
+   union xioin6_u *rangemask = (union xioin6_u *)&range->netmask.ip6;
 
    Debug16("permitted client subnet: [%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x]:[%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x]",
 	   htons(rangeaddr->u6_addr16[0]),  htons(rangeaddr->u6_addr16[1]),

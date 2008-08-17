@@ -1,5 +1,5 @@
 /* source: filan.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* the subroutine filan makes a "FILe descriptor ANalysis". It checks the
@@ -150,7 +150,7 @@ int filan_fd(int fd, FILE *outfile) {
 	       }
 	    }
 #endif /* defined(FIONREAD) */
-#if WITH_SOCKET && defined(MSG_DONTWAIT)
+#if _WITH_SOCKET && defined(MSG_DONTWAIT)
 	    if ((ufds.revents & POLLIN) && isasocket(fd)) {
 	       char _peername[SOCKADDR_MAX];
 	       struct sockaddr *pa = (struct sockaddr *)_peername;
@@ -186,7 +186,7 @@ int filan_fd(int fd, FILE *outfile) {
 		  fprintf(outfile, "recvmsg="F_Zd", ", bytes);
 	       }
 	    }
-#endif /* WITH_SOCKET && defined(MSG_DONTWAIT) */
+#endif /* _WITH_SOCKET && defined(MSG_DONTWAIT) */
 	 }	 
       }
    }
@@ -371,12 +371,12 @@ int filan_stat(
       break;
 #ifdef S_IFSOCK
    case (S_IFSOCK): /* 12, socket */
-#if WITH_SOCKET
+#if _WITH_SOCKET
       result = sockan(statfd, outfile);
 #else
       Warn("SOCKET support not compiled in");
       return -1;
-#endif /* !WITH_SOCKET */
+#endif /* !_WITH_SOCKET */
       break;
 #endif /* S_IFSOCK */
    }
@@ -462,7 +462,7 @@ int cdevan(int fd, FILE *outfile) {
 }
 
 
-#if WITH_SOCKET
+#if _WITH_SOCKET
 int sockan(int fd, FILE *outfile) {
 #define FILAN_OPTLEN 256
 #define FILAN_NAMELEN 256
@@ -634,7 +634,7 @@ int sockan(int fd, FILE *outfile) {
 #undef FILAN_OPTLEN
 #undef FILAN_NAMELEN
 }
-#endif /* WITH_SOCKET */
+#endif /* _WITH_SOCKET */
 
 
 #if WITH_IP4 || WITH_IP6
@@ -823,7 +823,7 @@ int tcpan(int fd, FILE *outfile) {
 #endif /* WITH_TCP */
 
 
-#if WITH_SOCKET
+#if _WITH_SOCKET
 int sockoptan(int fd, const struct sockopt *optname, int socklay, FILE *outfile) {
 #define FILAN_OPTLEN 256
    char optval[FILAN_OPTLEN];
@@ -859,10 +859,10 @@ int sockoptan(int fd, const struct sockopt *optname, int socklay, FILE *outfile)
    return 0;
 #undef FILAN_OPTLEN
 }
-#endif /* WITH_SOCKET */
+#endif /* _WITH_SOCKET */
 
 
-#if WITH_SOCKET
+#if _WITH_SOCKET
 int isasocket(int fd) {
    int retval;
 #if HAVE_STAT64
@@ -883,7 +883,7 @@ int isasocket(int fd) {
    /* note: when S_ISSOCK was undefined, it always gives 0 */
    return S_ISSOCK(props.st_mode);
 }
-#endif /* WITH_SOCKET */
+#endif /* _WITH_SOCKET */
 
 
 const char *getfiletypestring(int st_mode) {

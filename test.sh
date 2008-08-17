@@ -141,14 +141,21 @@ SunOS)
     BROADCASTIF="$MAINIF"
     #BROADCASTIF=hme0
     #BROADCASTIF=eri0
-    SECONDADDR=$($IFCONFIG $BROADCASTIF |grep 'inet ' |awk '{print($2);}')
-    BCIFADDR="$SECONDADDR"
-    BCADDR=$($IFCONFIG $BROADCASTIF |grep 'broadcast ' |sed 's/.*broadcast/broadcast/' |awk '{print($2);}') ;;
+    #SECONDADDR=$($IFCONFIG $BROADCASTIF |grep 'inet ' |awk '{print($2);}')
+    SECONDADDR=$(expr "$($IFCONFIG -a |grep 'inet ' |fgrep -v ' 127.0.0.1 '| head -n 1)" : '.*inet \([0-9.]*\) .*') 
+    #BCIFADDR="$SECONDADDR"
+    #BCADDR=$($IFCONFIG $BROADCASTIF |grep 'broadcast ' |sed 's/.*broadcast/broadcast/' |awk '{print($2);}')
+    ;;
 #AIX|FreeBSD|Solaris)
 *)
-    SECONDADDR=$(expr "$($IFCONFIG -a |grep 'inet ' |fgrep -v ' 127.0.0.1 '| head -n 1)" : '.*inet \([0-9.]*\) .*') 
+    SECONDADDR=$(expr "$($IFCONFIG -a |grep 'inet ' |fgrep -v ' 127.0.0.1 ' |head -n 1)" : '.*inet \([0-9.]*\) .*') 
     ;;
 esac
+# for generic sockets we need this address in hex form
+if [ "$SECONDADDR" ]; then
+    SECONDADDRHEX="$(printf "%02x%02x%02x%02x\n" $(echo "$SECONDADDR" |tr '.' '
+'))"
+fi
 
 # for some tests we need a second local IPv6 address
 case "$UNAME" in
@@ -184,20 +191,20 @@ vt100|vt320|linux|xterm|cons25|dtterm|aixterm|sun-color)
 		RED="\0033[31m"
 		GREEN="\0033[32m"
 		YELLOW="\0033[33m"
-		if false && [ "$UNAME" = SunOS ]; then
-		    NORMAL="\0033[30m"
-		else
+#		if [ "$UNAME" = SunOS ]; then
+#		    NORMAL="\0033[30m"
+#		else
 		    NORMAL="\0033[39m"
-		fi
+#		fi
 	else
 		RED="\033[31m"
 		GREEN="\033[32m"
 		YELLOW="\033[33m"
-		if false && [ "$UNAME" = SunOS ]; then
-		    NORMAL="\033[30m"
-		else
+#		if [ "$UNAME" = SunOS ]; then
+#		    NORMAL="\033[30m"
+#		else
 		    NORMAL="\033[39m"
-		fi
+#		fi
 	fi
 	OK="${GREEN}OK${NORMAL}"
 	FAILED="${RED}FAILED${NORMAL}"
@@ -1509,9 +1516,11 @@ testod () {
     local T="$6";	[ -z "$T" ] && T=0
     local tf="$td/test$N.stdout"
     local te="$td/test$N.stderr"
+    local tr="$td/test$N.ref"
     local tdiff="$td/test$N.diff"
     local dain="$(date) $RANDOM"
-    local daout="$(echo "$dain" |$OD_C)"
+    echo "$dain" |$OD_C >"$tr"
+#    local daout="$(echo "$dain" |$OD_C)"
     $PRINTF "test $F_n %s... " $num "$title"
     (psleep $T; echo "$dain"; psleep $T) |$SOCAT $opts "$arg1" "$arg2" >"$tf" 2>"$te"
     if [ "$?" != 0 ]; then
@@ -1519,7 +1528,8 @@ testod () {
 	echo "$SOCAT $opts $arg1 $arg2"
 	cat "$te"
 	numFAIL=$((numFAIL+1))
-    elif echo "$daout" |diff - "$tf" >"$tdiff" 2>&1; then
+#    elif echo "$daout" |diff - "$tf" >"$tdiff" 2>&1; then
+    elif diff "$tr" "$tf" >"$tdiff" 2>&1; then
 	$PRINTF "$OK\n"
 	if [ -n "$debug" ]; then cat $te; fi
 	numOK=$((numOK+1))
@@ -1574,7 +1584,8 @@ ifprocess () {
     FreeBSD) l="$(ps -faje |grep "^........ $(printf %5u $1)")" ;;
     HP-UX)   l="$(ps -fade |grep "^........ $(printf %5u $1)")" ;;
     Linux)   l="$(ps -fade |grep "^........ $(printf %5u $1)")" ;;
-    NetBSD)  l="$(ps -aj   |grep "^........ $(printf %4u $1)")" ;;
+#    NetBSD)  l="$(ps -aj   |grep "^........ $(printf %4u $1)")" ;;
+    NetBSD)  l="$(ps -aj   |grep "^[^ ][^ ]*[ ][ ]*$(printf %5u $1) ")" ;;
     OpenBSD) l="$(ps -kaj  |grep "^........ $(printf %5u $1)")" ;;
     SunOS)   l="$(ps -fade |grep "^........ $(printf %5u $1)")" ;;
     *)       l="$(ps -fade |grep "^[^ ][^ ]*[ ][ ]*$(printf %5u $1) ")" ;;
@@ -1596,8 +1607,9 @@ childprocess () {
     FreeBSD) l="$(ps -faje |grep "^........ ..... $(printf %5u $1)")" ;;
     HP-UX)   l="$(ps -fade |grep "^........ ..... $(printf %5u $1)")" ;;
     Linux)   l="$(ps -fade |grep "^........ ..... $(printf %5u $1)")" ;;
-    NetBSD)  l="$(ps -aj   |grep "^........ ..... $(printf %4u $1)")" ;;
-    OpenBSD) l="$(ps -kaj  |grep "^........ ..... $(printf %5u $1)")" ;;
+#    NetBSD)  l="$(ps -aj   |grep "^........ ..... $(printf %4u $1)")" ;;
+    NetBSD)  l="$(ps -aj   |grep "^[^ ][^ ]*[ ][ ]*..... $(printf %5u $1)")" ;;
+    OpenBSD) l="$(ps -aj   |grep "^........ ..... $(printf %5u $1)")" ;;
     SunOS)   l="$(ps -fade |grep "^........ ..... $(printf %5u $1)")" ;;
     *)       l="$(ps -fade |grep "^[^ ][^ ]*[ ][ ]*[0-9][0-9]**[ ][ ]*$(printf %5u $1) ")" ;;    esac
     if [ -z "$l" ]; then
@@ -4387,7 +4399,7 @@ tr="$td/test$N.ref"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"; da="$da$($ECHO '\r')"
 # the feature that we really want to test is in the readline.sh script:
-CMD="$SOCAT $opts open:$tpi,nonblock!!open:$tpo exec:\"./readline.sh -nh ./readline-test.sh\",pty,ctty,setsid,raw,echo=0,isig"
+CMD="$SOCAT $opts -t1 open:$tpi,nonblock!!open:$tpo exec:\"./readline.sh -nh ./readline-test.sh\",pty,ctty,setsid,raw,echo=0,isig"
 #echo "$CMD" >"$ts"
 #chmod a+x "$ts"
 printf "test $F_n $TEST... " $N
@@ -4459,7 +4471,8 @@ else
    if [ -n "$debug" ]; then cat $te; fi
    numOK=$((numOK+1))
 fi
-#kill $pid 2>/dev/null
+kill $pid 2>/dev/null	# necc on OpenBSD
+wait
 MICROS=$SAVEMICS
 TERM="$SAVETERM"
 fi
@@ -4857,12 +4870,34 @@ NAME=TCP4RANGEBITS
 case "$TESTS" in
 *%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%range%*|*%$NAME%*)
 TEST="$NAME: security of TCP4-L with RANGE option"
+if [ -z "$SECONDADDR" ]; then
+    # we need access to a second addresses
+    $PRINTF "test $F_n $TEST... ${YELLOW}need a second IPv4 address${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
 testserversec "$N" "$TEST" "$opts -s" "tcp4-l:$PORT,reuseaddr,fork,retry=1" "" "range=$SECONDADDR/32" "tcp4:127.0.0.1:$PORT" 4 tcp $PORT 0
+fi ;; # $SECONDADDR
 esac
 PORT=$((PORT+1))
 N=$((N+1))
 
 NAME=TCP4RANGEMASK
+case "$TESTS" in
+*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%range%*|*%$NAME%*)
+TEST="$NAME: security of TCP4-L with RANGE option"
+if [ -z "$SECONDADDR" ]; then
+    # we need access to a second addresses
+    $PRINTF "test $F_n $TEST... ${YELLOW}need a second IPv4 address${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+testserversec "$N" "$TEST" "$opts -s" "tcp4-l:$PORT,reuseaddr,fork,retry=1" "" "range=$SECONDADDR:255.255.255.255" "tcp4:127.0.0.1:$PORT" 4 tcp $PORT 0
+fi ;; # $SECONDADDR
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+# like TCP4RANGEMASK, but the "bad" address is within the same class A network
+NAME=TCP4RANGEMASKHAIRY
 case "$TESTS" in
 *%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%range%*|*%$NAME%*)
 TEST="$NAME: security of TCP4-L with RANGE option"
@@ -5544,7 +5579,7 @@ N=$((N+1))
 signum () {
   if [ ! "$BASH_VERSION" ]; then
     # we expect:
-    for i in $(kill -l); do echo $i; done |grep -n -i $1 |cut -d: -f1
+    for i in $(POSIXLY_CORRECT=1 kill -l); do echo $i; done |grep -n -i "^$1$" |cut -d: -f1
   else
     # expect:
     # " 1) SIGHUP       2) SIGINT       3) SIGQUIT      4) SIGILL"
@@ -5566,12 +5601,12 @@ if ! feat=$(testaddrs pty); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$(echo $feat |tr a-z A-Z) not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
-SIG=$(signum $signam)
+SIG="$(signum $signam)"
 te="$td/test$N.stderr"
 tpp="$td/test$N.ppid"
 tp="$td/test$N.pid"
 $PRINTF "test $F_n $TEST... " $N
-(sleep 1; kill -$SIG $(cat "$tpp")) &
+(sleep 1; kill -"$SIG" "$(cat "$tpp")") &
 # a simple "system:echo $PPID..." does not work on NetBSD, OpenBSD
 #$SOCAT $opts echo system:'exec /bin/bash -c "echo \$PPID '">$tpp"'; echo \$$ '">$tp; read x\"",nofork 2>"$te"; stat=$?
 tsh="$td/test$N.sh"
@@ -5929,10 +5964,13 @@ PORT=$((PORT+1))
 N=$((N+1))
 
 
+# test the UDP4-SENDTO and UDP4-RECVFROM addresses together
 NAME=UDP4DGRAM
 case "$TESTS" in
 *%functions%*|*%udp%*|*%udp4%*|*%ip4%*|*%dgram%*|*%$NAME%*)
-TEST="$NAME: UDP/IPv4 datagram"
+TEST="$NAME: UDP/IPv4 sendto and recvfrom"
+# start a UDP4-RECVFROM process that echoes data, and send test data using
+# UDP4-SENDTO. The sent data should be returned.
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
@@ -5954,16 +5992,16 @@ kill "$pid1" 2>/dev/null; wait;
 if [ "$rc2" -ne 0 ]; then
    $PRINTF "$FAILED: $SOCAT:\n"
    echo "$CMD1 &"
-   echo "$CMD2"
    cat "${te}1"
+   echo "$CMD2"
    cat "${te}2"
    numFAIL=$((numFAIL+1))
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
    echo "$CMD1 &"
-   echo "$CMD2"
    cat "${te}1"
+   echo "$CMD2"
    cat "${te}2"
    numFAIL=$((numFAIL+1))
 else
@@ -8447,6 +8485,334 @@ esac
 N=$((N+1))
 
 
+# test the SOCKET-CONNECT address (against TCP4-LISTEN)
+NAME=SOCKET_CONNECT
+case "$TESTS" in
+*%functions%*|*%generic%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: socket connect with TCP/IPv4"
+# start a TCP4-LISTEN process that echoes data, and send test data using
+# SOCKET-CONNECT, selecting TCP/IPv4. The sent data should be returned.
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+ts0p=$PORT; PORT=$((PORT+1))
+ts0a="127.0.0.1"
+ts1p=$(printf "%04x" $ts0p);
+ts1a="7f000001" # "127.0.0.1"
+ts1="x${ts1p}${ts1a}x0000000000000000"
+ts1b=$(printf "%04x" $PORT); PORT=$((PORT+1))
+da="$(date) $RANDOM"
+CMD0="$SOCAT $opts TCP4-LISTEN:$ts0p,reuseaddr,bind=$ts0a PIPE"
+CMD1="$SOCAT $opts - SOCKET-CONNECT:2:6:$ts1,bind=x${ts1b}00000000x0000000000000000"
+printf "test $F_n $TEST... " $N
+$CMD0 2>"${te}0" &
+pid0="$!"
+waittcp4port $ts0p 1
+echo "$da" |$CMD1 >>"$tf" 2>>"${te}1"
+rc1="$?"
+kill "$pid0" 2>/dev/null; wait;
+if [ "$rc1" -ne 0 ]; then
+   $PRINTF "$FAILED: $SOCAT:\n"
+   echo "$CMD0 &"
+   cat "${te}0"
+   echo "$CMD1"
+   cat "${te}1"
+   numFAIL=$((numFAIL+1))
+elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
+   $PRINTF "$FAILED\n"
+   cat "$tdiff"
+   echo "$CMD0 &"
+   cat "${te}0"
+   echo "$CMD1"
+   cat "${te}1"
+   numFAIL=$((numFAIL+1))
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat $te; fi
+   numOK=$((numOK+1))
+fi ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+# test the SOCKET-LISTEN address (with TCP4-CONNECT)
+NAME=SOCKET_LISTEN
+case "$TESTS" in
+*%functions%*|*%generic%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: socket recvfrom with TCP/IPv4"
+# start a SOCKET-LISTEN process that uses TCP/IPv4 and echoes data, and
+# send test data using TCP4-CONNECT. The sent data should be returned.
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+ts1p=$PORT; PORT=$((PORT+1))
+ts1a="127.0.0.1"
+ts0p=$(printf "%04x" $ts1p);
+ts0a="7f000001" # "127.0.0.1"
+ts0="x${ts0p}${ts0a}x0000000000000000"
+ts1b=$PORT; PORT=$((PORT+1))
+ts1="$ts1a:$ts1p"
+da="$(date) $RANDOM"
+CMD0="$SOCAT $opts SOCKET-LISTEN:2:6:$ts0,reuseaddr PIPE"
+CMD1="$SOCAT $opts - TCP4-CONNECT:$ts1,bind=:$ts1b"
+printf "test $F_n $TEST... " $N
+$CMD0 2>"${te}0" &
+pid0="$!"
+#sleep 1
+waittcp4port $ts1p 1
+echo "$da" |$CMD1 >>"$tf" 2>>"${te}1"
+rc1="$?"
+kill "$pid0" 2>/dev/null; wait;
+if [ "$rc1" -ne 0 ]; then
+   $PRINTF "$FAILED: $SOCAT:\n"
+   echo "$CMD0 &"
+   cat "${te}0"
+   echo "$CMD1"
+   cat "${te}1"
+   numFAIL=$((numFAIL+1))
+elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
+   $PRINTF "$FAILED\n"
+   cat "$tdiff"
+   echo "$CMD0 &"
+   cat "${te}0"
+   echo "$CMD1"
+   cat "${te}1"
+   numFAIL=$((numFAIL+1))
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat $te; fi
+   numOK=$((numOK+1))
+fi ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+SOCK_DGRAM="$($PROCAN -c |grep "^#define[[:space:]]*SOCK_DGRAM[[:space:]]" |cut -d' ' -f3)"
+
+# test the SOCKET-SENDTO address (against UDP4-RECVFROM)
+NAME=SOCKET_SENDTO
+case "$TESTS" in
+*%functions%*|*%generic%*|*%socket%*|*%ip4%*|*%udp%*|*%dgram%*|*%$NAME%*)
+TEST="$NAME: socket sendto with UDP/IPv4"
+# start a UDP4-RECVFROM process that echoes data, and send test data using
+# SOCKET-SENDTO, selecting UDP/IPv4. The sent data should be returned.
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+ts0p=$PORT; PORT=$((PORT+1))
+ts0a="127.0.0.1"
+ts1p=$(printf "%04x" $ts0p);
+ts1a="7f000001" # "127.0.0.1"
+ts1="x${ts1p}${ts1a}x0000000000000000"
+ts1b=$(printf "%04x" $PORT); PORT=$((PORT+1))
+da="$(date) $RANDOM"
+CMD0="$SOCAT $opts UDP4-RECVFROM:$ts0p,reuseaddr,bind=$ts0a PIPE"
+CMD1="$SOCAT $opts - SOCKET-SENDTO:2:$SOCK_DGRAM:17:$ts1,bind=x${ts1b}x00000000x0000000000000000"
+printf "test $F_n $TEST... " $N
+$CMD0 2>"${te}0" &
+pid0="$!"
+waitudp4port $ts0p 1
+echo "$da" |$CMD1 >>"$tf" 2>>"${te}1"
+rc1="$?"
+kill "$pid0" 2>/dev/null; wait;
+if [ "$rc1" -ne 0 ]; then
+   $PRINTF "$FAILED: $SOCAT:\n"
+   echo "$CMD0 &"
+   cat "${te}0"
+   echo "$CMD1"
+   cat "${te}1"
+   numFAIL=$((numFAIL+1))
+elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
+   $PRINTF "$FAILED\n"
+   cat "$tdiff"
+   echo "$CMD0 &"
+   cat "${te}0"
+   echo "$CMD1"
+   cat "${te}1"
+   numFAIL=$((numFAIL+1))
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat $te; fi
+   numOK=$((numOK+1))
+fi ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+# test the SOCKET-RECVFROM address (with UDP4-SENDTO)
+NAME=SOCKET_RECVFROM
+case "$TESTS" in
+*%functions%*|*%generic%*|*%socket%*|*%ip4%*|*%udp%*|*%dgram%*|*%$NAME%*)
+TEST="$NAME: socket recvfrom with UDP/IPv4"
+# start a SOCKET-RECVFROM process that uses UDP/IPv4 and echoes data, and
+# send test data using UDP4-SENDTO. The sent data should be returned.
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+ts1p=$PORT; PORT=$((PORT+1))
+ts1a="127.0.0.1"
+ts0p=$(printf "%04x" $ts1p);
+ts0a="7f000001" # "127.0.0.1"
+ts0="x${ts0p}${ts0a}x0000000000000000"
+ts1b=$PORT; PORT=$((PORT+1))
+ts1="$ts1a:$ts1p"
+da="$(date) $RANDOM"
+CMD0="$SOCAT $opts SOCKET-RECVFROM:2:$SOCK_DGRAM:17:$ts0,reuseaddr PIPE"
+CMD1="$SOCAT $opts - UDP4-SENDTO:$ts1,bind=:$ts1b"
+printf "test $F_n $TEST... " $N
+$CMD0 2>"${te}0" &
+pid0="$!"
+sleep 1	# waitudp4port $ts1p 1
+echo "$da" |$CMD1 >>"$tf" 2>>"${te}1"
+rc1="$?"
+kill "$pid0" 2>/dev/null; wait;
+if [ "$rc1" -ne 0 ]; then
+   $PRINTF "$FAILED: $SOCAT:\n"
+   echo "$CMD0 &"
+   cat "${te}0"
+   echo "$CMD1"
+   cat "${te}1"
+   numFAIL=$((numFAIL+1))
+elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
+   $PRINTF "$FAILED\n"
+   cat "$tdiff"
+   echo "$CMD0 &"
+   cat "${te}0"
+   echo "$CMD1"
+   cat "${te}1"
+   numFAIL=$((numFAIL+1))
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat $te; fi
+   numOK=$((numOK+1))
+fi ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+# test the SOCKET-RECV address (with UDP4-SENDTO)
+NAME=SOCKET_RECV
+case "$TESTS" in
+*%functions%*|*%generic%*|*%socket%*|*%ip4%*|*%udp%*|*%dgram%*|*%$NAME%*)
+TEST="$NAME: socket recv with UDP/IPv4"
+# start a SOCKET-RECV process that uses UPD/IPv4 and writes received data to file, and
+# send test data using UDP4-SENDTO.
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+ts1p=$PORT; PORT=$((PORT+1))
+ts1a="127.0.0.1"
+ts0p=$(printf "%04x" $ts1p);
+ts0a="7f000001" # "127.0.0.1"
+ts0="x${ts0p}${ts0a}x0000000000000000"
+ts1b=$PORT; PORT=$((PORT+1))
+ts1="$ts1a:$ts1p"
+da="$(date) $RANDOM"
+CMD0="$SOCAT $opts -u SOCKET-RECV:2:$SOCK_DGRAM:17:$ts0,reuseaddr -"
+CMD1="$SOCAT $opts -u - UDP4-SENDTO:$ts1,bind=:$ts1b"
+printf "test $F_n $TEST... " $N
+$CMD0 2>"${te}0" >"$tf" &
+pid0="$!"
+sleep 1	# waitudp4port $ts1p 1
+echo "$da" |$CMD1 2>>"${te}1"
+rc1="$?"
+sleep 1
+kill "$pid0" 2>/dev/null; wait;
+if [ "$rc1" -ne 0 ]; then
+   $PRINTF "$FAILED: $SOCAT:\n"
+   echo "$CMD0 &"
+   cat "${te}0"
+   echo "$CMD1"
+   cat "${te}1"
+   numFAIL=$((numFAIL+1))
+elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
+   $PRINTF "$FAILED\n"
+   cat "$tdiff"
+   echo "$CMD0 &"
+   cat "${te}0"
+   echo "$CMD1"
+   cat "${te}1"
+   numFAIL=$((numFAIL+1))
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat $te; fi
+   numOK=$((numOK+1))
+fi ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+# test SOCKET-DATAGRAM (with UDP4-DATAGRAM)
+NAME=SOCKET_DATAGRAM
+case "$TESTS" in
+*%functions%*|*%generic%*|*%socket%*|*%ip4%*|*%udp%*|*%dgram%*|*%$NAME%*)
+TEST="$NAME: socket datagram via UDP/IPv4"
+# start a UDP4-DATAGRAM process that echoes data, and send test data using
+# SOCKET-DATAGRAM, selecting UDP/IPv4. The sent data should be returned.
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+ts0p=$PORT; PORT=$((PORT+1))
+ts1p=$PORT; PORT=$((PORT+1))
+ts0a="127.0.0.1"
+ts1b=$(printf "%04x" $ts0p);
+ts1a="7f000001" # "127.0.0.1"
+ts0b=$(printf "%04x" $ts0p)
+ts1b=$(printf "%04x" $ts1p)
+ts1="x${ts0b}${ts1a}x0000000000000000"
+da="$(date) $RANDOM"
+CMD0="$SOCAT $opts UDP4-DATAGRAM:$ts0a:$ts1p,bind=:$ts0p,reuseaddr PIPE"
+CMD1="$SOCAT $opts - SOCKET-DATAGRAM:2:$SOCK_DGRAM:17:$ts1,bind=x${ts1b}x00000000x0000000000000000"
+printf "test $F_n $TEST... " $N
+$CMD0 2>"${te}0" &
+pid0="$!"
+waitudp4port $ts0p 1
+echo "$da" |$CMD1 2>>"${te}1" >"$tf"
+rc1="$?"
+kill "$pid0" 2>/dev/null; wait;
+if [ "$rc1" -ne 0 ]; then
+   $PRINTF "$FAILED: $SOCAT:\n"
+   echo "$CMD0 &"
+   cat "${te}0"
+   echo "$CMD1"
+   cat "${te}1"
+   numFAIL=$((numFAIL+1))
+elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
+   $PRINTF "$FAILED\n"
+   cat "$tdiff"
+   echo "$CMD0 &"
+   cat "${te}0"
+   echo "$CMD1"
+   cat "${te}1"
+   numFAIL=$((numFAIL+1))
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat $te; fi
+   numOK=$((numOK+1))
+fi ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+NAME=SOCKETRANGEMASK
+case "$TESTS" in
+*%functions%*|*%security%*|*%generic%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%socket%*|*%range%*|*%$NAME%*)
+TEST="$NAME: security of generic socket-listen with RANGE option"
+if [ -z "$SECONDADDR" ]; then
+    # we need access to more loopback addresses
+    $PRINTF "test $F_n $TEST... ${YELLOW}need a second IPv4 address${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+ts1p=$(printf "%04x" $PORT);
+testserversec "$N" "$TEST" "$opts -s" "SOCKET-LISTEN:2:6:x${ts1p}x00000000x0000000000000000,reuseaddr,fork,retry=1" "" "range=x0000x7f000000:x0000xffffffff" "SOCKET-CONNECT:2:6:x${ts1p}x${SECONDADDRHEX}x0000000000000000" 4 tcp $PORT 0
+fi ;; # $SECONDADDR
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
+TIOCEXCL="$($PROCAN -c |grep "^#define[[:space:]]*TIOCEXCL[[:space:]]" |cut -d' ' -f3)"
+
 # test the generic ioctl-void option
 NAME=IOCTL_VOID
 case "$TESTS" in
@@ -8458,9 +8824,9 @@ TEST="$NAME: test the ioctl-void option"
 # process 1 opens it with the TIOCEXCL ioctl; 
 # process 2 opens it too and fails with "device or resource busy" only when the
 # previous ioctl was successful
-if [ "$UNAME" != Linux ]; then
+if [ -z "$TIOCEXCL" ]; then
     # we use the numeric value of TIOCEXL which is system dependent
-    $PRINTF "test $F_n $TEST... ${YELLOW}only on Linux${NORMAL}\n" $N
+    $PRINTF "test $F_n $TEST... ${YELLOW}no value of TIOCEXCL${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
 tp="$td/test$N.pty"
@@ -8469,7 +8835,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="$(date)"
 CMD0="$SOCAT $opts PTY,LINK=$tp pipe"
-CMD1="$SOCAT $opts - file:$tp,ioctl-void=0x540c,raw,echo=0"
+CMD1="$SOCAT $opts - file:$tp,ioctl-void=$TIOCEXCL,raw,echo=0"
 CMD2="$SOCAT $opts - file:$tp,raw,echo=0"
 printf "test $F_n $TEST... " $N
 $CMD0 >/dev/null 2>"${te}0" &
@@ -8504,6 +8870,9 @@ esac
 N=$((N+1))
 
 
+SOL_SOCKET="$($PROCAN -c |grep "^#define[[:space:]]*SOL_SOCKET[[:space:]]" |cut -d' ' -f3)"
+SO_REUSEADDR="$($PROCAN -c |grep "^#define[[:space:]]*SO_REUSEADDR[[:space:]]" |cut -d' ' -f3)"
+
 # test the generic setsockopt-int option
 NAME=SETSOCKOPT_INT
 case "$TESTS" in
@@ -8518,9 +8887,9 @@ TEST="$NAME: test the setsockopt-int option"
 # process 2 tries to listen on this port with SO_REUSEADDR, will fail if the
 # (generically specified) SO_REUSEADDR socket options did not work
 # process 3 connects to this port; only if it is successful the test is ok
-if [ "$UNAME" != Linux ]; then
+if [ -z "SO_REUSEADDR" ]; then
     # we use the numeric value of SO_REUSEADDR which might be system dependent
-    $PRINTF "test $F_n $TEST... ${YELLOW}only on Linux${NORMAL}\n" $N
+    $PRINTF "test $F_n $TEST... ${YELLOW}value of SO_REUSEADDR not known${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
 tp="$PORT"
@@ -8528,8 +8897,7 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="$(date)"
-# level=SOL_SOCKET=1, optname=SO_REUSEADDR=2, value=1
-CMD0="$SOCAT $opts TCP4-L:$tp,setsockopt-int=1:2:1 PIPE"
+CMD0="$SOCAT $opts TCP4-L:$tp,setsockopt-int=$SOL_SOCKET:$SO_REUSEADDR:1 PIPE"
 CMD1="$SOCAT $opts - TCP:localhost:$tp"
 CMD2="$CMD0"
 CMD3="$CMD1"

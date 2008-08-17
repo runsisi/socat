@@ -40,7 +40,7 @@ bool xioopts_ignoregroups;
 #  define IF_EXEC(a,b) 
 #endif
 
-#if WITH_SOCKET
+#if _WITH_SOCKET
 #  define IF_SOCKET(a,b) {a,b},
 #else
 #  define IF_SOCKET(a,b) 
@@ -2608,13 +2608,13 @@ int retropt_string(struct opt *opts, int optcode, char **result) {
 }
 
 
-#if WITH_SOCKET
+#if _WITH_SOCKET
 /* looks for an bind option and, if found, overwrites the complete contents of
    sa with the appropriate value(s).
    returns STAT_OK if option exists and could be resolved,
    STAT_NORETRY if option exists but had error,
    or STAT_NOACTION if it does not exist */
-/* currently only for IP (v4, v6) */
+/* currently only for IP (v4, v6) and raw (PF_UNSPEC) */
 int retropt_bind(struct opt *opts,
 		 int af,
 		 int socktype,
@@ -2636,22 +2636,26 @@ int retropt_bind(struct opt *opts,
    if (retropt_string(opts, OPT_BIND, &bindname) < 0) {
       return STAT_NOACTION;
    }
-   addrallowed = true;
-   portallowed = (feats>=2);
    bindp = bindname;
-   nestlex((const char **)&bindp, &hostp, &hostlen, ends, NULL, NULL, nests,
-	   true, false, false);
-   *hostp++ = '\0';
-   if (!strncmp(bindp, portsep, strlen(portsep))) {
-      if (!portallowed) {
-	 Error("port specification not allowed in this bind option");
-	 return STAT_NORETRY;
-      } else {
-	 portp = bindp + strlen(portsep);
-      }
-   }
 
    switch (af) {
+
+   case AF_UNSPEC:
+      {
+	 size_t p = 0;
+	 dalan(bindname, (char *)sa->sa_data, &p, *salen-sizeof(sa->sa_family));
+	 *salen = p + sizeof(sa->sa_family);
+	 *salen = p +
+#if HAVE_STRUCT_SOCKADDR_SALEN
+	    sizeof(sa->sa_len) +
+#endif
+	    sizeof(sa->sa_family);
+#if HAVE_STRUCT_SOCKADDR_SALEN
+	 sa->sa_len = *salen;
+#endif
+      }
+      break;
+
 #if WITH_IP4 || WITH_IP6
 #if WITH_IP4
    case AF_INET:
@@ -2659,6 +2663,19 @@ int retropt_bind(struct opt *opts,
 #if WITH_IP6
    case AF_INET6:
 #endif /*WITH_IP6 */
+      addrallowed = true;
+      portallowed = (feats>=2);
+      nestlex((const char **)&bindp, &hostp, &hostlen, ends, NULL, NULL, nests,
+	      true, false, false);
+      *hostp++ = '\0';
+      if (!strncmp(bindp, portsep, strlen(portsep))) {
+	 if (!portallowed) {
+	    Error("port specification not allowed in this bind option");
+	    return STAT_NORETRY;
+	 } else {
+	    portp = bindp + strlen(portsep);
+	 }
+      }
       if ((result =
 	   xiogetaddrinfo(hostname[0]!='\0'?hostname:NULL, portp,
 			  af, socktype, ipproto,
@@ -2687,7 +2704,7 @@ int retropt_bind(struct opt *opts,
    }
    return STAT_OK;
 }
-#endif /* WITH_SOCKET */
+#endif /* _WITH_SOCKET */
 
 
 /* applies to fd all options belonging to phase */
@@ -2806,7 +2823,7 @@ int applyopts(int fd, struct opt *opts, unsigned int phase) {
 		   opt->desc->type);
 	 }
 
-#if WITH_SOCKET
+#if _WITH_SOCKET
       } else if (opt->desc->func == OFUNC_SOCKOPT) {
 	 if (0) {
 	    ;
@@ -3015,7 +3032,7 @@ int applyopts(int fd, struct opt *opts, unsigned int phase) {
 	    Error1("setsockopt() data type %d not implemented",
 		   opt->desc->type);
 	 }
-#endif /* WITH_SOCKET */
+#endif /* _WITH_SOCKET */
 	 
 #if HAVE_FLOCK
       } else if (opt->desc->func == OFUNC_FLOCK) {
@@ -3728,7 +3745,7 @@ int applyopts_single(struct single *xfd, struct opt *opts, enum e_phase phase) {
 	}
 	break;
 
-#if WITH_SOCKET
+#if _WITH_SOCKET
      case OFUNC_SOCKOPT:
 	 switch (opt->desc->optcode) {
 #if WITH_IP4 && (defined(HAVE_STRUCT_IP_MREQ) || defined (HAVE_STRUCT_IP_MREQN))
@@ -3879,7 +3896,7 @@ mc:addr
 	   ++opt; continue;
 	}
 	break;
-#endif /* WITH_SOCKET */
+#endif /* _WITH_SOCKET */
 
      default:
 	++opt;

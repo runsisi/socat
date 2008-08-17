@@ -145,7 +145,7 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
 
 #if WITH_IP4 /*|| WITH_IP6*/
    if (retropt_string(opts, OPT_RANGE, &rangename) >= 0) {
-      if (parserange(rangename, pf, &fd->stream.para.socket.range) < 0) {
+      if (xioparserange(rangename, pf, &fd->stream.para.socket.range) < 0) {
 	 free(rangename);
 	 return STAT_NORETRY;
       }
@@ -424,7 +424,7 @@ int xioopen_udp_datagram(int argc, const char *argv[], struct opt *opts,
    /* which reply packets will be accepted - determine by range option */
    if (retropt_string(opts, OPT_RANGE, &rangename)
        >= 0) {
-      if (parserange(rangename, pf, &xfd->para.socket.range) < 0) {
+      if (xioparserange(rangename, pf, &xfd->para.socket.range) < 0) {
 	 free(rangename);
 	 return STAT_NORETRY;
       }
@@ -582,7 +582,7 @@ int xioopen_udp_recv(int argc, const char *argv[], struct opt *opts,
 
 #if WITH_IP4 /*|| WITH_IP6*/
    if (retropt_string(opts, OPT_RANGE, &rangename) >= 0) {
-      if (parserange(rangename, pf, &xfd->stream.para.socket.range) < 0) {
+      if (xioparserange(rangename, pf, &xfd->stream.para.socket.range) < 0) {
 	 return STAT_NORETRY;
       }
       xfd->stream.para.socket.dorange = true;

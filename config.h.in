@@ -456,6 +456,7 @@
 #undef WITH_IP4
 #undef WITH_IP6
 #undef WITH_RAWIP
+#undef WITH_GENERICSOCKET
 #undef WITH_TCP
 #undef WITH_UDP
 #undef WITH_LISTEN

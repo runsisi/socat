@@ -84,6 +84,9 @@ xiosetunix(struct sockaddr_un *saun,
       } else {
 	 len = sizeof(struct sockaddr_un);
       }
+#if HAVE_STRUCT_SOCKADDR_SALEN
+      saun->sun_len = len;
+#endif
    } else {
       if ((pathlen = strlen(path)) >= sizeof(saun->sun_path)) {
 	 Warn2("socket address "F_Zu" characters long, truncating to "F_Zu"",
@@ -225,7 +228,7 @@ static int xioopen_unix_connect(int argc, const char *argv[], struct opt *opts, 
    if ((result = _xio_openlate(xfd, opts)) < 0) {
       return result;
    }
-   return 0;
+   return STAT_OK;
 }
 
 

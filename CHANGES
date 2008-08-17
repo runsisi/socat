@@ -1,5 +1,10 @@
 
 new features:
+	added generic socket addresses: SOCKET-CONNECT, SOCKET-LISTEN,
+	SOCKET-SENDTO, SOCKET-RECVFROM, SOCKET-RECV, SOCKET-DATAGRAM allow
+	protocol independent socket handling; all parameters are explicitely
+	specified as numbers or hex data
+
 	added address options ioctl-void, ioctl-int, ioctl-intp, ioctl-string,
 	ioctl-bin for generic ioctl() calls.
 

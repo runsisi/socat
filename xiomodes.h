@@ -1,5 +1,5 @@
 /* source: xiomodes.h */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xiomodes_h_included
@@ -15,7 +15,7 @@
 #include "xio-creat.h"
 #include "xio-gopen.h"
 #include "xio-pipe.h"
-#if WITH_SOCKET
+#if _WITH_SOCKET
 #include "xio-socket.h"
 #include "xio-listen.h"
 #include "xio-unix.h"
@@ -30,7 +30,7 @@
 #include "xio-udp.h"
 #include "xio-socks.h"
 #include "xio-proxy.h"
-#endif /* WITH_SOCKET */
+#endif /* _WITH_SOCKET */
 #include "xio-progcall.h"
 #include "xio-exec.h"
 #include "xio-system.h"

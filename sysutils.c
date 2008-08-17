@@ -106,6 +106,7 @@ void socket_in6_init(struct sockaddr_in6 *sa) {
    length of the specific socket address, or 0 on error. */
 socklen_t socket_init(int af, union sockaddr_union *sa) {
    switch (af) {
+   case AF_UNSPEC: memset(sa, 0, sizeof(*sa)); return sizeof(*sa);
 #if WITH_UNIX
    case AF_UNIX:   socket_un_init(&sa->un);   return sizeof(sa->un);
 #endif
@@ -134,6 +135,14 @@ char *sockaddr_info(const struct sockaddr *sa, socklen_t salen, char *buff, size
    char *cp = lbuff;
    int n;
 
+#if HAVE_STRUCT_SOCKADDR_SALEN
+   if ((n = snprintf(cp, blen, "LEN=%d ", sa->sa_len)) < 0) {
+      Warn1("sockaddr_info(): buffer too short ("F_Zu")", blen);
+      *buff = '\0';
+      return buff;
+   }
+   cp += n,  blen -= n;
+#endif
    if ((n = snprintf(cp, blen, "AF=%d ", sa->sa_family)) < 0) {
       Warn1("sockaddr_info(): buffer too short ("F_Zu")", blen);
       *buff = '\0';

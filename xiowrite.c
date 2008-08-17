@@ -76,7 +76,7 @@ ssize_t xiowrite(xiofile_t *file, const void *buff, size_t bytes) {
       }
       break;
 
-#if WITH_SOCKET
+#if _WITH_SOCKET
    case XIOWRITE_SENDTO:
       /*union {
 	 char space[sizeof(struct sockaddr_un)];
@@ -117,7 +117,7 @@ ssize_t xiowrite(xiofile_t *file, const void *buff, size_t bytes) {
 		 sockaddr_info(&us.soa, uslen, infobuff, sizeof(infobuff)));
       }
       break;
-#endif /* WITH_SOCKET */
+#endif /* _WITH_SOCKET */
 
    case XIOWRITE_PIPE:
       do {

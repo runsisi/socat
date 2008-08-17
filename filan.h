@@ -1,5 +1,5 @@
 /* source: filan.h */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 
 /* Published under the GNU General Public License V.2, see file COPYING */
 
@@ -26,12 +26,12 @@ extern int filan_stat(
 
 extern int cdevan(int fd, FILE *outfile);
 
-#if WITH_SOCKET
+#if _WITH_SOCKET
 extern int isasocket(int fd);
 extern int sockan(int fd, FILE *outfile);
 extern int ipan(int fd, FILE *outfile);
 extern int ip6an(int fd, FILE *outfile);
-#endif /* WITH_SOCKET */
+#endif /* _WITH_SOCKET */
 
 extern int fdname(const char *file, int fd, FILE *outfile);
 

@@ -109,7 +109,7 @@ ssize_t xioread(xiofile_t *file, void *buff, size_t bufsiz) {
       break;
 #endif /* WITH_OPENSSL */
 
-#if WITH_SOCKET
+#if _WITH_SOCKET
    case XIOREAD_RECV:
      if (pipe->dtype & XIOREAD_RECV_FROM) {
 #if WITH_RAWIP || WITH_UDP || WITH_UNIX
@@ -354,7 +354,7 @@ ssize_t xioread(xiofile_t *file, void *buff, size_t bufsiz) {
 
      }
      break;
-#endif /* WITH_SOCKET */
+#endif /* _WITH_SOCKET */
 
    default:
       Error("internal: undefined read operation");

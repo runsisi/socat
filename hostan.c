@@ -20,14 +20,14 @@
 static int iffan(FILE *outfile);
 
 int hostan(FILE *outfile) {
-#if WITH_SOCKET
+#if _WITH_SOCKET
    fprintf(outfile, "\nIP INTERFACES\n");
    iffan(outfile);
 #endif
    return 0;
 }
 
-#if WITH_SOCKET
+#if _WITH_SOCKET
 static int iffan(FILE *outfile) {
    /* Linux: man 7 netdevice */
    /* FreeBSD: man 4 networking */
@@ -80,4 +80,4 @@ static int iffan(FILE *outfile) {
 #endif /* defined(SIOCGIFINDEX) */
    return 0;
 }
-#endif /* WITH_SOCKET */
+#endif /* _WITH_SOCKET */

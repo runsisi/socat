@@ -170,7 +170,7 @@ int xioopen_rawip_datagram(int argc, const char *argv[], struct opt *opts,
 
    /* which reply packets will be accepted - determine by range option */
    if (retropt_string(opts, OPT_RANGE, &rangename) >= 0) {
-      if (parserange(rangename, pf, &xfd->para.socket.range) < 0) {
+      if (xioparserange(rangename, pf, &xfd->para.socket.range) < 0) {
 	 free(rangename);
 	 return STAT_NORETRY;
       }
@@ -287,7 +287,8 @@ int xioopen_rawip_recv(int argc, const char *argv[], struct opt *opts,
 #endif
    }
 
-   if (retropt_bind(opts, pf, socktype, ipproto, &/*us.soa*/xfd->stream.para.socket.la.soa, &uslen, 1,
+   if (retropt_bind(opts, pf, socktype, ipproto,
+		    &/*us.soa*/xfd->stream.para.socket.la.soa, &uslen, 1,
 		    xfd->stream.para.socket.ip.res_opts[0],
 		    xfd->stream.para.socket.ip.res_opts[1]) ==
        STAT_OK) {
@@ -300,7 +301,8 @@ int xioopen_rawip_recv(int argc, const char *argv[], struct opt *opts,
    xfd->stream.dtype = XIODATA_RECV_SKIPIP;
    result =
       _xioopen_dgram_recv(&xfd->stream, xioflags,
-			  needbind?&xfd->stream.para.socket.la.soa:NULL, uslen,
+			  needbind?&/*us.soa*/xfd->stream.para.socket.la.soa:NULL,
+			  uslen,
 			  opts, pf, socktype, ipproto, E_ERROR);
    _xio_openlate(&xfd->stream, opts);
    return result;
