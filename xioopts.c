@@ -1443,7 +1443,7 @@ const struct optname optionnames[] = {
 #ifdef O_TEXT
 	IF_ANY    ("text",	&opt_o_text)
 #endif
-	IF_UNIX   ("tightsocklen",	&opt_unix_tightsocklen)
+	IF_UNIX   ("tightsocklen",	&xioopt_unix_tightsocklen)
 	IF_TERMIOS("time",	&opt_vtime)
 	IF_TERMIOS("tiocsctty",	&opt_tiocsctty)
 #if WITH_EXT2 && defined(EXT2_TOPDIR_FL)
@@ -1470,7 +1470,7 @@ const struct optname optionnames[] = {
 	IF_NAMED  ("uid-e",	&opt_user_early)
 	IF_ANY    ("uid-l",	&opt_user_late)
 	IF_NAMED  ("umask",	&opt_umask)
-	IF_UNIX   ("unix-tightsocklen",	&opt_unix_tightsocklen)
+	IF_UNIX   ("unix-tightsocklen",	&xioopt_unix_tightsocklen)
 	IF_NAMED  ("unlink",	&opt_unlink)
 	IF_NAMED  ("unlink-close",	&opt_unlink_close)
 	IF_NAMED  ("unlink-early",	&opt_unlink_early)

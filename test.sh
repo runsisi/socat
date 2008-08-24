@@ -2364,7 +2364,7 @@ N=$((N+1))
 
 NAME=UNIXSOCKET
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%functions%*|*%unix%*|*%$NAME%*)
 TEST="$NAME: echo via connection to UNIX domain socket"
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
