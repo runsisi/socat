@@ -1,5 +1,9 @@
 
 corrections:
+	when UDP-LISTEN continued to listen after packet dropped by, e.g.,
+	range option, the old listen socket would not be closed but a new one
+	created. open sockets could accumulate.
+
 	there was a bug in ip*-recv with bind option: it did not bind, and
 	with the first received packet an error occurred:
 	socket_init(): unknown address family 0

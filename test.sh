@@ -8032,9 +8032,9 @@ else
    numOK=$((numOK+1))
 fi
 kill $pid1 2>/dev/null
-wait ;;
+wait
+PORT="$_PORT" ;;
 esac
-PORT="$_PORT"
 N=$((N+1))
 
 
@@ -8314,6 +8314,59 @@ else
     numOK=$((numOK+1))
 fi
 esac
+N=$((N+1))
+
+
+# a bug was found in the way UDP-LISTEN handles the listening socket:
+# when UDP-LISTEN continued to listen after a packet had been dropped by, e.g.,
+# range option, the old listen socket would not be closed but a new one created.
+NAME=UDP4LISTENCONT
+case "$TESTS" in
+*%functions%*|*%bugs%*|*%ip4%*|*%udp%*|*%$NAME%*)
+TEST="$NAME: let range drop a packet and see if old socket is closed"
+# idea: run a UDP4-LISTEN process with range option. Send it one packet from an
+# address outside range and check if two listening sockets are open then
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+while [ "$(netstat -an |grep "^udp.*127.0.0.1:$PORT" |wc -l)" -ne 0 ]; do
+    PORT=$((PORT+1))
+done
+tp=$PORT
+da1="test$N $(date) $RANDOM"
+a1="$LOCALHOST"
+a2="$SECONDADDR"
+#CMD0="$SOCAT $opts UDP4-LISTEN:$tp,bind=$a1,range=$a2/32 PIPE"
+CMD0="$SOCAT $opts UDP4-LISTEN:$tp,range=$a2/32 PIPE"
+CMD1="$SOCAT $opts - UDP-CONNECT:$a1:$tp"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0" &
+pid1=$!
+waitudp4port $tp 1
+echo "$da1" |$CMD1 >"${tf}1" 2>"${te}1"	# this should fail
+rc1=$?
+waitudp4port $tp 1
+nsocks="$(netstat -an |grep "^udp.*[:.]$PORT" |wc -l)"
+kill $pid1 2>/dev/null; wait
+if [ $rc1 -ne 0 ]; then
+    $PRINTF "$NO_RESULT\n"
+    numCANT=$((numCANT+1))
+elif [ $nsocks -eq 0 ]; then
+    $PRINTF "$NO_RESULT\n"
+    numCANT=$((numCANT+1))
+elif [ $nsocks -ne 1 ]; then
+    $PRINTF "$FAILED ($nsocks listening sockets)\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "${te}0" "${te}1"
+    numFAIL=$((numFAIL+1))
+else
+    $PRINTF "$OK\n"
+    if [ -n "$debug" ]; then cat "${te}0" "${te}1" "${te}2"; fi
+    numOK=$((numOK+1))
+fi ;;
+esac
+PORT=$((PORT+1))
 N=$((N+1))
 
 

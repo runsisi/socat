@@ -231,6 +231,7 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
 	 /* drop packet */
 	 char buff[512];
 	 Recv(fd->stream.fd, buff, sizeof(buff), 0);
+	 Close(fd->stream.fd);
 	 continue;
       }
       Info1("permitting UDP connection from %s",
