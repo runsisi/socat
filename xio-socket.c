@@ -566,6 +566,11 @@ void xiosigaction_hasread(int signum, siginfo_t *siginfo, void *ucontext) {
 	    Debug("xiosigaction_hasread() ->");
 	    return;
 	 }
+	 if (pid == xio_waitingfor) {
+	    xio_hashappened = true;
+	    Debug("xiosigaction_hasread() ->");
+	    return;
+	 }
       } while (1);
    }
    if (xio_waitingfor == siginfo->si_pid) {
