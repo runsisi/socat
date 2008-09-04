@@ -8291,11 +8291,11 @@ TEST="$NAME: correctly parse exec with consecutive spaces"
 $PRINTF "test $F_n $TEST... " $N
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
-da="test$N $(date) $RANDOM"
+da="test$N $(date)  $RANDOM"	# with a double space
 tdiff="$td/test$N.diff"
 # put the test data as first argument after two spaces. expect the data in the
 # first argument of the exec'd command.
-$SOCAT $opts -u "exec:\"bash -c \\\"echo \$1\\\"  \\\"\\\" \\\"$da\\\"\"" - >"$tf" 2>"$te"
+$SOCAT $opts -u "exec:\"bash -c \\\"echo \\\\\\\"\$1\\\\\\\"\\\"  \\\"\\\" \\\"$da\\\"\"" - >"$tf" 2>"$te"
 rc=$?
 echo "$da" |diff - "$tf" >"$tdiff"
 if [ "$rc" -ne 0 ]; then
