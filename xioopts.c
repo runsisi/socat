@@ -3446,7 +3446,7 @@ int applyopts_single(struct single *xfd, struct opt *opts, enum e_phase phase) {
 	 xfd->lock.intervall.tv_sec  = 1;
 	 xfd->lock.intervall.tv_nsec = 0;
 
-	 /*! this should be integrated into central select loop */
+	 /*! this should be integrated into central select()/poll() loop */
 	 if (xiolock(&xfd->lock) < 0) {
 	    return -1;
 	 }

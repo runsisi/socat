@@ -1,5 +1,5 @@
 /* source: xiowrite.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this is the source of the extended write function */
@@ -13,9 +13,9 @@
 
 
 /* ...
-   note that the write() call can block even if the select() call reported the
-   FD writeable: in case the FD is not nonblocking and a lock defers the
-   operation.
+   note that the write() call can block even if the select()/poll() call
+   reported the FD writeable: in case the FD is not nonblocking and a lock
+   defers the operation.
    on return value < 0: errno reflects the value from write() */
 ssize_t xiowrite(xiofile_t *file, const void *buff, size_t bytes) {
    ssize_t writt;

@@ -366,8 +366,8 @@ ssize_t xioread(xiofile_t *file, void *buff, size_t bufsiz) {
 
 
 /* this function is intended only for some special address types where the
-   select() call cannot strictly determine if (more) read data is available.
-   currently this is for the OpenSSL based addresses.
+   select()/poll() calls cannot strictly determine if (more) read data is
+   available. currently this is for the OpenSSL based addresses.
 */
 ssize_t xiopending(xiofile_t *file) {
    struct single *pipe;

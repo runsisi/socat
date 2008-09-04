@@ -726,7 +726,7 @@ int _xioopen_dgram_recvfrom(struct single *xfd, int xioflags,
 	 drop = true;
       }
 
-      /* loop until select() returns valid */
+      /* loop until select()/poll() returns valid */
       do {
 	 struct pollfd readfd;
 	 /*? int level = E_ERROR;*/

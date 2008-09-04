@@ -251,7 +251,7 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
 	    }
 	    break;
 	 }
-	 /* server: continue loop with select */
+	 /* server: continue loop with socket()+recvfrom() */
 	 /* when we dont close this we get awkward behaviour on Linux 2.4:
 	    recvfrom gives 0 bytes with invalid socket address */
 	 if (Close(fd->stream.fd) < 0) {

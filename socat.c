@@ -684,10 +684,10 @@ int childleftdata(xiofile_t *xfd) {
 int xiotransfer(xiofile_t *inpipe, xiofile_t *outpipe,
 		unsigned char **buff, size_t bufsiz, bool righttoleft);
 
-bool mayrd1;		/* sock1 has read data or eof, according to select() */
-bool mayrd2;		/* sock2 has read data or eof, according to select() */
-bool maywr1;		/* sock1 can be written to, according to select() */
-bool maywr2;		/* sock2 can be written to, according to select() */
+bool mayrd1;		/* sock1 has read data or eof, according to poll() */
+bool mayrd2;		/* sock2 has read data or eof, according to poll() */
+bool maywr1;		/* sock1 can be written to, according to poll() */
+bool maywr2;		/* sock2 can be written to, according to poll() */
 
 /* here we come when the sockets are opened (in the meaning of C language),
    and their options are set/applied
@@ -702,7 +702,7 @@ int _socat(void) {
    unsigned char *buff;
    ssize_t bytes1, bytes2;
    int polling = 0;	/* handling ignoreeof */
-   int wasaction = 1;	/* last select was active, do NOT sleep before next */
+   int wasaction = 1;	/* last poll was active, do NOT sleep before next */
    struct timeval total_timeout;	/* the actual total timeout timer */
 
 #if WITH_FILAN
@@ -760,7 +760,7 @@ int _socat(void) {
       /* for ignoreeof */
       if (polling) {
 	 if (!wasaction) {
-	    /* yes we could do it with select but I like readable trace output */
+	    /* yes we could do it with poll but I like readable trace output */
 	    if (socat_opts.pollintv.tv_sec)  Sleep(socat_opts.pollintv.tv_sec);
 	    if (socat_opts.pollintv.tv_usec) Usleep(socat_opts.pollintv.tv_usec);
 
@@ -804,7 +804,7 @@ int _socat(void) {
 	 closing = 2;
       }
 
-      do {
+      do {	/* loop over poll() EINTR */
 	 int _errno;
 
 	 childleftdata(sock1);
@@ -859,7 +859,7 @@ int _socat(void) {
 	 retval = xiopoll(fds, 4, timeout);
 	 _errno = errno;
 	 if (retval < 0 && errno == EINTR) {
-	    Info1("select(): %s", strerror(errno));
+	    Info1("poll(): %s", strerror(errno));
 	 }
 	 errno = _errno;
       } while (retval < 0 && errno == EINTR);
@@ -876,7 +876,7 @@ int _socat(void) {
 		 timeout, strerror(errno));
 	    return -1;
       } else if (retval == 0) {
-	 Info2("select timed out (no data within %ld.%06ld seconds)",
+	 Info2("poll timed out (no data within %ld.%06ld seconds)",
 	       closing>=1?socat_opts.closwait.tv_sec:socat_opts.total_timeout.tv_sec,
 	       closing>=1?socat_opts.closwait.tv_usec:socat_opts.total_timeout.tv_usec);
 	 if (polling && !wasaction) {
@@ -927,7 +927,7 @@ int _socat(void) {
 	    maywr2 = false;
 	    total_timeout = socat_opts.total_timeout;
 	    wasaction = 1;
-	    /* is more data available that has already passed select()? */
+	    /* is more data available that has already passed poll()? */
 	    mayrd1 = (xiopending(sock1) > 0);
 	    if (XIO_RDSTREAM(sock1)->readbytes != 0 &&
 		XIO_RDSTREAM(sock1)->actbytes == 0) {
@@ -955,7 +955,7 @@ int _socat(void) {
 	    maywr1 = false;
 	    total_timeout = socat_opts.total_timeout;
 	    wasaction = 1;
-	    /* is more data available that has already passed select()? */
+	    /* is more data available that has already passed poll()? */
 	    mayrd2 = (xiopending(sock2) > 0);
 	    if (XIO_RDSTREAM(sock2)->readbytes != 0 &&
 		XIO_RDSTREAM(sock2)->actbytes == 0) {
