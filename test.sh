@@ -11,6 +11,30 @@
 
 #set -vx
 
+val_t=0.1
+while [ "$1" ]; do
+    case "X$1" in
+	X-t?*) val_t="${1#-t}" ;;
+	X-t)   shift; val_t="$1" ;;
+	*) break;
+    esac
+    shift
+done
+
+opt_t="-t $val_t"
+
+#MICROS=100000
+case "X$val_t" in
+    X*.???????*) S="${val_t%.*}"; uS="${val_t#*.}"; uS="${uS:0:6}" ;;
+    X*.*) S="${val_t%.*}"; uS="${val_t#*.}"; uS="${uS}000000"; uS="${uS:0:6}" ;;
+    X*) S="${val_t}"; uS="000000" ;;
+esac
+MICROS=${S}${uS}
+MICROS=${MICROS##0000}; MICROS=${MICROS##00}; MICROS=${MICROS##0}
+#
+_MICROS=$((MICROS+999999)); SECONDs="${_MICROS%??????}"
+[ -z "$SECONDs" ] && SECONDs=0
+
 withroot=0	# perform privileged tests even if not run by root
 #PATH=$PATH:/opt/freeware/bin
 #PATH=$PATH:/usr/local/ssl/bin
@@ -20,7 +44,7 @@ MISCDELAY=1
 [ -z "$SOCAT" ] && SOCAT="./socat"
 [ -z "$PROCAN" ] && PROCAN="./procan"
 [ -z "$FILAN" ] && FILAN="./filan"
-opts="-t0.1 $OPTS"
+opts="$opt_t $OPTS"
 export SOCAT_OPTS="$opts"
 #debug="1"
 debug=
@@ -31,18 +55,26 @@ MCINTERFACE=lo	# !!! Linux only
 #LOCALHOST=localhost
 LOCALHOST=127.0.0.1
 LOCALHOST6=[::1]
-PROTO=$((192+RANDOM/1024))
+PROTO=$((144+RANDOM/2048))
 PORT=12002
 SOURCEPORT=2002
 CAT=cat
 OD_C="od -c"
+# precision sleep; takes seconds with fractional part
+psleep () {
+    local T="$1"
+    [ "$T" = 0 ] && T=0.000002
+    $SOCAT -T "$T" pipe pipe
+}
 # time in microseconds to wait in some situations
-MICROS=100000
 if ! type usleep >/dev/null 2>&1; then
     usleep () {
 	local n="$1"
-	# older bashes do not accept $1 here:
-	sleep $(((n+999999)/1000000))
+	case "$n" in
+	*???????) S="${n%??????}"; uS="${n:${#n}-6}" ;;
+	*) S=0; uS="00000$n"; uS="${uS:${#uS}-6}" ;;
+	esac
+	$SOCAT -T $S.$uS pipe pipe
     }
 fi
 #USLEEP=usleep
@@ -94,7 +126,7 @@ Linux)
     BCADDR=127.255.255.255
     BCIFADDR=$($IFCONFIG $BROADCASTIF |grep 'inet ' |awk '{print($2);}' |cut -d: -f2) ;;
 FreeBSD|NetBSD|OpenBSD)
-    MAINIF=$($IFCONFIG -a |grep '^[a-z]' |head -1 |cut -d: -f1)
+    MAINIF=$($IFCONFIG -a |grep '^[a-z]' |grep -v '^lo0: ' |head -1 |cut -d: -f1)
     BROADCASTIF="$MAINIF"
     SECONDADDR=$($IFCONFIG $BROADCASTIF |grep 'inet ' |awk '{print($2);}')
     BCIFADDR="$SECONDADDR"
@@ -105,8 +137,10 @@ HP-UX)
     SECONDADDR=$($IFCONFIG $MAINIF |tail -n 1 |awk '{print($2);}')
     BCADDR=$($IFCONFIG $BROADCASTIF |grep 'broadcast ' |sed 's/.*broadcast/broadcast/' |awk '{print($2);}') ;;
 SunOS)
+    MAINIF=$($IFCONFIG -a |grep '^[a-z]' |grep -v '^lo0: ' |head -1 |cut -d: -f1)
+    BROADCASTIF="$MAINIF"
     #BROADCASTIF=hme0
-    BROADCASTIF=eri0
+    #BROADCASTIF=eri0
     SECONDADDR=$($IFCONFIG $BROADCASTIF |grep 'inet ' |awk '{print($2);}')
     BCIFADDR="$SECONDADDR"
     BCADDR=$($IFCONFIG $BROADCASTIF |grep 'broadcast ' |sed 's/.*broadcast/broadcast/' |awk '{print($2);}') ;;
@@ -123,9 +157,12 @@ case "$UNAME" in
     ;;
 esac
 if [ -z "$SECONDIP6ADDR" ]; then
-    case "$TESTS" in
-	*%root2%*) $IFCONFIG eth0 ::2/128
-    esac
+#    case "$TESTS" in
+#	*%root2%*) $IFCONFIG eth0 ::2/128
+#    esac
+    SECONDIP6ADDR="$LOCALHOST6"
+else 
+    SECONDIP6ADDR="[$SECONDIP6ADDR]"
 fi
 
 TRUE=$(which true)
@@ -147,7 +184,7 @@ vt100|vt320|linux|xterm|cons25|dtterm|aixterm|sun-color)
 		RED="\0033[31m"
 		GREEN="\0033[32m"
 		YELLOW="\0033[33m"
-		if [ "$UNAME" = SunOS ]; then
+		if false && [ "$UNAME" = SunOS ]; then
 		    NORMAL="\0033[30m"
 		else
 		    NORMAL="\0033[39m"
@@ -156,7 +193,7 @@ vt100|vt320|linux|xterm|cons25|dtterm|aixterm|sun-color)
 		RED="\033[31m"
 		GREEN="\033[32m"
 		YELLOW="\033[33m"
-		if [ "$UNAME" = SunOS ]; then
+		if false && [ "$UNAME" = SunOS ]; then
 		    NORMAL="\033[30m"
 		else
 		    NORMAL="\033[39m"
@@ -1436,7 +1473,7 @@ testecho () {
     #$ECHO "testing $title (test $N)... \c"
     $PRINTF "test $F_n %s... " $N "$title"
     #echo "$da" |$cmd >"$tf" 2>"$te"
-    (echo "$da"; sleep $T) |($SOCAT $opts "$arg1" "$arg2" >"$tf" 2>"$te"; echo $? >"$td/test$N.rc") &
+    (psleep $T; echo "$da"; psleep $T) |($SOCAT $opts "$arg1" "$arg2" >"$tf" 2>"$te"; echo $? >"$td/test$N.rc") &
     export rc1=$!
     #sleep 5 && kill $rc1 2>/dev/null &
 #    rc2=$!
@@ -1476,7 +1513,7 @@ testod () {
     local dain="$(date) $RANDOM"
     local daout="$(echo "$dain" |$OD_C)"
     $PRINTF "test $F_n %s... " $num "$title"
-    (echo "$dain"; sleep $T) |$SOCAT $opts "$arg1" "$arg2" >"$tf" 2>"$te"
+    (psleep $T; echo "$dain"; psleep $T) |$SOCAT $opts "$arg1" "$arg2" >"$tf" 2>"$te"
     if [ "$?" != 0 ]; then
 	$PRINTF "$FAILED: $SOCAT:\n"
 	echo "$SOCAT $opts $arg1 $arg2"
@@ -1537,6 +1574,8 @@ ifprocess () {
     FreeBSD) l="$(ps -faje |grep "^........ $(printf %5u $1)")" ;;
     HP-UX)   l="$(ps -fade |grep "^........ $(printf %5u $1)")" ;;
     Linux)   l="$(ps -fade |grep "^........ $(printf %5u $1)")" ;;
+    NetBSD)  l="$(ps -aj   |grep "^........ $(printf %4u $1)")" ;;
+    OpenBSD) l="$(ps -kaj  |grep "^........ $(printf %5u $1)")" ;;
     SunOS)   l="$(ps -fade |grep "^........ $(printf %5u $1)")" ;;
     *)       l="$(ps -fade |grep "^[^ ][^ ]*[ ][ ]*$(printf %5u $1) ")" ;;
     esac
@@ -1557,6 +1596,8 @@ childprocess () {
     FreeBSD) l="$(ps -faje |grep "^........ ..... $(printf %5u $1)")" ;;
     HP-UX)   l="$(ps -fade |grep "^........ ..... $(printf %5u $1)")" ;;
     Linux)   l="$(ps -fade |grep "^........ ..... $(printf %5u $1)")" ;;
+    NetBSD)  l="$(ps -aj   |grep "^........ ..... $(printf %4u $1)")" ;;
+    OpenBSD) l="$(ps -kaj  |grep "^........ ..... $(printf %5u $1)")" ;;
     SunOS)   l="$(ps -fade |grep "^........ ..... $(printf %5u $1)")" ;;
     *)       l="$(ps -fade |grep "^[^ ][^ ]*[ ][ ]*[0-9][0-9]**[ ][ ]*$(printf %5u $1) ")" ;;    esac
     if [ -z "$l" ]; then
@@ -2009,7 +2050,7 @@ NAME=SYSTEMSOCKET
 case "$TESTS" in
 *%functions%*|*%system%*|*%$NAME%*)
 TEST="$NAME: simple echo via system() of cat with socketpair"
-testecho "$N" "$TEST" "" "system:$CAT" "$opts"
+testecho "$N" "$TEST" "" "system:$CAT" "$opts" "$val_t"
 esac
 N=$((N+1))
 
@@ -2073,12 +2114,12 @@ NAME=DUALSYSTEMFDS
 case "$TESTS" in
 *%functions%*|*%system%*|*%$NAME%*)
 TEST="$NAME: echo via dual system() of cat"
-testecho "$N" "$TEST" "system:$CAT>&6,fdout=6!!system:$CAT<&7,fdin=7" "" "$opts"
+testecho "$N" "$TEST" "system:$CAT>&6,fdout=6!!system:$CAT<&7,fdin=7" "" "$opts" "$val_t"
 esac
 N=$((N+1))
 
 
-# test: send EOF to exec'ed sub process, let it finished its operation, and 
+# test: send EOF to exec'ed sub process, let it finish its operation, and 
 # check if the sub process returns its data before terminating.
 NAME=EXECSOCKETFLUSH
 # idea: have socat exec'ing od; send data and EOF, and check if the od'ed data
@@ -2095,7 +2136,7 @@ NAME=SYSTEMSOCKETFLUSH
 case "$TESTS" in
 *%functions%*|*%system%*|*%$NAME%*)
 TEST="$NAME: call to od via system() with socketpair"
-testod "$N" "$TEST" "" "system:$OD_C" "$opts"
+testod "$N" "$TEST" "" "system:$OD_C" "$opts" $val_t
 esac
 N=$((N+1))
 
@@ -3579,7 +3620,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
 CMD2="$SOCAT $opts OPENSSL-LISTEN:$PORT,pf=ip4,reuseaddr,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 exec:'$OD_C'"
-CMD="$SOCAT $opts - openssl:$LOCALHOST:$PORT,verify=0,$SOCAT_EGD"
+CMD="$SOCAT -T1 $OPTS - openssl:$LOCALHOST:$PORT,verify=0,$SOCAT_EGD"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}1\" &"
 pid=$!	# background process id
@@ -4412,6 +4453,7 @@ EOF
 
 #0 if ! sed 's/.*\r//g' "$tpo" |diff -q "$tr" - >/dev/null 2>&1; then
 #0 if ! sed 's/.*'"$($ECHO '\r\c')"'/</g' "$tpo" |diff -q "$tr" - >/dev/null 2>&1; then
+wait
 if ! tr "$($ECHO '\r \c')" "% " <$tpo |sed 's/%$//g' |sed 's/.*%//g' |diff "$tr" - >"$tdiff" 2>&1; then
     $PRINTF "$FAILED: $SOCAT:\n"
     echo "$CMD"
@@ -7110,15 +7152,15 @@ tdiff="$td/test$N.diff"
 da1a="$(date) $RANDOM"
 da1b="$(date) $RANDOM"
 CMD1="$SOCAT $opts - UNIX-CONNECT:$ts"
-CMD="$SOCAT -t0.1 $opts EXEC:"$CAT",end-close UNIX-LISTEN:$ts,fork"
+CMD="$SOCAT $opts EXEC:"$CAT",end-close UNIX-LISTEN:$ts,fork"
 printf "test $F_n $TEST... " $N
 $CMD 2>"${te}2" &
 pid2=$!
 waitfile $ts 1
 echo "$da1a" |$CMD1 2>>"${te}1a" >"$tf"
-usleep 100000
+usleep $MICROS
 echo "$da1b" |$CMD1 2>>"${te}1b" >>"$tf"
-usleep 100000
+#usleep $MICROS
 kill "$pid2" 2>/dev/null
 wait
 if [ $? -ne 0 ]; then
@@ -7285,6 +7327,7 @@ case "$TESTS" in
 TEST="$NAME: UDP/IPv4 broadcast"
 if [ -z "$BCADDR" ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}dont know a broadcast address${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -7921,9 +7964,9 @@ to="$td/test$N.out"
 te="$td/test$N.err"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"; da="$da$($ECHO '\r')"
-CMD="$SOCAT $opts system:\"echo A; sleep 2\",readbytes=2!!- -!!/dev/null"
+CMD="$SOCAT $opts system:\"echo A; sleep $((2*SECONDs))\",readbytes=2!!- -!!/dev/null"
 printf "test $F_n $TEST... " $N
-(sleep 1; echo) |eval "$CMD" >"$to" 2>"$te"
+(usleep $((2*MICROS)); echo) |eval "$CMD" >"$to" 2>"$te"
 if test -s "$to"; then
     $PRINTF "$FAILED: $SOCAT:\n"
     echo "$CMD"
@@ -7944,7 +7987,7 @@ NAME=EXECPTYKILL
 case "$TESTS" in
 *%functions%*|*%bugs%*|*%exec%*|*%$NAME%*)
 TEST="$NAME: exec:...,pty explicitely kills sub process"
-# we want to check if the exec'd sub process is kill in time
+# we want to check if the exec'd sub process is killed in time
 # for this we have a shell script that generates a file after two seconds;
 # it should be killed after one second, so if the file was generated the test
 # has failed
@@ -7955,18 +7998,18 @@ tda="$td/test$N.data"
 tsh="$td/test$N.sh"
 tdiff="$td/test$N.diff"
 cat >"$tsh" <<EOF
-sleep 1; echo; sleep 1;  touch "$tda"; echo
+sleep $SECONDs; echo; sleep $SECONDs;  touch "$tda"; echo
 EOF
 chmod a+x "$tsh"
-CMD1="$SOCAT $opts -U UNIX-LISTEN:$ts,fork EXEC:$tsh,pty"
-CMD="$SOCAT $opts /dev/null UNIX-CONNECT:$ts"
+CMD1="$SOCAT $opts -t $SECONDs -U UNIX-LISTEN:$ts,fork EXEC:$tsh,pty"
+CMD="$SOCAT $opts -t $SECONDs /dev/null UNIX-CONNECT:$ts"
 printf "test $F_n $TEST... " $N
 $CMD1 2>"${te}2" &
 pid1=$!
-sleep 1
-waitfile $ts 1
+sleep $SECONDs
+waitfile $ts $SECONDs
 $CMD 2>>"${te}1" >>"$tf"
-usleep 2500000
+sleep $((2*SECONDs))
 kill "$pid1" 2>/dev/null
 wait
 if [ $? -ne 0 ]; then
@@ -8073,7 +8116,7 @@ done
 #echo "$REDIR"
 #testecho "$N" "$TEST" "" "pipe" "$opts -T 3" "" 1 
 #set -vx
-eval testecho "\"$N\"" "\"$TEST\"" "\"\"" "pipe" "\"$opts -T 1\"" 1 $REDIR
+eval testecho "\"$N\"" "\"$TEST\"" "\"\"" "pipe" "\"$opts -T $((2*SECONDs))\"" 1 $REDIR
 #set +vx
 fi # could determine FOPEN_MAX
 esac
@@ -8107,8 +8150,9 @@ rc2=$?
 sleep 1
 #read -p ">"
 l="$(childprocess $pid1)"
+rcc=$?
 kill $pid1 2>/dev/null; wait
-if [ $rc2 -ne 0 ]; then
+if [ $rc2 -ne 0 -o $rcc -ne 0 ]; then
     $PRINTF "$NO_RESULT\n"	# already handled in test UDP4STREAM
     numCANT=$((numCANT+1))
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
@@ -8157,8 +8201,9 @@ rc2=$?
 sleep 1
 #read -p ">"
 l="$(childprocess $pid1)"
+rcc=$?
 kill $pid1 2>/dev/null; wait
-if [ $rc2 -ne 0 ]; then
+if [ $rc2 -ne 0 -o $rcc -ne 0 ]; then
     $PRINTF "$NO_RESULT\n"	# already handled in test UDP4DGRAM
     numCANT=$((numCANT+1))
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then

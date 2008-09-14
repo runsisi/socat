@@ -78,6 +78,9 @@ xiosetunix(struct sockaddr_un *saun,
       if (tight) {
 	 len = sizeof(struct sockaddr_un)-sizeof(saun->sun_path)+
 	    MIN(pathlen, sizeof(saun->sun_path));
+#if HAVE_STRUCT_SOCKADDR_SALEN
+	 saun->sun_len = len;
+#endif
       } else {
 	 len = sizeof(struct sockaddr_un);
       }
@@ -91,6 +94,9 @@ xiosetunix(struct sockaddr_un *saun,
       if (tight) {
 	 len = sizeof(struct sockaddr_un)-sizeof(saun->sun_path)+
 	    MIN(pathlen+1, sizeof(saun->sun_path));
+#if HAVE_STRUCT_SOCKADDR_SALEN
+	 saun->sun_len = len;
+#endif
       } else {
 	 len = sizeof(struct sockaddr_un);
       }

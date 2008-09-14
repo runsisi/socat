@@ -97,7 +97,7 @@ doc/socat.1: doc/socat.yo
 	yodl2man -o $@ $+
 
 doc/socat.html: doc/socat.yo
-	yodl2html -o $@ $+
+	cd doc; yodl2html -o socat.html socat.yo; cd ..
 
 progs: $(PROGS)
 

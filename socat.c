@@ -905,10 +905,10 @@ int _socat(void) {
 	  (fd2in->revents&(POLLIN|POLLHUP|POLLERR))) {
 	 mayrd2 = true;
       }
-      if (XIO_GETWRFD(sock1) >= 0 && (fd1out->revents&(POLLOUT|POLLERR))) {
+      if (XIO_GETWRFD(sock1) >= 0 && (fd1out->revents&(POLLOUT|POLLHUP|POLLERR))) {
 	 maywr1 = true;
       }
-      if (XIO_GETWRFD(sock2) >= 0 && (fd2out->revents&(POLLOUT|POLLERR))) {
+      if (XIO_GETWRFD(sock2) >= 0 && (fd2out->revents&(POLLOUT|POLLHUP|POLLERR))) {
 	 maywr2 = true;
       }
 

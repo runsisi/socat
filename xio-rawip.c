@@ -298,8 +298,10 @@ int xioopen_rawip_recv(int argc, const char *argv[], struct opt *opts,
    }
 
    xfd->stream.dtype = XIODATA_RECV_SKIPIP;
-   result = _xioopen_dgram_recv(&xfd->stream, xioflags, &/*us.soa*/xfd->stream.para.socket.la.soa, uslen,
-				opts, pf, socktype, ipproto, E_ERROR);
+   result =
+      _xioopen_dgram_recv(&xfd->stream, xioflags,
+			  needbind?&xfd->stream.para.socket.la.soa:NULL, uslen,
+			  opts, pf, socktype, ipproto, E_ERROR);
    _xio_openlate(&xfd->stream, opts);
    return result;
 }
