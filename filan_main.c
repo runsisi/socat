@@ -127,11 +127,11 @@ int main(int argc, const char *argv[]) {
       exit(1);
    }
    if (outfname) {
-      // special cases
+      /* special cases */
       if (!strcmp(outfname,"stdin")) { fdout=stdin; }
       else if (!strcmp(outfname,"stdout")) { fdout=stdout; }
       else if (!strcmp(outfname,"stderr")) { fdout=stderr; }
-      // file descriptor
+      /* file descriptor */
       else if (*outfname == '+') {
 	 a = outfname+1;
 	 fildes = strtoul(a, (char **)&a, 0);
@@ -140,7 +140,7 @@ int main(int argc, const char *argv[]) {
 	    exit(1);
 	 }
       } else {
-	 // file name
+	 /* file name */
 	 if ((fdout = fopen(outfname, "w")) == NULL) {
 	    Error2("can't fopen '%s': %s\n",
 		   outfname, strerror(errno));

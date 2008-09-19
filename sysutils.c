@@ -149,14 +149,10 @@ char *sockaddr_info(const struct sockaddr *sa, socklen_t salen, char *buff, size
       if (salen > XIOUNIXSOCKOVERHEAD &&
 	  sa->sa_data[0] == '\0') {
 	 char *nextc;
-//	 nextc =
-//	    sanitize_string((char *)&sa->sa_data+1, salen-XIOUNIXSOCKOVERHEAD-1,
-//			    ubuff, XIOSAN_DEFAULT_BACKSLASH_OCT_3);
 	 nextc =
 	    sanitize_string((char *)&sa->sa_data, salen-XIOUNIXSOCKOVERHEAD,
 			    ubuff, XIOSAN_DEFAULT_BACKSLASH_OCT_3);
 	 *nextc = '\0';
-//	 snprintf(cp, blen, "\"\\0%s\"", ubuff);
 	 snprintf(cp, blen, "\"%s\"", ubuff);
       } else
 #endif /* WITH_ABSTRACT_UNIXSOCKET */

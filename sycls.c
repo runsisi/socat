@@ -678,7 +678,7 @@ int Chmod(const char *path, mode_t mode) {
 int Poll(struct pollfd *ufds, unsigned int nfds, int timeout) {
    int result;
    if (nfds == 4) {
-      Debug10("poll({%d,0x%02hx,}{%d,0x%02hx,}{%d,0x%02hx,}{%d,0x%02hx,}, , %u, %d)",
+      Debug10("poll({%d,0x%02hx,}{%d,0x%02hx,}{%d,0x%02hx,}{%d,0x%02hx,}, %u, %d)",
 	      ufds[0].fd, ufds[0].events, ufds[1].fd, ufds[1].events,
 	      ufds[2].fd, ufds[2].events, ufds[3].fd, ufds[3].events,
 	      nfds, timeout);

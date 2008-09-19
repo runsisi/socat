@@ -47,13 +47,14 @@ const struct optdesc opt_route           = { "route",           NULL,          O
 #endif
 
 const struct addrdesc xioaddr_tun    = { "tun",    3, xioopen_tun, GROUP_FD|GROUP_CHR|GROUP_NAMED|GROUP_OPEN|GROUP_TUN, 0, 0, 0 HELP(":<ip-addr>/<bits>") };
-// "if-name"=tun3
+/* "if-name"=tun3
 // "route"=address/netmask
 // "ip6-route"=address/netmask
 // "iff-broadcast"
 // "iff-debug"
 // "iff-promisc"
 // see .../linux/if.h
+*/
 
 
 #if LATER
