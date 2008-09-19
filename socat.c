@@ -760,10 +760,6 @@ int _socat(void) {
       /* for ignoreeof */
       if (polling) {
 	 if (!wasaction) {
-	    /* yes we could do it with poll but I like readable trace output */
-	    if (socat_opts.pollintv.tv_sec)  Sleep(socat_opts.pollintv.tv_sec);
-	    if (socat_opts.pollintv.tv_usec) Usleep(socat_opts.pollintv.tv_usec);
-
 	    if (socat_opts.total_timeout.tv_sec != 0 ||
 		socat_opts.total_timeout.tv_usec != 0) {
 	       if (total_timeout.tv_usec < socat_opts.pollintv.tv_usec) {
@@ -804,6 +800,7 @@ int _socat(void) {
 	 closing = 2;
       }
 
+      /* frame 1: set the poll parameters and loop over poll() EINTR) */
       do {	/* loop over poll() EINTR */
 	 int _errno;
 
@@ -817,11 +814,20 @@ int _socat(void) {
 	    closing = 2;
 	 }
 
-	 /* now the fds are assigned */
+	 /* use the ignoreeof timeout if appropriate */
+	 if (polling) {
+	    int ptimeout = 1000*socat_opts.pollintv.tv_sec +
+	       socat_opts.pollintv.tv_usec/1000;
+	    if (closing == 0 || ptimeout < timeout) {
+	       timeout = ptimeout;
+	    }
+	 }
+
+	 /* now the fds will be assigned */
 	 if (XIO_READABLE(sock1) &&
 	     !(XIO_RDSTREAM(sock1)->eof > 1 && !XIO_RDSTREAM(sock1)->ignoreeof) &&
 	     !socat_opts.righttoleft) {
-	    if (!mayrd1) {
+	    if (!mayrd1 && !(XIO_RDSTREAM(sock1)->eof > 1)) {
 		fd1in->fd = XIO_GETRDFD(sock1);
 		fd1in->events = POLLIN;
 	    } else {
@@ -840,7 +846,7 @@ int _socat(void) {
 	 if (XIO_READABLE(sock2) &&
 	     !(XIO_RDSTREAM(sock2)->eof > 1 && !XIO_RDSTREAM(sock2)->ignoreeof) &&
 	     !socat_opts.lefttoright) {
-	    if (!mayrd2) {
+	    if (!mayrd2 && !(XIO_RDSTREAM(sock2)->eof > 1)) {
 		fd2in->fd = XIO_GETRDFD(sock2);
 		fd2in->events = POLLIN;
 	    } else {
@@ -856,13 +862,15 @@ int _socat(void) {
 	     fd1out->fd = -1;
 	     fd2in->fd = -1;
 	 }
+	 /* frame 0: innermost part of the transfer loop: check FD status */
 	 retval = xiopoll(fds, 4, timeout);
-	 _errno = errno;
-	 if (retval < 0 && errno == EINTR) {
-	    Info1("poll(): %s", strerror(errno));
+	 if (retval >= 0 || errno != EINTR) {
+	    break;
 	 }
+	 _errno = errno;
+	 Info1("poll(): %s", strerror(errno));
 	 errno = _errno;
-      } while (retval < 0 && errno == EINTR);
+      } while (true);
 
       /* attention:
 	 when an exec'd process sends data and terminates, it is unpredictable
@@ -881,7 +889,13 @@ int _socat(void) {
 	       closing>=1?socat_opts.closwait.tv_usec:socat_opts.total_timeout.tv_usec);
 	 if (polling && !wasaction) {
 	    /* there was a ignoreeof poll timeout, use it */
-	    ;
+	    polling = 0;	/*%%%*/
+	    if (XIO_RDSTREAM(sock1)->ignoreeof) {
+	       mayrd1 = 0;
+	    }
+	 } else if (polling && wasaction) {
+	    wasaction = 0;
+
 	 } else if (socat_opts.total_timeout.tv_sec != 0 ||
 		    socat_opts.total_timeout.tv_usec != 0) {
 	    /* there was a total inactivity timeout */
@@ -970,11 +984,15 @@ int _socat(void) {
 
       /* NOW handle EOFs */
 
+      /*0 Debug4("bytes1=F_Zd, XIO_RDSTREAM(sock1)->eof=%d, XIO_RDSTREAM(sock1)->ignoreeof=%d, closing=%d",
+	     bytes1, XIO_RDSTREAM(sock1)->eof, XIO_RDSTREAM(sock1)->ignoreeof,
+	     closing);*/
       if (bytes1 == 0 || XIO_RDSTREAM(sock1)->eof >= 2) {
 	 if (XIO_RDSTREAM(sock1)->ignoreeof && !closing) {
 	    Debug1("socket 1 (fd %d) is at EOF, ignoring",
 		   XIO_RDSTREAM(sock1)->fd);	/*! */
-	    polling = 1;
+	    mayrd1 = true;
+	    polling = 1;	/* do not hook this eof fd to poll for pollintv*/
 	 } else {
 	    Notice1("socket 1 (fd %d) is at EOF", XIO_GETRDFD(sock1));
 	    xioshutdown(sock2, SHUT_WR);
@@ -982,13 +1000,16 @@ int _socat(void) {
 	       break;
 	    }
 	 }
+      } else if (polling && XIO_RDSTREAM(sock1)->ignoreeof) {
+	 polling = 0;
       }
 
       if (bytes2 == 0 || XIO_RDSTREAM(sock2)->eof >= 2) {
 	 if (XIO_RDSTREAM(sock2)->ignoreeof && !closing) {
 	    Debug1("socket 2 (fd %d) is at EOF, ignoring",
 		   XIO_RDSTREAM(sock2)->fd);
-	    polling = 1;
+	    mayrd2 = true;
+	    polling = 1;	/* do not hook this eof fd to poll for pollintv*/
 	 } else {
 	    Notice1("socket 2 (fd %d) is at EOF", XIO_GETRDFD(sock2));
 	    xioshutdown(sock1, SHUT_WR);
@@ -996,6 +1017,8 @@ int _socat(void) {
 	       break;
 	    }
 	 }
+      } else if (polling && XIO_RDSTREAM(sock2)->ignoreeof) {
+	 polling = 0;
       }
    }
 

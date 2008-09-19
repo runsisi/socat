@@ -3218,19 +3218,13 @@ printf "test $F_n $TEST... " $N
 touch "$ti"
 $CMD >"$tf" 2>"$te" &
 bg=$!
-sleep 1
+usleep 500000
 echo "$da" >>"$ti"
 sleep 1
 kill $bg 2>/dev/null
 if ! echo "$da" |diff - "$tf" >"$tdiff"; then
-    if [ -s "$te" ]; then
-	$PRINTF "$FAILED: $SOCAT:\n"
-	echo "$CMD"
-	cat "$te"
-    else
-	$PRINTF "$FAILED: diff:\n"
-	cat "$tdiff"
-    fi
+    $PRINTF "$FAILED: diff:\n"
+    cat "$tdiff"
     numFAIL=$((numFAIL+1))
 else
    $PRINTF "$OK\n"
@@ -3240,7 +3234,7 @@ fi
 wait
 esac
 N=$((N+1))
-#set +vx
+set +vx
 
 
 NAME=EXECIGNOREEOF
@@ -8152,7 +8146,7 @@ sleep 1
 l="$(childprocess $pid1)"
 rcc=$?
 kill $pid1 2>/dev/null; wait
-if [ $rc2 -ne 0 -o $rcc -ne 0 ]; then
+if [ $rc2 -ne 0 ]; then
     $PRINTF "$NO_RESULT\n"	# already handled in test UDP4STREAM
     numCANT=$((numCANT+1))
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
@@ -8203,7 +8197,7 @@ sleep 1
 l="$(childprocess $pid1)"
 rcc=$?
 kill $pid1 2>/dev/null; wait
-if [ $rc2 -ne 0 -o $rcc -ne 0 ]; then
+if [ $rc2 -ne 0 ]; then
     $PRINTF "$NO_RESULT\n"	# already handled in test UDP4DGRAM
     numCANT=$((numCANT+1))
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
@@ -8415,6 +8409,44 @@ PORT=$((PORT+1))
 N=$((N+1))
 
 
+# during wait for next poll time option ignoreeof blocked the data transfer in
+# the reverse direction
+NAME=IGNOREEOFNOBLOCK
+case "$TESTS" in
+*%functions%*|*%socket%*|*%ignoreeof%*|*%$NAME%*)
+TEST="$NAME: ignoreeof does not block other direction"
+# have socat poll in ignoreeof mode. while it waits one second for next check,
+# we send data in the reverse direction and then the total timeout fires.
+# it the data has passed, the test succeeded.
+tf="$td/test$N.stout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$SOCAT $opts /dev/null,ignoreeof!!- -!!/dev/null"
+printf "test $F_n $TEST... " $N
+(usleep 333333; echo "$da") |$CMD0 >"$tf" 2>"${te}0"
+rc0=$?
+if [ $rc0 != 0 ]; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "${te}0"
+    cat "${te}1"
+    numFAIL=$((numFAIL+1))
+elif echo "$da" |diff - "$tf" >/dev/null; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "${te}0"
+    numFAIL=$((numFAIL+1))
+fi
+esac
+N=$((N+1))
+
+
 echo "summary: $((N-1)) tests; $numOK ok, $numFAIL failed, $numCANT could not be performed"
 
 if [ "$numFAIL" -gt 0 ]; then
@@ -8437,32 +8469,37 @@ wait
 
 exit
 
-# template
-NAME=!!!
+# test template
+
+# give a description of what is tested (a bugfix, a new feature...)
+NAME=SHORT_UNIQUE_TESTNAME
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
-TEST="$NAME: !!!"
+*%functions%*|*%bugs%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: give a one line description of test"
+# describe how the test is performed, and what's the success criteria
+tf="$td/test$N.stout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$SOCAT $opts server-address PIPE"
+CMD1="$SOCAT - client-address"
 printf "test $F_n $TEST... " $N
-!!!
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+wait<something>port $xy 1
+echo "$da" |$CMD1 >"${tf}1" 2>"${te}1"
+rc1=$?
+kill $pid0 2>/dev/null; wait
 if [ !!! ]; then
     $PRINTF "$OK\n"
+    numOK=$((numOK+1))
 else
     $PRINTF "$FAILED\n"
-    cat "$te"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "${te}0"
+    cat "${te}1"
+    numFAIL=$((numFAIL+1))
 fi
 esac
 N=$((N+1))
-
-
-TEST="$NAME: transferring from one file to another with echo"
-tf1="$td/file$N.input"
-tf2="$td/file$N.output"
-testecho "$N" "$TEST" "" "echo" "$opts"
-
-
-# MANUAL TESTS
-
-# ZOMBIES
-#   have httpd on PORT/tcp
-#   nice -20 $SOCAT -d tcp-l:24080,fork tcp:$LOCALHOST:PORT
-#   i=0; while [ $i -lt 100 ]; do $ECHO 'GET / HTTP/1.0\n' |$SOCAT -t -,ignoreeof tcp:$LOCALHOST:24080 >/dev/null& i=$((i+1)); done

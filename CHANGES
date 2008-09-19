@@ -22,6 +22,10 @@ corrections:
 	additional empty arguments (thanks to Olivier Hervieu for reporting
 	this bug)
 
+	in ignoreeof polling mode socat also blocked data transfer in the other
+	direction during the 1s wait intervalls (thanks to Jorgen Cederlof for
+	reporting this bug)
+
 	corrected alphabetical order of options (proxy-auth)
 
 	some minor corrections
