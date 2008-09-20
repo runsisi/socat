@@ -540,6 +540,15 @@ label(ADDRESS_NAMED_PIPE)dit(bf(tt(PIPE:<filename>)))
    link(mode)(OPTION_MODE),
    link(unlink-early)(OPTION_UNLINK_EARLY)nl()
    See also: link(unnamed pipe)(ADDRESS_UNNAMED_PIPE)
+label(ADDRESS_INTERFACE)dit(bf(tt(INTERFACE:<interface>)))
+   Communicate with a network connected on an interface using raw packets
+   including link level data. link(<interface>)(TYPE_INTERFACE) is the name of
+   the network interface. Currently only available on Linux.
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET) nl()
+   Useful options:
+   link(pf)(OPTION_PROTOCOL_FAMILY)
+   link(so-type)(OPTION_SO_TYPE)nl()
+   See also: link(ip-recv)(ADDRESS_IP_RECV)
 label(ADDRESS_UNNAMED_PIPE)dit(bf(tt(PIPE)))
    Creates an unnamed pipe and uses it for reading and writing. It works as an
    echo, because everything written 
@@ -1585,7 +1594,7 @@ label(OPTION_SNDLOWAT)dit(bf(tt(sndlowat=<bytes>)))
    layer will send the data to <bytes> [link(int)(TYPE_INT)].
 label(OPTION_SNDTIMEO)dit(bf(tt(sndtimeo=<seconds>)))
    Sets the send timeout to seconds [link(timeval)(TYPE_TIMEVAL)].
-label(OPTION_TYPE)dit(bf(tt(type=<type>)))
+label(OPTION_SO_TYPE)dit(bf(tt(type=<type>)))
    Sets the type of the socket, usually as argument to the code(socket()) or
    code(socketpair()) call, to <type> [link(int)(TYPE_INT)].
    Under Linux, 1 means stream oriented socket, 2 means datagram socket, and 3
@@ -1633,8 +1642,8 @@ COMMENT(label(OPTION_SIOCSPGRP)dit(bf(tt(siocspgrp=<pid_t>)))
 COMMENT(label(OPTION_USEIFBUFS)dit(bf(tt(useifbufs)))
    Set the code(SO_USE_IFBUFS) socket option.)
 label(OPTION_PROTOCOL_FAMILY)dit(bf(tt(pf=<string>)))
-   Forces the use of the specified IP version. <string> can be
-   something like "ip4" or "ip6".
+   Forces the use of the specified IP version or protocol family. <string> can
+   be something like "ip4" or "ip6" or a number.
 enddit()
 
 startdit()enddit()nl()
@@ -2433,7 +2442,8 @@ label(TYPE_INT)dit(int)
    "0", i.e. decimal number, octal number with leading "0", or hexadecimal
    number with leading "0x". The value must fit into a C int.
 label(TYPE_INTERFACE)dit(interface)
-   A string specifying the device name of a network interface, e.g. "eth0".
+   A string specifying the device name of a network interface
+   as shown by ifconfig or procan, e.g. "eth0".
 label(TYPE_IP_ADDRESS)dit(IP address)
    An IPv4 address in numbers-and-dots notation, an IPv6 address in hex
    notation enclosed in brackets, or a hostname that resolves to an IPv4 or an
@@ -2882,6 +2892,17 @@ can reach each other using the addresses 192.168.255.1 and
 client and server authentication (see OpenSSL
 link(client)(EXAMPLE_ADDRESS_OPENSSL_CONNECT) and 
 link(server)(EXAMPLE_ADDRESS_OPENSSL_LISTEN)).
+
+
+label(EXAMPLE_INTERFACE)
+dit(bf(tt(socat PTY,link=/var/run/ppp,raw,echo=0 INTERFACE:hdlc0)))
+
+circumvents the problem that pppd requires a serial device and thus might not
+be able to work on a synchronous line that is represented by a network device.
+socat creates a PTY to make pppd happy, binds to the network interface hdlc0,
+and can transfer data between both devices. Use pppd on device /var/run/ppp
+then.
+
 
 enddit()
 

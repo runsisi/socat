@@ -196,6 +196,29 @@ AC_ARG_ENABLE(rawip, [  --disable-rawip         disable raw IP support],
 	       esac],
 	       [AC_DEFINE(WITH_RAWIP) AC_MSG_RESULT(yes)])
 
+AC_MSG_CHECKING(whether to include raw network INTERFACE support)
+AC_ARG_ENABLE(interface, [  --disable-interface  disable network interface support],
+	      [case "$enableval" in
+	       no) AC_MSG_RESULT(no); WITH_INTERFACE= ;;
+	       *) AC_MSG_RESULT(yes); WITH_INTERFACE=1 ;;
+	       esac],
+	       [AC_MSG_RESULT(yes);  WITH_INTERFACE=1 ])
+if test "$WITH_INTERFACE"; then
+  AC_CHECK_HEADER(netpacket/packet.h,
+    AC_DEFINE(HAVE_NETPACKET_PACKET_H),
+    [WITH_INTERFACE=;
+     AC_MSG_WARN([include file netpacket/packet.h not found, disabling INTERFACE])])
+fi
+if test "$WITH_INTERFACE"; then
+  AC_CHECK_HEADER(netinet/if_ether.h,
+    AC_DEFINE(HAVE_NETINET_IF_ETHER_H),
+    [WITH_INTERFACE=;
+     AC_MSG_WARN([include file netinet/if_ether.h not found, disabling INTERFACE])])
+fi
+if test "$WITH_INTERFACE"; then
+   AC_DEFINE(WITH_INTERFACE)
+fi
+
 AC_MSG_CHECKING(whether to include TCP support)
 AC_ARG_ENABLE(tcp, [  --disable-tcp           disable TCP support],
 	      [case "$enableval" in

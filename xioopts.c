@@ -3535,7 +3535,7 @@ mc:addr
 		  ip4_mreqn.mreq.imr_interface = sockaddr2.ip4.sin_addr;
 		  /* third parameter is interface */
 		  if (ifindex(opt->value.u_ip_mreq.ifindex,
-			      (unsigned int *)&ip4_mreqn.mreqn.imr_ifindex)
+			      (unsigned int *)&ip4_mreqn.mreqn.imr_ifindex, -1)
 		      < 0) {
 		     Error1("cannot resolve interface \"%s\"", 
 			    opt->value.u_ip_mreq.ifindex);
@@ -3548,7 +3548,8 @@ mc:addr
 #if HAVE_STRUCT_IP_MREQN
 		  /* there is a form with two parameters that uses mreqn */
 		  } else if (ifindex(opt->value.u_ip_mreq.param2,
-				     (unsigned int *)&ip4_mreqn.mreqn.imr_ifindex)
+				     (unsigned int *)&ip4_mreqn.mreqn.imr_ifindex,
+				     -1)
 			     >= 0) {
 		     /* yes, second param converts to interface */
 		     ip4_mreqn.mreq.imr_interface.s_addr = htonl(0);
@@ -3620,7 +3621,8 @@ mc:addr
 			      &sockaddr1, &socklen1, 0, 0);
 	       ip6_mreq.ipv6mr_multiaddr = sockaddr1.ip6.sin6_addr;
 	       if (ifindex(opt->value.u_ip_mreq.param2,
-			   &ip6_mreq.ipv6mr_interface) < 0) {
+			   &ip6_mreq.ipv6mr_interface, -1)
+		   < 0) {
 		  Error1("interface \"%s\" not found",
 			 opt->value.u_ip_mreq.param2);
 		  ip6_mreq.ipv6mr_interface = htonl(0);

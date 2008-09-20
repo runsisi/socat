@@ -1,5 +1,5 @@
 /* source: sysincludes.h */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __sysincludes_h_included
@@ -116,6 +116,12 @@
 #if HAVE_NET_IF_H
 #include <net/if.h>
 #endif /* HAVE_NET_IF_H */
+#if HAVE_NETPACKET_PACKET_H
+#include <netpacket/packet.h>
+#endif
+#if HAVE_NETINET_IF_ETHER_H
+#include <netinet/if_ether.h>
+#endif
 #if HAVE_LINUX_IF_TUN_H
 #include <linux/if_tun.h>
 #endif

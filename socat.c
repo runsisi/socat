@@ -426,6 +426,11 @@ void socat_version(FILE *fd) {
 #else
    fputs("  #undef WITH_RAWIP\n", fd);
 #endif
+#ifdef WITH_INTERFACE
+   fprintf(fd, "  #define WITH_INTERFACE %d\n", WITH_INTERFACE);
+#else
+   fputs("  #undef WITH_INTERFACE\n", fd);
+#endif
 #ifdef WITH_TCP
    fprintf(fd, "  #define WITH_TCP %d\n", WITH_TCP);
 #else

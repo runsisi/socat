@@ -1,4 +1,8 @@
 
+new features:
+	new address "interface" for transparent network interface handling
+	(suggested by Stuart Nicholson)
+
 corrections:
 	some raw IP and UNIX datagram modes failed on BSD systems
 

@@ -131,6 +131,15 @@ ssize_t xioread(xiofile_t *file, void *buff, size_t bufsiz) {
 	 errno = _errno;
 	 return -1;
       }
+      /* on packet type we also receive outgoing packets, this is not desired
+       */
+      if (from.soa.sa_family == PF_PACKET) {
+	 if ((((struct sockaddr_ll *)&from.soa)->sll_pkttype & PACKET_OUTGOING)
+	    == 0) {
+	    errno = EAGAIN;  return -1;
+	 }
+      }
+	    
       Notice2("received packet with "F_Zu" bytes from %s",
 	      bytes,
 	      sockaddr_info(&from.soa, fromlen, infobuff, sizeof(infobuff)));

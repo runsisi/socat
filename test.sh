@@ -7737,6 +7737,61 @@ PORT=$((PORT+1))
 N=$((N+1))
 
 
+# use the INTERFACE address on a tun/tap device and transfer data fully
+# transparent 
+NAME=TUNINTERFACE
+case "$TESTS" in
+*%functions%*|*%tun%*|*%interface%*|*%root%*|*%$NAME%*)
+TEST="$NAME: pass data through tun interface using INTERFACE"
+#idea: create a TUN interface and send a raw packet on the interface side.
+# It should arrive unmodified on the tunnel side.
+if ! feat=$(testaddrs ip4 tun interface) || ! runsip4 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+tl="$td/test$N.lock"
+da="$(date) $RANDOM"
+dalen=$((${#da}+1))
+TUNNET=10.255.255
+TUNNAME=tun9
+CMD1="$SOCAT $opts -L $tl TUN:$TUNNET.1/24,iff-up=1,tun-type=tun,tun-name=$TUNNAME echo"
+CMD="$SOCAT $opts - INTERFACE:$TUNNAME"
+printf "test $F_n $TEST... " $N
+$CMD1 2>"${te}1" &
+pid1="$!"
+#waitinterface "$TUNNAME"
+sleep 1
+echo "$da" |$CMD 2>"${te}1" >"$tf" 2>"${te}"
+kill $pid1 2>/dev/null
+wait
+if [ $? -ne 0 ]; then
+    $PRINTF "$FAILED: $SOCAT:\n"
+    echo "$CMD &"
+    echo "$CMD1"
+    cat "${te}" "${te}1"
+    numFAIL=$((numFAIL+1))
+elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
+    $PRINTF "$FAILED\n"
+    cat "$tdiff"
+    cat "${te}" "${te}1"
+    numFAIL=$((numFAIL+1))
+else
+    $PRINTF "$OK\n"
+    if [ -n "$debug" ]; then cat "${te}" "${te}1"; fi
+    numOK=$((numOK+1))
+fi
+fi ;; # not feats, not root
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
 NAME=ABSTRACTSTREAM
 case "$TESTS" in
 *%functions%*|*%unix%*|*%abstract%*|*%connect%*|*%listen%*|*%$NAME%*)

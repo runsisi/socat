@@ -936,8 +936,8 @@ int retropt_socket_pf(struct opt *opts, int *pf) {
    char *pfname;
 
    if (retropt_string(opts, OPT_PROTOCOL_FAMILY, &pfname) >= 0) {
-      if (false) {
-	 ;
+      if (isdigit(pfname[0])) {
+	 *pf = strtoul(pfname, NULL /*!*/, 0);
 #if WITH_IP4
       } else if (!strcasecmp("inet", pfname) ||
 	  !strcasecmp("inet4", pfname) ||

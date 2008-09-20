@@ -1,5 +1,5 @@
 /* source: xiomodes.h */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xiomodes_h_included
@@ -20,6 +20,7 @@
 #include "xio-listen.h"
 #include "xio-unix.h"
 #include "xio-rawip.h"
+#include "xio-interface.h"
 #include "xio-ip.h"
 #if WITH_IP4
 #include "xio-ip4.h"

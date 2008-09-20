@@ -1,5 +1,5 @@
 /* source: sysutils.h */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __sysutils_h_included
@@ -94,7 +94,7 @@ extern int xiopoll(struct pollfd fds[], nfds_t nfds, int timeout);
 
 extern int parseport(const char *portname, int proto);
 
-extern int ifindexbyname(const char *ifname);
-extern int ifindex(const char *ifname, unsigned int *ifindex);
+extern int ifindexbyname(const char *ifname, int anysock);
+extern int ifindex(const char *ifname, unsigned int *ifindex, int anysock);
 
 #endif /* !defined(__sysutils_h_included) */

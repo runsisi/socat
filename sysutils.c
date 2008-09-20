@@ -115,7 +115,7 @@ socklen_t socket_init(int af, union sockaddr_union *sa) {
 #if WITH_IP6
    case AF_INET6:  socket_in6_init(&sa->ip6); return sizeof(sa->ip6);
 #endif
-   default: Error1("socket_init(): unknown address family %d", af);
+   default: Info1("socket_init(): unknown address family %d", af);
       memset(sa, 0, sizeof(union sockaddr_union));
       sa->soa.sa_family = af;
       return 0;
@@ -436,8 +436,12 @@ int parseport(const char *portname, int ipproto) {
 
 #if WITH_IP4 || WITH_IP6
 /* check the systems interfaces for ifname and return its index
-   or -1 if no interface with this name was found */
-int ifindexbyname(const char *ifname) {
+   or -1 if no interface with this name was found
+   The system calls require an arbitrary socket; the calling program may
+   provide one in anysock to avoid creation of a dummy socket. anysock must be
+   <0 if it does not specify a socket fd.
+ */
+int ifindexbyname(const char *ifname, int anysock) {
    /* Linux: man 7 netdevice */
    /* FreeBSD: man 4 networking */
    /* Solaris: man 7 if_tcp */
@@ -445,29 +449,35 @@ int ifindexbyname(const char *ifname) {
 #if defined(HAVE_STRUCT_IFREQ) && defined(SIOCGIFCONF) && defined(SIOCGIFINDEX)
    /* currently we support Linux, FreeBSD; not Solaris */
 
-#define IFBUFSIZ 1024
+#define IFBUFSIZ 32*sizeof(struct ifreq) /*1024*/
    int s;
    struct ifreq ifr;
 
    if (ifname[0] == '\0') {
       return -1;
    }
-   if ((s = Socket(PF_INET, SOCK_DGRAM, IPPROTO_IP)) < 0) {
+   if (anysock >= 0) {
+      s = anysock;
+   } else  if ((s = Socket(PF_INET, SOCK_DGRAM, IPPROTO_IP)) < 0) {
       Error1("socket(PF_INET, SOCK_DGRAM, IPPROTO_IP): %s", strerror(errno));
       return -1;
    }
 
    strncpy(ifr.ifr_name, ifname, IFNAMSIZ);
    if (Ioctl(s, SIOCGIFINDEX, &ifr) < 0) {
-      Close(s);
-      Info3("ioctl(%d, SIOCGIFINDEX, {%s}): %s",
+      Info3("ioctl(%d, SIOCGIFINDEX, {\"%s\"}): %s",
 	     s, ifr.ifr_name, strerror(errno));
+      Close(s);
       return -1;
    }
    Close(s);
 #if HAVE_STRUCT_IFREQ_IFR_INDEX
+   Info3("ioctl(%d, SIOCGIFINDEX, {\"%s\"}) -> { %d }",
+         s, ifname, ifr.ifr_index);
    return ifr.ifr_index;
 #elif HAVE_STRUCT_IFREQ_IFR_IFINDEX
+   Info3("ioctl(%d, SIOCGIFINDEX, {\"%s\"}) -> { %d }",
+         s, ifname, ifr.ifr_ifindex);
    return ifr.ifr_ifindex;
 #endif /* HAVE_STRUCT_IFREQ_IFR_IFINDEX */
 
@@ -477,10 +487,11 @@ int ifindexbyname(const char *ifname) {
 }
 
 
-/* like ifindexbyname(), but allows an index number as input.
+/* like ifindexbyname(), but also allows the index number as input - in this
+   case it does not lookup the index.
    writes the resulting index to *ifindex and returns 0,
    or returns -1 on error */
-int ifindex(const char *ifname, unsigned int *ifindex) {
+int ifindex(const char *ifname, unsigned int *ifindex, int anysock) {
    char *endptr;
    long int val;
 
@@ -493,7 +504,7 @@ int ifindex(const char *ifname, unsigned int *ifindex) {
       return 0;
    }
 
-   if ((val = ifindexbyname(ifname)) < 0) {
+   if ((val = ifindexbyname(ifname, anysock)) < 0) {
       return -1;
    }
    *ifindex = val;
