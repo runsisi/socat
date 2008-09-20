@@ -1,5 +1,5 @@
 /* source: xio-ipapp.h */
-/* Copyright Gerhard Rieger 2001-2006 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_ipapp_h_included
@@ -25,7 +25,7 @@ extern int
 			   union sockaddr_union *them, socklen_t *themlen,
 			   union sockaddr_union *us,  socklen_t *uslen,
 			   bool *needbind, bool *lowport,
-			   int *socktype);
+			   int socktype);
 extern int _xioopen_ip4app_connect(const char *hostname, const char *portname,
 				   struct single *xfd,
 				   int socktype, int ipproto, void *protname,
@@ -39,7 +39,7 @@ extern int _xioopen_ipapp_listen_prepare(struct opt *opts, struct opt **opts0,
 				  unsigned long res_opts0,
 				  unsigned long res_opts1,
 				   union sockaddr_union *us, socklen_t *uslen,
-					  int *socktype);
+					  int socktype);
 extern int xioopen_ip6app_connect(int argc, const char *argv[], struct opt *opts,
 				  int rw, xiofile_t *fd,
 			 unsigned groups, int socktype, int ipproto,

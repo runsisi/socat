@@ -88,7 +88,7 @@ static int xioopen_socks4_connect(int argc, const char *argv[], struct opt *opts
 			     xfd->para.socket.ip.res_opts[1],
 			     xfd->para.socket.ip.res_opts[0],
 			     them, &themlen, us, &uslen,
-			     &needbind, &lowport, &socktype);
+			     &needbind, &lowport, socktype);
 
    Notice5("opening connection to %s:%u via socks4 server %s:%s as user \"%s\"",
 	   targetname,

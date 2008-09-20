@@ -39,7 +39,7 @@ const struct optdesc opt_so_sndbuf_late={ "so-sndbuf-late","sndbuf-late",OPT_SO_
 const struct optdesc opt_so_rcvbuf   = { "so-rcvbuf",    "rcvbuf",    OPT_SO_RCVBUF,   GROUP_SOCKET, PH_PASTSOCKET, TYPE_INT, OFUNC_SOCKOPT, SOL_SOCKET, SO_RCVBUF};
 const struct optdesc opt_so_rcvbuf_late={"so-rcvbuf-late","rcvbuf-late",OPT_SO_RCVBUF_LATE,GROUP_SOCKET,PH_LATE,TYPE_INT,OFUNC_SOCKOPT,SOL_SOCKET,SO_RCVBUF };
 const struct optdesc opt_so_error    = { "so-error",     "error",     OPT_SO_ERROR,    GROUP_SOCKET, PH_PASTSOCKET, TYPE_INT,  OFUNC_SOCKOPT, SOL_SOCKET, SO_ERROR};
-const struct optdesc opt_so_type     = { "so-type",      "type",      OPT_SO_TYPE,     GROUP_SOCKET, PH_PASTSOCKET, TYPE_INT,  OFUNC_SOCKOPT, SOL_SOCKET, SO_TYPE };
+const struct optdesc opt_so_type     = { "so-type",      "type",      OPT_SO_TYPE,     GROUP_SOCKET, PH_SOCKET,     TYPE_INT,  OFUNC_SPEC,    SOL_SOCKET, SO_TYPE };
 const struct optdesc opt_so_dontroute= { "so-dontroute", "dontroute", OPT_SO_DONTROUTE,GROUP_SOCKET, PH_PASTSOCKET, TYPE_INT,  OFUNC_SOCKOPT, SOL_SOCKET, SO_DONTROUTE };
 #ifdef SO_RCVLOWAT
 const struct optdesc opt_so_rcvlowat = { "so-rcvlowat",  "rcvlowat", OPT_SO_RCVLOWAT, GROUP_SOCKET, PH_PASTSOCKET, TYPE_INT,  OFUNC_SOCKOPT, SOL_SOCKET, SO_RCVLOWAT };
@@ -115,9 +115,9 @@ const struct optdesc opt_so_dgram_errind={"so-dgram-errind","dgramerrind",OPT_SO
 #ifdef SO_DONTLINGER	/* Solaris */
 const struct optdesc opt_so_dontlinger = {"so-dontlinger", "dontlinger",  OPT_SO_DONTLINGER,  GROUP_SOCKET,PH_PASTSOCKET,TYPE_INT,OFUNC_SOCKOPT,SOL_SOCKET,SO_DONTLINGER };
 #endif
-#ifdef SO_PROTOTYPE	/* Solaris, HP-UX */
-const struct optdesc opt_so_prototype  = {"so-prototype",  "prototype",   OPT_SO_PROTOTYPE,   GROUP_SOCKET,PH_PASTSOCKET,TYPE_INT,OFUNC_SOCKOPT,SOL_SOCKET,SO_PROTOTYPE };
-#endif
+/* the SO_PROTOTYPE is OS defined on Solaris, HP-UX; we lend this for a more
+   general purpose */
+const struct optdesc opt_so_prototype  = {"so-prototype",  "prototype",   OPT_SO_PROTOTYPE,   GROUP_SOCKET,PH_SOCKET,    TYPE_INT,OFUNC_SPEC,   SOL_SOCKET,SO_PROTOTYPE };
 #ifdef FIOSETOWN
 const struct optdesc opt_fiosetown   = { "fiosetown", NULL, OPT_FIOSETOWN,   GROUP_SOCKET, PH_PASTSOCKET, TYPE_INT,  OFUNC_IOCTL,  FIOSETOWN };
 #endif
@@ -127,15 +127,21 @@ const struct optdesc opt_siocspgrp   = { "siocspgrp", NULL, OPT_SIOCSPGRP,   GRO
 const struct optdesc opt_bind        = { "bind",      NULL, OPT_BIND,        GROUP_SOCKET, PH_BIND, TYPE_STRING,OFUNC_SPEC };
 const struct optdesc opt_connect_timeout = { "connect-timeout", NULL, OPT_CONNECT_TIMEOUT, GROUP_SOCKET, PH_PASTSOCKET, TYPE_TIMEVAL, OFUNC_OFFSET, (int)&((xiofile_t *)0)->stream.para.socket.connect_timeout };
 const struct optdesc opt_protocol_family = { "protocol-family", "pf", OPT_PROTOCOL_FAMILY, GROUP_SOCKET, PH_PRESOCKET,  TYPE_STRING,  OFUNC_SPEC };
+const struct optdesc opt_protocol        = { "protocol",        NULL, OPT_PROTOCOL,        GROUP_SOCKET, PH_PRESOCKET,  TYPE_STRING,  OFUNC_SPEC };
 
 /* a subroutine that is common to all socket addresses that want to connect
    to a peer address.
    might fork.
+   applies and consumes the following options: 
+   PH_PASTSOCKET, PH_FD, PH_PREBIND, PH_BIND, PH_PASTBIND, PH_CONNECT,
+   PH_CONNECTED, PH_LATE,
+   OFUNC_OFFSET, 
+   OPT_SO_TYPE, OPT_SO_PROTOTYPE, OPT_USER, OPT_GROUP, OPT_CLOEXEC
    returns 0 on success.
 */
 int _xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
 		     struct sockaddr *them, size_t themlen,
-		     struct opt *opts, int pf, int stype, int proto,
+		     struct opt *opts, int pf, int socktype, int protocol,
 		     bool alt, int level) {
    int fcntl_flags = 0;
    char infobuff[256];
@@ -144,9 +150,7 @@ int _xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
    int _errno;
    int result;
 
-   if ((xfd->fd = Socket(pf, stype, proto)) < 0) {
-      Msg4(level,
-	   "socket(%d, %d, %d): %s", pf, stype, proto, strerror(errno));
+   if ((xfd->fd = xiosocket(opts, pf, socktype, protocol, level)) < 0) {
       return STAT_RETRYLATER;	    
    }
 
@@ -340,7 +344,7 @@ int _xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
       }
    }
 
-   applyopts_fchown(xfd->fd, opts);
+   applyopts_fchown(xfd->fd, opts);	/* OPT_USER, OPT_GROUP */
    applyopts(xfd->fd, opts, PH_CONNECTED);
    applyopts(xfd->fd, opts, PH_LATE);
 
@@ -354,11 +358,16 @@ int _xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
 /* a subroutine that is common to all socket addresses that want to connect
    to a peer address.
    might fork.
+   applies and consumes the following option:
+   PH_PASTSOCKET, PH_FD, PH_PREBIND, PH_BIND, PH_PASTBIND, PH_CONNECT,
+   PH_CONNECTED, PH_LATE,
+   OFUNC_OFFSET, 
+   OPT_FORK, OPT_SO_TYPE, OPT_SO_PROTOTYPE, OPT_USER, OPT_GROUP, OPT_CLOEXEC
    returns 0 on success.
 */
 int xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
 		    struct sockaddr *them, size_t themlen,
-		    struct opt *opts, int pf, int stype, int proto,
+		    struct opt *opts, int pf, int socktype, int protocol,
 		    bool alt) {
    bool dofork = false;
    struct opt *opts0;
@@ -367,7 +376,6 @@ int xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
    int result;
 
    retropt_bool(opts, OPT_FORK, &dofork);
-   retropt_int(opts, OPT_SO_TYPE, &stype);
 
    opts0 = copyopts(opts, GROUP_ALL);
 
@@ -384,7 +392,7 @@ int xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
 	 level = E_ERROR;
       result =
 	 _xioopen_connect(xfd, us, uslen, them, themlen, opts,
-			  pf, stype, proto, alt, level);
+			  pf, socktype, protocol, alt, level);
       switch (result) {
       case STAT_OK: break;
 #if WITH_RETRY
@@ -454,7 +462,12 @@ int xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
 }
 
 
-/* common to xioopen_udp_sendto, ..unix_sendto, ..rawip */
+/* common to xioopen_udp_sendto, ..unix_sendto, ..rawip
+   applies and consumes the following option:
+   PH_PASTSOCKET, PH_FD, PH_PREBIND, PH_BIND, PH_PASTBIND, PH_CONNECTED, PH_LATE
+   OFUNC_OFFSET
+   OPT_SO_TYPE, OPT_SO_PROTOTYPE, OPT_USER, OPT_GROUP, OPT_CLOEXEC
+ */
 int _xioopen_dgram_sendto(/* them is already in xfd->peersa */
 			union sockaddr_union *us, socklen_t uslen,
 			struct opt *opts,
@@ -464,9 +477,7 @@ int _xioopen_dgram_sendto(/* them is already in xfd->peersa */
    union sockaddr_union la; socklen_t lalen = sizeof(la);
    char infobuff[256];
 
-   if ((xfd->fd = Socket(pf, socktype, ipproto)) < 0) {
-      Msg4(level,
-	   "socket(%d, %d, %d): %s", pf, socktype, ipproto, strerror(errno));
+   if ((xfd->fd = xiosocket(opts, pf, socktype, ipproto, level)) < 0) {
       return STAT_RETRYLATER;	    
    }
 
@@ -590,6 +601,10 @@ void xiosigaction_hasread(int signum, siginfo_t *siginfo, void *ucontext) {
    This function does not retry. If you need retries, handle this is a
    loop in the calling function.
    after fork, we set the forever/retry of the child process to 0
+   applies and consumes the following options: 
+   PH_INIT, PH_PREBIND, PH_BIND, PH_PASTBIND, PH_EARLY, PH_PREOPEN, PH_FD,
+   PH_CONNECTED, PH_LATE, PH_LATE2
+   OPT_FORK, OPT_SO_TYPE, OPT_SO_PROTOTYPE, cloexec, OPT_RANGE, tcpwrap
  */
 int _xioopen_dgram_recvfrom(struct single *xfd, int xioflags,
 			  struct sockaddr *us, socklen_t uslen,
@@ -616,9 +631,7 @@ int _xioopen_dgram_recvfrom(struct single *xfd, int xioflags,
 
    if (applyopts_single(xfd, opts, PH_INIT) < 0)  return STAT_NORETRY;
 
-   if ((xfd->fd = Socket(pf, socktype, proto)) < 0) {
-      Msg4(level,
-	   "socket(%d, %d, %d): %s", pf, socktype, proto, strerror(errno));
+   if ((xfd->fd = xiosocket(opts, pf, socktype, proto, level)) < 0) {
       return STAT_RETRYLATER;
    }
 
@@ -869,9 +882,7 @@ int _xioopen_dgram_recv(struct single *xfd, int xioflags,
 
    if (applyopts_single(xfd, opts, PH_INIT) < 0)  return STAT_NORETRY;
 
-   if ((xfd->fd = Socket(pf, socktype, proto)) < 0) {
-      Msg4(level,
-	   "socket(%d, %d, %d): %s", pf, socktype, proto, strerror(errno));
+   if ((xfd->fd = xiosocket(opts, pf, socktype, proto, level)) < 0) {
       return STAT_RETRYLATER;
    }
 
@@ -1128,3 +1139,41 @@ int xiocheckpeer(xiosingle_t *xfd,
 }
 
 #endif /* _WITH_SOCKET */
+
+/* these do sockets internally */
+
+/* retrieves options so-type and so-prototype from opts, calls socketpair, and
+   ev. generates an appropriate error message.
+   returns 0 on success or -1 if an error occurred. */
+int 
+xiosocket(struct opt *opts, int pf, int socktype, int proto, int msglevel) {
+   int result;
+
+   retropt_int(opts, OPT_SO_TYPE, &socktype);
+   retropt_int(opts, OPT_SO_PROTOTYPE, &proto);
+   result = Socket(pf, socktype, proto);
+   if (result < 0) {
+      Msg4(msglevel, "socket(%d, %d, %d): %s",
+	     pf, socktype, proto, strerror(errno));
+      return -1;
+   }
+   return result;
+}
+
+/* retrieves options so-type and so-prototype from opts, calls socketpair, and
+   ev. generates an appropriate error message.
+   returns 0 on success or -1 if an error occurred. */
+int 
+xiosocketpair(struct opt *opts, int pf, int socktype, int proto, int sv[2]) {
+   int result;
+
+   retropt_int(opts, OPT_SO_TYPE, &socktype);
+   retropt_int(opts, OPT_SO_PROTOTYPE, &proto);
+   result = Socketpair(pf, socktype, proto, sv);
+   if (result < 0) {
+      Error5("socketpair(%d, %d, %d, %p): %s",
+	     pf, socktype, proto, sv, strerror(errno));
+      return -1;
+   }
+   return result;
+}

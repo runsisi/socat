@@ -479,6 +479,9 @@ int sockan(int fd, FILE *outfile) {
       {SO_REUSEADDR, "REUSEADDR"},
       {SO_TYPE, "TYPE"},
       {SO_ERROR, "ERROR"},
+#ifdef SO_PROTOTYPE
+      {SO_PROTOTYPE, "PROTOTYPE"},
+#endif
       {SO_DONTROUTE, "DONTROUTE"},
       {SO_BROADCAST, "BROADCAST"},
       {SO_SNDBUF, "SNDBUF"},

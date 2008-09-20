@@ -2362,7 +2362,7 @@ N=$((N+1))
 #}
 
 
-NAME=UNIXSOCKET
+NAME=UNIXSTREAM
 case "$TESTS" in
 *%functions%*|*%unix%*|*%$NAME%*)
 TEST="$NAME: echo via connection to UNIX domain socket"
@@ -2372,7 +2372,7 @@ ts="$td/test$N.socket"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
 CMD1="$SOCAT $opts UNIX-LISTEN:$ts PIPE"
-CMD2="$SOCAT $opts -!!- UNIX:$ts"
+CMD2="$SOCAT $opts -!!- UNIX-CONNECT:$ts"
 printf "test $F_n $TEST... " $N
 $CMD1 </dev/null >$tf 2>"${te}1" &
 bg=$!	# background process id

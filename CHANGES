@@ -1,4 +1,9 @@
 
+new features:
+	so-type now only affect the socket() and socketpair() calls, not the
+	name resolution. so-type and so-prototype can be applied to all socket
+	based addresses.
+
 corrections:
 	some raw IP and UNIX datagram modes failed on BSD systems
 

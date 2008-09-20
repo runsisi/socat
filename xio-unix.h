@@ -21,9 +21,14 @@ extern const struct addrdesc xioaddr_abstract_client;
 extern const struct optdesc xioopt_unix_tightsocklen;
 
 extern socklen_t
-xiosetunix(struct sockaddr_un *saun,
+xiosetunix(int pf,
+	   struct sockaddr_un *saun,
 	   const char *path,
 	   bool abstract,
 	   bool tight);
+
+extern int
+_xioopen_unix_client(xiosingle_t *xfd, int xioflags, unsigned groups,
+		     int abstract, struct opt *opts, const char *name);
 
 #endif /* !defined(__xio_unix_h_included) */

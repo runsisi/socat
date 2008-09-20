@@ -62,17 +62,20 @@ const struct optdesc xioopt_unix_tightsocklen = { "unix-tightsocklen",    "tight
 
 /* fills the socket address struct and returns its effective length.
    abstract is usually 0;  != 0 generates an abstract socket address on Linux.
-   tight calculates the resulting length from the path length, not from the
-   struct length. 
+   tight!=0 calculates the resulting length from the path length, not from the
+   structures length; this is more common.
+   the struct need not be initialized when calling this function.
 */
 socklen_t
-xiosetunix(struct sockaddr_un *saun,
+xiosetunix(int pf,
+	   struct sockaddr_un *saun,
 	   const char *path,
 	   bool abstract,
 	   bool tight) {
    size_t pathlen;
    socklen_t len;
 
+   socket_un_init(saun);
 #ifdef WITH_ABSTRACT_UNIXSOCKET
    if (abstract) {
       if ((pathlen = strlen(path)) >= sizeof(saun->sun_path)) {
@@ -130,11 +133,10 @@ static int xioopen_unix_listen(int argc, const char *argv[], struct opt *opts, i
       return STAT_NORETRY;
    }
 
-   socket_un_init(&us);
-
-   retropt_bool(opts, OPT_UNIX_TIGHTSOCKLEN, &tight);
    name = argv[1];
-   uslen = xiosetunix(&us, name, abstract, tight);
+   retropt_socket_pf(opts, &pf);
+   retropt_bool(opts, OPT_UNIX_TIGHTSOCKLEN, &tight);
+   uslen = xiosetunix(pf, &us, name, abstract, tight);
 
    xfd->howtoend = END_SHUTDOWN;
 
@@ -151,7 +153,6 @@ static int xioopen_unix_listen(int argc, const char *argv[], struct opt *opts, i
    }
 
    applyopts(-1, opts, PH_INIT);
-   if (applyopts_single(xfd, opts, PH_INIT) < 0)  return -1;
    applyopts(-1, opts, PH_EARLY);
 
    if (!(ABSTRACT && abstract)) {
@@ -169,8 +170,6 @@ static int xioopen_unix_listen(int argc, const char *argv[], struct opt *opts, i
 	 file system entry is available only past bind() call. */
       applyopts_named(name, opts, PH_EARLY);	/* umask! */
    }
-
-   retropt_int(opts, OPT_SO_TYPE, &socktype);
 
    opts0 = copyopts(opts, GROUP_ALL);
 
@@ -205,17 +204,15 @@ static int xioopen_unix_connect(int argc, const char *argv[], struct opt *opts, 
       return STAT_NORETRY;
    }
 
-   socket_un_init(&us);
-   socket_un_init(&them);
-
-   retropt_bool(opts, OPT_UNIX_TIGHTSOCKLEN, &tight);
    name = argv[1];
-   themlen = xiosetunix(&them, name, abstract, tight);
+   retropt_socket_pf(opts, &pf);
+   retropt_bool(opts, OPT_UNIX_TIGHTSOCKLEN, &tight);
+   themlen = xiosetunix(pf, &them, name, abstract, tight);
    if (!(ABSTRACT && abstract)) {
       /* only for non abstract because abstract do not work in file system */
       retropt_bool(opts, OPT_UNLINK_CLOSE, &opt_unlink_close);
    }
-   if (retropt_bind(opts, AF_UNIX, socktype, 0, (struct sockaddr *)&us, &uslen, 0, 0, 0)
+   if (retropt_bind(opts, pf, socktype, protocol, (struct sockaddr *)&us, &uslen, 0, 0, 0)
        != STAT_NOACTION) {
       needbind = true;
    }
@@ -264,16 +261,12 @@ static int xioopen_unix_sendto(int argc, const char *argv[], struct opt *opts, i
       return STAT_NORETRY;
    }
 
-   uslen = socket_init(pf, &us);
-   xfd->salen = socket_init(pf, &xfd->peersa);
-
-   xfd->howtoend = END_SHUTDOWN;
-
-   retropt_int(opts, OPT_SO_TYPE, &socktype);
-
    retropt_bool(opts, OPT_UNIX_TIGHTSOCKLEN, &tight);
    name = argv[1];
-   xfd->salen = xiosetunix(&xfd->peersa.un, name, abstract, tight);
+   retropt_socket_pf(opts, &pf);
+   xfd->salen = xiosetunix(pf, &xfd->peersa.un, name, abstract, tight);
+
+   xfd->howtoend = END_SHUTDOWN;
 
    if (!(ABSTRACT && abstract)) {
       /* only for non abstract because abstract do not work in file system */
@@ -282,7 +275,7 @@ static int xioopen_unix_sendto(int argc, const char *argv[], struct opt *opts, i
 
    xfd->dtype = XIODATA_RECVFROM;
 
-   if (retropt_bind(opts, pf, socktype, 0, &us.soa, &uslen, 0, 0, 0)
+   if (retropt_bind(opts, pf, socktype, protocol, &us.soa, &uslen, 0, 0, 0)
        != STAT_NOACTION) {
       needbind = true;
    }
@@ -327,15 +320,14 @@ int xioopen_unix_recvfrom(int argc, const char *argv[], struct opt *opts,
       return STAT_NORETRY;
    }
 
-   socket_un_init(&us);
-
-   retropt_bool(opts, OPT_UNIX_TIGHTSOCKLEN, &tight);
    name = argv[1];
-   uslen = xiosetunix(&us, name, abstract, tight);
+   retropt_socket_pf(opts, &pf);
+   retropt_bool(opts, OPT_UNIX_TIGHTSOCKLEN, &tight);
+   uslen = xiosetunix(pf, &us, name, abstract, tight);
 
    xfd->howtoend = END_NONE;
-   retropt_int(opts, OPT_SO_TYPE, &socktype);
-   retropt_bind(opts, pf, socktype, 0, (struct sockaddr *)&us, &uslen, 1, 0, 0);
+   retropt_bind(opts, pf, socktype, protocol, (struct sockaddr *)&us, &uslen,
+		1, 0, 0);
 
    if (!(ABSTRACT && abstract)) {
       /* only for non abstract because abstract do not work in file system */
@@ -362,9 +354,10 @@ int xioopen_unix_recvfrom(int argc, const char *argv[], struct opt *opts,
    xfd->para.socket.la.soa.sa_family = pf;
 
    xfd->dtype = XIODATA_RECVFROM_ONE;
-   return _xioopen_dgram_recvfrom(xfd, xioflags,
-				needbind?(struct sockaddr *)&us:NULL, uslen,
-				opts, pf, socktype, protocol, E_ERROR);
+   return
+      _xioopen_dgram_recvfrom(xfd, xioflags,
+			      needbind?(struct sockaddr *)&us:NULL, uslen,
+			      opts, pf, socktype, protocol, E_ERROR);
 }
 
 
@@ -391,13 +384,10 @@ int xioopen_unix_recv(int argc, const char *argv[], struct opt *opts,
       return STAT_NORETRY;
    }
 
-   retropt_int(opts, OPT_SO_TYPE, &socktype);
-
-   socket_un_init(&us.un);
-
-   retropt_bool(opts, OPT_UNIX_TIGHTSOCKLEN, &tight);
    name = argv[1];
-   uslen = xiosetunix(&us.un, name, abstract, tight);
+   retropt_socket_pf(opts, &pf);
+   retropt_bool(opts, OPT_UNIX_TIGHTSOCKLEN, &tight);
+   uslen = xiosetunix(pf, &us.un, name, abstract, tight);
 
 #if 1	/*!!! why bind option? */
    retropt_bind(opts, pf, socktype, protocol, &us.soa, &uslen, 1, 0, 0);
@@ -437,8 +427,28 @@ int xioopen_unix_recv(int argc, const char *argv[], struct opt *opts,
 
 static int xioopen_unix_client(int argc, const char *argv[], struct opt *opts, int xioflags, xiofile_t *xxfd, unsigned groups, int abstract, int dummy2, int dummy3) {
    /* we expect the form: filename */
-   const char *name;
-   xiosingle_t *xfd = &xxfd->stream;
+   if (argc != 2) {
+      Error2("%s: wrong number of parameters (%d instead of 1)", argv[0], argc-1);
+   }
+
+   return 
+      _xioopen_unix_client(&xxfd->stream, xioflags, groups, abstract, opts,
+			   argv[1]);
+}
+
+/* establishes communication with an existing UNIX type socket. supports stream
+   and datagram socket types: first tries to connect(), but when this fails it
+   falls back to sendto().
+   applies and consumes the following option:
+   PH_INIT, PH_PASTSOCKET, PH_FD, PH_PREBIND, PH_BIND, PH_PASTBIND,
+   PH_CONNECTED, PH_LATE, ?PH_CONNECT
+   OFUNC_OFFSET, 
+   OPT_PROTOCOL_FAMILY, OPT_UNIX_TIGHTSOCKLEN, OPT_UNLINK_CLOSE, OPT_BIND,
+   OPT_SO_TYPE, OPT_SO_PROTOTYPE, OPT_CLOEXEC, OPT_USER, OPT_GROUP, ?OPT_FORK, 
+*/
+int 
+_xioopen_unix_client(xiosingle_t *xfd, int xioflags, unsigned groups,
+		     int abstract, struct opt *opts, const char *name) {
    int pf = PF_UNIX;
    int socktype = 0;	/* to be determined by server socket type */
    int protocol = 0;
@@ -447,28 +457,24 @@ static int xioopen_unix_client(int argc, const char *argv[], struct opt *opts, i
    bool tight = true;
    bool needbind = false;
    bool opt_unlink_close = false;
+   struct opt *opts0;
    int result;
 
-   if (argc != 2) {
-      Error2("%s: wrong number of parameters (%d instead of 1)", argv[0], argc-1);
-   }
+   applyopts(-1, opts, PH_INIT);
+   if (applyopts_single(xfd, opts, PH_INIT) < 0)  return -1;
 
    xfd->howtoend = END_SHUTDOWN;
-   retropt_int(opts, OPT_SO_TYPE, &socktype);
-
-   uslen = socket_init(pf, &us);
-   themlen = socket_init(pf, &them);
+   retropt_socket_pf(opts, &pf);
 
    retropt_bool(opts, OPT_UNIX_TIGHTSOCKLEN, &tight);
-   name = argv[1];
-   themlen = xiosetunix(&them.un, name, abstract, tight);
+   themlen = xiosetunix(pf, &them.un, name, abstract, tight);
 
    if (!(ABSTRACT && abstract)) {
       /* only for non abstract because abstract do not work in file system */
       retropt_bool(opts, OPT_UNLINK_CLOSE, &opt_unlink_close);
    }
 
-   if (retropt_bind(opts, pf, socktype, 0, &us.soa, &uslen, 0, 0, 0)
+   if (retropt_bind(opts, pf, socktype, protocol, &us.soa, &uslen, 0, 0, 0)
        != STAT_NOACTION) {
       needbind = true;
    }
@@ -479,6 +485,9 @@ static int xioopen_unix_client(int argc, const char *argv[], struct opt *opts, i
       }
       xfd->opt_unlink_close = true;
    }
+
+   /* save options, because we might have to start again */
+   opts0 = copyopts(opts, GROUP_ALL);
 
    /* xfd->dtype = DATA_STREAM; // is default */
    if ((result =
@@ -492,8 +501,7 @@ static int xioopen_unix_client(int argc, const char *argv[], struct opt *opts, i
 	    Unlink(us.un.sun_path);
 	 }
 
-	 applyopts(-1, opts, PH_INIT);
-	 if (applyopts_single(xfd, opts, PH_INIT) < 0)  return -1;
+	 dropopts2(opts, PH_INIT, PH_SPEC); opts = opts0;
 
 	 xfd->peersa = them;
 	 xfd->salen = sizeof(struct sockaddr_un);

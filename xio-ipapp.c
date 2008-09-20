@@ -52,8 +52,8 @@ int xioopen_ipapp_connect(int argc, const char *argv[], struct opt *opts,
    if (_xioopen_ipapp_prepare(opts, &opts0, hostname, portname, &pf, ipproto,
 			      xfd->para.socket.ip.res_opts[1],
 			      xfd->para.socket.ip.res_opts[0],
-			       them, &themlen, us, &uslen, &needbind, &lowport,
-			       &socktype) != STAT_OK) {
+			      them, &themlen, us, &uslen, &needbind, &lowport,
+			      socktype) != STAT_OK) {
       return STAT_NORETRY;
    }
 
@@ -147,7 +147,11 @@ int xioopen_ipapp_connect(int argc, const char *argv[], struct opt *opts,
 }
 
 
-/* returns STAT_OK on success or some other value on failure */
+/* returns STAT_OK on success or some other value on failure
+   applies and consumes the following options:
+   PH_EARLY
+   OPT_PROTOCOL_FAMILY, OPT_BIND, OPT_SOURCEPORT, OPT_LOWPORT
+ */
 int
    _xioopen_ipapp_prepare(struct opt *opts, struct opt **opts0,
 			   const char *hostname,
@@ -158,7 +162,7 @@ int
 			   union sockaddr_union *them, socklen_t *themlen,
 			   union sockaddr_union *us, socklen_t *uslen,
 			   bool *needbind, bool *lowport,
-			   int *socktype) {
+			   int socktype) {
    uint16_t port;
    char infobuff[256];
    int result;
@@ -167,7 +171,7 @@ int
 
    if ((result =
 	xiogetaddrinfo(hostname, portname,
-		       *pf, *socktype, protocol,
+		       *pf, socktype, protocol,
 		       (union sockaddr_union *)them, themlen,
 		       res_opts0, res_opts1
 		       ))
@@ -181,7 +185,7 @@ int
    applyopts(-1, opts, PH_EARLY);
 
    /* 3 means: IP address AND port accepted */
-   if (retropt_bind(opts, *pf, *socktype, protocol, (struct sockaddr *)us, uslen, 3,
+   if (retropt_bind(opts, *pf, socktype, protocol, (struct sockaddr *)us, uslen, 3,
 		    res_opts0, res_opts1)
        != STAT_NOACTION) {
       *needbind = true;
@@ -210,7 +214,6 @@ int
    }
 
    retropt_bool(opts, OPT_LOWPORT, lowport);
-   retropt_int(opts, OPT_SO_TYPE, socktype);
 
    *opts0 = copyopts(opts, GROUP_ALL);
 
@@ -222,22 +225,24 @@ int
 
 
 #if WITH_TCP && WITH_LISTEN
+/*
+   applies and consumes the following options:
+   OPT_PROTOCOL_FAMILY, OPT_BIND
+ */
 int _xioopen_ipapp_listen_prepare(struct opt *opts, struct opt **opts0,
 				   const char *portname, int *pf, int ipproto,
 				  unsigned long res_opts0,
 				  unsigned long res_opts1,
 				   union sockaddr_union *us, socklen_t *uslen,
-				   int *socktype) {
+				   int socktype) {
    char *bindname = NULL;
    int result;
-
-   retropt_int(opts, OPT_SO_TYPE, socktype);
 
    retropt_socket_pf(opts, pf);
 
    retropt_string(opts, OPT_BIND, &bindname);
    if ((result =
-	xiogetaddrinfo(bindname, portname, *pf, *socktype, ipproto,
+	xiogetaddrinfo(bindname, portname, *pf, socktype, ipproto,
 		       (union sockaddr_union *)us, uslen,
 		       res_opts0, res_opts1))
        != STAT_OK) {
@@ -284,7 +289,7 @@ int xioopen_ipapp_listen(int argc, const char *argv[], struct opt *opts,
    if (_xioopen_ipapp_listen_prepare(opts, &opts0, argv[1], &pf, ipproto,
 				     fd->stream.para.socket.ip.res_opts[1],
 				     fd->stream.para.socket.ip.res_opts[0],
-				     us, &uslen, &socktype)
+				     us, &uslen, socktype)
        != STAT_OK) {
       return STAT_NORETRY;
    }

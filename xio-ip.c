@@ -205,6 +205,18 @@ int xiogetaddrinfo(const char *node, const char *service,
    if (node != NULL || service != NULL) {
       struct addrinfo *record;
 
+      if (socktype != SOCK_STREAM && socktype != SOCK_DGRAM) {
+	 /* actual socket type value is not supported - fallback to a good one */
+	 socktype = SOCK_DGRAM;
+      }
+      if (protocol != IPPROTO_TCP && protocol != IPPROTO_UDP) {
+	 /* actual protocol value is not supported - fallback to a good one */
+	 if (socktype == SOCK_DGRAM) {
+	    protocol = IPPROTO_UDP;
+	 } else {
+	    protocol = IPPROTO_TCP;
+	 }
+      }
       hints.ai_flags |= AI_PASSIVE;
       hints.ai_family = family;
       hints.ai_socktype = socktype;

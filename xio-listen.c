@@ -25,6 +25,13 @@ const struct optdesc opt_range   = { "range",     NULL, OPT_RANGE,       GROUP_R
 #endif
 
 
+/*
+   applies and consumes the following option:
+   PH_INIT, PH_PASTSOCKET, PH_PREBIND, PH_BIND, PH_PASTBIND, PH_EARLY,
+   PH_PREOPEN, PH_FD, PH_CONNECTED, PH_LATE, PH_LATE2
+   OPT_FORK, OPT_SO_TYPE, OPT_SO_PROTOTYPE, OPT_BACKLOG, OPT_RANGE, tcpwrap,
+   OPT_SOURCEPORT, OPT_LOWPORT, cloexec
+ */
 int
    xioopen_listen(struct single *xfd, int xioflags,
 		  struct sockaddr *us, socklen_t uslen,
@@ -81,15 +88,21 @@ int
 }
 
 
-/* waits for incoming connection, checks its source address and port. Depending
-   on fork option, it may fork a subprocess.
+/* creates the listening socket, bind, applies options; waits for incoming
+   connection, checks its source address and port. Depending on fork option, it
+   may fork a subprocess.
    Returns 0 if a connection was accepted; with fork option, this is always in
    a subprocess!
    Other return values indicate a problem; this can happen in the master
    process or in a subprocess.
-   This function does not retry. If you need retries, handle this is a
-   loop in the calling function.
+   This function does not retry. If you need retries, handle this in a
+   loop in the calling function (and always provide the options...)
    after fork, we set the forever/retry of the child process to 0
+   applies and consumes the following option:
+   PH_INIT, PH_PASTSOCKET, PH_PREBIND, PH_BIND, PH_PASTBIND, PH_EARLY,
+   PH_PREOPEN, PH_FD, PH_CONNECTED, PH_LATE, PH_LATE2
+   OPT_FORK, OPT_SO_TYPE, OPT_SO_PROTOTYPE, OPT_BACKLOG, OPT_RANGE, tcpwrap,
+   OPT_SOURCEPORT, OPT_LOWPORT, cloexec
  */
 int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, socklen_t uslen,
 		 struct opt *opts, int pf, int socktype, int proto, int level) {
@@ -119,9 +132,7 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
       xiosetchilddied();	/* set SIGCHLD handler */
    }
 
-   if ((xfd->fd = Socket(pf, socktype, proto)) < 0) {
-      Msg4(level,
-	   "socket(%d, %d, %d): %s", pf, socktype, proto, strerror(errno));
+   if ((xfd->fd = xiosocket(opts, pf, socktype, proto, level)) < 0) {
       return STAT_RETRYLATER;
    }
 

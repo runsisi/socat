@@ -2333,7 +2333,15 @@ int retropt_int(struct opt *opts, int optcode, int *result) {
 
    while (opt->desc != ODESC_END) {
       if (opt->desc != ODESC_DONE && opt->desc->optcode == optcode) {
-	 *result = opt->value.u_int;
+	 switch (opt->desc->type) {
+	 case TYPE_INT: *result = opt->value.u_int; break;
+	 case TYPE_STRING: *result = strtol(opt->value.u_string, NULL, 0);
+	    break;
+	 default: Error2("cannot convert type %d of option %s to int",
+			 opt->desc->type, opt->desc->defname);
+	    opt->desc = ODESC_ERROR;
+	    return -1;
+	 }
 	 opt->desc = ODESC_DONE;
 	 return 0;
       }
@@ -2515,7 +2523,7 @@ int retropt_bind(struct opt *opts,
       {
 	 bool tight = false;
 	 struct sockaddr_un *s_un = (struct sockaddr_un *)sa;
-	 *salen = xiosetunix(s_un, bindname, false, tight);
+	 *salen = xiosetunix(af, s_un, bindname, false, tight);
       }
       break;
 #endif /* WITH_UNIX */
