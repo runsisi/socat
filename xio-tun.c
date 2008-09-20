@@ -1,5 +1,5 @@
 /* source: xio-tun.c */
-/* Copyright Gerhard Rieger 2007 */
+/* Copyright Gerhard Rieger 2007-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening addresses of tun/tap type */
@@ -16,8 +16,6 @@
 
 
 static int xioopen_tun(int argc, const char *argv[], struct opt *opts, int xioflags, xiofile_t *fd, unsigned groups, int dummy1, int dummy2, int dummy3);
-
-#define XIO_OFFSETOF(x) ((size_t)&((xiosingle_t *)0)->x)
 
 /****** TUN addresses ******/
 const struct optdesc opt_tun_device    = { "tun-device",     NULL,      OPT_TUN_DEVICE,      GROUP_TUN,       PH_OPEN, TYPE_FILENAME, OFUNC_SPEC };

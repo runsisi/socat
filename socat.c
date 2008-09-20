@@ -947,7 +947,11 @@ int _socat(void) {
 		XIO_RDSTREAM(sock1)->actbytes == 0) {
 	       /* avoid idle when all readbytes already there */
 	       mayrd1 = true;
-	    }          
+	    }
+	    /* escape char occurred? */
+	    if (XIO_RDSTREAM(sock1)->actescape) {
+	       bytes1 = 0;	/* indicate EOF */
+	    }
 	 }
 	 /* (bytes1 == 0)  handled later */
       } else {
@@ -976,6 +980,10 @@ int _socat(void) {
 	       /* avoid idle when all readbytes already there */
 	       mayrd2 = true;
 	    }          
+	    /* escape char occurred? */
+	    if (XIO_RDSTREAM(sock2)->actescape) {
+	       bytes2 = 0;	/* indicate EOF */
+	    }
 	 }
 	 /* (bytes2 == 0)  handled later */
       } else {
@@ -988,7 +996,8 @@ int _socat(void) {
 	     bytes1, XIO_RDSTREAM(sock1)->eof, XIO_RDSTREAM(sock1)->ignoreeof,
 	     closing);*/
       if (bytes1 == 0 || XIO_RDSTREAM(sock1)->eof >= 2) {
-	 if (XIO_RDSTREAM(sock1)->ignoreeof && !closing) {
+	 if (XIO_RDSTREAM(sock1)->ignoreeof &&
+	     !XIO_RDSTREAM(sock1)->actescape && !closing) {
 	    Debug1("socket 1 (fd %d) is at EOF, ignoring",
 		   XIO_RDSTREAM(sock1)->fd);	/*! */
 	    mayrd1 = true;
@@ -996,16 +1005,20 @@ int _socat(void) {
 	 } else {
 	    Notice1("socket 1 (fd %d) is at EOF", XIO_GETRDFD(sock1));
 	    xioshutdown(sock2, SHUT_WR);
+	    XIO_RDSTREAM(sock1)->eof = 2;
+	    XIO_RDSTREAM(sock1)->ignoreeof = false;
 	    if (socat_opts.lefttoright) {
 	       break;
 	    }
+	    closing = 1;
 	 }
       } else if (polling && XIO_RDSTREAM(sock1)->ignoreeof) {
 	 polling = 0;
       }
 
       if (bytes2 == 0 || XIO_RDSTREAM(sock2)->eof >= 2) {
-	 if (XIO_RDSTREAM(sock2)->ignoreeof && !closing) {
+	 if (XIO_RDSTREAM(sock2)->ignoreeof &&
+	     !XIO_RDSTREAM(sock2)->actescape && !closing) {
 	    Debug1("socket 2 (fd %d) is at EOF, ignoring",
 		   XIO_RDSTREAM(sock2)->fd);
 	    mayrd2 = true;
@@ -1013,9 +1026,12 @@ int _socat(void) {
 	 } else {
 	    Notice1("socket 2 (fd %d) is at EOF", XIO_GETRDFD(sock2));
 	    xioshutdown(sock1, SHUT_WR);
+	    XIO_RDSTREAM(sock2)->eof = 2;
+	    XIO_RDSTREAM(sock2)->ignoreeof = false;
 	    if (socat_opts.righttoleft) {
 	       break;
 	    }
+	    closing = 1;
 	 }
       } else if (polling && XIO_RDSTREAM(sock2)->ignoreeof) {
 	 polling = 0;
@@ -1102,8 +1118,9 @@ static int
 
 /* inpipe is suspected to have read data available; read at most bufsiz bytes
    and transfer them to outpipe. Perform required data conversions.
-   buff should be at least twice as large as bufsiz, to allow all standard
-   conversions. Returns the number of bytes written, or 0 on EOF or <0 if an
+   buff must be a malloc()'ed storage and might be realloc()'ed in this
+   function if more space is required after conversions. 
+   Returns the number of bytes written, or 0 on EOF or <0 if an
    error occurred or when data was read but none written due to conversions
    (with EAGAIN). EAGAIN also occurs when reading from a nonblocking FD where
    the file has a mandatory lock.
@@ -1113,9 +1130,9 @@ static int
 /* inpipe, outpipe must be single descriptors (not dual!) */
 int xiotransfer(xiofile_t *inpipe, xiofile_t *outpipe,
 		unsigned char **buff, size_t bufsiz, bool righttoleft) {
-   ssize_t bytes, writt;
+   ssize_t bytes, writt = 0;
 
-	 bytes = xioread(inpipe, *buff, socat_opts.bufsiz);
+	 bytes = xioread(inpipe, *buff, bufsiz);
 	 if (bytes < 0) {
 	    if (errno != EAGAIN)
 	       XIO_RDSTREAM(inpipe)->eof = 2;
@@ -1123,14 +1140,35 @@ int xiotransfer(xiofile_t *inpipe, xiofile_t *outpipe,
 	    return -1;
 	 }
 	 if (bytes == 0 && XIO_RDSTREAM(inpipe)->ignoreeof && !closing) {
-	    writt = 0;
+	    ;
 	 } else if (bytes == 0) {
 	    XIO_RDSTREAM(inpipe)->eof = 2;
 	    closing = MAX(closing, 1);
-	    writt = 0;
 	 }
 
-	 else /* if (bytes > 0)*/ {
+	 if (bytes > 0) {
+	    /* handle escape char */
+	    if (XIO_RDSTREAM(inpipe)->escape != -1) {
+	       /* check input data for escape char */
+	       unsigned char *ptr = *buff;
+	       size_t ctr = 0;
+	       while (ctr < bytes) {
+		  if (*ptr == XIO_RDSTREAM(inpipe)->escape) {
+		     /* found: set flag, truncate input data */
+		     XIO_RDSTREAM(inpipe)->actescape = true;
+		     bytes = ctr;
+		     Info("escape char found in input");
+		     break;
+		  }
+		  ++ptr; ++ctr;
+	       }
+	       if (ctr != bytes) {
+		  XIO_RDSTREAM(inpipe)->eof = 2;
+	       }
+	    }
+	 }
+
+	    if (bytes > 0) {
 
 	    if (XIO_RDSTREAM(inpipe)->lineterm !=
 		XIO_WRSTREAM(outpipe)->lineterm) {
@@ -1248,8 +1286,14 @@ int xiotransfer(xiofile_t *inpipe, xiofile_t *outpipe,
 #define LF '\n'
 
 
-int cv_newline(unsigned char **buff, ssize_t *bytes,
+/* converts the newline characters (or character sequences) from the one
+   specified in lineterm1 to that of lineterm2. Possible values are
+   LINETERM_CR, LINETERM_CRNL, LINETERM_RAW.
+   buff points to the malloc()'ed data, input and output. It may be subject to
+   realloc(). bytes specifies the number of bytes input and output */
+int cv_newline(unsigned char **buff, ssize_t *bufsiz,
 	       int lineterm1, int lineterm2) {
+   ssize_t *bytes = bufsiz;
    /* must perform newline changes */
    if (lineterm1 <= LINETERM_CR && lineterm2 <= LINETERM_CR) {
       /* no change in data length */
@@ -1287,7 +1331,7 @@ int cv_newline(unsigned char **buff, ssize_t *bytes,
 	    *t++ = *s++;
 	 }
       }
-      *bytes = t - *buff;
+      *bufsiz = t - *buff;
    } else {
       /* buffer becomes longer, must alloc another space */
       unsigned char *buf2;
@@ -1297,7 +1341,7 @@ int cv_newline(unsigned char **buff, ssize_t *bytes,
       } else {
 	 from = '\r';
       }
-      if ((buf2 = Malloc(2*socat_opts.bufsiz+1)) == NULL) {
+      if ((buf2 = Malloc(2*socat_opts.bufsiz/*sic!*/+1)) == NULL) {
 	 return -1;
       }
       s = *buff;  t = buf2;  z = *buff + *bytes;
@@ -1312,7 +1356,7 @@ int cv_newline(unsigned char **buff, ssize_t *bytes,
       }
       free(*buff);
       *buff = buf2;
-      *bytes = t - buf2;;
+      *bufsiz = t - buf2;;
    }
    return 0;
 }

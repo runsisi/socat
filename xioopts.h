@@ -9,6 +9,8 @@
 #define ODESC_DONE ((void *)-1)	/* indicates that option has been applied */
 #define ODESC_ERROR ODESC_DONE	/* maybe later */
 
+#define XIO_OFFSETOF(x) ((size_t)&((xiosingle_t *)0)->x)
+
 /* atomic structure for use in the option search table; keep compatible with
    struct wordent! */
 struct optname {
@@ -250,6 +252,7 @@ enum e_optcode {
    OPT_ECHOPRT,		/* termios.c_lflag */
 #endif
    OPT_END_CLOSE,	/* xfd.stream.howtoend = END_CLOSE */
+   OPT_ESCAPE,
    OPT_EXT2_SECRM,
    OPT_EXT2_UNRM,
    OPT_EXT2_COMPR,

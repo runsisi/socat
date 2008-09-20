@@ -8447,6 +8447,69 @@ esac
 N=$((N+1))
 
 
+# test the escape option
+NAME=ESCAPE
+case "$TESTS" in
+*%functions%*|*%escape%*|*%$NAME%*)
+TEST="$NAME: escape character triggers EOF"
+# idea: start socat just echoing input, but apply escape option. send a string
+# containing the escape character and check if the output is truncated
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD="$SOCAT $opts -,escape=27 pipe"
+printf "test $F_n $TEST... " $N
+$ECHO "$da\n\x1bXYZ" |$CMD >"$tf" 2>"$te"
+if [ $? -ne 0 ]; then
+    $PRINTF "$FAILED: $SOCAT:\n"
+    echo "$CMD"
+    cat "$te"
+    numFAIL=$((numFAIL+1))
+elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
+    $PRINTF "$FAILED: diff:\n"
+    cat "$tdiff"
+    numFAIL=$((numFAIL+1))
+else
+    $PRINTF "$OK\n"
+    if [ -n "$debug" ]; then cat $te; fi
+    numOK=$((numOK+1))
+fi
+esac
+N=$((N+1))
+
+# test the escape option combined with ignoreeof
+NAME=ESCAPE_IGNOREEOF
+case "$TESTS" in
+*%functions%*|*%ignoreeof%*|*%escape%*|*%$NAME%*)
+TEST="$NAME: escape character triggers EOF"
+# idea: start socat just echoing input, but apply escape option. send a string
+# containing the escape character and check if the output is truncated
+ti="$td/test$N.file"
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD="$SOCAT -T 5 $opts file:$ti,ignoreeof,escape=27!!- pipe"
+printf "test $F_n $TEST... " $N
+>"$ti"
+$CMD >"$tf" 2>"$te" &
+$ECHO "$da\n\x1bXYZ" >>"$ti"
+sleep 1
+if ! echo "$da" |diff - "$tf" >"$tdiff"; then
+    $PRINTF "$FAILED: diff:\n"
+    cat "$tdiff"
+    cat "$te"
+    numFAIL=$((numFAIL+1))
+else
+    $PRINTF "$OK\n"
+    if [ -n "$debug" ]; then cat $te; fi
+    numOK=$((numOK+1))
+fi
+esac
+N=$((N+1))
+
+
 echo "summary: $((N-1)) tests; $numOK ok, $numFAIL failed, $numCANT could not be performed"
 
 if [ "$numFAIL" -gt 0 ]; then
