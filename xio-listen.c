@@ -81,18 +81,18 @@ int
 }
 
 
-/* waits for incoming connection, checks its source address and port. Depending
+/* Waits for incoming connection, checks its source address and port. Depending
    on fork option, it may fork a subprocess.
    pf specifies the syntax expected for range option. In the case of generic
-   socket it is 0 (expcting raw binary data), and the real pf can be obtained
+   socket it is 0 (expecting raw binary data), and the real pf can be obtained
    from us->af_family; for other socket types pf == us->af_family
-   Returns 0 if a connection was accepted; with fork option, this is always in
-   a subprocess!
+   Returns 0 if a connection was accepted; with fork option, this is already in
+   the subprocess!
    Other return values indicate a problem; this can happen in the master
-   process or in a subprocess.
+   process or in the subprocess.
    This function does not retry. If you need retries, handle this is a
    loop in the calling function.
-   after fork, we set the forever/retry of the child process to 0
+   After fork, we set the forever/retry of the child process to 0
  */
 int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, socklen_t uslen,
 		 struct opt *opts, int pf, int socktype, int proto, int level) {
