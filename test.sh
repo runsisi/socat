@@ -115,6 +115,7 @@ NetBSD)IFCONFIG=/sbin/ifconfig ;;
 OpenBSD)IFCONFIG=/sbin/ifconfig ;;
 OSF1)  IFCONFIG=/sbin/ifconfig ;;
 SunOS) IFCONFIG=/sbin/ifconfig ;;
+Darwin)IFCONFIG=/sbin/ifconfig ;;
 #*)     IFCONFIG=/sbin/ifconfig ;;
 esac
 
@@ -177,7 +178,7 @@ ECHO="echo $E"
 PRINTF="printf"
 
 case "$TERM" in
-vt100|vt320|linux|xterm|cons25|dtterm|aixterm|sun-color)
+vt100|vt320|linux|xterm|cons25|dtterm|aixterm|sun-color|xterm-color)
 	# there are different behaviours of printf (and echo)
 	# on some systems, echo behaves different than printf...
 	if [ $($PRINTF "\0101") = "A" ]; then
@@ -1637,6 +1638,7 @@ runsip4 () {
     OpenBSD)l=$($IFCONFIG -a |fgrep 'inet 127.0.0.1 ');;
     OSF1)  l=$($IFCONFIG -a |grep ' inet ') ;;
     SunOS) l=$($IFCONFIG -a |grep 'inet ') ;;
+    Darwin)l=$($IFCONFIG lo0 |fgrep 'inet 127.0.0.1 ') ;;
 #    *)     l=$($IFCONFIG -a |grep ' ::1[^:0-9A-Fa-f]') ;;
     esac
     [ -z "$l" ] && return 1    
@@ -1662,12 +1664,13 @@ runsip6 () {
     NetBSD)l=$(/sbin/ifconfig -a |grep 'inet6 ::1 ');;
     OSF1)  l=$(/sbin/ifconfig -a |grep ' inet6 ') ;;
     SunOS) l=$(/sbin/ifconfig -a |grep 'inet6 ') ;;
+    Darwin)l=$(/sbin/ifconfig lo0 |grep 'inet6 ::1 ') ;;
     *)     l=$(/sbin/ifconfig -a |grep ' ::1[^:0-9A-Fa-f]') ;;
     esac
     [ -z "$l" ] && return 1    
     # existence of interface might not suffice, check for routeability:
     case "$UNAME" in
-    Darwin) ping -c 1 ::1; l="$?" ;;
+    Darwin) ping6 -c 1 ::1; l="$?" ;;
     Linux)  ping6 -c 1 ::1; l="$?" ;;
     *) if [ -n "$l" ]; then l=0; else l=1; fi ;;
     esac

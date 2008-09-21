@@ -38,6 +38,10 @@ corrections:
 	Makefile now supports datarootdir (thanks to Camillo Lugaresi for
 	providing the patch)
 
+porting:
+	socat should now build under MacOS X 10.4 (thanks to Camillo Lugaresi for
+	providing the patch)
+
 ####################### V 1.6.0.1:
 
 new features:

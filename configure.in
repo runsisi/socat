@@ -55,11 +55,22 @@ AC_CHECK_HEADERS(pwd.h grp.h stdint.h sys/types.h sys/poll.h sys/socket.h sys/ui
 AC_CHECK_HEADERS(pty.h)
 AC_CHECK_HEADERS(netinet/in.h netinet/in_systm.h netinet/ip.h netinet/tcp.h)
 AC_CHECK_HEADERS(netinet6/in6.h)	# found on OpenBSD, used for IPV6_*
-AC_CHECK_HEADERS(arpa/nameser.h resolv.h)
-AC_CHECK_HEADERS(termios.h net/if.h linux/if_tun.h)
+AC_CHECK_HEADERS(net/if.h, [], [], [AC_INCLUDES_DEFAULT
+	#if HAVE_SYS_SOCKET_H
+	#include <sys/socket.h>
+	#endif])	# Mac OS X requires including sys/socket.h
+AC_CHECK_HEADERS(arpa/nameser.h)
+
+AC_HEADER_RESOLV()
+
+AC_CHECK_HEADERS(termios.h linux/if_tun.h)
 AC_CHECK_HEADERS(sys/utsname.h sys/select.h sys/file.h)
 AC_CHECK_HEADERS(util.h libutil.h sys/stropts.h regex.h)
 AC_CHECK_HEADERS(linux/fs.h linux/ext2_fs.h)
+
+
+dnl Link libresolv if necessary (for Mac OS X)
+AC_SEARCH_LIBS([res_9_init], [resolv])
 
 
 dnl Check for extra socket library (for Solaris)
@@ -185,7 +196,11 @@ AC_ARG_ENABLE(ip6, [  --disable-ip6           disable IPv6 support],
 if test "$WITH_IP6"; then
   AC_CHECK_HEADERS([netinet/ip6.h],
     [AC_DEFINE(HAVE_NETINET_IP6_H) AC_DEFINE(WITH_IP6)],
-    [AC_MSG_WARN([include file netinet/ip6.h not found, disabling IP6])])
+    [AC_MSG_WARN([include file netinet/ip6.h not found, disabling IP6])],
+    [AC_INCLUDES_DEFAULT
+     #ifdef HAVE_NETINET_IN_H
+     # include <netinet/in.h>
+     #endif])
 fi
 
 AC_MSG_CHECKING(whether to include raw IP support)
@@ -284,93 +299,56 @@ AC_ARG_ENABLE(readline, [  --disable-readline      disable readline support],
 	       esac],
 	       [AC_MSG_RESULT(yes);   WITH_READLINE=1 ])
 
-# check if we find the components of GNU readline
 if test -n "$WITH_READLINE"; then
-  # first, we need to find the include file <readline.h>
-  AC_MSG_NOTICE(checking for components of readline)
-  #AC_CHECK_HEADERS(readline/readline.h readline/history.h)
-  AC_CACHE_VAL(sc_cv_have_readline_h,
-    [AC_TRY_COMPILE([#include <stdio.h>	/* FreeBSD needs "FILE *" */
-#include <readline/readline.h>
-#include <readline/history.h>],[;],
-      [sc_cv_have_readline_h=yes; READLINE_ROOT=""; ],
-      [sc_cv_have_readline_h=no
-       for D in "/sw" "/usr/local" "/opt/freeware" "/usr/sfw"; do
-	I="$D/include"
-        i="$I/readline/readline.h"
-	if test -r "$i"; then
-	  #V_INCL="$V_INCL -I$I/"
-	  CPPFLAGS="$CPPFLAGS -I$I"
-	  AC_MSG_NOTICE(found $i)
-	  sc_cv_have_readline_h=yes; READLINE_ROOT="$D"
-	  break;
-	fi
-      done])
-  ])
-  if test "$sc_cv_have_readline_h" = "yes"; then
-    AC_DEFINE(HAVE_READLINE_READLINE_H)
-    AC_DEFINE(HAVE_READLINE_HISTORY_H)
-  fi
-  AC_MSG_NOTICE(checked for readline.h... $sc_cv_have_readline_h)
-fi	# end checking for readline.h
-#
-if test -n "$WITH_READLINE" -a "$sc_cv_have_readline_h" = yes; then
-  # next, we search for the readline library (libreadline.*)
-  AC_MSG_CHECKING(for libreadline)
-  AC_CACHE_VAL(sc_cv_have_libreadline,
-    [ LIBS0="$LIBS"
-      if test -n "$READLINE_ROOT"; then
-	L="$READLINE_ROOT/lib"; LIBS="$LIBS0 -L$L -lreadline"
-      else
-	LIBS="$LIBS0 -lreadline"
-      fi
-      AC_TRY_LINK([#include <stdio.h>	/* FreeBSD needs FILE * */
-#include <readline/readline.h>
-#include <readline/history.h>],
-	[readline(NULL)],
-	[sc_cv_have_libreadline='yes'],
-	[sc_cv_have_libreadline='no'
-	  LIBS1="$LIBS"
-	  LIBS="$LIBS -lcurses"
-	  AC_TRY_LINK([#include <stdio.h>	/* FreeBSD needs FILE * */
-#include <readline/readline.h>
-#include <readline/history.h>],
-            [readline(NULL)],
-            [sc_cv_have_libreadline='yes'],
-            [sc_cv_have_libreadline='no'
-	      LIBS="$LIBS1 -lncurses"		# eg for SuSE52
-	      AC_TRY_LINK([#include <stdio.h>	/* FreeBSD needs FILE * */
-#include <readline/readline.h>
-#include <readline/history.h>],
-                [readline(NULL)],
-                [sc_cv_have_libreadline='yes'],
-                [sc_cv_have_libreadline='no'])
-      ])]
-      )
-      if test "$sc_cv_have_libreadline" != 'yes'; then
-	LIBS="$LIBS0"
-      fi
-    ]
-#! missing libcurses dependency; missing freeware places
-#    # we test if libcurses is available and if it can be used without further libs
-#    AC_CHECK_LIB(ncurses, main, , AC_CHECK_LIB(curses, main))	# some Linux work with this
-#    # we test if readline can be used without further libs
-#    AC_CHECK_LIB(readline, readline)
-#    # we see if using_history() is already in $LIBS; if not, we try it with curses
-#    AC_CHECK_FUNC(using_history, , AC_CHECK_LIB(history, using_history,,, -lcurses))
-#fi
-  )
-  if test "$sc_cv_have_libreadline" = 'yes'; then
-    AC_DEFINE(HAVE_LIBREADLINE)
-  fi
-  AC_MSG_RESULT($sc_cv_have_libreadline)
-fi
-#
-if test -n "$WITH_READLINE"; then
-  if test "$sc_cv_have_readline_h" = "yes" -a "$sc_cv_have_libreadline" = "yes"; then
-    AC_DEFINE(WITH_READLINE)
-  else
-    AC_MSG_WARN([not all components of readline found, disabling it]);
+  CPPFLAGS_ORIG=$CPPFLAGS
+  CFLAGS_ORIG=$CFLAGS
+  LIBS_ORIG=$LIBS
+  sc_usable_readline_found=
+  
+  for D in "" "/usr/local" "/opt/local" "/sw" "/opt/freeware" "/usr/sfw"; do    
+    if test -n "$D" ; then
+      CPPFLAGS="$CPPFLAGS -I$D/include"
+      CFLAGS="$CFLAGS -L$D/lib"
+      DLOC="in location $D"
+    else
+      DLOC="in default location"
+    fi
+    AC_MSG_CHECKING(for usable readline $DLOC)
+    
+    # Some systems require -lcurses, some require -lncurses.
+    # Mac OS X 10.4 (and others) ships with libedit masquerading as readline,
+    # but it doesn't work well with socat. It can be recognized by the absence
+    # of append_history.
+    
+    for L in "" "-lcurses" "-lncurses"; do
+      LIBS="$LIBS_ORIG -lreadline $L"
+      AC_TRY_LINK(
+        [ #include <stdio.h>
+          #include <readline/readline.h>
+          #include <readline/history.h>],
+        [ readline(NULL);
+          append_history(0, NULL); ],
+        [ sc_usable_readline_found=1
+          break ])
+    done
+    
+    if test -n "$sc_usable_readline_found"; then
+      AC_MSG_RESULT(yes)
+      AC_DEFINE(HAVE_READLINE_READLINE_H,1)
+      AC_DEFINE(HAVE_READLINE_HISTORY_H,1)
+      AC_DEFINE(HAVE_LIBREADLINE,1)
+      AC_DEFINE(WITH_READLINE,1)
+      break
+    else
+      AC_MSG_RESULT(no)
+      CPPFLAGS=$CPPFLAGS_ORIG
+      CFLAGS=$CFLAGS_ORIG
+      LIBS=$LIBS_ORIG
+    fi
+  done
+  
+  if test -z "$sc_usable_readline_found"; then
+    AC_MSG_WARN([no suitable version of readline found; perhaps you need to install a newer version])
   fi
 fi
 
