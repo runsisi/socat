@@ -1700,6 +1700,7 @@ int xioparsenetwork(const char *rangename, int pf, struct xiorange *range) {
 	return STAT_NORETRY;
      }
      strncpy(addrname, rangename, maskname-rangename-1);
+     addrname[maskname-rangename-1] = '\0';
      result =
 	dalan(addrname, (char *)&range->netaddr.soa.sa_data, &addrlen,
 	      sizeof(range->netaddr)-(size_t)(&((struct sockaddr *)0)->sa_data)
