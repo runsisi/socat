@@ -106,7 +106,7 @@ const struct addrname addressnames[] = {
 #endif
 #endif /* WITH_RAWIP */
 #if WITH_UNIX
-   { "local",	&addr_unix_connect },
+   { "local",	&xioaddr_unix_connect },
 #endif
 #if WITH_FILE
    { "open",		&addr_open },
@@ -231,19 +231,19 @@ const struct addrname addressnames[] = {
    { "udp6-sendto",	&addr_udp6_sendto },
 #endif
 #if WITH_UNIX
-   { "unix",		&addr_unix_client },
-   { "unix-client",	&addr_unix_client },
-   { "unix-connect",	&addr_unix_connect },
+   { "unix",		&xioaddr_unix_client },
+   { "unix-client",	&xioaddr_unix_client },
+   { "unix-connect",	&xioaddr_unix_connect },
 #endif
 #if WITH_UNIX && WITH_LISTEN
-   { "unix-l",		&addr_unix_listen },
-   { "unix-listen",	&addr_unix_listen },
+   { "unix-l",		&xioaddr_unix_listen },
+   { "unix-listen",	&xioaddr_unix_listen },
 #endif
 #if WITH_UNIX
-   { "unix-recv",	&addr_unix_recv },
-   { "unix-recvfrom",	&addr_unix_recvfrom },
-   { "unix-send",	&addr_unix_sendto },
-   { "unix-sendto",	&addr_unix_sendto },
+   { "unix-recv",	&xioaddr_unix_recv },
+   { "unix-recvfrom",	&xioaddr_unix_recvfrom },
+   { "unix-send",	&xioaddr_unix_sendto },
+   { "unix-sendto",	&xioaddr_unix_sendto },
 #endif
 #else /* !0 */
 #  if WITH_INTEGRATE

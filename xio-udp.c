@@ -114,7 +114,6 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
    applyopts(-1, opts, PH_INIT);
 
    uslen = socket_init(pf, &us);
-   retropt_int(opts, OPT_SO_TYPE, &socktype);
    retropt_bind(opts, pf, socktype, IPPROTO_UDP,
 		(struct sockaddr *)&us, &uslen, 1,
 		fd->stream.para.socket.ip.res_opts[1],
@@ -176,8 +175,7 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
       union sockaddr_union _sockname;
       union sockaddr_union *la = &_sockname;	/* local address */
 
-      if ((fd->stream.fd = Socket(pf, socktype, ipproto)) < 0) {
-	 Error4("socket(%d, %d, %d): %s", pf, socktype, ipproto, strerror(errno));
+      if ((fd->stream.fd = xiosocket(opts, pf, socktype, ipproto, E_ERROR)) < 0) {
 	 return STAT_RETRYLATER;
       }
       applyopts(fd->stream.fd, opts, PH_PASTSOCKET);
@@ -230,7 +228,7 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
       if (xiocheckpeer(&fd->stream, them, la) < 0) {
 	 /* drop packet */
 	 char buff[512];
-	 Recv(fd->stream.fd, buff, sizeof(buff), 0);
+	 Recv(fd->stream.fd, buff, sizeof(buff), 0);	/* drop packet */
 	 Close(fd->stream.fd);
 	 continue;
       }
@@ -299,6 +297,8 @@ int xioopen_udp_sendto(int argc, const char *argv[], struct opt *opts,
 	     argv[0], argc-1);
       return STAT_NORETRY;
    }
+
+   retropt_socket_pf(opts, &pf);
    if ((result = _xioopen_udp_sendto(argv[1], argv[2], opts, xioflags, xxfd,
 				     groups, pf, socktype, ipproto))
        != STAT_OK) {
@@ -308,6 +308,12 @@ int xioopen_udp_sendto(int argc, const char *argv[], struct opt *opts,
    return STAT_OK;
 }
 
+/*
+   applies and consumes the following option:
+   PH_INIT, PH_PASTSOCKET, PH_FD, PH_PREBIND, PH_BIND, PH_PASTBIND, PH_CONNECTED, PH_LATE
+   OFUNC_OFFSET
+   OPT_BIND, OPT_SOURCEPORT, OPT_LOWPORT, OPT_SO_TYPE, OPT_SO_PROTOTYPE, OPT_USER, OPT_GROUP, OPT_CLOEXEC
+ */
 static
 int _xioopen_udp_sendto(const char *hostname, const char *servname,
 			struct opt *opts,
@@ -321,7 +327,6 @@ int _xioopen_udp_sendto(const char *hostname, const char *servname,
    int result;
 
    xfd->howtoend = END_SHUTDOWN;
-   retropt_int(opts, OPT_SO_TYPE, &socktype);
 
    /* ...res_opts[] */
    if (applyopts_single(xfd, opts, PH_INIT) < 0)  return -1;
@@ -408,6 +413,7 @@ int xioopen_udp_datagram(int argc, const char *argv[], struct opt *opts,
       return STAT_RETRYLATER;
    }
 
+   retropt_socket_pf(opts, &pf);
    result =
       _xioopen_udp_sendto(hostname, argv[2], opts, xioflags, xxfd, groups,
 			 pf, socktype, ipproto);

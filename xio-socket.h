@@ -5,6 +5,12 @@
 #ifndef __xio_socket_h_included
 #define __xio_socket_h_included 1
 
+/* SO_PROTOTYPE is OS defined on Solaris, HP-UX; we lend this for a more
+   general purpose */ 
+#ifndef SO_PROTOTYPE
+#define SO_PROTOTYPE 0x9999
+#endif
+
 extern const struct optdesc opt_connect_timeout;
 extern const struct optdesc opt_so_debug;
 extern const struct optdesc opt_so_acceptconn;
@@ -61,12 +67,14 @@ extern int retropt_socket_pf(struct opt *opts, int *pf);
 extern int xioopen_connect(struct single *fd,
 			    struct sockaddr *us, size_t uslen,
 			    struct sockaddr *them, size_t themlen,
-			    struct opt *opts, int pf, int stype, int proto,
+			    struct opt *opts,
+			   int pf, int socktype, int protocol,
 			    bool alt);
 extern int _xioopen_connect(struct single *fd,
 			    struct sockaddr *us, size_t uslen,
 			    struct sockaddr *them, size_t themlen,
-			    struct opt *opts, int pf, int stype, int proto,
+			    struct opt *opts,
+			    int pf, int socktype, int protocol,
 			    bool alt, int level);
 
 /* common to xioopen_udp_sendto, ..unix_sendto, ..rawip */
@@ -93,6 +101,10 @@ int xiogetpacketsrc(int fd, struct msghdr *msgh);
 extern
 int xiocheckpeer(xiosingle_t *xfd,
 		 union sockaddr_union *pa, union sockaddr_union *la);
+extern int
+xiosocket(struct opt *opts, int pf, int socktype, int proto, int level);
+extern int 
+xiosocketpair(struct opt *opts, int pf, int socktype, int proto, int sv[2]);
 extern
 int xiosetsockaddrenv(const char *lr, union sockaddr_union *sau, socklen_t salen, int proto);
 

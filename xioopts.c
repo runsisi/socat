@@ -1502,7 +1502,7 @@ const struct optname optionnames[] = {
 #ifdef O_TEXT
 	IF_ANY    ("text",	&opt_o_text)
 #endif
-	IF_UNIX   ("tightsocklen",	&opt_unix_tightsocklen)
+	IF_UNIX   ("tightsocklen",	&xioopt_unix_tightsocklen)
 	IF_TERMIOS("time",	&opt_vtime)
 #ifdef SO_TIMESTAMP
 	IF_SOCKET ("timestamp",	&opt_so_timestamp)
@@ -1533,7 +1533,7 @@ const struct optname optionnames[] = {
 	IF_ANY    ("uid-l",	&opt_user_late)
 	IF_NAMED  ("umask",	&opt_umask)
 	IF_IP6    ("unicast-hops",	&opt_ipv6_unicast_hops)
-	IF_UNIX   ("unix-tightsocklen",	&opt_unix_tightsocklen)
+	IF_UNIX   ("unix-tightsocklen",	&xioopt_unix_tightsocklen)
 	IF_NAMED  ("unlink",	&opt_unlink)
 	IF_NAMED  ("unlink-close",	&opt_unlink_close)
 	IF_NAMED  ("unlink-early",	&opt_unlink_early)
@@ -2398,7 +2398,15 @@ int retropt_int(struct opt *opts, int optcode, int *result) {
 
    while (opt->desc != ODESC_END) {
       if (opt->desc != ODESC_DONE && opt->desc->optcode == optcode) {
-	 *result = opt->value.u_int;
+	 switch (opt->desc->type) {
+	 case TYPE_INT: *result = opt->value.u_int; break;
+	 case TYPE_STRING: *result = strtol(opt->value.u_string, NULL, 0);
+	    break;
+	 default: Error2("cannot convert type %d of option %s to int",
+			 opt->desc->type, opt->desc->defname);
+	    opt->desc = ODESC_ERROR;
+	    return -1;
+	 }
 	 opt->desc = ODESC_DONE;
 	 return 0;
       }
@@ -2580,7 +2588,7 @@ int retropt_bind(struct opt *opts,
       {
 	 bool tight = false;
 	 struct sockaddr_un *s_un = (struct sockaddr_un *)sa;
-	 *salen = xiosetunix(s_un, bindname, false, tight);
+	 *salen = xiosetunix(af, s_un, bindname, false, tight);
       }
       break;
 #endif /* WITH_UNIX */

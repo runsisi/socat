@@ -2374,9 +2374,9 @@ N=$((N+1))
 #}
 
 
-NAME=UNIXSOCKET
+NAME=UNIXSTREAM
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%functions%*|*%unix%*|*%$NAME%*)
 TEST="$NAME: echo via connection to UNIX domain socket"
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -2384,7 +2384,7 @@ ts="$td/test$N.socket"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
 CMD1="$SOCAT $opts UNIX-LISTEN:$ts PIPE"
-CMD2="$SOCAT $opts -!!- UNIX:$ts"
+CMD2="$SOCAT $opts -!!- UNIX-CONNECT:$ts"
 printf "test $F_n $TEST... " $N
 $CMD1 </dev/null >$tf 2>"${te}1" &
 bg=$!	# background process id
@@ -8518,82 +8518,6 @@ else
 fi
 esac
 N=$((N+1))
-
-
-while read SCM_ENABLE SCM_RECV SCM_TYPE SCM_NAME SCM_VALUE
-do
-
-# test: logging of ancillary message with ip-recvopt
-NAME=UDP4SCM_$SCM_TYPE
-case "$TESTS" in
-*%functions%*|*%ip4%*|*%dgram%*|*%udp%*|*%udp4%*|*%recv%*|*%ancillary%*|*%$NAME%*)
-#set -vx
-TEST="$NAME: IPv4 ancillary messages"
-# idea: start a socat process with udp4-recv:..,ip-recvopts and send it a packet
-# with IP options (ip-options). check the info log for the appropriate output.
-tf="$td/test$N.stdout"
-te="$td/test$N.stderr"
-ts1p=$PORT; PORT=$((PORT+1))
-ts1a="127.0.0.1"
-ts1="$ts1a:$ts1p"
-CMD0="$SOCAT $opts -d -d -d -u UDP4-RECV:$ts1p,reuseaddr,$SCM_RECV -"
-CMD1="$SOCAT $opts -u - UDP4-SENDTO:$ts1,$SCM_ENABLE"
-printf "test $F_n $TEST... " $N
-# is this option supported?
-if $SOCAT -hhh |grep "[[:space:]]$SCM_RECV[[:space:]]" >/dev/null; then
-$CMD0 >"$tf" 2>"${te}0" &
-pid0="$!"
-waitudp4port $ts1p 1
-echo "XYZ" |$CMD1 2>>"${te}1"
-rc1="$?"
-sleep 1
-i=0; while [ ! -s "${te}0" -a "$i" -lt 10 ]; do  usleep 100000; i=$((i+1));  done
-kill "$pid0" 2>/dev/null; wait
-# do not show more messages than requested
-case "$opts" in
-*-d*-d*-d*-d*) LEVELS="[EWNID]" ;;
-*-d*-d*-d*)    LEVELS="[EWNI]" ;;
-*-d*-d*)       LEVELS="[EWN]" ;;
-*-d*)          LEVELS="[EW]" ;;
-*)             LEVELS="[E]" ;;
-esac
-if [ "$rc1" -ne 0 ]; then
-    $PRINTF "$FAILED: $SOCAT:\n"
-    echo "$CMD0 &"
-    echo "$CMD1"
-    grep " $LEVELS " "${te}0"
-    grep " $LEVELS " "${te}1"
-    numFAIL=$((numFAIL+1))
-elif ! grep "ancillary message: $SCM_TYPE: $SCM_NAME=$SCM_VALUE" ${te}0 >/dev/null; then
-    $PRINTF "$FAILED\n"
-    echo "$CMD0 &"
-    echo "$CMD1"
-    grep " $LEVELS " "${te}0"
-    grep " $LEVELS " "${te}1"
-    numFAIL=$((numFAIL+1))
-else
-    $PRINTF "$OK\n"
-    if [ -n "$debug" ]; then
-	grep " $LEVELS " "${te}0"; echo; grep " $LEVELS " "${te}1";
-    fi
-    numOK=$((numOK+1))
-fi
-else # option is not supported
-    $PRINTF "${YELLOW}$SCM_RECV not available${NORMAL}\n"
-    numCANT=$((numCANT+1))
-fi # option is not supported
-set +vx
-;;
-esac
-N=$((N+1))
-
-done <<<"ip-options=x01000000 ip-recvopts IP_OPTIONS options x01000000
-, so-timestamp SCM_TIMESTAMP timestamp $(date '+%a %b %e %H:%M:.. %Y')
-ip-ttl=53 ip-recvttl IP_TTL ttl 53
-ip-tos=7 ip-recvtos IP_TOS tos 7
-, ip-pktinfo IP_PKTINFO locaddr 127.0.0.1
-, ip-recvif IP_RECVIF if lo
-, ip-recvdstaddr IP_RECVDSTADDR dstaddr 127.0.0.1"
 
 
 # test: logging of ancillary message

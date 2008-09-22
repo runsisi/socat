@@ -200,7 +200,7 @@ static int
 			     xfd->para.socket.ip.res_opts[1],
 			     xfd->para.socket.ip.res_opts[0],
 			     them, &themlen, us, &uslen,
-			     &needbind, &lowport, &socktype);
+			     &needbind, &lowport, socktype);
    if (result != STAT_OK)  return STAT_NORETRY;
 
    if (xioopts.logopt == 'm') {
@@ -431,7 +431,7 @@ static int
    if (_xioopen_ipapp_listen_prepare(opts, &opts0, portname, &pf, ipproto,
 				     xfd->para.socket.ip.res_opts[1],
 				     xfd->para.socket.ip.res_opts[0],
-				     us, &uslen, &socktype)
+				     us, &uslen, socktype)
        != STAT_OK) {
       return STAT_NORETRY;
    }

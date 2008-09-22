@@ -31,6 +31,10 @@ new features:
 	new address options ipv6-tclass and ipv6-unicast-hops set the related
 	socket options.
 
+	so-type now only affect the socket() and socketpair() calls, not the
+	name resolution. so-type and so-prototype can be applied to all socket
+	based addresses.
+
 corrections:
 	some raw IP and UNIX datagram modes failed on BSD systems
 
@@ -77,6 +81,8 @@ further changes:
 
 	Makefile now supports datarootdir (thanks to Camillo Lugaresi for
 	providing the patch)
+
+	cleanup in xio-unix.c
 
 ####################### V 1.6.0.1:
 

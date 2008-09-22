@@ -131,7 +131,7 @@ static int xioopen_proxy_connect(int argc, const char *argv[], struct opt *opts,
 			     xfd->para.socket.ip.res_opts[1],
 			     xfd->para.socket.ip.res_opts[0],
 			     them, &themlen, us, &uslen,
-			     &needbind, &lowport, &socktype);
+			     &needbind, &lowport, socktype);
    if (result != STAT_OK)  return result;
 
    Notice4("opening connection to %s:%u via proxy %s:%s",

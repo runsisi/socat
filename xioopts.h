@@ -521,7 +521,8 @@ enum e_optcode {
    OPT_PIPES,
    /*OPT_PORT,*/
    OPT_PROMPT,		/* readline */
-   OPT_PROTOCOL_FAMILY,
+   OPT_PROTOCOL,	/* 6=TCP, 17=UDP */
+   OPT_PROTOCOL_FAMILY,	/* 1=PF_UNIX, 2=PF_INET, 10=PF_INET6 */
    OPT_PROXYPORT,
    OPT_PROXY_AUTHORIZATION,
    OPT_PROXY_RESOLVE,
@@ -615,9 +616,7 @@ enum e_optcode {
 #ifdef SO_PRIORITY
    OPT_SO_PRIORITY,
 #endif
-#ifdef SO_PROTOTYPE
    OPT_SO_PROTOTYPE,
-#endif
    OPT_SO_RCVBUF,
    OPT_SO_RCVBUF_LATE,
 #ifdef SO_RCVLOWAT
@@ -794,7 +793,8 @@ enum e_optcode {
 
 /* keep consistent with xiohelp.c:optionphasenames ! */
 enum e_phase {
-   PH_ALL,		/* not for options; use in apply funcs to say "all phases" */
+   PH_ALL,		/* not for option definitions; use in apply funcs to
+			   say "all phases" */
    PH_INIT,		/* retrieving info from original state */
    PH_EARLY,		/* before any other processing */
    PH_PREOPEN,		/* before file descriptor is created/opened */

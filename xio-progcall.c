@@ -10,6 +10,9 @@
 #include "xio-process.h"
 #include "xio-progcall.h"
 
+#include "xio-socket.h"
+
+
 /* these options are used by address pty too */
 #if HAVE_OPENPTY
 const struct optdesc opt_openpty = { "openpty",   NULL, OPT_OPENPTY,     GROUP_PTY,   PH_BIGEN, TYPE_BOOL, 	OFUNC_SPEC };
@@ -49,7 +52,7 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 		) {
    struct opt *popts;	/* parent process options */
    int numleft;
-   int d, type, protocol, sv[2], rdpip[2], wrpip[2];
+   int d, sv[2], rdpip[2], wrpip[2];
    int rw = (xioflags & XIO_ACCMODE);
    bool usepipes = false;
 #if HAVE_PTY
@@ -358,13 +361,10 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
       applyopts(fd->fd, popts, PH_LATE);
       if (applyopts_single(fd, popts, PH_LATE) < 0)  return -1;
    } else {
-      d = AF_UNIX;  type = SOCK_STREAM;
-      protocol = 0;	/* PF_UNIX does not work on AIX */
-      retropt_int(popts, OPT_SO_TYPE, &type);
-      result = Socketpair(d, type, protocol, sv);
+      d = AF_UNIX;
+      retropt_int(popts, OPT_PROTOCOL_FAMILY, &d);
+      result = xiosocketpair(popts, d, SOCK_STREAM, 0, sv);
       if (result < 0) {
-	 Error5("socketpair(%d, %d, %d, %p): %s",
-		d, type, protocol, sv, strerror(errno));
 	 return -1;
       }
       /*0 Info5("socketpair(%d, %d, %d, {%d,%d})",

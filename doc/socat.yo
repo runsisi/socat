@@ -1590,11 +1590,23 @@ label(OPTION_SNDLOWAT)dit(bf(tt(sndlowat=<bytes>)))
    layer will send the data to <bytes> [link(int)(TYPE_INT)].
 label(OPTION_SNDTIMEO)dit(bf(tt(sndtimeo=<seconds>)))
    Sets the send timeout to seconds [link(timeval)(TYPE_TIMEVAL)].
-label(OPTION_TYPE)dit(bf(tt(type=<type>)))
-   Sets the type of the socket, usually as argument to the code(socket()) or
-   code(socketpair()) call, to <type> [link(int)(TYPE_INT)].
+label(OPTION_PROTOCOL_FAMILY)dit(bf(tt(pf=<string>)))
+   Forces the use of the specified IP version or protocol. <string> can be
+   something like "ip4" or "ip6". The resulting value is
+   used as first argument to the code(socket()) or code(socketpair()) calls.
+   This option affects address resolution and the required syntax of bind and
+   range options.
+label(OPTION_SO_TYPE)dit(bf(tt(type=<type>)))
+   Sets the type of the socket, specified as second argument to the
+   code(socket()) or code(socketpair()) calls, to <type>
+   [link(int)(TYPE_INT)]. Address resolution is not affected by this option.
    Under Linux, 1 means stream oriented socket, 2 means datagram socket, and 3
    means raw socket.
+label(OPTION_SO_PROTOTYPE)dit(bf(tt(prototype)))
+   Sets the protocol of the socket, specified as third argument to the
+   code(socket()) or code(socketpair()) calls, to <prototype>
+   [link(int)(TYPE_INT)]. Address resolution is not affected by this option.
+   6 means TCP, 17 means UDP.
 COMMENT(label(OPTION_USELOOPBACK)dit(bf(tt(useloopback)))
    Sets the code(SO_USELOOPBACK) socket option.)
 COMMENT(label(OPTION_ACCEPTCONN)dit(bf(tt(acceptconn)))
@@ -1623,8 +1635,6 @@ COMMENT(label(OPTION_PASSCRED)dit(bf(tt(passcred)))
    Set the code(SO_PASSCRED) socket option.)
 COMMENT(label(OPTION_PEERCRED)dit(bf(tt(peercred)))
    This is a read-only socket option.)
-COMMENT(label(OPTION_PROTOTYPE)dit(bf(tt(prototype)))
-   Tries to set the code(SO_PROTOTYPE) socket option.)
 COMMENT(label(OPTION_REUSEPORT)dit(bf(tt(reuseport)))
    Set the code(SO_REUSEPORT) socket option.)
 COMMENT(label(OPTION_SECUTIYAUTHENTICATION)dit(bf(tt(securityauthentication)))
@@ -1637,9 +1647,6 @@ COMMENT(label(OPTION_SIOCSPGRP)dit(bf(tt(siocspgrp=<pid_t>)))
    Set the SIOCSPGRP with code(ioclt()) to enable SIGIO.)
 COMMENT(label(OPTION_USEIFBUFS)dit(bf(tt(useifbufs)))
    Set the code(SO_USE_IFBUFS) socket option.)
-label(OPTION_PROTOCOL_FAMILY)dit(bf(tt(pf=<string>)))
-   Forces the use of the specified IP version. <string> can be
-   something like "ip4" or "ip6".
 label(OPTION_SO_TIMESTAMP)dit(bf(tt(so-timestamp)))
    Sets the SO_TIMESTAMP socket option. This enables receiving and logging of
    timestamp ancillary messages.
