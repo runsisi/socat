@@ -82,6 +82,12 @@ bool xioopts_ignoregroups;
 #  define IF_TCP(a,b) 
 #endif
 
+#if WITH_SCTP
+#  define IF_SCTP(a,b) {a,b},
+#else
+#  define IF_SCTP(a,b) 
+#endif
+
 #if WITH_SOCKS4
 #  define IF_SOCKS4(a,b) {a,b},
 #else
@@ -1208,6 +1214,13 @@ const struct optname optionnames[] = {
 	IF_TCP    ("sackena",	&opt_tcp_sackena)
 #endif
 	IF_TERMIOS("sane",	&opt_sane)
+#ifdef SCTP_MAXSEG
+	IF_SCTP   ("sctp-maxseg",	&opt_sctp_maxseg)
+	IF_SCTP   ("sctp-maxseg-late",	&opt_sctp_maxseg_late)
+#endif
+#ifdef SCTP_NODELAY
+	IF_SCTP   ("sctp-nodelay",	&opt_sctp_nodelay)
+#endif
 #if WITH_EXT2 && defined(EXT2_SECRM_FL)
 	IF_ANY    ("secrm",	&opt_ext2_secrm)
 #endif

@@ -43,7 +43,7 @@ static const char *addressgroupnames[] = {
 	"TERMIOS",	"RANGE",	"PTY",		"PARENT",
 	"UNIX",		"IP4",		"IP6",		"INTERFACE",
 	"UDP",		"TCP",		"SOCKS4",	"OPENSSL",
-	"PROCESS",	"APPL",		"HTTP",		"undef"
+	"PROCESS",	"APPL",		"HTTP",		"SCTP"
 } ;
 
 

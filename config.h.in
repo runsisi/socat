@@ -1,5 +1,5 @@
 /* source: config.h.in */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __config_h_included
@@ -471,6 +471,7 @@
 #undef WITH_GENERICSOCKET
 #undef WITH_TCP
 #undef WITH_UDP
+#undef WITH_SCTP
 #undef WITH_LISTEN
 #undef WITH_SOCKS4
 #undef WITH_SOCKS4A

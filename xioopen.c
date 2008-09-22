@@ -135,6 +135,26 @@ const struct addrname addressnames[] = {
 #if WITH_READLINE
    { "readline",	&addr_readline },
 #endif
+#if (WITH_IP4 || WITH_IP6) && WITH_SCTP
+   { "sctp",		&addr_sctp_connect },
+   { "sctp-connect",	&addr_sctp_connect },
+#if WITH_LISTEN
+   { "sctp-l",		&addr_sctp_listen },
+   { "sctp-listen",	&addr_sctp_listen },
+#endif
+   { "sctp4",		&addr_sctp4_connect },
+   { "sctp4-connect",	&addr_sctp4_connect },
+#if WITH_LISTEN
+   { "sctp4-l",		&addr_sctp4_listen },
+   { "sctp4-listen",	&addr_sctp4_listen },
+#endif
+   { "sctp6",		&addr_sctp6_connect },
+   { "sctp6-connect",	&addr_sctp6_connect },
+#if WITH_LISTEN
+   { "sctp6-l",		&addr_sctp6_listen },
+   { "sctp6-listen",	&addr_sctp6_listen },
+#endif
+#endif /* (WITH_IP4 || WITH_IP6) && WITH_SCTP */
 #if WITH_GENERICSOCKET
    { "sendto",			&xioaddr_socket_sendto },
 #endif

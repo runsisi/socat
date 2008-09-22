@@ -46,7 +46,7 @@ XIOSRCS = xioinitialize.c xiohelp.c xioparam.c xiodiag.c xioopen.c xioopts.c \
 	xio-process.c xio-fd.c xio-fdnum.c xio-stdio.c xio-pipe.c \
 	xio-gopen.c xio-creat.c xio-file.c xio-named.c \
 	xio-socket.c xio-listen.c xio-unix.c xio-ip.c xio-ip4.c xio-ip6.c xio-ipapp.c xio-tcp.c xio-socks.c xio-proxy.c xio-udp.c \
-	xio-rawip.c \
+	xio-sctp.c xio-rawip.c \
 	xio-progcall.c xio-exec.c xio-system.c xio-termios.c xio-readline.c \
 	xio-pty.c xio-openssl.c \
 	xio-ascii.c xiolockfile.c xio-tcpwrap.c xio-ext2.c xio-tun.c
@@ -63,6 +63,7 @@ HFILES = sycls.h sslcls.h error.h dalan.h procan.h filan.h hostan.h sysincludes.
 	xio-named.h xio-file.h xio-creat.h xio-gopen.h xio-pipe.h xio-socket.h \
 	xio-listen.h xio-unix.h xio-rawip.h xio-ip.h xio-ip4.h xio-ip6.h \
 	xio-ipapp.h xio-tcp.h xio-udp.h xio-socks.h xio-proxy.h xio-progcall.h xio-exec.h \
+	xio-sctp.h \
 	xio-system.h xio-termios.h xio-readline.h \
 	xio-pty.h xio-openssl.h \
 	xio-ascii.h xiolockfile.h xio-tcpwrap.h xio-ext2.h xio-tun.h

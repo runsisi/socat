@@ -600,6 +600,69 @@ label(ADDRESS_READLINE)dit(bf(tt(READLINE)))
    link(noecho)(OPTION_NOECHO)nl()
    See also:
    link(STDIO)(ADDRESS_STDIO)
+label(ADDRESS_SCTP_CONNECT)dit(bf(tt(SCTP-CONNECT:<host>:<port>)))
+   Establishes an SCTP stream connection to the specified <host> [link(IP
+   address)(TYPE_IP_ADDRESS)] and <port> [link(TCP service)(TYPE_TCP_SERVICE)]
+   using TCP/IP version 4 or 6 depending on address specification, name
+   resolution, or option link(pf)(OPTION_PROTOCOL_FAMILY).nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4),link(IP6)(GROUP_IP6),link(SCTP)(GROUP_SCTP),link(CHILD)(GROUP_CHILD),link(RETRY)(GROUP_RETRY) nl()
+   Useful options:
+   link(bind)(OPTION_BIND),
+   link(pf)(OPTION_PROTOCOL_FAMILY),
+   link(connect-timeout)(OPTION_CONNECT_TIMEOUT),
+   link(tos)(OPTION_TOS),
+   link(mtudiscover)(OPTION_MTUDISCOVER),
+   link(mss)(OPTION_MSS),
+   link(nodelay)(OPTION_NODELAY),
+   link(nonblock)(OPTION_NONBLOCK),
+   link(sourceport)(OPTION_SOURCEPORT),
+   link(retry)(OPTION_RETRY),
+   link(readbytes)(OPTION_READBYTES)nl()
+   See also:
+   link(SCTP4-CONNECT)(ADDRESS_SCTP4_CONNECT),
+   link(SCTP6-CONNECT)(ADDRESS_SCTP6_CONNECT),
+   link(SCTP-LISTEN)(ADDRESS_SCTP_LISTEN),
+   link(TCP-CONNECT)(ADDRESS_TCP_CONNECT)
+label(ADDRESS_SCTP4_CONNECT)dit(bf(tt(SCTP4-CONNECT:<host>:<port>)))
+   Like link(SCTP-CONNECT)(ADDRESS_SCTP_CONNECT), but only supports IPv4 protocol.nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4),link(SCTP)(GROUP_SCTP),link(CHILD)(GROUP_CHILD),link(RETRY)(GROUP_RETRY) nl()
+label(ADDRESS_SCTP6_CONNECT)dit(bf(tt(SCTP6-CONNECT:<host>:<port>)))
+   Like link(SCTP-CONNECT)(ADDRESS_SCTP_CONNECT), but only supports IPv6 protocol.nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP6)(GROUP_IP6),link(SCTP)(GROUP_SCTP),link(CHILD)(GROUP_CHILD),link(RETRY)(GROUP_RETRY) nl()
+label(ADDRESS_SCTP_LISTEN)dit(bf(tt(SCTP-LISTEN:<port>)))
+   Listens on <port> [link(TCP service)(TYPE_TCP_SERVICE)] and accepts a
+   TCP/IP connection. The IP version is 4 or the one specified with
+   address option link(pf)(OPTION_PROTOCOL_FAMILY), socat option
+   (link(-4)(option_4), link(-6)(option_6)), or environment variable link(SOCAT_DEFAULT_LISTEN_IP)(ENV_SOCAT_DEFAULT_LISTEN_IP).
+   Note that opening
+   this address usually blocks until a client connects.nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(LISTEN)(GROUP_LISTEN),link(CHILD)(GROUP_CHILD),link(RANGE)(GROUP_RANGE),link(IP4)(GROUP_IP4),link(IP6)(GROUP_IP6),link(SCTP)(GROUP_SCTP),link(RETRY)(GROUP_RETRY) nl()
+   Useful options:
+   link(crnl)(OPTION_CRNL),
+   link(fork)(OPTION_FORK),
+   link(bind)(OPTION_BIND),
+   link(range)(OPTION_RANGE),
+   link(tcpwrap)(OPTION_TCPWRAPPERS),
+   link(pf)(OPTION_PROTOCOL_FAMILY),
+   link(backlog)(OPTION_BACKLOG),
+   link(mss)(OPTION_MSS),
+   link(su)(OPTION_SUBSTUSER),
+   link(reuseaddr)(OPTION_REUSEADDR),
+   link(retry)(OPTION_RETRY),
+   link(cool-write)(OPTION_COOL_WRITE)nl()
+   See also:
+   link(SCTP4-LISTEN)(ADDRESS_SCTP4_LISTEN),
+   link(SCTP6-LISTEN)(ADDRESS_SCTP6_LISTEN),
+   link(TCP-LISTEN)(ADDRESS_TCP_LISTEN),
+   link(SCTP-CONNECT)(ADDRESS_SCTP_CONNECT)
+label(ADDRESS_SCTP4_LISTEN)dit(bf(tt(SCTP4-LISTEN:<port>)))
+   Like link(SCTP-LISTEN)(ADDRESS_SCTP_LISTEN), but only supports IPv4
+   protocol.nl() 
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(LISTEN)(GROUP_LISTEN),link(CHILD)(GROUP_CHILD),link(RANGE)(GROUP_RANGE),link(IP4)(GROUP_IP4),link(SCTP)(GROUP_SCTP),link(RETRY)(GROUP_RETRY) nl()
+label(ADDRESS_SCTP6_LISTEN)dit(bf(tt(SCTP6-LISTEN:<port>)))
+   Like link(SCTP-LISTEN)(ADDRESS_SCTP_LISTEN), but only supports IPv6
+   protocol.nl() 
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(LISTEN)(GROUP_LISTEN),link(CHILD)(GROUP_CHILD),link(RANGE)(GROUP_RANGE),link(IP6)(GROUP_IP6),link(SCTP)(GROUP_SCTP),link(RETRY)(GROUP_RETRY) nl()
 label(ADDRESS_SOCKET_CONNECT)dit(bf(tt(SOCKET-CONNECT:<domain>:<protocol>:<remote-address>)))
    Creates a stream socket using the first and second given socket parameters
    and tt(SOCK_STREAM) (see man socket(2)) and connects to the remote-address.
@@ -829,6 +892,7 @@ label(ADDRESS_TCP_CONNECT)dit(bf(tt(TCP:<host>:<port>)))
    link(TCP6)(ADDRESS_TCP6_CONNECT),
    link(TCP-LISTEN)(ADDRESS_TCP_LISTEN),
    link(UDP)(ADDRESS_UDP_CONNECT),
+   link(SCTP-CONNECT)(ADDRESS_SCTP_CONNECT),
    link(UNIX-CONNECT)(ADDRESS_UNIX_CONNECT)
 label(ADDRESS_TCP4_CONNECT)dit(bf(tt(TCP4:<host>:<port>)))
    Like link(TCP)(ADDRESS_TCP_CONNECT), but only supports IPv4 protocol (link(example)(EXAMPLE_ADDRESS_TCP4_CONNECT)).nl()
@@ -839,7 +903,8 @@ label(ADDRESS_TCP6_CONNECT)dit(bf(tt(TCP6:<host>:<port>)))
 label(ADDRESS_TCP_LISTEN)dit(bf(tt(TCP-LISTEN:<port>)))
    Listens on <port> [link(TCP service)(TYPE_TCP_SERVICE)] and accepts a
    TCP/IP connection. The IP version is 4 or the one specified with
-   link(pf)(OPTION_PROTOCOL_FAMILY).
+   address option link(pf)(OPTION_PROTOCOL_FAMILY), socat option
+   (link(-4)(option_4), link(-6)(option_6)), or environment variable link(SOCAT_DEFAULT_LISTEN_IP)(ENV_SOCAT_DEFAULT_LISTEN_IP).
    Note that opening
    this address usually blocks until a client connects.nl()
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(LISTEN)(GROUP_LISTEN),link(CHILD)(GROUP_CHILD),link(RANGE)(GROUP_RANGE),link(IP4)(GROUP_IP4),link(IP6)(GROUP_IP6),link(TCP)(GROUP_TCP),link(RETRY)(GROUP_RETRY) nl()
@@ -855,13 +920,15 @@ label(ADDRESS_TCP_LISTEN)dit(bf(tt(TCP-LISTEN:<port>)))
    link(su)(OPTION_SUBSTUSER),
    link(reuseaddr)(OPTION_REUSEADDR),
    link(retry)(OPTION_RETRY),
-   link(retry)(OPTION_COOL_WRITE)nl()
+   link(cool-write)(OPTION_COOL_WRITE)nl()
    See also:
-   link(TCP4-LISTEN)(ADDRESS_TCP4_CONNECT),
+   link(TCP4-LISTEN)(ADDRESS_TCP4_LISTEN),
    link(TCP6-LISTEN)(ADDRESS_TCP6_LISTEN),
    link(UDP-LISTEN)(ADDRESS_UDP_LISTEN),
+   link(SCTP-LISTEN)(ADDRESS_SCTP_LISTEN),
    link(UNIX-LISTEN)(ADDRESS_UNIX_LISTEN),
-   link(OPENSSL-LISTEN)(ADDRESS_OPENSSL_LISTEN)
+   link(OPENSSL-LISTEN)(ADDRESS_OPENSSL_LISTEN),
+   link(TCP-CONNECT)(ADDRESS_TCP_CONNECT)
 label(ADDRESS_TCP4_LISTEN)dit(bf(tt(TCP4-LISTEN:<port>)))
    Like link(TCP-LISTEN)(ADDRESS_TCP_LISTEN), but only supports IPv4
    protocol (link(example)(EXAMPLE_ADDRESS_TCP4_LISTEN)).nl() 
@@ -2058,10 +2125,24 @@ enddit()
 startdit()enddit()nl()
 
 
-em(bf(UDP and TCP option groups))
+label(GROUP_SCTP)em(bf(SCTP option group))
+
+These options may be applied to SCTP stream sockets.
+startdit()
+label(OPTION_SCTP_NODELAY)dit(bf(tt(sctp-nodelay)))
+   Sets the SCTP_NODELAY socket option that disables the Nagle algorithm.
+label(OPTION_SCTP_MAXSEG)dit(bf(tt(sctp-maxseg=<bytes>)))
+   Sets the SCTP_MAXSEG socket option to <bytes> [link(int)(TYPE_INT)].  This
+   value is then proposed to the peer with the SYN or SYN/ACK packet. 
+enddit()
+
+startdit()enddit()nl()
+
+
+em(bf(UDP, TCP, and SCTP option groups))
 
 Here we find options that are related to the network port mechanism and that
-thus can be used with UDP and TCP, client and server addresses.
+thus can be used with UDP, TCP, and SCTP client and server addresses.
 startdit()
 label(OPTION_SOURCEPORT)dit(bf(tt(sourceport=<port>)))
    For outgoing (client) TCP and UDP connections, it sets the source
@@ -3163,11 +3244,11 @@ by the upper case name of the executable or the value of option
 link(-lp)(option_lp).
 
 startdit()
+label(ENV_SOCAT_DEFAULT_LISTEN_IP)
 dit(bf(SOCAT_DEFAULT_LISTEN_IP) (input)) (Values 4 or 6) Sets the IP version to
-be used 
-for listen, recv, and recvfrom addresses if no link(pf)(OPTION_PROTOCOL_FAMILY)
-(protocol-family) option is given. Is overridden by socat options
-link(-4)(option_4) or link(-6)(option_6).
+be used for listen, recv, and recvfrom addresses if no
+link(pf)(OPTION_PROTOCOL_FAMILY) (protocol-family) option is given. Is
+overridden by socat options link(-4)(option_4) or link(-6)(option_6).
 
 dit(bf(SOCAT_PREFERRED_RESOLVE_IP) (input)) (Values 0, 4, or 6) Sets the IP
 version to 

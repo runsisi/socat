@@ -423,7 +423,9 @@ int xiopoll(struct pollfd fds[], nfds_t nfds, int timeout) {
    
 
 #if WITH_TCP || WITH_UDP
-/* returns port in network byte order */
+/* returns port in network byte order;
+   ipproto==IPPROTO_UDP resolves as UDP service, every other value resolves as
+   TCP */
 int parseport(const char *portname, int ipproto) {
    struct servent *se;
    char *extra;
@@ -438,7 +440,7 @@ int parseport(const char *portname, int ipproto) {
       return result;
    }
 
-   if ((se = getservbyname(portname, ipproto==IPPROTO_TCP?"tcp":"udp")) == NULL) {
+   if ((se = getservbyname(portname, ipproto==IPPROTO_UDP?"udp":"tcp")) == NULL) {
       Error2("cannot resolve service \"%s/%d\"", portname, ipproto);
       return 0;
    }

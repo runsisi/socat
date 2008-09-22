@@ -28,6 +28,7 @@
 #include "xio-ipapp.h"
 #include "xio-tcp.h"
 #include "xio-udp.h"
+#include "xio-sctp.h"
 #include "xio-socks.h"
 #include "xio-proxy.h"
 #endif /* _WITH_SOCKET */

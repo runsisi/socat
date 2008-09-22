@@ -1866,6 +1866,40 @@ waitudp4port () {
     return 1
 }
 
+# wait until an SCTP4 listen port is ready
+waitsctp4port () {
+    local port="$1"
+    local logic="$2"	# 0..wait until free; 1..wait until listening
+    local timeout="$3"
+    local l
+    [ "$logic" ] || logic=1
+    [ "$timeout" ] || timeout=5
+    while [ $timeout -gt 0 ]; do
+	case "$UNAME" in
+	Linux)   l=$(netstat -n -a |grep '^sctp .* .*[0-9*]:'$port' .* LISTEN') ;;
+#	FreeBSD) l=$(netstat -an |grep '^tcp4.* .*[0-9*]\.'$port' .* \*\.\* .* LISTEN') ;;
+#	NetBSD)  l=$(netstat -an |grep '^tcp .* .*[0-9*]\.'$port' [ ]* \*\.\* [ ]* LISTEN.*') ;;
+#	Darwin) case "$(uname -r)" in
+#		[1-5]*) l=$(netstat -an |grep '^tcp.* .*[0-9*]\.'$port' .* \*\.\* .* LISTEN') ;;
+#		*) l=$(netstat -an |grep '^tcp4.* .*[0-9*]\.'$port' .* \*\.\* .* LISTEN') ;;
+#		esac ;;
+#	AIX)	 l=$(netstat -an |grep '^tcp[^6]       0      0 .*[*0-9]\.'$port' .* LISTEN$') ;;
+#	SunOS)   l=$(netstat -an -f inet -P tcp |grep '.*[1-9*]\.'$port' .*\*                0 .* LISTEN') ;;
+#	HP-UX)   l=$(netstat -an |grep '^tcp        0      0  .*[0-9*]\.'$port' .* LISTEN$') ;;
+#	OSF1)    l=$(/usr/sbin/netstat -an |grep '^tcp        0      0  .*[0-9*]\.'$port' [ ]*\*\.\* [ ]*LISTEN') ;;
+#	CYGWIN*) l=$(netstat -an -p TCP |grep '^  TCP    [0-9.]*:'$port' .* LISTENING') ;;
+ 	*)       l=$(netstat -an |grep -i 'sctp .*[0-9*][:.]'$port' .* listen') ;;
+	esac
+	[ \( \( $logic -ne 0 \) -a -n "$l" \) -o \
+	  \( \( $logic -eq 0 \) -a -z "$l" \) ] && return 0
+	sleep 1
+	timeout=$((timeout-1))
+    done
+
+    $ECHO "!port $port timed out! \c" >&2
+    return 1
+}
+
 # wait until a tcp6 listen port is ready
 waittcp6port () {
     local port="$1"
@@ -1915,6 +1949,36 @@ waitudp6port () {
 	#HP-UX)   l=$(netstat -an |grep '^udp        0      0  .*[0-9*]\.'$port' ') ;;
 	#OSF1)    l=$(/usr/sbin/netstat -an |grep '^udp6       0      0  .*[0-9*]\.'$port' [ ]*\*\.\*') ;;
  	*)       l=$(netstat -an |grep -i 'udp .*[0-9*][:.]'$port' ') ;;
+	esac
+	[ \( \( $logic -ne 0 \) -a -n "$l" \) -o \
+	  \( \( $logic -eq 0 \) -a -z "$l" \) ] && return 0
+	sleep 1
+	timeout=$((timeout-1))
+    done
+
+    $ECHO "!port $port timed out! \c" >&2
+    return 1
+}
+
+# wait until a sctp6 listen port is ready
+# not all (Linux) variants show this in netstat
+waitsctp6port () {
+    local port="$1"
+    local logic="$2"	# 0..wait until free; 1..wait until listening
+    local timeout="$3"
+    local l
+    [ "$logic" ] || logic=1
+    [ "$timeout" ] || timeout=5
+    while [ $timeout -gt 0 ]; do
+	case "$UNAME" in
+	Linux)   l=$(netstat -an |grep '^sctp[6 ] .* [0-9a-f:]*:'$port' .* LISTEN') ;;
+#	FreeBSD) l=$(netstat -an |grep -i 'tcp[46][6 ] .*[0-9*][:.]'$port' .* listen') ;;
+#	NetBSD)  l=$(netstat -an |grep '^tcp6 .*[0-9*]\.'$port' [ ]* \*\.\*') ;;
+#	OpenBSD) l=$(netstat -an |grep -i 'tcp6 .*[0-9*][:.]'$port' .* listen') ;;
+#	AIX)	 l=$(netstat -an |grep '^tcp[6 ]       0      0 .*[*0-9]\.'$port' .* LISTEN$') ;;
+#	SunOS)   l=$(netstat -an -f inet6 -P tcp |grep '.*[1-9*]\.'$port' .*\* [ ]* 0 .* LISTEN') ;;
+#	#OSF1)    l=$(/usr/sbin/netstat -an |grep '^tcp6       0      0  .*[0-9*]\.'$port' [ ]*\*\.\* [ ]*LISTEN') /*?*/;;
+ 	*)       l=$(netstat -an |grep -i 'stcp6 .*:'$port' .* listen') ;;
 	esac
 	[ \( \( $logic -ne 0 \) -a -n "$l" \) -o \
 	  \( \( $logic -eq 0 \) -a -z "$l" \) ] && return 0
@@ -9174,6 +9238,7 @@ esac
 PORT=$((PORT+1))
 N=$((N+1))
 
+
 # test the SOCKET-RECV address (with UDP4-SENDTO)
 NAME=SOCKET_RECV
 case "$TESTS" in
@@ -9422,6 +9487,103 @@ else
 fi
 fi # !Linux
  ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
+NAME=SCTP4STREAM
+case "$TESTS" in
+*%functions%*|*%ip4%*|*%ipapp%*|*%sctp%*|*%$NAME%*)
+TEST="$NAME: echo via connection to SCTP V4 socket"
+if ! testaddrs sctp ip4 >/dev/null || ! runsip4 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}SCTP4 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+elif [ "$UNAME" = Linux ] && ! grep ^sctp /proc/modules >/dev/null; then
+    # RHEL5 based systems became unusable when an sctp socket was created but
+    # module sctp not loaded
+    $PRINTF "test $F_n $TEST...${YELLOW}load sctp module!${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+tsl=$PORT
+ts="127.0.0.1:$tsl"
+da=$(date)
+CMD1="$SOCAT $opts SCTP4-LISTEN:$tsl,reuseaddr PIPE"
+CMD2="$SOCAT $opts stdin!!stdout SCTP4:$ts"
+printf "test $F_n $TEST... " $N
+$CMD1 >"$tf" 2>"${te}1" &
+pid1=$!
+waitsctp4port $tsl 1
+# SCTP does not seem to support half close, so we let it 1s to finish
+(echo "$da"; sleep 1) |$CMD2 >>"$tf" 2>>"${te}2"
+if [ $? -ne 0 ]; then
+   $PRINTF "$FAILED: $SOCAT:\n"
+   echo "$CMD1 &"
+   cat "${te}1"
+   echo "$CMD2"
+   cat "${te}2"
+   numFAIL=$((numFAIL+1))
+elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
+   $PRINTF "$FAILED\n"
+   cat "$tdiff"
+   numFAIL=$((numFAIL+1))
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
+   numOK=$((numOK+1))
+fi
+kill $pid1 2>/dev/null
+wait
+fi ;;	# sctp
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+NAME=SCTP6STREAM
+case "$TESTS" in
+*%functions%*|*%ip6%*|*%ipapp%*|*%sctp%*|*%$NAME%*)
+TEST="$NAME: echo via connection to SCTP V6 socket"
+if ! testaddrs sctp ip6 >/dev/null || ! runsip6 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}SCTP6 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+elif [ "$UNAME" = Linux ] && ! grep ^sctp /proc/modules >/dev/null; then
+    $PRINTF "test $F_n $TEST...${YELLOW}load sctp module!${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+tsl=$PORT
+ts="[::1]:$tsl"
+da=$(date)
+CMD1="$SOCAT $opts SCTP6-listen:$tsl,reuseaddr PIPE"
+CMD2="$SOCAT $opts stdin!!stdout SCTP6:$ts"
+printf "test $F_n $TEST... " $N
+$CMD1 >"$tf" 2>"${te}1" &
+pid=$!	# background process id
+waitsctp6port $tsl 1
+# SCTP does not seem to support half close, so we let it 1s to finish
+(echo "$da"; sleep 1) |$CMD2 >>"$tf" 2>>"${te}2"
+if [ $? -ne 0 ]; then
+   $PRINTF "$FAILED: $SOCAT:\n"
+   echo "$CMD1 &"
+   echo "$CMD2"
+   cat "$te"
+   numFAIL=$((numFAIL+1))
+elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
+   $PRINTF "$FAILED: diff:\n"
+   cat "$tdiff"
+   numFAIL=$((numFAIL+1))
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
+   numOK=$((numOK+1))
+fi
+kill $pid 2>/dev/null
+fi ;;	# sctp
 esac
 PORT=$((PORT+1))
 N=$((N+1))

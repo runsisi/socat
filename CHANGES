@@ -1,5 +1,9 @@
 
 new features:
+	new address types SCTP-CONNECT and SCTP-LISTEN implement SCTP stream
+	mode for IPv4 and IPv6; new address options sctp-maxseg and
+	sctp-nodelay
+
 	added generic socket addresses: SOCKET-CONNECT, SOCKET-LISTEN,
 	SOCKET-SENDTO, SOCKET-RECVFROM, SOCKET-RECV, SOCKET-DATAGRAM allow
 	protocol independent socket handling; all parameters are explicitely

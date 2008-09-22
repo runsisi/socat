@@ -166,6 +166,7 @@ enum e_func {
 #define GROUP_PROCESS	0x10000000	/* a process related option */
 #define GROUP_APPL	0x20000000	/* option handled by data loop */
 #define GROUP_HTTP	0x40000000	/* any HTTP client */
+#define GROUP_IP_SCTP	0x80000000
 
 #define GROUP_ANY	(GROUP_PROCESS|GROUP_APPL)
 #define GROUP_ALL	0xffffffff
@@ -568,6 +569,9 @@ enum e_optcode {
    OPT_RES_USEVC,	/* resolver(3) */
    OPT_RETRY,
    OPT_SANE,		/* termios */
+   OPT_SCTP_MAXSEG,
+   OPT_SCTP_MAXSEG_LATE,
+   OPT_SCTP_NODELAY,
    OPT_SEEK32_CUR,
    OPT_SEEK32_END,
    OPT_SEEK32_SET,

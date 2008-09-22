@@ -438,6 +438,11 @@ void socat_version(FILE *fd) {
 #else
    fputs("  #undef WITH_UDP\n", fd);
 #endif
+#ifdef WITH_SCTP
+   fprintf(fd, "  #define WITH_SCTP %d\n", WITH_SCTP);
+#else
+   fputs("  #undef WITH_SCTP\n", fd);
+#endif
 #ifdef WITH_LISTEN
    fprintf(fd, "  #define WITH_LISTEN %d\n", WITH_LISTEN);
 #else
