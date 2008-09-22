@@ -37,6 +37,10 @@ const struct addrname addressnames[] = {
    { "creat",	&addr_creat },
    { "create",	&addr_creat },
 #endif
+#if WITH_GENERICSOCKET
+   { "datagram",		&xioaddr_socket_datagram },
+   { "dgram",			&xioaddr_socket_datagram },
+#endif
 #if WITH_PIPE
    { "echo",		&addr_pipe },
 #endif
@@ -130,6 +134,17 @@ const struct addrname addressnames[] = {
 #endif
 #if WITH_READLINE
    { "readline",	&addr_readline },
+#endif
+#if WITH_GENERICSOCKET
+   { "sendto",			&xioaddr_socket_sendto },
+#endif
+#if WITH_GENERICSOCKET
+   { "socket-connect",		&xioaddr_socket_connect },
+   { "socket-datagram",		&xioaddr_socket_datagram },
+   { "socket-listen",		&xioaddr_socket_listen },
+   { "socket-recv",		&xioaddr_socket_recv },
+   { "socket-recvfrom",		&xioaddr_socket_recvfrom },
+   { "socket-sendto",		&xioaddr_socket_sendto },
 #endif
 #if WITH_SOCKS4
    { "socks",	&addr_socks4_connect },
@@ -296,9 +311,9 @@ static xiofile_t *xioallocfd(void) {
 
    fd->stream.fd        = -1;
    fd->stream.dtype     = XIODATA_STREAM;
-#if WITH_SOCKET
+#if _WITH_SOCKET
 /* fd->stream.salen     = 0; */
-#endif /* WITH_SOCKET */
+#endif /* _WITH_SOCKET */
    fd->stream.howtoend  = END_UNSPEC;
 /* fd->stream.name      = NULL; */
    fd->stream.escape	= -1;

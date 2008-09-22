@@ -10,7 +10,7 @@ def(Filan)(0)(bf(Filan))
 def(procan)(0)(bf(procan))
 def(Procan)(0)(bf(Procan))
 
-manpage(socat)(1)(Jul 2008)(socat)()
+manpage(socat)(1)(Sep 2008)(socat)()
 
 whenhtml(
 label(CONTENTS)
@@ -600,6 +600,145 @@ label(ADDRESS_READLINE)dit(bf(tt(READLINE)))
    link(noecho)(OPTION_NOECHO)nl()
    See also:
    link(STDIO)(ADDRESS_STDIO)
+label(ADDRESS_SOCKET_CONNECT)dit(bf(tt(SOCKET-CONNECT:<domain>:<protocol>:<remote-address>)))
+   Creates a stream socket using the first and second given socket parameters
+   and tt(SOCK_STREAM) (see man socket(2)) and connects to the remote-address.
+   The two socket parameters have to be specified by link(int)(TYPE_INT)
+   numbers. Consult your OS documentation and include files to find the
+   appropriate values. The remote-address must be the link(data)(TYPE_DATA)
+   representation of a sockaddr structure without sa_family and (BSD) sa_len
+   components.nl()
+   Please note that you can - beyond the options of the specified groups - also
+   use options of higher level protocols when you apply socat option
+   link(-g)(option_g).nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(CHILD)(GROUP_CHILD),link(RETRY)(GROUP_RETRY)nl()
+   Useful options:
+   link(bind)(OPTION_BIND),
+   link(setsockopt-int)(OPTION_SETSOCKOPT_INT),
+   link(setsockopt-bin)(OPTION_SETSOCKOPT_BIN),
+   link(setsockopt-string)(OPTION_SETSOCKOPT_STRING)
+   nl()
+   See also:
+   link(TCP)(ADDRESS_TCP_CONNECT),
+   link(UDP-CONNECT)(ADDRESS_UDP_CONNECT),
+   link(UNIX-CONNECT)(ADDRESS_UNIX_CONNECT),
+   link(SOCKET-LISTEN)(ADDRESS_SOCKET_LISTEN),
+   link(SOCKET-SENDTO)(ADDRESS_SOCKET_SENDTO)
+label(ADDRESS_SOCKET_DATAGRAM)dit(bf(tt(SOCKET-DATAGRAM:<domain>:<type>:<protocol>:<remote-address>)))
+   Creates a datagram socket using the first three given socket parameters (see
+   man socket(2)) and sends outgoing data to the remote-address. The three
+   socket parameters have to be specified by link(int)(TYPE_INT)
+   numbers. Consult your OS documentation and include files to find the
+   appropriate values. The remote-address must be the link(data)(TYPE_DATA)
+   representation of a sockaddr structure without sa_family and (BSD) sa_len
+   components.nl()
+   Please note that you can - beyond the options of the specified groups - also
+   use options of higher level protocols when you apply socat option
+   link(-g)(option_g).nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(RANGE)(GROUP_RANGE)
+   Useful options:
+   link(bind)(OPTION_BIND),
+   link(range)(OPTION_RANGE),
+   link(setsockopt-int)(OPTION_SETSOCKOPT_INT),
+   link(setsockopt-bin)(OPTION_SETSOCKOPT_BIN),
+   link(setsockopt-string)(OPTION_SETSOCKOPT_STRING)
+   nl()
+   See also:
+   link(UDP-DATAGRAM)(ADDRESS_UDP_DATAGRAM),
+   link(IP-DATAGRAM)(ADDRESS_IP_DATAGRAM),
+   link(SOCKET-SENDTO)(ADDRESS_SOCKET_SENDTO),
+   link(SOCKET-RECV)(ADDRESS_SOCKET_RECV),
+   link(SOCKET-RECVFROM)(ADDRESS_SOCKET_RECVFROM)
+label(ADDRESS_SOCKET_LISTEN)dit(bf(tt(SOCKET-LISTEN:<domain>:<protocol>:<local-address>)))
+   Creates a stream socket using the first and second given socket parameters
+   and tt(SOCK_STREAM) (see man socket(2)) and waits for incoming connections
+   on local-address. The two socket parameters have to be specified by
+   link(int)(TYPE_INT) numbers. Consult your OS documentation and include files
+   to find the appropriate values. The local-address must be the
+   link(data)(TYPE_DATA) representation of a sockaddr structure without
+   sa_family and (BSD) sa_len components.nl()
+   Please note that you can - beyond the options of the specified groups - also
+   use options of higher level protocols when you apply socat option
+   link(-g)(option_g).nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(LISTEN)(GROUP_LISTEN),link(RANGE)(GROUP_RANGE),link(CHILD)(GROUP_CHILD),link(RETRY)(GROUP_RETRY)nl()
+   Useful options:
+   link(setsockopt-int)(OPTION_SETSOCKOPT_INT),
+   link(setsockopt-bin)(OPTION_SETSOCKOPT_BIN),
+   link(setsockopt-string)(OPTION_SETSOCKOPT_STRING)
+   nl()
+   See also:
+   link(TCP)(ADDRESS_TCP_LISTEN),
+   link(UDP-CONNECT)(ADDRESS_UDP_LISTEN),
+   link(UNIX-CONNECT)(ADDRESS_UNIX_LISTEN),
+   link(SOCKET-LISTEN)(ADDRESS_SOCKET_CONNECT),
+   link(SOCKET-SENDTO)(ADDRESS_SOCKET_RECVFROM),
+   link(SOCKET-SENDTO)(ADDRESS_SOCKET_RECV)
+label(ADDRESS_SOCKET_RECV)dit(bf(tt(SOCKET_RECV:<domain>:<type>:<protocol>:<local-address>)))
+   Creates a socket using the three given socket parameters (see man socket(2))
+   and binds it to <local-address>. Receives arriving data. The three
+   parameters have to be specified by link(int)(TYPE_INT) numbers. Consult your
+   OS documentation and include files to find the appropriate values. The
+   local-address must be the link(data)(TYPE_DATA) representation of a sockaddr
+   structure without sa_family and (BSD) sa_len components.nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(RANGE)(GROUP_RANGE)
+   Useful options:
+   link(range)(OPTION_RANGE),
+   link(setsockopt-int)(OPTION_SETSOCKOPT_INT),
+   link(setsockopt-bin)(OPTION_SETSOCKOPT_BIN),
+   link(setsockopt-string)(OPTION_SETSOCKOPT_STRING)
+   nl()
+   See also:
+   link(UDP-RECV)(ADDRESS_UDP_RECV),
+   link(IP-RECV)(ADDRESS_IP_RECV),
+   link(UNIX-RECV)(ADDRESS_UNIX_RECV),
+   link(SOCKET-DATAGRAM)(ADDRESS_SOCKET_DATAGRAM),
+   link(SOCKET-SENDTO)(ADDRESS_SOCKET_SENDTO),
+   link(SOCKET-RECVFROM)(ADDRESS_SOCKET_RECVFROM)
+label(ADDRESS_SOCKET_RECVFROM)dit(bf(tt(SOCKET_RECVFROM:<domain>:<type>:<protocol>:<local-address>)))
+   Creates a socket using the three given socket parameters (see man socket(2))
+   and binds it to <local-address>. Receives arriving data and sends replies
+   back to the sender. The first three parameters have to be specified as
+   link(int)(TYPE_INT) numbers. Consult your OS documentation and include files
+   to find the appropriate values. The local-address must be the
+   link(data)(TYPE_DATA) representation of a sockaddr structure without
+   sa_family and (BSD) sa_len components.nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(CHILD)(GROUP_CHILD),link(RANGE)(GROUP_RANGE)
+   Useful options:
+   link(fork)(OPTION_FORK),
+   link(range)(OPTION_RANGE),
+   link(setsockopt-int)(OPTION_SETSOCKOPT_INT),
+   link(setsockopt-bin)(OPTION_SETSOCKOPT_BIN),
+   link(setsockopt-string)(OPTION_SETSOCKOPT_STRING)
+   nl()
+   See also:
+   link(UDP-RECVFROM)(ADDRESS_UDP_RECVFROM),
+   link(IP-RECVFROM)(ADDRESS_IP_RECVFROM),
+   link(UNIX-RECVFROM)(ADDRESS_UNIX_RECVFROM),
+   link(SOCKET-DATAGRAM)(ADDRESS_SOCKET_DATAGRAM),
+   link(SOCKET-SENDTO)(ADDRESS_SOCKET_SENDTO),
+   link(SOCKET-RECV)(ADDRESS_SOCKET_RECV)
+label(ADDRESS_SOCKET_SENDTO)dit(bf(tt(SOCKET_SENDTO:<domain>:<type>:<protocol>:<remote-address>)))
+   Creates a socket using the three given socket parameters (see man
+   socket(2)). Sends outgoing data to the given address and receives replies.
+   The three parameters have to be specified as link(int)(TYPE_INT)
+   numbers. Consult your OS documentation and include files to find the
+   appropriate values. The remote-address must be the link(data)(TYPE_DATA)
+   representation of a sockaddr structure without sa_family and (BSD) sa_len
+   components.nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET)
+   Useful options:
+   link(bind)(OPTION_BIND),
+   link(setsockopt-int)(OPTION_SETSOCKOPT_INT),
+   link(setsockopt-bin)(OPTION_SETSOCKOPT_BIN),
+   link(setsockopt-string)(OPTION_SETSOCKOPT_STRING)
+   nl()
+   See also:
+   link(UDP-SENDTO)(ADDRESS_UDP_SENDTO),
+   link(IP-SENDTO)(ADDRESS_IP_SENDTO),
+   link(UNIX-SENDTO)(ADDRESS_UNIX_SENDTO),
+   link(SOCKET-DATAGRAM)(ADDRESS_SOCKET_DATAGRAM),
+   link(SOCKET-RECV)(ADDRESS_SOCKET_RECV)
+   link(SOCKET-RECVFROM)(ADDRESS_SOCKET_RECVFROM)
 label(ADDRESS_SOCKS4)dit(bf(tt(SOCKS4:<socks-server>:<host>:<port>)))
    Connects via <socks-server> [link(IP address)(TYPE_IP_ADDRESS)]
    to <host> [link(IPv4 address)(TYPE_IPV4_ADDRESS)]
@@ -1265,6 +1404,24 @@ label(OPTION_END_CLOSE)dit(bf(tt(end-close)))
    Similarly, when an address of type EXEC or SYSTEM is ended, socat usually
    will explicitely kill the sub process. With this option, it will just close
    the file descriptors.
+label(OPTION_IOCTL_VOID)dit(bf(tt(ioctl-void=<request>)))
+   Calls tt(ioctl()) with the request value as second argument and NULL as
+   third argument. This option allows to utilize ioctls that are not
+   explicitely implemented in socat.
+label(OPTION_IOCTL_INT)dit(bf(tt(ioctl-int=<reqeust>:<value>)))
+   Calls tt(ioctl()) with the request value as second argument and the integer
+   value as third argument.
+label(OPTION_IOCTL_INTP)dit(bf(tt(ioctl-intp=<reqeust>:<value>)))
+   Calls tt(ioctl()) with the request value as second argument and a pointer to
+   the integer value as third argument.
+label(OPTION_IOCTL_BIN)dit(bf(tt(ioctl-bin=<reqeust>:<value>)))
+   Calls tt(ioctl()) with the request value as second argument and a pointer to
+   the given data value as third argument. This data must be specified in
+   link(<dalan>)(TYPE_DATA) form.
+label(OPTION_IOCTL_STRING)dit(bf(tt(ioctl-string=<reqeust>:<value>)))
+   Calls tt(ioctl()) with the request value as second argument and a pointer to
+   the given string as third argument.
+   link(<dalan>)(TYPE_DATA) form.
 enddit()
 
 startdit()enddit()nl()
@@ -1650,6 +1807,24 @@ COMMENT(label(OPTION_USEIFBUFS)dit(bf(tt(useifbufs)))
 label(OPTION_SO_TIMESTAMP)dit(bf(tt(so-timestamp)))
    Sets the SO_TIMESTAMP socket option. This enables receiving and logging of
    timestamp ancillary messages.
+label(OPTION_SETSOCKOPT_INT)dit(bf(tt(setsockopt-int=<level>:<optname>:<optval>)))
+   Invokes tt(setsockopt()) for the socket with the given parameters. tt(level)
+   [link(int)(TYPE_INT)] is used as second argument to tt(setsockopt()) and
+   specifies the layer, e.g. SOL_TCP for TCP (6 on Linux), or SOL_SOCKET for
+   the socket layer (1 on Linux). tt(optname) [link(int)(TYPE_INT)] is the
+   third argument to tt(setsockopt()) and tells which socket option is to be
+   set. For the actual numbers you might have to look up the appropriate include
+   files of your system. The 4th tt(setsockopt()) parameter, tt(value)
+   [link(int)(TYPE_INT)], is passed to the function per pointer, and for the
+   length parameter sizeof(int) is taken implicitely.
+label(OPTION_SETSOCKOPT_BIN)dit(bf(tt(setsockopt-bin=<level>:<optname>:<optval>)))
+   Like tt(setsockopt-int), but <optval> must be provided in
+   link(dalan)(TYPE_DATA) format and specifies an arbitrary sequence of bytes;
+   the length parameter is automatically derived from the data.
+label(OPTION_SETSOCKOPT_STRING)dit(bf(tt(setsockopt-string=<level>:<optname>:<optval>)))
+   Like tt(setsockopt-int), but <optval> must be a link(string)(TYPE_STRING).
+   This string is passed to the function with trailing null character, and the
+   length parameter is automatically derived from the data.
 enddit()
 
 startdit()enddit()nl()
@@ -2464,8 +2639,9 @@ label(TYPE_COMMAND_LINE)dit(command-line)
    A string specifying a program name and its arguments, separated by single
    spaces. 
 label(TYPE_DATA)dit(data)
-   A raw data specification following em(dalan) syntax. The only documented
-   form is a string starting with 'x' followed by an even number of hex digits.
+   A raw data specification following em(dalan) syntax. Currently the only
+   valid form is a string starting with 'x' followed by an even number of hex
+   digits, specifying a sequence of bytes.
 label(TYPE_DIRECTORY)dit(directory)
    A string with usual unix() directory name semantics.
 label(TYPE_FACILITY)dit(facility)

@@ -29,6 +29,8 @@ static const char *optiontypenames[] = {
 					"STRUCT-IP_MREQ",
 #endif
 							"IP4NAME",
+	"INT:INT",	"INT:INTP",	"INT:BIN",	"INT:STRING",
+	"INT:INT:INT",	"INT:INT:BIN",	"INT:INT:STRING",
 } ;
 
 

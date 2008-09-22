@@ -66,12 +66,12 @@ int xioclose1(struct single *pipe) {
       case END_CLOSE: case END_CLOSE_KILL:
 	 if (Close(pipe->fd) < 0) {
 	 Info2("close(%d): %s", pipe->fd, strerror(errno)); } break;
-#if WITH_SOCKET
+#if _WITH_SOCKET
       case END_SHUTDOWN: case END_SHUTDOWN_KILL:
 	 if (Shutdown(pipe->fd, 2) < 0) {
 	     Info3("shutdown(%d, %d): %s", pipe->fd, 2, strerror(errno)); }
          break;
-#endif /* WITH_SOCKET */
+#endif /* _WITH_SOCKET */
       case END_UNLINK: if (Unlink((const char *)pipe->name) < 0) {
 	    Warn2("unlink(\"%s\"): %s", pipe->name, strerror(errno)); }
          break;

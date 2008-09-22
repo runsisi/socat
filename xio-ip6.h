@@ -28,11 +28,11 @@ extern const struct optdesc opt_ipv6_recvtclass;
 extern const struct optdesc opt_ipv6_recvpathmtu;
 
 extern
-int xioparsenetwork_ip6(const char *rangename, struct xiorange_ip6 *range);
-extern int xiorange_ip6andmask(struct xiorange_ip6 *range);
+int xioparsenetwork_ip6(const char *rangename, struct xiorange *range);
+extern int xiorange_ip6andmask(struct xiorange *range);
 
 extern
-int xiocheckrange_ip6(struct sockaddr_in6 *pa, struct xiorange_ip6 *range);
+int xiocheckrange_ip6(struct sockaddr_in6 *pa, struct xiorange *range);
 extern
 int xiolog_ancillary_ip6(struct cmsghdr *cmsg, int *num,
 			 char *typbuff, int typlen,

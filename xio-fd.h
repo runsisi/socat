@@ -1,10 +1,15 @@
 /* source: xio-fd.h */
-/* Copyright Gerhard Rieger 2001-2006 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_fd_h_included
 #define __xio_fd_h_included 1
 
+extern const struct optdesc opt_ioctl_void;
+extern const struct optdesc opt_ioctl_int;
+extern const struct optdesc opt_ioctl_intp;
+extern const struct optdesc opt_ioctl_bin;
+extern const struct optdesc opt_ioctl_string;
 extern const struct optdesc opt_append;
 extern const struct optdesc opt_nonblock;
 extern const struct optdesc opt_o_ndelay;

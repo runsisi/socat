@@ -11,6 +11,13 @@
 #define SO_PROTOTYPE 0x9999
 #endif
 
+extern const struct addrdesc xioaddr_socket_connect;
+extern const struct addrdesc xioaddr_socket_listen;
+extern const struct addrdesc xioaddr_socket_sendto;
+extern const struct addrdesc xioaddr_socket_datagram;
+extern const struct addrdesc xioaddr_socket_recvfrom;
+extern const struct addrdesc xioaddr_socket_recv;
+
 extern const struct optdesc opt_connect_timeout;
 extern const struct optdesc opt_so_debug;
 extern const struct optdesc opt_so_acceptconn;
@@ -57,6 +64,9 @@ extern const struct optdesc opt_fiosetown;
 extern const struct optdesc opt_siocspgrp;
 extern const struct optdesc opt_bind;
 extern const struct optdesc opt_protocol_family;
+extern const struct optdesc opt_setsockopt_int;
+extern const struct optdesc opt_setsockopt_bin;
+extern const struct optdesc opt_setsockopt_string;
 
 
 extern
@@ -101,11 +111,18 @@ int xiogetpacketsrc(int fd, struct msghdr *msgh);
 extern
 int xiocheckpeer(xiosingle_t *xfd,
 		 union sockaddr_union *pa, union sockaddr_union *la);
+extern
+int xiosetsockaddrenv(const char *lr, union sockaddr_union *sau, socklen_t salen, int proto);
+
+extern
+int xioparsenetwork(const char *rangename, int pf,
+		    struct xiorange *range);
+extern 
+int xioparserange(const char *rangename, int pf, struct xiorange *range);
+
 extern int
 xiosocket(struct opt *opts, int pf, int socktype, int proto, int level);
 extern int 
 xiosocketpair(struct opt *opts, int pf, int socktype, int proto, int sv[2]);
-extern
-int xiosetsockaddrenv(const char *lr, union sockaddr_union *sau, socklen_t salen, int proto);
 
 #endif /* !defined(__xio_socket_h_included) */

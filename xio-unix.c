@@ -105,6 +105,9 @@ xiosetunix(int pf,
    if (tight) {
       len = sizeof(struct sockaddr_un)-sizeof(saun->sun_path)+
 	 MIN(pathlen, sizeof(saun->sun_path));
+#if HAVE_STRUCT_SOCKADDR_SALEN
+      saun->sun_len = len;
+#endif
    } else {
       len = sizeof(struct sockaddr_un);
    }
@@ -238,7 +241,7 @@ static int xioopen_unix_connect(int argc, const char *argv[], struct opt *opts, 
    if ((result = _xio_openlate(xfd, opts)) < 0) {
       return result;
    }
-   return 0;
+   return STAT_OK;
 }
 
 

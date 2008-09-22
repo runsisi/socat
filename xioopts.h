@@ -24,39 +24,53 @@ enum e_types {
    TYPE_BIN,		/* raw binary data, length determined by data */
    TYPE_BOOL,		/* value is 0 or 1 (no-value is interpreted as 1) */
    TYPE_BYTE,		/* unsigned char */
+
    TYPE_INT,		/* int */
    TYPE_LONG,		/* long */
    TYPE_STRING,		/* char * */
    TYPE_NAME = TYPE_STRING,
    TYPE_FILENAME = TYPE_STRING,
    TYPE_PTRDIFF,	/* ptrdiff_t */
+
    TYPE_SHORT,		/* short */
    TYPE_SIZE_T,		/* size_t */
    TYPE_SOCKADDR,	/* struct sockaddr * */
    TYPE_UINT,		/* unsigned int */
+
    TYPE_ULONG,		/* unsigned long */
    TYPE_USHORT,		/* unsigned short */
+   TYPE_2BYTE = TYPE_USHORT,
    TYPE_MODET,		/* representation of mode_t */
    TYPE_GIDT,		/* representation of gid_t */
+
    TYPE_UIDT,		/* representation of uid_t */
    /*TYPE_FLAG,*/
    TYPE_INT3,		/* int[3] */
    TYPE_TIMEVAL,	/* struct timeval: {long;long;}, seconds and microsec. */
    TYPE_TIMESPEC,	/* struct timespec: {time_t;long;}, seconds and nanosec. */
-#if HAVE_STRUCT_LINGER
-   TYPE_LINGER,		/* struct linger */
-#endif /* HAVE_STRUCT_LINGER */
+
    TYPE_DOUBLE,		/* double */
    TYPE_STRING_NULL,	/* char *; string or NULL */
    TYPE_LONGLONG,	/* long long */
    TYPE_OFF32,		/* off_t */
+
    TYPE_OFF64,		/* off64_t */
+   TYPE_INT_INT,	/* 2 parameters: first is int, second is int */
+   TYPE_INT_INTP,	/* 2 parameters: first is int, second is int* */
+   TYPE_INT_BIN,	/* 2 parameters: first is int, second is binary */
+
+   TYPE_INT_STRING,	/* 2 parameters: first is int, second is req string */
+   TYPE_INT_INT_INT,	/* 3 params: first and second are int, 3rd is int */
+   TYPE_INT_INT_BIN,	/* 3 params: first and second are int, 3rd is binary */
+   TYPE_INT_INT_STRING,	/* 3 params: first and second are int, 3rd is string */
+
+   TYPE_IP4NAME,	/* IPv4 hostname or address */
+#if HAVE_STRUCT_LINGER
+   TYPE_LINGER,		/* struct linger */
+#endif /* HAVE_STRUCT_LINGER */
 #if HAVE_STRUCT_IP_MREQ || HAVE_STRUCT_IP_MREQN
    TYPE_IP_MREQN,	/* for  struct ip_mreq  or  struct ip_mreqn */
 #endif
-   TYPE_IP4NAME,	/* IPv4 hostname or address */
-
-   TYPE_2BYTE = TYPE_USHORT
 } ;
 
 enum e_func {
@@ -66,11 +80,14 @@ enum e_func {
    OFUNC_SEEK32,	/* lseek(): arg1 is whence (SEEK_SET etc.) */
    OFUNC_SEEK64,	/* lseek64(): arg1 is whence (SEEK_SET etc.) */
    OFUNC_FCNTL,		/* fcntl(, ): arg1 is cmd */
-   OFUNC_IOCTL,		/* ioctl(): arg1 is request */
+   OFUNC_IOCTL,		/* ioctl(): arg1 of option description is request, arg2
+			   is int setrequest */
    OFUNC_IOCTL_MASK_LONG,	/* arg1 is getrequest, arg2 is setrequest:
 			   ioctl(arg1, ); |= arg3; ioctl(arg2, ); */
+   OFUNC_IOCTL_GENERIC,	/* generic ioctl() (request on cmdline) */
    OFUNC_SOCKOPT,	/* setsockopt() */
    OFUNC_SOCKOPT_APPEND,/* getsockopt(), append data, setsockopt() */
+   OFUNC_SOCKOPT_GENERIC,/* generic setsockopt() (level, optname on cmdline) */
    OFUNC_FLOCK,		/* flock() */
    OFUNC_TERMIO,	/* termio() ? */
    OFUNC_SPEC,		/* special, i.e. no generalizable function call */
@@ -349,6 +366,11 @@ enum e_optcode {
 #if 0	/* see Linux: man 7 netlink; probably not what we need yet */
    OPT_IO_SIOCGIFNAME,
 #endif
+   OPT_IOCTL_BIN,	/* generic ioctl with binary value (pointed to) */
+   OPT_IOCTL_INT,	/* generic ioctl with integer value */
+   OPT_IOCTL_INTP,	/* generic ioctl with integer value (pointed to) */
+   OPT_IOCTL_STRING,	/* generic ioctl with integer value (pointed to) */
+   OPT_IOCTL_VOID,	/* generic ioctl without value */
    OPT_IP_ADD_MEMBERSHIP,
 #ifdef IP_HDRINCL
    OPT_IP_HDRINCL,
@@ -556,6 +578,9 @@ enum e_optcode {
    OPT_SETGID_EARLY,
    OPT_SETPGID,
    OPT_SETSID,
+   OPT_SETSOCKOPT_BIN,
+   OPT_SETSOCKOPT_INT,
+   OPT_SETSOCKOPT_STRING,
    OPT_SETUID,
    OPT_SETUID_EARLY,
    OPT_SIGHUP,

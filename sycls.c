@@ -593,6 +593,16 @@ int Ioctl(int d, int request, void *argp) {
    return retval;
 }
 
+int Ioctl_int(int d, int request, int arg) {
+   int retval, _errno;
+   Debug3("ioctl(%d, 0x%x, %d)", d, request, arg);
+   retval = ioctl(d, request, arg);
+   _errno = errno;
+   Debug1("ioctl() -> %d", retval);
+   errno = _errno;
+   return retval;
+}
+
 int Close(int fd) {
    int retval, _errno;
    Info1("close(%d)", fd);

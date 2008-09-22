@@ -42,11 +42,6 @@ extern int xiogetaddrinfo(const char *node, const char *service,
 			  union sockaddr_union *sa, socklen_t *socklen,
 			  unsigned long res_opts0, unsigned long res_opts1);
 extern
-int xioparsenetwork(const char *rangename, int pf,
-		    union xiorange_union *range);
-extern 
-int parserange(const char *rangename, int pf, union xiorange_union *range);
-extern
 int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
 			char *typbuff, int typlen,
 			char *nambuff, int namlen,

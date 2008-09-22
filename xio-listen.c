@@ -91,13 +91,16 @@ int
 /* creates the listening socket, bind, applies options; waits for incoming
    connection, checks its source address and port. Depending on fork option, it
    may fork a subprocess.
+   pf specifies the syntax expected for range option. In the case of generic
+   socket it is 0 (expecting raw binary data), and the real pf can be obtained
+   from us->af_family; for other socket types pf == us->af_family
    Returns 0 if a connection was accepted; with fork option, this is always in
    a subprocess!
    Other return values indicate a problem; this can happen in the master
    process or in a subprocess.
    This function does not retry. If you need retries, handle this in a
    loop in the calling function (and always provide the options...)
-   after fork, we set the forever/retry of the child process to 0
+   After fork, we set the forever/retry of the child process to 0
    applies and consumes the following option:
    PH_INIT, PH_PASTSOCKET, PH_PREBIND, PH_BIND, PH_PASTBIND, PH_EARLY,
    PH_PREOPEN, PH_FD, PH_CONNECTED, PH_LATE, PH_LATE2
@@ -137,7 +140,7 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
       xiosetchilddied();	/* set SIGCHLD handler */
    }
 
-   if ((xfd->fd = xiosocket(opts, pf, socktype, proto, level)) < 0) {
+   if ((xfd->fd = xiosocket(opts, us->sa_family, socktype, proto, level)) < 0) {
       return STAT_RETRYLATER;
    }
 
@@ -177,15 +180,10 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
    }
 #endif /* WITH_UNIX */
 
-   retropt_int(opts, OPT_BACKLOG, &backlog);
-   if (Listen(xfd->fd, backlog) < 0) {
-      Error3("listen(%d, %d): %s", xfd->fd, backlog, strerror(errno));
-      return STAT_RETRYLATER;
-   }
-
 #if WITH_IP4 /*|| WITH_IP6*/
    if (retropt_string(opts, OPT_RANGE, &rangename) >= 0) {
-      if (parserange(rangename, us->sa_family, &xfd->para.socket.range) < 0) {
+      if (xioparserange(rangename, pf, &xfd->para.socket.range)
+	  < 0) {
 	 free(rangename);
 	 return STAT_NORETRY;
       }
@@ -204,6 +202,12 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
    }
    retropt_bool(opts, OPT_LOWPORT, &xfd->para.socket.ip.lowport);
 #endif /* WITH_TCP || WITH_UDP */
+
+   retropt_int(opts, OPT_BACKLOG, &backlog);
+   if (Listen(xfd->fd, backlog) < 0) {
+      Error3("listen(%d, %d): %s", xfd->fd, backlog, strerror(errno));
+      return STAT_RETRYLATER;
+   }
 
    if (xioopts.logopt == 'm') {
       Info("starting accept loop, switching to syslog");

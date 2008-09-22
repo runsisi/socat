@@ -68,7 +68,7 @@ static int xioopen_tun(int argc, const char *argv[], struct opt *opts, int xiofl
    char *tundevice = NULL;
    char *tunname = NULL, *tuntype = NULL;
    int pf = /*! PF_UNSPEC*/ PF_INET;
-   union xiorange_union network;
+   struct xiorange network;
    bool no_pi = false;
    const char *namedargv[] = { "tun", NULL, NULL };
    int rw = (xioflags & XIO_ACCMODE);
@@ -155,12 +155,14 @@ static int xioopen_tun(int argc, const char *argv[], struct opt *opts, int xiofl
       return result;
    }
    socket_init(pf, (union sockaddr_union *)&ifr.ifr_addr);
-   ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr = network.ip4.netaddr;
+   ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr =
+      network.netaddr.ip4.sin_addr;
    if (Ioctl(sockfd, SIOCSIFADDR, &ifr) < 0) {
       Error4("ioctl(%d, SIOCSIFADDR, {\"%s\", \"%s\"}: %s",
 	     sockfd, ifr.ifr_name, ifaddr, strerror(errno));
    }
-   ((struct sockaddr_in *)&ifr.ifr_netmask)->sin_addr = network.ip4.netmask;
+   ((struct sockaddr_in *)&ifr.ifr_netmask)->sin_addr =
+      network.netmask.ip4.sin_addr;
    if (Ioctl(sockfd, SIOCSIFNETMASK, &ifr) < 0) {
       Error4("ioctl(%d, SIOCSIFNETMASK, {\"0x%08u\", \"%s\"}, %s",
 	     sockfd, ((struct sockaddr_in *)&ifr.ifr_netmask)->sin_addr.s_addr,

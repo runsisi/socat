@@ -1,5 +1,20 @@
 
 new features:
+	added generic socket addresses: SOCKET-CONNECT, SOCKET-LISTEN,
+	SOCKET-SENDTO, SOCKET-RECVFROM, SOCKET-RECV, SOCKET-DATAGRAM allow
+	protocol independent socket handling; all parameters are explicitely
+	specified as numbers or hex data
+
+	added address options ioctl-void, ioctl-int, ioctl-intp, ioctl-string,
+	ioctl-bin for generic ioctl() calls.
+
+	added address options setsockopt-int, setsockopt-bin, and
+	setsockopt-string
+
+	so-type now only affect the socket() and socketpair() calls, not the
+	name resolution. so-type and so-prototype can be applied to all socket
+	based addresses.
+
 	new address option "escape" allows to break a socat instance even when
 	raw terminal mode prevents ^C etc.
 
@@ -30,10 +45,6 @@ new features:
 
 	new address options ipv6-tclass and ipv6-unicast-hops set the related
 	socket options.
-
-	so-type now only affect the socket() and socketpair() calls, not the
-	name resolution. so-type and so-prototype can be applied to all socket
-	based addresses.
 
 corrections:
 	some raw IP and UNIX datagram modes failed on BSD systems

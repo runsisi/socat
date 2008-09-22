@@ -15,6 +15,7 @@ union xioin6_u {
 } ;
 #endif /* WITH_IP6 */
 
+#if _WITH_SOCKET
 union sockaddr_union {
    struct sockaddr soa;
 #if WITH_UNIX
@@ -27,29 +28,12 @@ union sockaddr_union {
    struct sockaddr_in6 ip6;
 #endif /* WITH_IP6 */
 } ;
-
-#if _WITH_IP4
-struct xiorange_ip4 {
-   struct in_addr netaddr;	/* network byte order */
-   struct in_addr netmask;	/* network byte order */
-} ;
-#endif /* _WITH_IP4 */
-
-#if _WITH_IP6
-struct xiorange_ip6 {
-   struct in6_addr addr;
-   struct in6_addr mask;
-} ;
-#endif /* _WITH_IP4 */
+#endif /* _WITH_SOCKET */
 
 #if _WITH_SOCKET
-union xiorange_union {
-#if _WITH_IP4
-   struct xiorange_ip4 ip4;
-#endif /* _WITH_IP4 */
-#if _WITH_IP6
-   struct xiorange_ip6 ip6;
-#endif /* _WITH_IP6 */
+struct xiorange {
+   union sockaddr_union netaddr;
+   union sockaddr_union netmask;
 } ;
 #endif /* _WITH_SOCKET */
 

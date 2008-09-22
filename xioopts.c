@@ -40,7 +40,7 @@ bool xioopts_ignoregroups;
 #  define IF_EXEC(a,b) 
 #endif
 
-#if WITH_SOCKET
+#if _WITH_SOCKET
 #  define IF_SOCKET(a,b) {a,b},
 #else
 #  define IF_SOCKET(a,b) 
@@ -593,6 +593,12 @@ const struct optname optionnames[] = {
 	IF_RETRY  ("interval",	&opt_intervall)
 	IF_RETRY  ("intervall",	&opt_intervall)
 	IF_TERMIOS("intr",	&opt_vintr)
+	IF_ANY    ("ioctl",	&opt_ioctl_void)
+	IF_ANY    ("ioctl-bin",	&opt_ioctl_bin)
+	IF_ANY    ("ioctl-int",	&opt_ioctl_int)
+	IF_ANY    ("ioctl-intp",	&opt_ioctl_intp)
+	IF_ANY    ("ioctl-string",	&opt_ioctl_string)
+	IF_ANY    ("ioctl-void",	&opt_ioctl_void)
 #ifdef IP_ADD_MEMBERSHIP
 	IF_IP     ("ip-add-membership",	&opt_ip_add_membership)
 #endif
@@ -1246,6 +1252,9 @@ const struct optname optionnames[] = {
 #if WITH_EXEC || WITH_SYSTEM
 	IF_EXEC   ("setsid",	&opt_setsid)
 #endif
+	IF_SOCKET ("setsockopt-bin",	&opt_setsockopt_bin)
+	IF_SOCKET ("setsockopt-int",	&opt_setsockopt_int)
+	IF_SOCKET ("setsockopt-string",	&opt_setsockopt_string)
 	IF_ANY    ("setuid",	&opt_setuid)
 	IF_ANY    ("setuid-early",	&opt_setuid_early)
 #if WITH_EXEC || WITH_SYSTEM
@@ -1363,6 +1372,9 @@ const struct optname optionnames[] = {
 #ifdef SO_USELOOPBACK /* AIX433, Solaris */
 	IF_SOCKET ("so-useloopback",	&opt_so_useloopback)
 #endif /* SO_USELOOPBACK */
+	IF_SOCKET ("sockopt-bin",	&opt_setsockopt_bin)
+	IF_SOCKET ("sockopt-int",	&opt_setsockopt_int)
+	IF_SOCKET ("sockopt-string",	&opt_setsockopt_string)
 	IF_SOCKS4 ("socksport",	&opt_socksport)
 	IF_SOCKS4 ("socksuser",	&opt_socksuser)
 	IF_IPAPP  ("sourceport",	&opt_sourceport)
@@ -2032,6 +2044,155 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	       (*opts)[i].value.u_linger.l_linger);
 	 break;
 #endif /* HAVE_STRUCT_LINGER */
+      case TYPE_INT_INT:
+	 if (!assign) {
+	    Error1("option \"%s\": values required", a0);
+	    continue;
+	 }
+	 {
+	    char *rest;
+	    (*opts)[i].value.u_int = strtoul(token, &rest, 0);
+	    if (*rest != ':') {
+	       Error1("option \"%s\": 2 arguments required",
+		      ent->desc->defname);
+	    }
+	    ++rest;
+	    (*opts)[i].value2.u_int = strtoul(rest, &rest, 0);
+	 }
+	 Info3("setting option \"%s\" to %d:%d", ent->desc->defname,
+	       (*opts)[i].value.u_int, (*opts)[i].value2.u_int);
+	 break;
+      case TYPE_INT_BIN:
+	 if (!assign) {
+	    Error1("option \"%s\": values required", a0);
+	    continue;
+	 }
+	 {
+	    char *rest;
+	    (*opts)[i].value.u_int = strtoul(token, &rest, 0);
+	    if (*rest != ':') {
+	       Error1("option \"%s\": 2 arguments required",
+		      ent->desc->defname);
+	    }
+	    ++rest;
+	    optlen = 0;
+	    if ((result = dalan(rest, optbuf, &optlen, sizeof(optbuf))) != 0) {
+	       Error1("parseopts(): problem with \"%s\" data", rest);
+	       continue;
+	    }
+	    if (((*opts)[i].value2.u_bin.b_data = memdup(optbuf, optlen)) == NULL) {
+	       Error1("memdup(, "F_Zu"): out of memory", optlen);
+	       return -1;
+	    }
+	    (*opts)[i].value2.u_bin.b_len = optlen;
+	 }
+	 Info2("setting option \"%s\" to %d:..."/*!!!*/, ent->desc->defname,
+	       (*opts)[i].value.u_int);
+	 break;
+      case TYPE_INT_STRING:
+	 if (!assign) {
+	    Error1("option \"%s\": values required", a0);
+	    continue;
+	 }
+	 {
+	    char *rest;
+	    (*opts)[i].value.u_int = strtoul(token, &rest, 0);
+	    if (*rest != ':') {
+	       Error1("option \"%s\": 2 arguments required",
+		      ent->desc->defname);
+	    }
+	    ++rest;
+	    if (((*opts)[i].value2.u_string = strdup(rest)) == NULL) {
+	       Error("out of memory"); return -1;
+	    }
+	 }
+	 Info3("setting option \"%s\" to %d:\"%s\"", ent->desc->defname,
+	       (*opts)[i].value.u_int, (*opts)[i].value2.u_string);
+	 break;
+      case TYPE_INT_INT_INT:
+	 if (!assign) {
+	    Error1("option \"%s\": values required", a0);
+	    continue;
+	 }
+	 {
+	    char *rest;
+	    (*opts)[i].value.u_int = strtoul(token, &rest, 0);
+	    if (*rest != ':') {
+	       Error1("option \"%s\": 3 arguments required",
+		      ent->desc->defname);
+	    }
+	    ++rest;
+	    (*opts)[i].value2.u_int = strtoul(rest, &rest, 0);
+	    if (*rest != ':') {
+	       Error1("option \"%s\": 3 arguments required",
+		      ent->desc->defname);
+	    }
+	    ++rest;
+	    (*opts)[i].value3.u_int = strtoul(rest, &rest, 0);
+	 }
+	 Info4("setting option \"%s\" to %d:%d:%d", ent->desc->defname,
+	       (*opts)[i].value.u_int, (*opts)[i].value2.u_int, (*opts)[i].value3.u_int);
+	 break;
+      case TYPE_INT_INT_BIN:
+	 if (!assign) {
+	    Error1("option \"%s\": values required", a0);
+	    continue;
+	 }
+	 {
+	    char *rest;
+	    (*opts)[i].value.u_int = strtoul(token, &rest, 0);
+	    if (*rest != ':') {
+	       Error1("option \"%s\": 3 arguments required",
+		      ent->desc->defname);
+	    }
+	    ++rest;
+	    (*opts)[i].value2.u_int = strtoul(rest, &rest, 0);
+	    if (*rest != ':') {
+	       Error1("option \"%s\": 3 arguments required",
+		      ent->desc->defname);
+	    }
+	    ++rest;
+	    optlen = 0;
+	    if ((result = dalan(rest, optbuf, &optlen, sizeof(optbuf))) != 0) {
+	       Error1("parseopts(): problem with \"%s\" data", rest);
+	       continue;
+	    }
+	    if (((*opts)[i].value3.u_bin.b_data = memdup(optbuf, optlen)) == NULL) {
+	       Error1("memdup(, "F_Zu"): out of memory", optlen);
+	       return -1;
+	    }
+	    (*opts)[i].value3.u_bin.b_len = optlen;
+	 }
+	 Info3("setting option \"%s\" to %d:%d:..."/*!!!*/, ent->desc->defname,
+	       (*opts)[i].value.u_int, (*opts)[i].value2.u_int);
+	 break;
+      case TYPE_INT_INT_STRING:
+	 if (!assign) {
+	    Error1("option \"%s\": values required", a0);
+	    continue;
+	 }
+	 {
+	    char *rest;
+	    (*opts)[i].value.u_int = strtoul(token, &rest, 0);
+	    if (*rest != ':') {
+	       Error1("option \"%s\": 3 arguments required",
+		      ent->desc->defname);
+	    }
+	    ++rest;
+	    (*opts)[i].value2.u_int = strtoul(rest, &rest, 0);
+	    if (*rest != ':') {
+	       Error1("option \"%s\": 3 arguments required",
+		      ent->desc->defname);
+	    }
+	    ++rest;
+	    if (((*opts)[i].value3.u_string = strdup(rest)) == NULL) {
+	       Error("out of memory"); return -1;
+	    }
+	 }
+	 Info4("setting option \"%s\" to %d:%d:\"%s\"", ent->desc->defname,
+	       (*opts)[i].value.u_int, (*opts)[i].value2.u_int,
+	       (*opts)[i].value3.u_int);
+	 break;
 #if defined(HAVE_STRUCT_IP_MREQ) || defined (HAVE_STRUCT_IP_MREQN)
       case TYPE_IP_MREQN:
 	 {
@@ -2520,13 +2681,13 @@ int retropt_string(struct opt *opts, int optcode, char **result) {
 }
 
 
-#if WITH_SOCKET
+#if _WITH_SOCKET
 /* looks for an bind option and, if found, overwrites the complete contents of
    sa with the appropriate value(s).
    returns STAT_OK if option exists and could be resolved,
    STAT_NORETRY if option exists but had error,
    or STAT_NOACTION if it does not exist */
-/* currently only for IP (v4, v6) */
+/* currently only for IP (v4, v6) and raw (PF_UNSPEC) */
 int retropt_bind(struct opt *opts,
 		 int af,
 		 int socktype,
@@ -2548,22 +2709,26 @@ int retropt_bind(struct opt *opts,
    if (retropt_string(opts, OPT_BIND, &bindname) < 0) {
       return STAT_NOACTION;
    }
-   addrallowed = true;
-   portallowed = (feats>=2);
    bindp = bindname;
-   nestlex((const char **)&bindp, &hostp, &hostlen, ends, NULL, NULL, nests,
-	   true, false, false);
-   *hostp++ = '\0';
-   if (!strncmp(bindp, portsep, strlen(portsep))) {
-      if (!portallowed) {
-	 Error("port specification not allowed in this bind option");
-	 return STAT_NORETRY;
-      } else {
-	 portp = bindp + strlen(portsep);
-      }
-   }
 
    switch (af) {
+
+   case AF_UNSPEC:
+      {
+	 size_t p = 0;
+	 dalan(bindname, (char *)sa->sa_data, &p, *salen-sizeof(sa->sa_family));
+	 *salen = p + sizeof(sa->sa_family);
+	 *salen = p +
+#if HAVE_STRUCT_SOCKADDR_SALEN
+	    sizeof(sa->sa_len) +
+#endif
+	    sizeof(sa->sa_family);
+#if HAVE_STRUCT_SOCKADDR_SALEN
+	 sa->sa_len = *salen;
+#endif
+      }
+      break;
+
 #if WITH_IP4 || WITH_IP6
 #if WITH_IP4
    case AF_INET:
@@ -2571,6 +2736,19 @@ int retropt_bind(struct opt *opts,
 #if WITH_IP6
    case AF_INET6:
 #endif /*WITH_IP6 */
+      addrallowed = true;
+      portallowed = (feats>=2);
+      nestlex((const char **)&bindp, &hostp, &hostlen, ends, NULL, NULL, nests,
+	      true, false, false);
+      *hostp++ = '\0';
+      if (!strncmp(bindp, portsep, strlen(portsep))) {
+	 if (!portallowed) {
+	    Error("port specification not allowed in this bind option");
+	    return STAT_NORETRY;
+	 } else {
+	    portp = bindp + strlen(portsep);
+	 }
+      }
       if ((result =
 	   xiogetaddrinfo(hostname[0]!='\0'?hostname:NULL, portp,
 			  af, socktype, ipproto,
@@ -2599,7 +2777,7 @@ int retropt_bind(struct opt *opts,
    }
    return STAT_OK;
 }
-#endif /* WITH_SOCKET */
+#endif /* _WITH_SOCKET */
 
 
 /* applies to fd all options belonging to phase */
@@ -2676,7 +2854,49 @@ int applyopts(int fd, struct opt *opts, unsigned int phase) {
 	    opt->desc = ODESC_ERROR; ++opt; continue;
 	 }
 
-#if WITH_SOCKET
+      } else if (opt->desc->func == OFUNC_IOCTL_GENERIC) {
+	 switch (opt->desc->type) {
+	 case TYPE_INT:
+	    if (Ioctl(fd, opt->value.u_int, NULL) < 0) {
+	       Error3("ioctl(%d, 0x%x, NULL): %s",
+		      fd, opt->value.u_int, strerror(errno));
+	       opt->desc = ODESC_ERROR; ++opt; continue;
+	    }
+	    break;
+	 case TYPE_INT_INT:
+	    if (Ioctl_int(fd, opt->value.u_int, opt->value2.u_int) < 0) {
+	       Error4("ioctl(%d, %d, %p): %s",
+		      fd, opt->value.u_int, opt->value2.u_int, strerror(errno));
+	       opt->desc = ODESC_ERROR; ++opt; continue;
+	    }
+	    break;
+	 case TYPE_INT_INTP:
+	    if (Ioctl(fd, opt->value.u_int, (void *)&opt->value2.u_int) < 0) {
+	       Error4("ioctl(%d, 0x%x, %p): %s",
+		      fd, opt->value.u_int, (void *)&opt->value2.u_int, strerror(errno));
+	       opt->desc = ODESC_ERROR; ++opt; continue;
+	    }
+	    break;
+	 case TYPE_INT_BIN:
+	    if (Ioctl(fd, opt->value.u_int, (void *)opt->value2.u_bin.b_data) < 0) {
+	       Error4("ioctl(%d, 0x%x, %p): %s",
+		      fd, opt->value.u_int, (void *)opt->value2.u_bin.b_data, strerror(errno));
+	       opt->desc = ODESC_ERROR; ++opt; continue;
+	    }
+	    break;
+	 case TYPE_INT_STRING:
+	    if (Ioctl(fd, opt->value.u_int, (void *)opt->value2.u_string) < 0) {
+	       Error4("ioctl(%d, 0x%x, %p): %s",
+		      fd, opt->value.u_int, (void *)opt->value2.u_string, strerror(errno));
+	       opt->desc = ODESC_ERROR; ++opt; continue;
+	    }
+	    break;
+	 default:
+	    Error1("ioctl() data type %d not implemented",
+		   opt->desc->type);
+	 }
+
+#if _WITH_SOCKET
       } else if (opt->desc->func == OFUNC_SOCKOPT) {
 	 if (0) {
 	    ;
@@ -2853,7 +3073,39 @@ int applyopts(int fd, struct opt *opts, unsigned int phase) {
 		   opt->desc->defname, opt->desc->type);
 	    break;
 	 }
-#endif /* WITH_SOCKET */
+      } else if (opt->desc->func == OFUNC_SOCKOPT_GENERIC) {
+	 switch (opt->desc->type) {
+	 case TYPE_INT_INT_INT:
+	    if (Setsockopt(fd, opt->value.u_int, opt->value2.u_int,
+			   &opt->value3.u_int, sizeof(int)) < 0) {
+	       Error6("setsockopt(%d, %d, %d, {%d}, "F_Zu"): %s",
+		      fd, opt->value.u_int, opt->value2.u_int,
+		      opt->value3.u_int, sizeof(int), strerror(errno));
+	    }
+	    break;
+	 case TYPE_INT_INT_BIN:
+	    if (Setsockopt(fd, opt->value.u_int, opt->value2.u_int,
+			   opt->value3.u_bin.b_data, opt->value3.u_bin.b_len) < 0) {
+	       Error5("setsockopt(%d, %d, %d, {...}, "F_Zu"): %s",
+		      fd, opt->value.u_int, opt->value2.u_int,
+		      opt->value3.u_bin.b_len, strerror(errno));
+	    }
+	    break;
+	 case TYPE_INT_INT_STRING:
+	    if (Setsockopt(fd, opt->value.u_int, opt->value2.u_int,
+			   opt->value3.u_string,
+			   strlen(opt->value3.u_string)+1) < 0) {
+	       Error6("setsockopt(%d, %d, %d, \"%s\", "F_Zu"): %s",
+		      fd, opt->value.u_int, opt->value2.u_int,
+		      opt->value3.u_string, strlen(opt->value3.u_string)+1,
+		      strerror(errno));
+	    }
+	    break;
+	 default:
+	    Error1("setsockopt() data type %d not implemented",
+		   opt->desc->type);
+	 }
+#endif /* _WITH_SOCKET */
 	 
 #if HAVE_FLOCK
       } else if (opt->desc->func == OFUNC_FLOCK) {
@@ -3071,6 +3323,7 @@ int applyopts(int fd, struct opt *opts, unsigned int phase) {
 	       }
 	    }
 	    break;
+
 	 default: Error1("applyopts(): option \"%s\" not implemented",
 			 opt->desc->defname);
 	    opt->desc = ODESC_ERROR; ++opt; continue;
@@ -3567,7 +3820,7 @@ int applyopts_single(struct single *xfd, struct opt *opts, enum e_phase phase) {
 	}
 	break;
 
-#if WITH_SOCKET
+#if _WITH_SOCKET
      case OFUNC_SOCKOPT:
 	 switch (opt->desc->optcode) {
 #if WITH_IP4 && (defined(HAVE_STRUCT_IP_MREQ) || defined (HAVE_STRUCT_IP_MREQN))
@@ -3718,7 +3971,7 @@ mc:addr
 	   ++opt; continue;
 	}
 	break;
-#endif /* WITH_SOCKET */
+#endif /* _WITH_SOCKET */
 
      default:
 	++opt;
