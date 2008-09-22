@@ -59,6 +59,9 @@ const struct addrname addressnames[] = {
 #if WITH_GOPEN
    { "gopen",	&addr_gopen },
 #endif
+#if WITH_INTERFACE
+   { "if",		&xioaddr_interface },
+#endif
 #if (WITH_IP4 || WITH_IP6) && WITH_TCP
    { "inet",		&addr_tcp_connect },
 #endif
@@ -79,6 +82,9 @@ const struct addrname addressnames[] = {
 #if WITH_IP6 && WITH_TCP && WITH_LISTEN
    { "inet6-l",	&addr_tcp6_listen },
    { "inet6-listen",	&addr_tcp6_listen },
+#endif
+#if WITH_INTERFACE
+   { "interface",	&xioaddr_interface },
 #endif
 #if WITH_RAWIP
 #if (WITH_IP4 || WITH_IP6)

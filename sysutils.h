@@ -78,8 +78,8 @@ extern int xiopoll(struct pollfd fds[], nfds_t nfds, int timeout);
 
 extern int parseport(const char *portname, int proto);
 
-extern int ifindexbyname(const char *ifname);
-extern int ifindex(const char *ifname, unsigned int *ifindex);
+extern int ifindexbyname(const char *ifname, int anysock);
+extern int ifindex(const char *ifname, unsigned int *ifindex, int anysock);
 
 extern int xiosetenv(const char *varname, const char *value, int overwrite);
 extern int

@@ -236,6 +236,12 @@
 /* Define if you have the <linux/if_tun.h> header file.  */
 #undef HAVE_LINUX_IF_TUN_H
 
+/* Define if you have the <netpacket/packet.h> header file.  */
+#undef HAVE_NETPACKET_PACKET_H
+
+/* Define if you have the <netinet/if_ether.h> header file.  */
+#undef HAVE_NETINET_IF_ETHER_H
+
 /* Define if you have the <sys/utsname.h> header file.  */
 #undef HAVE_SYS_UTSNAME_H
 
@@ -469,6 +475,7 @@
 #undef WITH_IP6
 #undef WITH_RAWIP
 #undef WITH_GENERICSOCKET
+#undef WITH_INTERFACE
 #undef WITH_TCP
 #undef WITH_UDP
 #undef WITH_SCTP

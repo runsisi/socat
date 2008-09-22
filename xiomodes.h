@@ -20,6 +20,7 @@
 #include "xio-listen.h"
 #include "xio-unix.h"
 #include "xio-rawip.h"
+#include "xio-interface.h"
 #include "xio-ip.h"
 #if WITH_IP4
 #include "xio-ip4.h"
