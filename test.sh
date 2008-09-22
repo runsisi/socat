@@ -8819,9 +8819,11 @@ done <<<"
 TCP4 $LOCALHOST                                $SECONDADDR                               $PORT       $((PORT+1))
 TCP6 [0000:0000:0000:0000:0000:0000:0000:0001] [0000:0000:0000:0000:0000:0000:0000:0001] $((PORT+2)) $((PORT+3))
 UDP6 [0000:0000:0000:0000:0000:0000:0000:0001] [0000:0000:0000:0000:0000:0000:0000:0001] $((PORT+6)) $((PORT+7))
+SCTP4 $LOCALHOST                                $SECONDADDR                               $((PORT+8)) $((PORT+9))
+SCTP6 [0000:0000:0000:0000:0000:0000:0000:0001] [0000:0000:0000:0000:0000:0000:0000:0001] $((PORT+10)) $((PORT+11))
 UNIX $td/test\$N.server                        $td/test\$N.client                        ,           ,
 "
-# this one fails do to weakness in socats UDP4-LISTEN implementation:
+# this one fails due to weakness in socats UDP4-LISTEN implementation:
 #UDP4 $LOCALHOST $SECONDADDR $((PORT+4)) $((PORT+5))
 
 
