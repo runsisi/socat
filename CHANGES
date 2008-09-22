@@ -3,6 +3,34 @@ new features:
 	new address option "escape" allows to break a socat instance even when
 	raw terminal mode prevents ^C etc.
 
+	socat sets environment variables SOCAT_VERSION, SOCAT_PID, SOCAT_PPID
+	for use in executed scripts
+
+	socat sets environment variables SOCAT_SOCKADDR, SOCAT_SOCKPORT,
+	SOCAT_PEERADDR, SOCAT_PEERPORT in LISTEN type addresses (feature
+	suggested by Ed Sawicki)
+
+	socat receives all ancillary messages with each received packet on
+	datagram related addresses. The messages are logged in raw form with
+	debug level, and broken down with info level. note: each type of
+	ancillary message must be enabled by appropriate address options. 
+
+	socat provides the contents of ancillary messages received on RECVFROM
+	addresses in appropriate environment variables:
+	SOCAT_IP_PKTINFO_DSTADDR, SOCAT_IP_PKTINFO_IF, SOCAT_IP_PKTINFO_LOCADDR
+	(not on BSD); SOCAT_IP_RECVDSTADDR, SOCAT_IP_RECVIF (BSD);
+	SOCAT_SCM_TIMESTAMP, SOCAT_IP_OPTIONS, SOCAT_IP_TOS, SOCAT_IP_TTL,
+	SOCAT_IPV6_HOPLIMIT, SOCAT_IPV6_TCLASS, SOCAT_IPV6_PKTINFO_DSTADDR
+
+	the following address options were added to enable ancillary messages:
+	so-timestamp, ip-pktinfo, ip-recvdstaddr, ip-recverr, ip-recvif,
+	ip-recvopts, ip-recvtos, ip-recvttl, ipv6-recvdstopts, ipv6-recverr,
+	ipv6-recvhoplimit, ipv6-recvhopopts, ipv6-recvpathmtu,
+	ipv6-recvpktinfo, ipv6-recvrthdr, ipv6-recvtclass
+
+	new address options ipv6-tclass and ipv6-unicast-hops set the related
+	socket options.
+
 corrections:
 	some raw IP and UNIX datagram modes failed on BSD systems
 
@@ -13,9 +41,10 @@ corrections:
 	there was a bug in ip*-recv with bind option: it did not bind, and
 	with the first received packet an error occurred:
 	socket_init(): unknown address family 0
+	test: RAWIP4RECVBIND
 
 	RECVFROM addresses with FORK option hung after processing the first
-	packet.
+	packet. test: UDP4RECVFROM_FORK
 
 	corrected a few mistakes that caused compiler warnings on 64bit hosts
 
@@ -24,7 +53,7 @@ corrections:
 
 	when the EXEC address got a string with consecutive spaces it created
 	additional empty arguments (thanks to Olivier Hervieu for reporting
-	this bug)
+	this bug). test: EXECSPACES
 
 	in ignoreeof polling mode socat also blocked data transfer in the other
 	direction during the 1s wait intervalls (thanks to Jorgen Cederlof for

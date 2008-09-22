@@ -238,26 +238,21 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
 	    sockaddr_info(&them->soa, themlen, infobuff, sizeof(infobuff)));
 
       if (dofork) {
-	 pid = Fork();
+	 pid = xio_fork(false, E_ERROR);
 	 if (pid < 0) {
-	    Error1("fork(): %s", strerror(errno));
 	    return STAT_RETRYLATER;
 	 }
-	 if (pid == 0) {	/* child */
 
-	    /* drop parents locks, reset FIPS... */
-	    if (xio_forked_inchild() != 0) {
-	       Exit(1);
-	    }
+	 if (pid == 0) {	/* child */
 	    break;
 	 }
+
 	 /* server: continue loop with socket()+recvfrom() */
 	 /* when we dont close this we get awkward behaviour on Linux 2.4:
 	    recvfrom gives 0 bytes with invalid socket address */
 	 if (Close(fd->stream.fd) < 0) {
 	    Info2("close(%d): %s", fd->stream.fd, strerror(errno));
 	 }
-	 Notice1("forked off child process "F_pid, pid);
 	 Sleep(1);	/*! give child a chance to consume the old packet */
 
 	 continue;
@@ -273,6 +268,14 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
 	     themlen, strerror(errno));
       return STAT_RETRYLATER;
    }
+
+   /* set the env vars describing the local and remote sockets */
+   if (Getsockname(fd->stream.fd, &us.soa, &uslen) < 0) {
+      Warn4("getsockname(%d, %p, {%d}): %s",
+	    fd->stream.fd, &us.soa, uslen, strerror(errno));
+   }
+   xiosetsockaddrenv("SOCK", &us,  uslen,   IPPROTO_UDP);
+   xiosetsockaddrenv("PEER", them, themlen, IPPROTO_UDP);
 
    fd->stream.howtoend = END_SHUTDOWN;
    applyopts_fchown(fd->stream.fd, opts);

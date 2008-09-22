@@ -64,6 +64,8 @@ AC_CHECK_HEADERS(arpa/nameser.h)
 AC_HEADER_RESOLV()
 
 AC_CHECK_HEADERS(termios.h linux/if_tun.h)
+AC_CHECK_HEADERS(net/if_dl.h)
+AC_CHECK_HEADERS(linux/types.h linux/errqueue.h)
 AC_CHECK_HEADERS(sys/utsname.h sys/select.h sys/file.h)
 AC_CHECK_HEADERS(util.h libutil.h sys/stropts.h regex.h)
 AC_CHECK_HEADERS(linux/fs.h linux/ext2_fs.h)
@@ -1043,6 +1045,19 @@ if test $sc_cv_struct_msghdr_msgflags = yes; then
    AC_DEFINE(HAVE_STRUCT_MSGHDR_MSGFLAGS)
 fi
 AC_MSG_RESULT($sc_cv_struct_msghdr_msgflags)
+
+dnl check for struct cmsghdr
+AC_MSG_CHECKING(for struct cmsghdr)
+AC_CACHE_VAL(sc_cv_struct_cmsghdr,
+[AC_TRY_COMPILE([#include <sys/types.h>
+#include <sys/socket.h>
+#include <net/if.h>],[struct cmsghdr s;],
+[sc_cv_struct_cmsghdr=yes],
+[sc_cv_struct_cmsghdr=no])])
+if test $sc_cv_struct_cmsghdr = yes; then
+   AC_DEFINE(HAVE_STRUCT_CMSGHDR)
+fi
+AC_MSG_RESULT($sc_cv_struct_cmsghdr)
 
 dnl check for ip_hl in struct ip
 AC_MSG_CHECKING(for struct ip.ip_hl)

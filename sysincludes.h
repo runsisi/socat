@@ -1,5 +1,5 @@
 /* source: sysincludes.h */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __sysincludes_h_included
@@ -108,6 +108,9 @@
 #include <arpa/nameser.h>	/* req for resolv.h (esp. on MacOSX) */
 #endif
 #include <net/if.h>
+#if HAVE_NET_IF_DL_H
+#include <net/if_dl.h>	/* FreeBSD: struct sockaddr_dl */
+#endif
 #if HAVE_RESOLV_H
 #include <resolv.h>	/* _res */
 #endif
@@ -116,6 +119,12 @@
 #if HAVE_NET_IF_H
 #include <net/if.h>
 #endif /* HAVE_NET_IF_H */
+#if HAVE_LINUX_TYPES_H
+#include <linux/types.h>	/* __u32  for linux/errqueue.h */
+#endif
+#if HAVE_LINUX_ERRQUEUE_H
+#include <linux/errqueue.h>	/* struct sock_extended_err */
+#endif
 #if HAVE_LINUX_IF_TUN_H
 #include <linux/if_tun.h>
 #endif

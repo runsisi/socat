@@ -275,32 +275,23 @@ static int
 #if WITH_RETRY
       if (dofork) {
 	 pid_t pid;
-	 while ((pid = Fork()) < 0) {
-	    int level = E_ERROR;
-	    if (xfd->forever || xfd->retry) {
-	       level = E_WARN;
-	    }
-	    Msg1(level, "fork(): %s", strerror(errno));
-	    if (xfd->forever || xfd->retry) {
-	       Nanosleep(&xfd->intervall, NULL);
-	       --xfd->retry;
-	       continue;
+	 int level = E_ERROR;
+	 if (xfd->forever || xfd->retry) {
+	    level = E_WARN;
+	 }
+	 while ((pid = xio_fork(false, level)) < 0) {
+	    if (xfd->forever || --xfd->retry) {
+	       Nanosleep(&xfd->intervall, NULL); continue;
 	    }
 	    return STAT_RETRYLATER;
 	 }
-	 if (pid == 0) {	/* child process */
-	    Info1("just born: OpenSSL client process "F_pid, Getpid());
 
-	    /* drop parents locks, reset FIPS... */
-	    if (xio_forked_inchild() != 0) {
-	       Exit(1);
-	    }
-	    xfd->forever = false;
-	    xfd->retry = 0;
+	 if (pid == 0) {	/* child process */
+	    xfd->forever = false;  xfd->retry = 0;
 	    break;
 	 }
+
 	 /* parent process */
-	 Notice1("forked off child process "F_pid, pid);
 	 Close(xfd->fd);
 	 sycSSL_free(xfd->para.openssl.ssl);
 	 xfd->para.openssl.ssl = NULL;

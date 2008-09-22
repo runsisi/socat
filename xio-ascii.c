@@ -1,5 +1,5 @@
 /* source: xio-ascii.c */
-/* Copyright Gerhard Rieger 2002-2006 */
+/* Copyright Gerhard Rieger 2002-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains functions for text encoding, decoding, and conversions */
@@ -104,4 +104,53 @@ char *
       space = 1;
    }
    return coded;
+}
+
+/* write the binary data to output buffer codbuff in human readable form.
+   bytes gives the length of the data, codlen the available space in codbuff.
+   coding specifies how the data is to be presented. Not much to select now.
+   returns a pointer to the first char in codbuff that has not been overwritten;
+   it might also point to the first char after the buffer!
+*/
+static char *
+_xiodump(const unsigned char *data, size_t bytes, char *codbuff, size_t codlen,
+	 int coding) {
+   int start = 1;
+   int space = coding & 0xff;
+
+   if (bytes <= 0)  { codbuff[0] = '\0'; return codbuff; }
+   if (space == 0) space = -1;
+   if (0) {
+      ;	/* for canonical reasons */
+   } else if (1) {
+      /* simple hexadecimal output */
+      if (bytes > 2*codlen+1) {
+	 bytes = (codlen-1)/2;
+      }
+      *codbuff++ = 'x'; --codlen;
+      while (bytes-- > 0) {
+	 if (start == 0 && space == 0) {
+	    *codbuff++ = ' ';
+	    space = (coding & 0xff);
+	 }
+	 codbuff += sprintf(codbuff, "%02x", *data++);
+	 start = 0;
+      }
+   }
+   return codbuff;
+}
+
+/* write the binary data to codbuff in human readable form.
+   bytes gives the length of the data, codlen the available space in codbuff.
+   coding specifies how the data is to be presented. Not much to select now.
+   null terminates the output. returns a pointer to the output string.
+*/
+char *
+xiodump(const unsigned char *data, size_t bytes, char *codbuff, size_t codlen,
+	int coding) {
+   char *result;
+
+   result = _xiodump(data, bytes, codbuff, codlen-1, coding);
+   *result = '\0';
+   return codbuff;
 }

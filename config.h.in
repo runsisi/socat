@@ -224,6 +224,15 @@
 /* Define if you have the <net/if.h> header file.  */
 #undef HAVE_NET_IF_H
 
+/* Define if you have the <net/if_dl.h> header file.  */
+#undef HAVE_NET_IF_DL_H
+
+/* Define if you have the <linux/types.h> header file.  */
+#undef HAVE_LINUX_TYPES_H
+
+/* Define if you have the <linux/errqueue.h> header file.  */
+#undef HAVE_LINUX_ERRQUEUE_H
+
 /* Define if you have the <linux/if_tun.h> header file.  */
 #undef HAVE_LINUX_IF_TUN_H
 
@@ -333,6 +342,9 @@
 
 /* define if your struct msghdr has msg_flag */
 #undef HAVE_STRUCT_MSGHDR_MSGFLAGS
+
+/* define if you have struct cmsghdr */
+#undef HAVE_STRUCT_CMSGHDR
 
 /* define if your struct ip has ip_hl; otherwise assume ip_vhl */
 #undef HAVE_STRUCT_IP_IP_HL

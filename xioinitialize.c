@@ -107,6 +107,14 @@ int xioinitialize(void) {
    return 0;
 }
 
+/* call this function when option -lp (reset program name) has been applied */
+int xioinitialize2(void) {
+   pid_t pid = Getpid();
+   xiosetenvulong("PID", pid, 1);
+   xiosetenvulong("PPID", pid, 1);
+   return 0;
+}
+
 
 /* well, this function is not for initialization, but I could not find a better
    place for it
@@ -162,6 +170,7 @@ static int xio_nokill(xiofile_t *sock) {
    returns 0 on success or != 0 if an error occurred */
 int xio_forked_inchild(void) {
    int result = 0;
+
    xiodroplocks();
 #if WITH_FIPS
    if (xio_reset_fips_mode() != 0) {
@@ -184,4 +193,46 @@ int xio_forked_inchild(void) {
    }
 
    return result;
+}
+
+/* subchild != 0 means that the current process is already a child process of
+   the master process and thus the new sub child process should not set the
+   SOCAT_PID variable */
+pid_t xio_fork(bool subchild, int level) {
+   pid_t pid;
+   const char *forkwaitstring;
+   int forkwaitsecs = 0;
+
+   if ((pid = Fork()) < 0) {
+      Msg1(level, "fork(): %s", strerror(errno));
+      return pid;
+   }
+
+   if (pid == 0) {	/* child process */
+      pid_t cpid = Getpid();
+
+      Info1("just born: client process "F_pid, cpid);
+      if (!subchild) {
+	 /* set SOCAT_PID to new value */
+	 xiosetenvulong("PID", pid, 1);
+      }
+      /* gdb recommends to have env controlled sleep after fork */
+      if (forkwaitstring = getenv("SOCAT_FORK_WAIT")) {
+	 forkwaitsecs = atoi(forkwaitstring);
+	 Sleep(forkwaitsecs);
+      }
+      if (xio_forked_inchild() != 0) {
+	 Exit(1);
+      }
+      return 0;
+   }
+
+   /* parent process */
+   Notice1("forked off child process "F_pid, pid);
+   /* gdb recommends to have env controlled sleep after fork */
+   if (forkwaitstring = getenv("SOCAT_FORK_WAIT")) {
+      forkwaitsecs = atoi(forkwaitstring);
+      Sleep(forkwaitsecs);
+   }
+   return pid;
 }

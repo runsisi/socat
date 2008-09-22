@@ -1,5 +1,5 @@
 /* source: xio-unix.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening addresses of UNIX socket type */
@@ -740,5 +740,26 @@ static int xioopen_abstract_client(int argc, const char *argv[], struct opt *opt
 }
 
 #endif /* WITH_ABSTRACT_UNIXSOCKET */
+
+/* returns information that can be used for constructing an environment
+   variable describing the socket address.
+   if idx is 0, this function writes "ADDR" into namebuff and the path into
+   valuebuff, and returns 0 (which means that no more info is there).
+   if idx is != 0, it returns -1
+   namelen and valuelen contain the max. allowed length of output chars in the
+   respective buffer.
+   on error this function returns -1.
+*/
+int
+xiosetsockaddrenv_unix(int idx, char *namebuff, size_t namelen,
+		       char *valuebuff, size_t valuelen,
+		       struct sockaddr_un *sa, socklen_t salen, int ipproto) {
+   if (idx != 0) {
+      return -1;
+   }
+   strcpy(namebuff, "ADDR");
+   sockaddr_unix_info(sa, salen, valuebuff, valuelen);
+   return 0;
+}
 
 #endif /* WITH_UNIX */

@@ -1,5 +1,5 @@
 /* source: xio-ip4.h */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_ip4_h_included
@@ -9,5 +9,9 @@ extern const struct optdesc opt_ip4_add_membership;
 
 extern
 int xiocheckrange_ip4(struct sockaddr_in *pa, struct xiorange_ip4 *range);
+extern int
+xiosetsockaddrenv_ip4(int idx, char *namebuff, size_t namelen,
+		      char *valuebuff, size_t valuelen,
+		      struct sockaddr_in *sa, int ipproto);
 
 #endif /* !defined(__xio_ip4_h_included) */

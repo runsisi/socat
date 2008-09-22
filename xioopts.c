@@ -165,6 +165,9 @@ const struct optname optionnames[] = {
 #ifdef SO_AUDIT	/* AIX 4.3.3 */
 	IF_SOCKET ("audit",	&opt_so_audit)
 #endif /* SO_AUDIT */
+#ifdef IPV6_AUTHHDR
+	IF_IP6    ("authhdr",	&opt_ipv6_authhdr)
+#endif
 	IF_TUN    ("automedia",	&opt_iff_automedia)
 #ifdef CBAUD
 	IF_TERMIOS("b0",	&opt_b0)
@@ -375,6 +378,7 @@ const struct optname optionnames[] = {
 	IF_SOCKET ("dontlinger",	&opt_so_dontlinger)
 #endif
 	IF_SOCKET ("dontroute",	&opt_so_dontroute)
+	IF_IP6    ("dstopts",	&opt_ipv6_dstopts)
 #ifdef VDSUSP	/* HP-UX */
 	IF_TERMIOS("dsusp",	&opt_vdsusp)
 #endif
@@ -502,6 +506,9 @@ const struct optname optionnames[] = {
 	IF_ANY    ("flock-sh",	&opt_flock_sh)
 	IF_ANY    ("flock-sh-nb",	&opt_flock_sh_nb)
 #endif
+#ifdef IPV4_FLOWINFO
+	IF_IP6    ("flowinfo",	&opt_ipv6_flowinfo)
+#endif
 	IF_TERMIOS("flusho",	&opt_flusho)
 	IF_RETRY  ("forever",	&opt_forever)
 	IF_LISTEN ("fork",	&opt_fork)
@@ -528,6 +535,8 @@ const struct optname optionnames[] = {
 #endif
 	IF_READLINE("history",	&opt_history_file)
 	IF_READLINE("history-file",	&opt_history_file)
+	IF_IP6    ("hoplimit",	&opt_ipv6_hoplimit)
+	IF_IP6    ("hopopts",	&opt_ipv6_hopopts)
 #if WITH_LIBWRAP && defined(HAVE_HOSTS_ALLOW_TABLE)
 	IF_IPAPP  ("hosts-allow",	&opt_tcpwrap_hosts_allow_table)
 #endif
@@ -614,8 +623,14 @@ const struct optname optionnames[] = {
 #ifdef IP_PKTOPTIONS
 	IF_IP     ("ip-pktoptions",	&opt_ip_pktoptions)
 #endif
+#ifdef IP_RECVDSTADDR
+	IF_IP     ("ip-recvdstaddr",	&opt_ip_recvdstaddr)
+#endif
 #ifdef IP_RECVERR
 	IF_IP     ("ip-recverr",	&opt_ip_recverr)
+#endif
+#ifdef IP_RECVIF
+	IF_IP     ("ip-recvif",		&opt_ip_recvif)
 #endif
 #ifdef IP_RECVOPTS
 	IF_IP     ("ip-recvopts",	&opt_ip_recvopts)
@@ -657,6 +672,9 @@ const struct optname optionnames[] = {
 #ifdef IP_PKTOPTIONS
 	IF_IP     ("ippktoptions",	&opt_ip_pktoptions)
 #endif
+#ifdef IP_RECVDSTADDR
+	IF_IP     ("iprecvdstaddr",	&opt_ip_recvdstaddr)
+#endif
 #ifdef IP_RECVERR
 	IF_IP     ("iprecverr",	&opt_ip_recverr)
 #endif
@@ -678,7 +696,32 @@ const struct optname optionnames[] = {
 	IF_IP     ("iptos",	&opt_ip_tos)
 	IF_IP     ("ipttl",	&opt_ip_ttl)
 	IF_IP6    ("ipv6-add-membership",	&opt_ipv6_join_group)
+#ifdef IPV6_AUTHHDR
+	IF_IP6    ("ipv6-authhdr",	&opt_ipv6_authhdr)
+#endif
+	IF_IP6    ("ipv6-dstopts",	&opt_ipv6_dstopts)
+#ifdef IPV4_FLOWINFO
+	IF_IP6    ("ipv6-flowinfo",	&opt_ipv6_flowinfo)
+#endif
+	IF_IP6    ("ipv6-hoplimit",	&opt_ipv6_hoplimit)
+	IF_IP6    ("ipv6-hopopts",	&opt_ipv6_hopopts)
 	IF_IP6    ("ipv6-join-group",	&opt_ipv6_join_group)
+	IF_IP6    ("ipv6-pktinfo",	&opt_ipv6_pktinfo)
+	IF_IP6    ("ipv6-recvdstopts",	&opt_ipv6_recvdstopts)
+#ifdef IPV6_RECVERR
+	IF_IP6    ("ipv6-recverr",	&opt_ipv6_recverr)
+#endif
+	IF_IP6    ("ipv6-recvhoplimit",	&opt_ipv6_recvhoplimit)
+	IF_IP6    ("ipv6-recvhopopts",	&opt_ipv6_recvhopopts)
+#ifdef IPV6_PATHMTU
+	IF_IP6    ("ipv6-recvpathmtu",	&opt_ipv6_recvpathmtu)
+#endif
+	IF_IP6    ("ipv6-recvpktinfo",	&opt_ipv6_recvpktinfo)
+	IF_IP6    ("ipv6-recvrthdr",	&opt_ipv6_recvrthdr)
+	IF_IP6    ("ipv6-recvtclass",	&opt_ipv6_recvtclass)
+	IF_IP6    ("ipv6-rthdr",	&opt_ipv6_rthdr)
+	IF_IP6    ("ipv6-tclass",	&opt_ipv6_tclass)
+	IF_IP6    ("ipv6-unicast-hops",	&opt_ipv6_unicast_hops)
 #ifdef IPV6_V6ONLY
 	IF_IP6    ("ipv6-v6only",	&opt_ipv6_v6only)
 	IF_IP6    ("ipv6only",	&opt_ipv6_v6only)
@@ -1087,12 +1130,23 @@ const struct optname optionnames[] = {
 #if HAVE_RESOLV_H
 	IF_IP     ("recurse",	&opt_res_recurse)
 #endif /* HAVE_RESOLV_H */
+#ifdef IP_RECVDSTADDR
+	IF_IP     ("recvdstaddr",	&opt_ip_recvdstaddr)
+#endif
+	IF_IP6    ("recvdstopts",	&opt_ipv6_recvdstopts)
 #ifdef IP_RECVERR
 	IF_IP     ("recverr",	&opt_ip_recverr)
+#endif
+	IF_IP6    ("recvhoplimit",	&opt_ipv6_recvhoplimit)
+	IF_IP6    ("recvhopopts",	&opt_ipv6_recvhopopts)
+#ifdef IP_RECVIF
+	IF_IP     ("recvif",		&opt_ip_recvif)
 #endif
 #ifdef IP_RECVOPTS
 	IF_IP     ("recvopts",	&opt_ip_recvopts)
 #endif
+	IF_IP6    ("recvpktinfo",	&opt_ipv6_recvpktinfo)
+	IF_IP6    ("recvrthdr",	&opt_ipv6_recvrthdr)
 #ifdef IP_RECVTOS
 	IF_IP     ("recvtos",	&opt_ip_recvtos)
 #endif
@@ -1139,6 +1193,7 @@ const struct optname optionnames[] = {
 #ifdef O_RSYNC
 	IF_OPEN   ("rsync",	&opt_o_rsync)
 #endif
+	IF_IP6    ("rthdr",	&opt_ipv6_rthdr)
 	IF_TUN    ("running",	&opt_iff_running)
 #ifdef TCP_SACK_DISABLE
 	IF_TCP    ("sack-disable",	&opt_tcp_sack_disable)
@@ -1298,6 +1353,9 @@ const struct optname optionnames[] = {
 #ifdef SO_SNDTIMEO
 	IF_SOCKET ("so-sndtimeo",	&opt_so_sndtimeo)
 #endif
+#ifdef SO_TIMESTAMP
+	IF_SOCKET ("so-timestamp",	&opt_so_timestamp)
+#endif
 	IF_SOCKET ("so-type",	&opt_so_type)
 #ifdef SO_USE_IFBUFS
 	IF_SOCKET ("so-use-ifbufs",	&opt_so_use_ifbufs)
@@ -1446,6 +1504,9 @@ const struct optname optionnames[] = {
 #endif
 	IF_UNIX   ("tightsocklen",	&opt_unix_tightsocklen)
 	IF_TERMIOS("time",	&opt_vtime)
+#ifdef SO_TIMESTAMP
+	IF_SOCKET ("timestamp",	&opt_so_timestamp)
+#endif
 	IF_TERMIOS("tiocsctty",	&opt_tiocsctty)
 #if WITH_EXT2 && defined(EXT2_TOPDIR_FL)
 	IF_ANY    ("topdir",	&opt_ext2_topdir)
@@ -1471,6 +1532,7 @@ const struct optname optionnames[] = {
 	IF_NAMED  ("uid-e",	&opt_user_early)
 	IF_ANY    ("uid-l",	&opt_user_late)
 	IF_NAMED  ("umask",	&opt_umask)
+	IF_IP6    ("unicast-hops",	&opt_ipv6_unicast_hops)
 	IF_UNIX   ("unix-tightsocklen",	&opt_unix_tightsocklen)
 	IF_NAMED  ("unlink",	&opt_unlink)
 	IF_NAMED  ("unlink-close",	&opt_unlink_close)
@@ -1713,7 +1775,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	 (*opts)[i].value.u_bin.b_len = optlen;
 	 break;
       case TYPE_BYTE:
-	 {
+	 if (assign) {
 	  unsigned long ul;
 	  char *rest;
 	  ul = strtoul(token, &rest/*!*/, 0);
@@ -1722,11 +1784,13 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 		   a0, ul, UCHAR_MAX);
 	    (*opts)[i].value.u_byte = UCHAR_MAX;
 	  } else {
-	    Info2("setting option \"%s\" to %d", ent->desc->defname,
-		  (*opts)[i].value.u_byte);
 	    (*opts)[i].value.u_byte = ul;
 	  }
+	 } else {
+	    (*opts)[i].value.u_byte = 1;
 	 }
+	 Info2("setting option \"%s\" to %d", ent->desc->defname,
+	       (*opts)[i].value.u_byte);
 	 break;
       case TYPE_INT:
 	 if (assign) {

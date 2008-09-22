@@ -1,5 +1,5 @@
 /* source: sysutils.h */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __sysutils_h_included
@@ -96,5 +96,14 @@ extern int parseport(const char *portname, int proto);
 
 extern int ifindexbyname(const char *ifname);
 extern int ifindex(const char *ifname, unsigned int *ifindex);
+
+extern int xiosetenv(const char *varname, const char *value, int overwrite);
+extern int
+xiosetenv2(const char *varname, const char *varname2, const char *value,
+	   int overwrite);
+extern int xiosetenvulong(const char *varname, unsigned long value,
+			  int overwrite);
+extern int xiosetenvushort(const char *varname, unsigned short value,
+			   int overwrite);
 
 #endif /* !defined(__sysutils_h_included) */

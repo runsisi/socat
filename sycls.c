@@ -1,5 +1,5 @@
 /* source: sycls.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* explicit system call and C library trace function, for those who miss strace
@@ -1055,11 +1055,14 @@ int Recvfrom(int s, void *buf, size_t len, int flags, struct sockaddr *from,
 int Recvmsg(int s, struct msghdr *msgh, int flags) {
    int retval, _errno;
    char infobuff[256];
-   Debug3("recvmsg(%d, %p, %d)", s, msgh, flags);
+   Debug10("recvmsg(%d, %p{%p,%u,%p,%u,%p,%u,%d}, %d)", s, msgh,
+	  msgh->msg_name, msgh->msg_namelen,  msgh->msg_iov,  msgh->msg_iovlen,
+	  msgh->msg_control,  msgh->msg_controllen,  msgh->msg_flags, flags);
    retval = recvmsg(s, msgh, flags);
    _errno = errno;
-   Debug2("recvmsg(, {%s}, ) -> %d",
+   Debug5("recvmsg(, {%s,%u,,%u,,%u,}, ) -> %d",
 	  msgh->msg_name?sockaddr_info(msgh->msg_name, msgh->msg_namelen, infobuff, sizeof(infobuff)):"NULL",
+	  msgh->msg_namelen, msgh->msg_iovlen, msgh->msg_controllen,
 	  retval);
    errno = _errno;
    return retval;
@@ -1417,6 +1420,28 @@ int Mkstemp(char *template) {
    Info2("mkstemp({%s}) -> %d", template, result);
    errno = _errno;
    return result;
+}
+
+int Setenv(const char *name, const char *value, int overwrite) {
+   int result, _errno;
+   Debug3("setenv(\"%s\", \"%s\", %d)", name, value, overwrite);
+   result = setenv(name, value, overwrite);
+   _errno = errno;
+   Debug1("setenv() -> %d", result);
+   errno = _errno;
+   return result;
+}
+
+/* on Linux it returns int but on FreeBSD void.
+   we do not expect many errors, so we take void which works on all systems. */
+void Unsetenv(const char *name) {
+   int _errno;
+   Debug1("unsetenv(\"%s\")", name);
+   unsetenv(name);
+   _errno = errno;
+   Debug("unsetenv() ->");
+   errno = _errno;
+   return;
 }
 
 #if WITH_READLINE

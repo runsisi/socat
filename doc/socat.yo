@@ -127,7 +127,8 @@ dit(bf(tt(-lf))tt( <logfile>))
 dit(bf(tt(-ls)))
    Writes messages to stderr (this is the default).
 label(option_lp)dit(bf(tt(-lp))tt(<progname>))
-   Overrides the program name printed in error messages.
+   Overrides the program name printed in error messages and used for
+   constructing environment variable names.
 dit(bf(tt(-lu)))
    Extends the timestamp of error messages to microsecond resolution. Does not
    work when logging to syslog.
@@ -364,6 +365,7 @@ label(ADDRESS_IP_DATAGRAM)dit(bf(tt(IP-DATAGRAM:<address>:<protocol>)))
    Option groups: link(FD)(GROUP_FD), link(SOCKET)(GROUP_SOCKET),
       link(IP4)(GROUP_IP4), link(IP6)(GROUP_IP6), link(RANGE)(GROUP_RANGE) nl()
    Useful options:
+   link(bind)(OPTION_BIND),
    link(range)(OPTION_RANGE),
    link(tcpwrap)(OPTION_TCPWRAPPERS),
    link(broadcast)(OPTION_SO_BROADCAST),
@@ -373,7 +375,6 @@ label(ADDRESS_IP_DATAGRAM)dit(bf(tt(IP-DATAGRAM:<address>:<protocol>)))
    link(ip-add-membership)(OPTION_IP_ADD_MEMBERSHIP),
    link(ttl)(OPTION_TTL),
    link(tos)(OPTION_TOS),
-   link(bind)(OPTION_BIND),
    link(pf)(OPTION_PROTOCOL_FAMILY)nl()
    See also:
    link(IP4-DATAGRAM)(ADDRESS_IP4_DATAGRAM),
@@ -783,7 +784,8 @@ label(ADDRESS_UDP_DATAGRAM)dit(bf(tt(UDP-DATAGRAM:<address>:<port>)))
    options. This address type can for example be used for implementing
    symmetric or asymmetric broadcast or multicast communications.nl()
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4),link(IP6)(GROUP_IP6),link(RANGE)(GROUP_RANGE) nl()
-    Useful options:
+   Useful options:
+   link(bind)(OPTION_BIND),
    link(range)(OPTION_RANGE),
    link(tcpwrap)(OPTION_TCPWRAPPERS),
    link(broadcast)(OPTION_SO_BROADCAST),
@@ -793,7 +795,6 @@ label(ADDRESS_UDP_DATAGRAM)dit(bf(tt(UDP-DATAGRAM:<address>:<port>)))
    link(ip-add-membership)(OPTION_IP_ADD_MEMBERSHIP),
    link(ttl)(OPTION_TTL),
    link(tos)(OPTION_TOS),
-   link(bind)(OPTION_BIND),
    link(sourceport)(OPTION_SOURCEPORT),
    link(pf)(OPTION_PROTOCOL_FAMILY)nl()
    See also:
@@ -1543,8 +1544,8 @@ label(OPTION_INTERFACE)dit(bf(tt(interface=<interface>)))
 label(OPTION_SO_BROADCAST)dit(bf(tt(broadcast)))
    For datagram sockets, allows sending to broadcast addresses and receiving
    packets addressed to broadcast addresses. 
-label(OPTION_BSDCOMPAT)dit(bf(tt(bsdcompat)))
-   Emulates some (old?) bugs of the BSD socket implementation.
+COMMENT(label(OPTION_BSDCOMPAT)dit(bf(tt(bsdcompat)))
+   Emulates some (old?) bugs of the BSD socket implementation.)
 label(OPTION_DEBUG)dit(bf(tt(debug)))
    Enables socket debugging.
 label(OPTION_DONTROUTE)dit(bf(tt(dontroute)))
@@ -1639,6 +1640,9 @@ COMMENT(label(OPTION_USEIFBUFS)dit(bf(tt(useifbufs)))
 label(OPTION_PROTOCOL_FAMILY)dit(bf(tt(pf=<string>)))
    Forces the use of the specified IP version. <string> can be
    something like "ip4" or "ip6".
+label(OPTION_SO_TIMESTAMP)dit(bf(tt(so-timestamp)))
+   Sets the SO_TIMESTAMP socket option. This enables receiving and logging of
+   timestamp ancillary messages.
 enddit()
 
 startdit()enddit()nl()
@@ -1665,13 +1669,13 @@ label(OPTION_TOS)dit(bf(tt(tos=<tos>)))
 label(OPTION_TTL)dit(bf(tt(ttl=<ttl>)))
    Sets the TTL (time to live) field of outgoing packets to <ttl>
    [link(byte)(TYPE_BYTE)].
-label(OPTION_IPOPTIONS)dit(bf(tt(ipoptions=<data>)))
+label(OPTION_IPOPTIONS)dit(bf(tt(ip-options=<data>)))
    Sets IP options like source routing. Must be given in binary form,
    recommended format is a leading "x" followed by an even number of hex
    digits. This option may be used multiple times, data are appended.
    E.g., to connect to host 10.0.0.1 via some gateway using a loose source
    route, use the gateway as address parameter and set a loose source route
-   using the option code(ipoptions=x8307040a000001).nl()
+   using the option code(ip-options=x8307040a000001).nl()
    IP options are defined in RFC 791. COMMENT(, RFC 2113)nl()
 COMMENT(   x00 end of option list
    x01 no operation (nop)
@@ -1690,20 +1694,32 @@ COMMENT(label(OPTION_IP_MULTICAST_LOOP)dit(bf(tt(multicastloop)))
    Allow looping back outgoing multicast to the local interface.)
 COMMENT(label(OPTION_IP_MULTICAST_TTL)dit(bf(tt(multicastttl)))
    Set the TTL for outgoing multicast packets.)
-COMMENT(label(OPTION_PKTINFO)dit(bf(tt(pktinfo)))
-   Set the IP_PKTINFO socket option.)
+label(OPTION_IP_PKTINFO)dit(bf(tt(pktinfo)))
+   Sets the IP_PKTINFO socket option. This enables receiving and logging of
+   ancillary messages containing destination address and interface (Linux). 
 COMMENT(label(OPTION_PKTOPTS)dit(bf(tt(pktopts)))
    Set the IP_PKTOPTIONS socket option.)
-COMMENT(label(OPTION_RECVERR)dit(bf(tt(recverr)))
-   Set the IP_RECVERR socket option.)
-COMMENT(label(OPTION_RECVOPTS)dit(bf(tt(recvopts)))
-   Set the IP_RECVOPTS socket option.)
-COMMENT(label(OPTION_RECVTOS)dit(bf(tt(recvtos)))
-   Set the IP_RECVTOS socket option.)
-COMMENT(label(OPTION_RECVTTL)dit(bf(tt(recvttl)))
-   Set the IP_RECVTTL socket option.)
+label(OPTION_IP_RECVERR)dit(bf(tt(recverr)))
+   Sets the IP_RECVERR socket option. This enables receiving and logging of
+   ancillary messages containing detailled error information.
+label(OPTION_IP_RECVOPTS)dit(bf(tt(recvopts)))
+   Sets the IP_RECVOPTS socket option. This enables receiving and logging of IP
+   options ancillary messages (Linux, *BSD).
+label(OPTION_IP_RECVTOS)dit(bf(tt(recvtos)))
+   Sets the IP_RECVTOS socket option. This enables receiving and logging of TOS
+   (type of service) ancillary messages (Linux).
+label(OPTION_IP_RECVTTL)dit(bf(tt(recvttl)))
+   Sets the IP_RECVTTL socket option. This enables receiving and logging of TTL
+   (time to live) ancillary messages (Linux, *BSD).
 COMMENT(label(OPTION_RETOPTS)dit(bf(tt(retopts)))
    Set the IP_RETOPTS socket option.)
+label(OPTION_IP_RECVDSTADDR)dit(bf(tt(recvdstaddr)))
+   Sets the IP_RECVDSTADDR socket option. This enables receiving and logging of
+   ancillary messages containing destination address
+   (*BSD).
+label(OPTION_IP_RECVIF)dit(bf(tt(recvif)))
+   Sets the IP_RECVIF socket option. This enables receiving and logging of
+   interface ancillary messages (*BSD).
 COMMENT(label(OPTION_ROUTERALERT)dit(bf(tt(routeralert)))
    Set the IP_ROUTER_ALERT socket option.)
 label(OPTION_IP_ADD_MEMBERSHIP)
@@ -1758,6 +1774,30 @@ label(OPTION_IPV6_V6ONLY)dit(bf(tt(ipv6only=<bool>)))
    Sets the IPV6_V6ONLY socket option. If 0, the TCP stack will also accept
    connections using IPv4 protocol on the same port. The default is system
    dependent.
+label(OPTION_IPV6_RECVDSTOPTS)dit(bf(tt(ipv6-recvdstopts)))
+   Sets the IPV6_RECVDSTOPTS socket option. This enables receiving and logging
+   of ancillary messages containing the destination options.
+label(OPTION_IPV6_RECVHOPLIMIT)dit(bf(tt(ipv6-recvhoplimit)))
+   Sets the IPV6_RECVHOPLIMIT socket option. This enables receiving and logging
+   of ancillary messages containing the hoplimit.
+label(OPTION_IPV6_RECVHOPOPTS)dit(bf(tt(ipv6-recvhopopts)))
+   Sets the IPV6_RECVHOPOPTS socket option. This enables receiving and logging
+   of ancillary messages containing the hop options.
+label(OPTION_IPV6_RECVPKTINFO)dit(bf(tt(ipv6-recvpktinfo)))
+   Sets the IPV6_RECVPKTINFO socket option. This enables receiving and logging
+   of ancillary messages containing destination address and interface.
+label(OPTION_IPV6_UNICAST_HOPS)dit(bf(tt(ipv6-unicast-hops=link(TYPE_INT)(<int>))))
+   Sets the IPV6_UNICAST_HOPS socket option. This sets the hop count limit
+   (TTL) for outgoing unicast packets.
+label(OPTION_IPV6_RECVRTHDR)dit(bf(tt(ipv6-recvrthdr)))
+   Sets the IPV6_RECVRTHDR socket option. This enables receiving and logging
+   of ancillary messages containing routing information.
+label(OPTION_IPV6_TCLASS)dit(bf(tt(ipv6-tclass)))
+   Sets the IPV6_TCLASS socket option. This sets the transfer class of outgoing
+   packets.
+label(OPTION_IPV6_RECVTCLASS)dit(bf(tt(ipv6-recvtclass)))
+   Sets the IPV6_RECVTCLASS socket option. This enables receiving and logging
+   of ancillary messages containing the transfer class.
 enddit()
 
 startdit()enddit()nl()
@@ -2932,45 +2972,126 @@ manpagefiles()
 label(ENVIRONMENT_VARIABLES)
 manpagesection(ENVIRONMENT VARIABLES)
 
+Input variables carry information from the environment to socat, output
+variables are set by socat for use in executed scripts and programs.
+
+In the output variables beginning with "SOCAT" this prefix is actually replaced
+by the upper case name of the executable or the value of option
+link(-lp)(option_lp).
+
 startdit()
-dit(bf(SOCAT_DEFAULT_LISTEN_IP)) (Values 4 or 6) Sets the IP version to be used
+dit(bf(SOCAT_DEFAULT_LISTEN_IP) (input)) (Values 4 or 6) Sets the IP version to
+be used 
 for listen, recv, and recvfrom addresses if no link(pf)(OPTION_PROTOCOL_FAMILY)
 (protocol-family) option is given. Is overridden by socat options
 link(-4)(option_4) or link(-6)(option_6).
 
-dit(bf(SOCAT_PREFERRED_RESOLVE_IP)) (Values 0, 4, or 6) Sets the IP version to
+dit(bf(SOCAT_PREFERRED_RESOLVE_IP) (input)) (Values 0, 4, or 6) Sets the IP
+version to 
 be used when resolving target host names when version is not specified by
 address type, option link(pf)(OPTION_PROTOCOL_FAMILY) (protocol-family), or
 address format. If name resolution does not return a matching entry, the first
 result (with differing IP version) is taken. With value 0, socat always selects
 the first record and its IP version. 
 
-dit(bf(SOCAT_FORK_WAIT)) Specifies the time (seconds) to sleep the parent and
-child processes after successful fork(). Useful for debugging.
+dit(bf(SOCAT_FORK_WAIT) (input)) Specifies the time (seconds) to sleep the
+parent and child processes after successful fork(). Useful for debugging.
 
-dit(bf(HOSTNAME)) Is used to determine the hostname for logging (see
+dit(bf(SOCAT_VERSION) (output)) Socat sets this variable to its version string,
+e.g. tt("1.6.1.0") for released versions or e.g. tt("1.6.0.1+envvar") for
+temporary versions; can be used in scripts invoked by socat. 
+
+dit(bf(SOCAT_PID) (output)) Socat sets this variable to its process id. In case
+of link(fork)(OPTION_FORK) address option, SOCAT_PID gets the child processes
+id. Forking for link(exec)(ADDRESS_EXEC) and link(system)(ADDRESS_SYSTEM) does
+not change SOCAT_PID.
+
+dit(bf(SOCAT_PPID) (output)) Socat sets this variable to its process id. In
+case of link(fork)(OPTION_FORK), SOCAT_PPID keeps the pid of the master process.
+
+dit(bf(SOCAT_PEERADDR) (output)) With passive socket addresses (all LISTEN and
+RECVFROM addresses), this variable is set to a string describing the peers
+socket address. Port information is not included.
+
+dit(bf(SOCAT_PEERPORT) (output)) With appropriate passive socket addresses (TCP
+and UDP - LISTEN and RECVFROM), this variable is set to a string containing the
+number of the peer port.
+
+dit(bf(SOCAT_SOCKADDR) (output)) With all LISTEN addresses, this variable is
+set to a string describing the local socket address. Port information is not
+included.
+
+dit(bf(SOCAT_SOCKPORT) (output)) With TCP-LISTEN and UDP-LISTEN addresses, this
+variable is set to the local port.
+
+dit(bf(SOCAT_TIMESTAMP) (output)) With all RECVFROM addresses where address
+option link(so-timestamp)(OPTION_SO_TIMESTAMP) is applied, socat sets this
+variable to the resulting timestamp.
+
+dit(bf(SOCAT_IP_OPTIONS) (output)) With all IPv4 based RECVFROM addresses where 
+address option link(ip-recvopts)(OPTION_IP_RECVOPTS) is applied, socat fills
+this variable with the IP options of the received packet.
+
+dit(bf(SOCAT_IP_DSTADDR) (output)) With all IPv4 based RECVFROM addresses where
+address option link(ip-recvdstaddr)(OPTION_IP_RECVDSTADDR) (BSD) or
+link(ip-pktinfo)(OPTION_IP_PKTINFO) (other platforms) is applied, socat sets
+this variable to the destination address of the received packet. This is
+particularly useful to identify broadcast and multicast addressed packets.
+
+dit(bf(SOCAT_IP_IF) (output)) With all IPv4 based RECVFROM addresses where
+address option link(ip-recvif)(OPTION_IP_RECVIF) (BSD) or
+link(ip-pktinfo)(OPTION_IP_PKTINFO) (other platforms) is applied, socat sets 
+this variable to the name of the interface where the packet was received.
+
+dit(bf(SOCAT_IP_LOCADDR) (output)) With all IPv4 based RECVFROM
+addresses where address option link(ip-pktinfo)(OPTION_IP_PKTINFO) is applied,
+socat sets this variable to the address of the interface where the packet was
+received.
+
+dit(bf(SOCAT_IP_TOS) (output)) With all IPv4 based RECVFROM addresses where
+address option link(ip-recvtos)(OPTION_IP_RECVTOS) is applied, socat sets this
+variable to the TOS (type of service) of the received packet.
+
+dit(bf(SOCAT_IP_TTL) (output)) With all IPv4 based RECVFROM addresses where
+address option link(ip-recvttl)(OPTION_IP_RECVTTL) is applied, socat sets this
+variable to the TTL (time to live) of the received packet.
+
+dit(bf(SOCAT_IPV6_HOPLIMIT) (output)) With all IPv6 based RECVFROM addresses
+where address option link(ipv6-recvhoplimit)(OPTION_IPV6_RECVHOPLIMIT) is
+applied, socat sets this variable to the hoplimit value of the received packet.
+
+dit(bf(SOCAT_IPV6_DSTADDR) (output)) With all IPv6 based RECVFROM
+addresses where address option link(ipv6-recvpktinfo)(OPTION_IPV6_RECVPKTINFO)
+is applied, socat sets this variable to the destination address of the received
+packet.
+
+dit(bf(SOCAT_IPV6_TCLASS) (output)) With all IPv6 based RECVFROM addresses
+where address option link(ipv6-recvtclass)(OPTION_IPV6_RECVTCLASS) is applied,
+socat sets this variable to the transfer class of the received packet.
+
+dit(bf(HOSTNAME) (input)) Is used to determine the hostname for logging (see
 link(-lh)(option_lh)).
 
-dit(bf(LOGNAME)) Is used as name for the socks client user name if no
+dit(bf(LOGNAME) (input)) Is used as name for the socks client user name if no
 link(socksuser)(OPTION_SOCKSUSER) is given.nl()
 With options link(su)(OPTION_SUBSTUSER) and
 link(su-d)(OPTION_SUBSTUSER_DELAYED), LOGNAME is set to the given user name.
 
-dit(bf(USER)) Is used as name for the socks client user name if no
+dit(bf(USER) (input)) Is used as name for the socks client user name if no
 link(socksuser)(OPTION_SOCKSUSER) is given and LOGNAME is empty.nl()
 With options link(su)(OPTION_SUBSTUSER) and
 link(su-d)(OPTION_SUBSTUSER_DELAYED), USER is set to the given user name.
 
-dit(bf(SHELL))
+dit(bf(SHELL) (output))
 With options link(su)(OPTION_SUBSTUSER) and
 link(su-d)(OPTION_SUBSTUSER_DELAYED), SHELL is set to the login shell of the
 given user.
 
-dit(bf(PATH))
+dit(bf(PATH) (output))
 Can be set with option link(path)(OPTION_PATH) for link(exec)(ADDRESS_EXEC) and
 link(system)(ADDRESS_SYSTEM) addresses.
 
-dit(bf(HOME))
+dit(bf(HOME) (output))
 With options link(su)(OPTION_SUBSTUSER) and
 link(su-d)(OPTION_SUBSTUSER_DELAYED), HOME is set to the home directory of the
 given user.

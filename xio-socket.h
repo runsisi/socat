@@ -1,5 +1,5 @@
 /* source: xio-socket.h */
-/* Copyright Gerhard Rieger 2001-2006 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_socket_h_included
@@ -31,6 +31,7 @@ extern const struct optdesc opt_so_detach_filter;
 extern const struct optdesc opt_so_bindtodevice;
 extern const struct optdesc opt_so_bsdcompat;
 extern const struct optdesc opt_so_cksumrecv;
+extern const struct optdesc opt_so_timestamp;
 extern const struct optdesc opt_so_kernaccept;
 extern const struct optdesc opt_so_no_check;
 extern const struct optdesc opt_so_noreuseaddr;
@@ -50,6 +51,10 @@ extern const struct optdesc opt_fiosetown;
 extern const struct optdesc opt_siocspgrp;
 extern const struct optdesc opt_bind;
 extern const struct optdesc opt_protocol_family;
+
+
+extern
+char *xiogetifname(int ind, char *val, int ins);
 
 extern int retropt_socket_pf(struct opt *opts, int *pf);
 
@@ -81,10 +86,14 @@ int _xioopen_dgram_recv(struct single *xfd, int xioflags,
 			struct sockaddr *us, socklen_t uslen,
 			struct opt *opts, int pf, int socktype, int proto,
 			int level);
+extern
+int xiodopacketinfo(struct msghdr *msgh, bool withlog, bool withenv);
 extern 
-int xiogetpacketsrc(int fd, union sockaddr_union *pa, socklen_t *palen);
+int xiogetpacketsrc(int fd, struct msghdr *msgh);
 extern
 int xiocheckpeer(xiosingle_t *xfd,
 		 union sockaddr_union *pa, union sockaddr_union *la);
+extern
+int xiosetsockaddrenv(const char *lr, union sockaddr_union *sau, socklen_t salen, int proto);
 
 #endif /* !defined(__xio_socket_h_included) */

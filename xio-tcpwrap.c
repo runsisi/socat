@@ -1,5 +1,5 @@
 /* source: xio-tcpwrap.c */
-/* Copyright Gerhard Rieger 2006-2007 */
+/* Copyright Gerhard Rieger 2006-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for tcpwrapper handling stuff */
@@ -93,6 +93,7 @@ int xio_tcpwrap_check(xiosingle_t *xfd, union sockaddr_union *us,
    if (!xfd->para.socket.ip.dolibwrap) {
       return 0;
    }
+   if (us == NULL || them == NULL)  { return -1; }
 
 #if defined(HAVE_HOSTS_ALLOW_TABLE)
    save_hosts_allow_table = hosts_allow_table;

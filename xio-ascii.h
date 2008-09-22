@@ -1,5 +1,5 @@
 /* source: xio-ascii.h */
-/* Copyright Gerhard Rieger 2002-2006 */
+/* Copyright Gerhard Rieger 2002-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_ascii_h_included
@@ -16,5 +16,9 @@ extern char *xiosanitize(const char *data,	/* input data */
 			 );
 extern char *
    xiohexdump(const unsigned char *data, size_t bytes, char *coded);
+
+extern char *
+xiodump(const unsigned char *data, size_t bytes, char *coded, size_t codlen,
+	int coding);
 
 #endif /* !defined(__xio_ascii_h_included) */

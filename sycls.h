@@ -1,5 +1,5 @@
 /* source: sycls.h */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __sycls_h_included
@@ -137,6 +137,8 @@ int Atexit(void (*func)(void));
 void Exit(int status);
 void Abort(void);
 int Mkstemp(char *template);
+int Setenv(const char *name, const char *value, int overwrite);
+void Unsetenv(const char *name);
 
 char *Readline(const char *prompt);
 void Using_history(void);
@@ -256,6 +258,8 @@ void Add_history(const char *string);
 #define Exit(s) exit(s)
 #define Abort() abort()
 #define Mkstemp(t) mkstemp(t)
+#define Setenv(n,v,o) setenv(n,v,o)
+#define Unsetenv(n) unsetenv(n)
 
 #define Readline(p) readline(p)
 #define Using_history() using_history()

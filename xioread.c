@@ -113,10 +113,23 @@ ssize_t xioread(xiofile_t *file, void *buff, size_t bufsiz) {
    case XIOREAD_RECV:
      if (pipe->dtype & XIOREAD_RECV_FROM) {
 #if WITH_RAWIP || WITH_UDP || WITH_UNIX
+      struct msghdr msgh = {0};
       union sockaddr_union from = {{0}};
       socklen_t fromlen = sizeof(from);
       char infobuff[256];
+      char ctrlbuff[1024];	/* ancillary messages */
 
+      msgh.msg_name = &from;
+      msgh.msg_namelen = fromlen;
+#if HAVE_STRUCT_MSGHDR_MSGCONTROL
+      msgh.msg_control = ctrlbuff;
+#endif
+#if HAVE_STRUCT_MSGHDR_MSGCONTROLLEN
+      msgh.msg_controllen = sizeof(ctrlbuff);
+#endif
+      if (xiogetpacketsrc(pipe->fd, &msgh) < 0) {
+	 return -1;
+      }
       do {
 	 bytes =
 	    Recvfrom(pipe->fd, buff, bufsiz, 0, &from.soa, &fromlen);
@@ -283,12 +296,23 @@ ssize_t xioread(xiofile_t *file, void *buff, size_t bufsiz) {
      } else /* ~XIOREAD_RECV_FROM */ {
       union sockaddr_union from;  socklen_t fromlen = sizeof(from);
       char infobuff[256];
+      struct msghdr msgh = {0};
+      char ctrlbuff[1024];	/* ancillary messages */
 
       socket_init(pipe->para.socket.la.soa.sa_family, &from);
       /* get source address */
-      if (xiogetpacketsrc(pipe->fd, &from, &fromlen) < 0) {
-	 return STAT_RETRYNOW;
+      msgh.msg_name = &from;
+      msgh.msg_namelen = fromlen;
+#if HAVE_STRUCT_MSGHDR_MSGCONTROL
+      msgh.msg_control = ctrlbuff;
+#endif
+#if HAVE_STRUCT_MSGHDR_MSGCONTROLLEN
+      msgh.msg_controllen = sizeof(ctrlbuff);
+#endif
+      if (xiogetpacketsrc(pipe->fd, &msgh) < 0) {
+	 return -1;
       }
+      xiodopacketinfo(&msgh, true, false);
       if (xiocheckpeer(pipe, &from, &pipe->para.socket.la) < 0) {
 	 Recvfrom(pipe->fd, buff, bufsiz, 0, &from.soa, &fromlen);  /* drop */
 	 errno = EAGAIN;  return -1;

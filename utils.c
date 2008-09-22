@@ -1,5 +1,5 @@
 /* source: utils.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* useful additions to C library */
@@ -145,3 +145,17 @@ char *sanitize_string(const char *data,	/* input data */
    }
    return coded;
 }
+
+/* copies a substring out of a given buff
+   returns scratch, \0 terminated; scratch must provide len+1 bytes
+*/
+char *xiosubstr(char *scratch, const char *str, size_t from, size_t len) {
+   char *scratch0 = scratch;
+   str += from;
+   while (len--) {
+      *scratch++ = *str++;
+   }
+   *scratch = '\0';
+   return scratch0;
+}
+      

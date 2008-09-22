@@ -9,6 +9,8 @@
 #if _WITH_IP4 || _WITH_IP6
 
 #include "xioopen.h"
+
+#include "xio-ascii.h"
 #include "xio-socket.h"
 #include "xio-ip.h"
 #include "xio-ip6.h"
@@ -25,7 +27,7 @@ const struct optdesc opt_ip_pktinfo = { "ip-pktinfo", "pktinfo",   OPT_IP_PKTINF
 #ifdef IP_RECVTOS
 const struct optdesc opt_ip_recvtos = { "ip-recvtos", "recvtos",   OPT_IP_RECVTOS, GROUP_SOCK_IP, PH_PASTSOCKET, TYPE_INT, OFUNC_SOCKOPT, SOL_IP, IP_RECVTOS };
 #endif
-#ifdef IP_RECVTTL
+#ifdef IP_RECVTTL	/* -Cygwin */
 const struct optdesc opt_ip_recvttl = { "ip-recvttl", "recvttl",   OPT_IP_RECVTTL, GROUP_SOCK_IP, PH_PASTSOCKET, TYPE_INT, OFUNC_SOCKOPT, SOL_IP, IP_RECVTTL };
 #endif
 #ifdef IP_RECVOPTS
@@ -64,6 +66,12 @@ const struct optdesc opt_ip_pktoptions = { "ip-pktoptions", "pktopts", OPT_IP_PK
 #endif
 #ifdef IP_ADD_MEMBERSHIP
 const struct optdesc opt_ip_add_membership = { "ip-add-membership", "membership",OPT_IP_ADD_MEMBERSHIP, GROUP_SOCK_IP, PH_PASTSOCKET, TYPE_IP_MREQN, OFUNC_SOCKOPT, SOL_IP, IP_ADD_MEMBERSHIP };
+#endif
+#ifdef IP_RECVDSTADDR
+const struct optdesc opt_ip_recvdstaddr = { "ip-recvdstaddr", "recvdstaddr",OPT_IP_RECVDSTADDR, GROUP_SOCK_IP, PH_PASTSOCKET, TYPE_INT, OFUNC_SOCKOPT, SOL_IP, IP_RECVDSTADDR };
+#endif
+#ifdef IP_RECVIF
+const struct optdesc opt_ip_recvif = { "ip-recvif", "recvdstaddrif",OPT_IP_RECVIF, GROUP_SOCK_IP, PH_PASTSOCKET, TYPE_INT, OFUNC_SOCKOPT, SOL_IP, IP_RECVIF };
 #endif
 
 #if HAVE_RESOLV_H
@@ -508,5 +516,117 @@ int parserange(const char *rangename, int pf, union xiorange_union *range) {
    }
    return 0;
 }
+
+
+#if defined(HAVE_STRUCT_CMSGHDR) && defined(CMSG_DATA)
+/* these are valid for IPv4 and IPv6 */
+int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
+			char *typbuff, int typlen,
+			char *nambuff, int namlen,
+			char *envbuff, int envlen,
+			char *valbuff, int vallen) {
+   const char *cmsgtype, *cmsgname = NULL, *cmsgenvn = NULL, *cmsgfmt = NULL;
+   size_t msglen;
+   char scratch1[16];	/* can hold an IPv4 address in ASCII */
+   char scratch2[16];
+   char scratch3[16];
+
+   msglen = cmsg->cmsg_len-((char *)CMSG_DATA(cmsg)-(char *)cmsg);
+   envbuff[0] = '\0';
+   switch (cmsg->cmsg_type) {
+   default:
+      *num = 1;
+      strncpy(typbuff, "IP", typlen);
+      snprintf(nambuff, namlen, "type_%u", cmsg->cmsg_type);
+      xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0);
+      return STAT_OK;
+#ifdef IP_PKTINFO
+   case IP_PKTINFO: {
+      struct in_pktinfo *pktinfo = (struct in_pktinfo *)CMSG_DATA(cmsg);
+      *num = 3;
+      strncpy(typbuff, "IP_PKTINFO", typlen);
+      snprintf(nambuff, namlen, "%s%c%s%c%s", "if", '\0', "locaddr", '\0', "dstaddr");
+      snprintf(envbuff, envlen, "%s%c%s%c%s", "IP_IF", '\0', 
+	       "IP_LOCADDR", '\0', "IP_DSTADDR");
+      snprintf(valbuff, vallen, "%s%c%s%c%s",
+	       xiogetifname(pktinfo->ipi_ifindex, scratch1, -1), '\0',
+	       inet4addr_info(ntohl(pktinfo->ipi_spec_dst.s_addr), scratch2, sizeof(scratch2)), '\0',
+	       inet4addr_info(ntohl(pktinfo->ipi_addr.s_addr), scratch3, sizeof(scratch3)));
+   }
+      return STAT_OK;
+#endif /* IP_PKTINFO */
+#ifdef IP_RECVERR
+   case IP_RECVERR: {
+      struct sock_extended_err *err =
+	 (struct sock_extended_err *)CMSG_DATA(cmsg);
+      *num = 6;
+      strncpy(typbuff, "IP_RECVERR", typlen);
+      snprintf(nambuff, namlen, "%s%c%s%c%s%c%s%c%s%c%s",
+	       "errno", '\0', "origin", '\0', "type", '\0',
+	       "code", '\0', "info", '\0', "data");
+      snprintf(envbuff, envlen, "%s%c%s%c%s%c%s%c%s%c%s",
+	       "IP_RECVERR_ERRNO", '\0', "IP_RECVERR_ORIGIN", '\0',
+	       "IP_RECVERR_TYPE", '\0', "IP_RECVERR_CODE", '\0',
+	       "IP_RECVERR_INFO", '\0', "IP_RECVERR_DATA");
+      snprintf(valbuff, vallen, "%u%c%u%c%u%c%u%c%u%c%u",
+	       err->ee_errno, '\0', err->ee_origin, '\0', err->ee_type, '\0',
+	       err->ee_code, '\0', err->ee_info, '\0', err->ee_data);
+      return STAT_OK;
+   }
+#endif /* IP_RECVERR */
+#ifdef IP_RECVIF
+   case IP_RECVIF: {
+      /* spec in FreeBSD: /usr/include/net/if_dl.h */
+      struct sockaddr_dl *sadl = (struct sockaddr_dl *)CMSG_DATA(cmsg);
+      *num = 1;
+      strncpy(typbuff, "IP_RECVIF", typlen);
+      strncpy(nambuff, "if", namlen);
+      strncpy(envbuff, "IP_IF", envlen);
+      strncpy(valbuff,
+	      xiosubstr(scratch1, sadl->sdl_data, 0, sadl->sdl_nlen), vallen);
+      return STAT_OK;
+   }
+#endif /* defined(IP_RECVIF) */
+#ifdef IP_RECVDSTADDR
+   case IP_RECVDSTADDR:
+      *num = 1;
+      strncpy(typbuff, "IP_RECVDSTADDR", typlen);
+      strncpy(nambuff, "dstaddr", namlen);
+      strncpy(envbuff, "IP_DSTADDR", envlen);
+      inet4addr_info(ntohl(*(uint32_t *)CMSG_DATA(cmsg)), valbuff, vallen);
+      return STAT_OK;
+#endif
+   case IP_OPTIONS:
+   case IP_RECVOPTS:
+      cmsgtype = "IP_OPTIONS"; cmsgname = "options"; cmsgfmt = NULL; break;
+   case IP_TOS:
+      cmsgtype = "IP_TOS";     cmsgname = "tos"; cmsgfmt = "%u"; break;
+   case IP_TTL: /* Linux */
+#ifdef IP_RECVTTL
+   case IP_RECVTTL: /* FreeBSD */
+#endif
+      cmsgtype = "IP_TTL";     cmsgname = "ttl"; cmsgfmt = "%u"; break;
+   }
+   /* when we come here we provide a single parameter
+      with type in cmsgtype, name in cmsgname, printf format in cmsgfmt */
+   *num = 1;
+   if (strlen(cmsgtype) >= typlen)  Fatal("buff too short");
+   strncpy(typbuff, cmsgtype, typlen);
+   if (strlen(cmsgname) >= namlen)  Fatal("buff too short");
+   strncpy(nambuff, cmsgname, namlen);
+   if (cmsgenvn) {
+      if (strlen(cmsgenvn) >= envlen)  Fatal("buff too short");
+      strncpy(envbuff, cmsgenvn, envlen);
+   } else {
+      envbuff[0] = '\0';
+   }
+   if (cmsgfmt != NULL) {
+      snprintf(valbuff, vallen, cmsgfmt, *(unsigned char *)CMSG_DATA(cmsg));
+   } else {
+      xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0);
+   }
+   return STAT_OK;
+}
+#endif /* defined(HAVE_STRUCT_CMSGHDR) && defined(CMSG_DATA) */
 
 #endif /* _WITH_IP4 || _WITH_IP6 */

@@ -48,13 +48,15 @@ opts="$opt_t $OPTS"
 export SOCAT_OPTS="$opts"
 #debug="1"
 debug=
-TESTS="$@"
+TESTS="$@"; export TESTS
 INTERFACE=eth0;	# not used for function tests
 MCINTERFACE=lo	# !!! Linux only
 #LOCALHOST=192.168.58.1
 #LOCALHOST=localhost
 LOCALHOST=127.0.0.1
 LOCALHOST6=[::1]
+#PROTO=$(awk '{print($2);}' /etc/protocols |sort -n |tail -n 1)
+#PROTO=$(($PROTO+1))
 PROTO=$((144+RANDOM/2048))
 PORT=12002
 SOURCEPORT=2002
@@ -1912,14 +1914,21 @@ waitudp6port () {
     return 1
 }
 
+# we need this misleading function name for canonical reasons
+waitunixport () {
+    waitfile "$1" "$2" "$3"
+}
+
 # wait until a filesystem entry exists
 waitfile () {
     local crit=-e
     case "X$1" in X-*) crit="$1"; shift ;; esac
     local file="$1"
-    local logic="$2"	# 0..wait until gone; 1..wait until exists (default)
+    local logic="$2"	# 0..wait until gone; 1..wait until exists (default);
+			# 2..wait until not empty
     local timeout="$3"
     [ "$logic" ] || logic=1
+    [ "$logic" -eq 2 ] && crit=-s
     [ "$timeout" ] || timeout=5
     while [ $timeout -gt 0 ]; do
 	if [ \( \( $logic -ne 0 \) -a $crit "$file" \) -o \
@@ -7657,7 +7666,7 @@ printf "test $F_n $TEST... " $N
 $CMD1 2>"${te}1" &
 pid1="$!"
 waitip4port $ts1p 1
-usleep 100000	# give process a chance to add membership
+usleep 100000	# give process a chance to add multicast membership
 echo "$da" |$CMD2 >>"$tf" 2>>"${te}2"
 rc2="$?"
 kill "$pid1" 2>/dev/null; wait;
@@ -8147,13 +8156,12 @@ rc2=$?
 sleep 1
 #read -p ">"
 l="$(childprocess $pid1)"
-rcc=$?
 kill $pid1 2>/dev/null; wait
 if [ $rc2 -ne 0 ]; then
-    $PRINTF "$NO_RESULT\n"	# already handled in test UDP4STREAM
+    $PRINTF "$NO_RESULT (client failed)\n"	# already handled in test UDP4STREAM
     numCANT=$((numCANT+1))
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
-    $PRINTF "$NO_RESULT\n"	# already handled in test UDP4STREAM
+    $PRINTF "$NO_RESULT (diff failed)\n"	# already handled in test UDP4STREAM
     numCANT=$((numCANT+1))
 elif $(isdefunct "$l"); then
     $PRINTF "$FAILED: $SOCAT:\n"
@@ -8169,7 +8177,7 @@ fi ;;
 esac
 PORT=$((PORT+1))
 N=$((N+1))
-
+set +vx
 
 # there was a bug with udp-recvfrom and fork: terminating sub processes became
 # zombies because the master process caught SIGCHLD but did not wait()
@@ -8198,7 +8206,6 @@ rc2=$?
 sleep 1
 #read -p ">"
 l="$(childprocess $pid1)"
-rcc=$?
 kill $pid1 2>/dev/null; wait
 if [ $rc2 -ne 0 ]; then
     $PRINTF "$NO_RESULT\n"	# already handled in test UDP4DGRAM
@@ -8511,6 +8518,398 @@ else
 fi
 esac
 N=$((N+1))
+
+
+while read SCM_ENABLE SCM_RECV SCM_TYPE SCM_NAME SCM_VALUE
+do
+
+# test: logging of ancillary message with ip-recvopt
+NAME=UDP4SCM_$SCM_TYPE
+case "$TESTS" in
+*%functions%*|*%ip4%*|*%dgram%*|*%udp%*|*%udp4%*|*%recv%*|*%ancillary%*|*%$NAME%*)
+#set -vx
+TEST="$NAME: IPv4 ancillary messages"
+# idea: start a socat process with udp4-recv:..,ip-recvopts and send it a packet
+# with IP options (ip-options). check the info log for the appropriate output.
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+ts1p=$PORT; PORT=$((PORT+1))
+ts1a="127.0.0.1"
+ts1="$ts1a:$ts1p"
+CMD0="$SOCAT $opts -d -d -d -u UDP4-RECV:$ts1p,reuseaddr,$SCM_RECV -"
+CMD1="$SOCAT $opts -u - UDP4-SENDTO:$ts1,$SCM_ENABLE"
+printf "test $F_n $TEST... " $N
+# is this option supported?
+if $SOCAT -hhh |grep "[[:space:]]$SCM_RECV[[:space:]]" >/dev/null; then
+$CMD0 >"$tf" 2>"${te}0" &
+pid0="$!"
+waitudp4port $ts1p 1
+echo "XYZ" |$CMD1 2>>"${te}1"
+rc1="$?"
+sleep 1
+i=0; while [ ! -s "${te}0" -a "$i" -lt 10 ]; do  usleep 100000; i=$((i+1));  done
+kill "$pid0" 2>/dev/null; wait
+# do not show more messages than requested
+case "$opts" in
+*-d*-d*-d*-d*) LEVELS="[EWNID]" ;;
+*-d*-d*-d*)    LEVELS="[EWNI]" ;;
+*-d*-d*)       LEVELS="[EWN]" ;;
+*-d*)          LEVELS="[EW]" ;;
+*)             LEVELS="[E]" ;;
+esac
+if [ "$rc1" -ne 0 ]; then
+    $PRINTF "$FAILED: $SOCAT:\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    grep " $LEVELS " "${te}0"
+    grep " $LEVELS " "${te}1"
+    numFAIL=$((numFAIL+1))
+elif ! grep "ancillary message: $SCM_TYPE: $SCM_NAME=$SCM_VALUE" ${te}0 >/dev/null; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    grep " $LEVELS " "${te}0"
+    grep " $LEVELS " "${te}1"
+    numFAIL=$((numFAIL+1))
+else
+    $PRINTF "$OK\n"
+    if [ -n "$debug" ]; then
+	grep " $LEVELS " "${te}0"; echo; grep " $LEVELS " "${te}1";
+    fi
+    numOK=$((numOK+1))
+fi
+else # option is not supported
+    $PRINTF "${YELLOW}$SCM_RECV not available${NORMAL}\n"
+    numCANT=$((numCANT+1))
+fi # option is not supported
+set +vx
+;;
+esac
+N=$((N+1))
+
+done <<<"ip-options=x01000000 ip-recvopts IP_OPTIONS options x01000000
+, so-timestamp SCM_TIMESTAMP timestamp $(date '+%a %b %e %H:%M:.. %Y')
+ip-ttl=53 ip-recvttl IP_TTL ttl 53
+ip-tos=7 ip-recvtos IP_TOS tos 7
+, ip-pktinfo IP_PKTINFO locaddr 127.0.0.1
+, ip-recvif IP_RECVIF if lo
+, ip-recvdstaddr IP_RECVDSTADDR dstaddr 127.0.0.1"
+
+
+# test: logging of ancillary message
+while read PF KEYW ADDR IPPORT SCM_ENABLE SCM_RECV SCM_TYPE SCM_NAME ROOT SCM_VALUE
+do
+if [ -z "$PF" ]; then continue; fi
+#
+pf="$(echo $PF |tr A-Z a-z)"
+proto="$(echo $KEYW |tr A-Z a-z)"
+NAME=${KEYW}SCM_$SCM_TYPE
+case "$TESTS" in
+*%functions%*|*%$pf%*|*%dgram%*|*%udp%*|*%$proto%*|*%recv%*|*%ancillary%*|*%$ROOT%*|*%$NAME%*)
+TEST="$NAME: $KEYW log ancillary message $SCM_TYPE $SCM_NAME"
+# idea: start a socat process with *-RECV:..,... , ev. with ancillary message
+# enabling option and send it a packet, ev. with some option. check the info log
+# for the appropriate output.
+if [ "$ROOT" = root -a $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+case "X$IPPORT" in
+    "XPORT")
+    tra="$PORT"		# test recv address
+    tsa="$ADDR:$PORT"	# test sendto address
+    PORT=$((PORT+1)) ;;
+    "XPROTO")
+    tra="$PROTO"		# test recv address
+    tsa="$ADDR:$PROTO"	# test sendto address
+    PROTO=$((PROTO+1)) ;;
+    *)
+    tra="$(eval echo "$ADDR")"	# resolve $N
+    tsa="$tra"
+esac
+CMD0="$SOCAT $opts -d -d -d -u $KEYW-RECV:$tra,reuseaddr,$SCM_RECV -"
+CMD1="$SOCAT $opts -u - $KEYW-SENDTO:$tsa,$SCM_ENABLE"
+printf "test $F_n $TEST... " $N
+# is this option supported?
+if $SOCAT -hhh |grep "[[:space:]]$SCM_RECV[[:space:]]" >/dev/null; then
+$CMD0 >"$tf" 2>"${te}0" &
+pid0="$!"
+wait${proto}port $tra 1
+echo "XYZ" |$CMD1 2>"${te}1"
+rc1="$?"
+sleep 1
+i=0; while [ ! -s "${te}0" -a "$i" -lt 10 ]; do  usleep 100000; i=$((i+1));  done
+kill "$pid0" 2>/dev/null; wait
+# do not show more messages than requested
+case "$opts" in
+*-d*-d*-d*-d*) LEVELS="[EWNID]" ;;
+*-d*-d*-d*)    LEVELS="[EWNI]" ;;
+*-d*-d*)       LEVELS="[EWN]" ;;
+*-d*)          LEVELS="[EW]" ;;
+*)             LEVELS="[E]" ;;
+esac
+if [ "$rc1" -ne 0 ]; then
+    $PRINTF "$NO_RESULT: $SOCAT:\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    grep " $LEVELS " "${te}0"
+    grep " $LEVELS " "${te}1"
+    numCANT=$((numCANT+1))
+elif ! grep "ancillary message: $SCM_TYPE: $SCM_NAME=$SCM_VALUE" ${te}0 >/dev/null; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    grep " $LEVELS " "${te}0"
+    grep " $LEVELS " "${te}1"
+    numFAIL=$((numFAIL+1))
+else
+    $PRINTF "$OK\n"
+    if [ -n "$debug" ]; then
+	grep " $LEVELS " "${te}0"; echo; grep " $LEVELS " "${te}1";
+    fi
+    numOK=$((numOK+1))
+fi
+set +vx
+else # option is not supported
+    $PRINTF "${YELLOW}$SCM_RECV not available${NORMAL}\n"
+    numCANT=$((numCANT+1))
+fi # option is not supported
+fi # must be root
+;;
+esac
+N=$((N+1))
+#
+done <<<"
+IP4  UDP4 127.0.0.1 PORT  ip-options=x01000000 ip-recvopts       IP_OPTIONS     options   user x01000000
+IP4  UDP4 127.0.0.1 PORT  ,                    so-timestamp      SCM_TIMESTAMP  timestamp user $(date '+%a %b %e %H:%M:.. %Y')
+IP4  UDP4 127.0.0.1 PORT  ip-ttl=53            ip-recvttl        IP_TTL         ttl       user 53
+IP4  UDP4 127.0.0.1 PORT  ip-tos=7             ip-recvtos        IP_TOS         tos       user 7
+IP4  UDP4 127.0.0.1 PORT  ,                    ip-pktinfo        IP_PKTINFO     locaddr   user 127.0.0.1
+IP4  UDP4 127.0.0.1 PORT  ,                    ip-pktinfo        IP_PKTINFO     dstaddr   user 127.0.0.1
+IP4  UDP4 127.0.0.1 PORT  ,                    ip-pktinfo        IP_PKTINFO     if        user lo
+IP4  UDP4 127.0.0.1 PORT  ,                    ip-recvif         IP_RECVIF      if        user lo0
+IP4  UDP4 127.0.0.1 PORT  ,                    ip-recvdstaddr    IP_RECVDSTADDR dstaddr   user 127.0.0.1
+IP4  IP4  127.0.0.1 PROTO ip-options=x01000000 ip-recvopts       IP_OPTIONS     options   root x01000000
+IP4  IP4  127.0.0.1 PROTO ,                    so-timestamp      SCM_TIMESTAMP  timestamp root $(date '+%a %b %e %H:%M:.. %Y')
+IP4  IP4  127.0.0.1 PROTO ip-ttl=53            ip-recvttl        IP_TTL         ttl       root 53
+IP4  IP4  127.0.0.1 PROTO ip-tos=7             ip-recvtos        IP_TOS         tos       root 7
+IP4  IP4  127.0.0.1 PROTO ,                    ip-pktinfo        IP_PKTINFO     locaddr   root 127.0.0.1
+IP4  IP4  127.0.0.1 PROTO ,                    ip-pktinfo        IP_PKTINFO     dstaddr   root 127.0.0.1
+IP4  IP4  127.0.0.1 PROTO ,                    ip-pktinfo        IP_PKTINFO     if        root lo
+IP4  IP4  127.0.0.1 PROTO ,                    ip-recvif         IP_RECVIF      if        root lo0
+IP4  IP4  127.0.0.1 PROTO ,                    ip-recvdstaddr    IP_RECVDSTADDR dstaddr   root 127.0.0.1
+IP6  UDP6 [::1]     PORT  ,                    so-timestamp      SCM_TIMESTAMP  timestamp user $(date '+%a %b %e %H:%M:.. %Y')
+IP6  UDP6 [::1]     PORT  ,                    ipv6-recvpktinfo  IPV6_PKTINFO   dstaddr   user [[]0000:0000:0000:0000:0000:0000:0000:0001[]]
+IP6  UDP6 [::1]     PORT  ipv6-unicast-hops=35 ipv6-recvhoplimit IPV6_HOPLIMIT  hoplimit  user 35
+IP6  UDP6 [::1]     PORT  ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    tclass    user xaa000000
+IP6  IP6  [::1]     PROTO ,                    so-timestamp      SCM_TIMESTAMP  timestamp root $(date '+%a %b %e %H:%M:.. %Y')
+IP6  IP6  [::1]     PROTO ,                    ipv6-recvpktinfo  IPV6_PKTINFO   dstaddr   root [[]0000:0000:0000:0000:0000:0000:0000:0001[]]
+IP6  IP6  [::1]     PROTO ipv6-unicast-hops=35 ipv6-recvhoplimit IPV6_HOPLIMIT  hoplimit  root 35
+IP6  IP6  [::1]     PROTO ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    tclass    root xaa000000
+UNIX UNIX $td/test\$N.server - ,               so-timestamp      SCM_TIMESTAMP  timestamp user $(date '+%a %b %e %H:%M:.. %Y')
+"
+# this one fails, appearently due to a Linux weakness:
+# UNIX so-timestamp
+
+
+# test: setting of environment variables that describe a stream socket
+# connection: SOCAT_SOCKADDR, SOCAT_PEERADDR; and SOCAT_SOCKPORT,
+# SOCAT_PEERPORT when applicable
+while read KEYW TEST_SOCKADDR TEST_PEERADDR TEST_SOCKPORT TEST_PEERPORT; do
+if [ -z "$KEYW" ]; then continue; fi
+#
+test_proto="$(echo $KEYW |tr A-Z a-z)"
+NAME=${KEYW}LISTENENV
+case "$TESTS" in
+*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%$test_proto%*|*%envvar%*|*%$NAME%*)
+TEST="$NAME: $KEYW-LISTEN fills environment variables with socket addresses"
+# have a server accepting a connection and invoking some shell code. The shell
+# code extracts and prints the SOCAT related environment vars.
+# outside code then checks if the environment contains the variables correctly
+# describing the peer and local sockets.
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+TEST_SOCKADDR="$(echo $TEST_SOCKADDR |sed "s/\$N/$N/g")"	# actual vars
+tsa="$TEST_SOCKADDR"	# test server address
+tsp="$TEST_SOCKPORT"	# test server port
+if [ "$tsp" != ',' ]; then
+    tsa1="$tsp"; tsa2="$tsa"; tsa="$tsa:$tsp"	# tsa2 used for server bind=
+else
+    tsa1="$tsa"; tsa2=				# tsa1 used for addr parameter
+fi
+TEST_PEERADDR="$(echo $TEST_PEERADDR |sed "s/\$N/$N/g")"	# actual vars
+tca="$TEST_PEERADDR"	# test client address
+tcp="$TEST_PEERPORT"	# test client port
+if [ "$tcp" != ',' ]; then
+    tca="$tca:$tcp"
+fi
+CMD0="$SOCAT $opts -u $KEYW-LISTEN:$tsa1 system:\"export -p\""
+CMD1="$SOCAT $opts -u - $KEYW-CONNECT:$tsa,bind=$tca"
+printf "test $F_n $TEST... " $N
+eval "$CMD0 2>\"${te}0\" >\"$tf\" &"
+pid0=$!
+wait${test_proto}port $tsa1 1
+echo |$CMD1 2>"${te}1"
+rc1=$?
+waitfile "$tf" 2
+kill $pid0 2>/dev/null; wait
+#set -vx
+if [ $rc1 != 0 ]; then
+    $PRINTF "$NO_RESULT (client failed):\n"
+    echo "$CMD0 &"
+    cat "${te}0"
+    echo "$CMD1"
+    cat "${te}1"
+    numCANT=$((numCANT+1))
+elif [ "$(grep SOCAT_SOCKADDR "${tf}" |sed -e 's/^[^=]*=//' |sed -e "s/[\"']//g")" = "$TEST_SOCKADDR" -a \
+    "$(grep SOCAT_PEERADDR "${tf}" |sed -e 's/^[^=]*=//' -e "s/[\"']//g")" = "$TEST_PEERADDR" -a \
+    \( "$TEST_SOCKPORT" = ',' -o "$(grep SOCAT_SOCKPORT "${tf}" |sed -e 's/^[^=]*=//' |sed -e 's/"//g')" = "$tsp" \) -a \
+    \( "$TEST_PEERPORT" = ',' -o "$(grep SOCAT_PEERPORT "${tf}" |sed -e 's/^[^=]*=//' |sed -e 's/"//g')" = "$tcp" \) \
+    ]; then
+    $PRINTF "$OK\n"
+    if [ "$debug" ]; then
+	echo "$CMD0 &"
+	cat "${te}0"
+	echo "$CMD1"
+	cat "${te}1"
+    fi
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    cat "${te}0"
+    echo "$CMD1"
+    cat "${te}1"
+    numFAIL=$((numFAIL+1))
+fi
+set +xv
+;;
+esac
+N=$((N+1))
+#
+done <<<"
+TCP4 $LOCALHOST                                $SECONDADDR                               $PORT       $((PORT+1))
+TCP6 [0000:0000:0000:0000:0000:0000:0000:0001] [0000:0000:0000:0000:0000:0000:0000:0001] $((PORT+2)) $((PORT+3))
+UDP6 [0000:0000:0000:0000:0000:0000:0000:0001] [0000:0000:0000:0000:0000:0000:0000:0001] $((PORT+6)) $((PORT+7))
+UNIX $td/test\$N.server                        $td/test\$N.client                        ,           ,
+"
+# this one fails do to weakness in socats UDP4-LISTEN implementation:
+#UDP4 $LOCALHOST $SECONDADDR $((PORT+4)) $((PORT+5))
+
+
+# test: environment variables from ancillary message
+while read PF KEYW ADDR IPPORT SCM_ENABLE SCM_RECV SCM_ENVNAME ROOT SCM_VALUE
+do
+if [ -z "$PF" ]; then continue; fi
+#
+pf="$(echo $PF |tr A-Z a-z)"
+proto="$(echo $KEYW |tr A-Z a-z)"
+NAME=${KEYW}ENV_$SCM_ENVNAME
+case "$TESTS" in
+*%functions%*|*%$pf%*|*%dgram%*|*%udp%*|*%$proto%*|*%recv%*|*%ancillary%*|*%envvar%*|*%$ROOT%*|*%$NAME%*)
+#set -vx
+TEST="$NAME: $KEYW ancillary message brings $SCM_ENVNAME into environment"
+# idea: start a socat process with *-RECVFROM:..,... , ev. with ancillary
+# message  enabling option and send it a packet, ev. with some option. write
+# the resulting environment to a file and check its contents for the
+# appropriate variable.
+if [ "$ROOT" = root -a $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+case "X$IPPORT" in
+    "XPORT")
+    tra="$PORT"		# test recv address
+    tsa="$ADDR:$PORT"	# test sendto address
+    PORT=$((PORT+1)) ;;
+    "XPROTO")
+    tra="$PROTO"		# test recv address
+    tsa="$ADDR:$PROTO"	# test sendto address
+    PROTO=$((PROTO+1)) ;;
+    *)
+    tra="$(eval echo "$ADDR")"	# resolve $N
+    tsa="$tra"
+esac
+#CMD0="$SOCAT $opts -u $KEYW-RECVFROM:$tra,reuseaddr,$SCM_RECV system:\"export -p\""
+CMD0="$SOCAT $opts -u $KEYW-RECVFROM:$tra,reuseaddr,$SCM_RECV system:\"echo \\\$SOCAT_$SCM_ENVNAME\""
+CMD1="$SOCAT $opts -u - $KEYW-SENDTO:$tsa,$SCM_ENABLE"
+printf "test $F_n $TEST... " $N
+# is this option supported?
+if $SOCAT -hhh |grep "[[:space:]]$SCM_RECV[[:space:]]" >/dev/null; then
+eval "$CMD0 >\"$tf\" 2>\"${te}0\" &"
+pid0="$!"
+wait${proto}port $tra 1
+echo "XYZ" |$CMD1 2>"${te}1"
+rc1="$?"
+waitfile "$tf" 2
+#i=0; while [ ! -s "${te}0" -a "$i" -lt 10 ]; do  usleep 100000; i=$((i+1));  done
+kill "$pid0" 2>/dev/null; wait
+# do not show more messages than requested
+#set -vx
+if [ "$rc1" -ne 0 ]; then
+    $PRINTF "$NO_RESULT: $SOCAT:\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "${te}0"
+    cat "${te}1"
+    numCANT=$((numCANT+1))
+#elif ! egrep "^export SOCAT_$SCM_ENVNAME=[\"']?$SCM_VALUE[\"']?\$" ${tf} >/dev/null; then
+#elif ! eval echo "$SOCAT_\$SCM_VALUE" |diff - "${tf}" >/dev/null; then
+elif ! expr "$(cat "$tf")" : "$(eval echo "\$SCM_VALUE")" >/dev/null; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "${te}0"
+    cat "${te}1"
+    numFAIL=$((numFAIL+1))
+else
+    $PRINTF "$OK\n"
+    if [ -n "$debug" ]; then
+	cat "${te}0"; echo; cat "${te}1";
+    fi
+    numOK=$((numOK+1))
+fi
+set +vx
+else # option is not supported
+    $PRINTF "${YELLOW}$SCM_RECV not available${NORMAL}\n"
+    numCANT=$((numCANT+1))
+fi # option is not supported
+fi # must be root
+;;
+esac
+N=$((N+1))
+#
+done <<<"
+IP4  UDP4 127.0.0.1 PORT  ip-options=x01000000 ip-recvopts       IP_OPTIONS     user x01000000
+IP4  UDP4 127.0.0.1 PORT  ,                    so-timestamp      TIMESTAMP      user $(date '+%a %b %e %H:%M:.. %Y'), ...... usecs
+IP4  UDP4 127.0.0.1 PORT  ip-ttl=53            ip-recvttl        IP_TTL         user 53
+IP4  UDP4 127.0.0.1 PORT  ip-tos=7             ip-recvtos        IP_TOS         user 7
+IP4  UDP4 127.0.0.1 PORT  ,                    ip-pktinfo        IP_LOCADDR     user 127.0.0.1
+IP4  UDP4 127.0.0.1 PORT  ,                    ip-pktinfo        IP_DSTADDR     user 127.0.0.1
+IP4  UDP4 127.0.0.1 PORT  ,                    ip-pktinfo        IP_IF          user lo
+IP4  UDP4 127.0.0.1 PORT  ,                    ip-recvif         IP_RECVIF      user lo0
+IP4  UDP4 127.0.0.1 PORT  ,                    ip-recvdstaddr    IP_RECVDSTADDR user 127.0.0.1
+IP4  IP4  127.0.0.1 PROTO ip-options=x01000000 ip-recvopts       IP_OPTIONS     root x01000000
+IP4  IP4  127.0.0.1 PROTO ,                    so-timestamp      TIMESTAMP      root $(date '+%a %b %e %H:%M:.. %Y'), ...... usecs
+IP4  IP4  127.0.0.1 PROTO ip-ttl=53            ip-recvttl        IP_TTL         root 53
+IP4  IP4  127.0.0.1 PROTO ip-tos=7             ip-recvtos        IP_TOS         root 7
+IP4  IP4  127.0.0.1 PROTO ,                    ip-pktinfo        IP_LOCADDR     root 127.0.0.1
+IP4  IP4  127.0.0.1 PROTO ,                    ip-pktinfo        IP_DSTADDR     root 127.0.0.1
+IP4  IP4  127.0.0.1 PROTO ,                    ip-pktinfo        IP_IF          root lo
+IP4  IP4  127.0.0.1 PROTO ,                    ip-recvif         IP_RECVIF      root lo0
+IP4  IP4  127.0.0.1 PROTO ,                    ip-recvdstaddr    IP_RECVDSTADDR root 127.0.0.1
+IP6  UDP6 [::1]     PORT  ,                    ipv6-recvpktinfo  IPV6_DSTADDR   user [[]0000:0000:0000:0000:0000:0000:0000:0001[]]
+IP6  UDP6 [::1]     PORT  ipv6-unicast-hops=35 ipv6-recvhoplimit IPV6_HOPLIMIT  user 35
+IP6  UDP6 [::1]     PORT  ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    user xaa000000
+IP6  IP6  [::1]     PROTO ,                    ipv6-recvpktinfo  IPV6_DSTADDR   root [[]0000:0000:0000:0000:0000:0000:0000:0001[]]
+IP6  IP6  [::1]     PROTO ipv6-unicast-hops=35 ipv6-recvhoplimit IPV6_HOPLIMIT  root 35
+IP6  IP6  [::1]     PROTO ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    root xaa000000
+UNIX UNIX $td/test\$N.server - ,               so-timestamp      TIMESTAMP      user $(date '+%a %b %e %H:%M:.. %Y')
+"
 
 
 echo "summary: $((N-1)) tests; $numOK ok, $numFAIL failed, $numCANT could not be performed"

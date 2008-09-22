@@ -375,6 +375,8 @@ extern xiofile_t *sock[XIO_MAXSOCK];
 				   not even by external changes correctable */
 
 extern int xioinitialize(void);
+extern int xioinitialize2(void);
+extern pid_t xio_fork(bool subchild, int level);
 extern int xio_forked_inchild(void);
 extern int xiosetopt(char what, const char *arg);
 extern int xioinqopt(char what, char *arg, size_t n);

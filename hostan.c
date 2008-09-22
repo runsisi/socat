@@ -30,12 +30,11 @@ int hostan(FILE *outfile) {
 #if WITH_SOCKET
 static int iffan(FILE *outfile) {
    /* Linux: man 7 netdevice */
-   /* FreeBSD: man 4 networking */
+   /* FreeBSD, NetBSD: man 4 networking */
    /* Solaris: man 7 if_tcp */
 
 /* currently we support Linux and a little FreeBSD */
 #ifdef SIOCGIFCONF	/* not Solaris */
-#ifdef SIOCGIFINDEX	/* not OpenBSD */
 
 #define IFBUFSIZ 32*sizeof(struct ifreq) /*1024*/
    int s;
@@ -62,22 +61,24 @@ static int iffan(FILE *outfile) {
       struct ifreq *ifp = (struct ifreq *)((caddr_t)ic.ifc_req + i);
       struct ifreq ifr;
 
+#if 0 || defined(SIOCGIFINDEX)	/* not NetBSD, OpenBSD */
       strcpy(ifr.ifr_name, ifp->ifr_name);
       if (Ioctl(s, SIOCGIFINDEX, &ifr) < 0) {
 	 Error3("ioctl(%d, SIOCGIFINDEX, {\"%s\"}): %s",
 		s, &ifr.ifr_name, strerror(errno));
 	 return 1;
       }
-      /*fprintf(outfile, "%2d: %s\n", ifr.ifr_ifindex, ifp->ifr_ifrn.ifrn_name);*/
 #if HAVE_STRUCT_IFREQ_IFR_INDEX
       fprintf(outfile, "%2d: %s\n", ifr.ifr_index, ifp->ifr_name);
 #elif HAVE_STRUCT_IFREQ_IFR_IFINDEX
       fprintf(outfile, "%2d: %s\n", ifr.ifr_ifindex, ifp->ifr_name);
 #endif /* HAVE_STRUCT_IFREQ_IFR_INDEX */
+#else /* !defined(SIOCGIFINDEX) */
+      fprintf(outfile, "%2d: %s\n", i/sizeof(struct ifreq), ifp->ifr_name);
+#endif /* defined(SIOCGIFINDEX) */
    }
    Close(s);
 #endif /* defined(SIOCGIFCONF) */
-#endif /* defined(SIOCGIFINDEX) */
    return 0;
 }
 #endif /* WITH_SOCKET */

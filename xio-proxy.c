@@ -192,30 +192,23 @@ static int xioopen_proxy_connect(int argc, const char *argv[], struct opt *opts,
 #if WITH_RETRY
       if (dofork) {
 	 pid_t pid;
-	 while ((pid = Fork()) < 0) {
-	    int level = E_ERROR;
-	    if (xfd->forever || xfd->retry) {
-	       level = E_WARN;
-	    }
-	    Msg1(level, "fork(): %s", strerror(errno));
-	    if (xfd->forever || xfd->retry--) {
-	       Nanosleep(&xfd->intervall, NULL);
-	       continue;
+	 int level = E_ERROR;
+	 if (xfd->forever || xfd->retry) {
+	    level = E_WARN;
+	 }
+	 while ((pid = xio_fork(false, level)) < 0) {
+	    if (xfd->forever || --xfd->retry) {
+	       Nanosleep(&xfd->intervall, NULL); continue;
 	    }
 	    return STAT_RETRYLATER;
 	 }
-	 if (pid == 0) {	/* child process */
-	    Info1("just born: proxy client process "F_pid, Getpid());
 
-	    /* drop parents locks, reset FIPS... */
-	    if (xio_forked_inchild() != 0) {
-	       Exit(1);
-	    }
+	 if (pid == 0) {	/* child process */
 	    xfd->forever = false;  xfd->retry = 0;
 	    break;
 	 }
+
 	 /* parent process */
-	 Notice1("forked off child process "F_pid, pid);
 	 Close(xfd->fd);
 	 Nanosleep(&xfd->intervall, NULL);
 	 dropopts(opts, PH_ALL);  opts = copyopts(opts0, GROUP_ALL);

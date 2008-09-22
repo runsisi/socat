@@ -1,5 +1,5 @@
 /* source: utils.h */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __utils_h_included
@@ -63,6 +63,7 @@ char *sanitize_string(const char *data,	/* input data */
 		   size_t bytes,	/* length of input data, >=0 */
 		   char *coded,	/* output buffer, must be long enough */
 		   int style);
+extern
+char *xiosubstr(char *scratch, const char *str, size_t from, size_t len);
 
 #endif /* !defined(__utils_h_included) */
-

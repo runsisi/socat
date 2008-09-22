@@ -404,25 +404,9 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
    xiosetchilddied();	/* set SIGCHLD handler */
 
    if (withfork) {
-      const char *forkwaitstring;
-      int forkwaitsecs = 0;
-
-      pid = Fork();
+      pid = xio_fork(true, E_ERROR);
       if (pid < 0) {
-	 Error1("fork(): %s", strerror(errno));
 	 return -1;
-      }
-      /* gdb recommends to have env controlled sleep after fork */
-      if (forkwaitstring = getenv("SOCAT_FORK_WAIT")) {
-         forkwaitsecs = atoi(forkwaitstring);
-         Sleep(forkwaitsecs);
-      }
-
-      if (pid == 0) {	/* child */
-	 /* drop parents locks, reset FIPS... */
-	 if (xio_forked_inchild() != 0) {
-	    Exit(1);
-	 }
       }
    }
    if (!withfork || pid == 0) {	/* child */

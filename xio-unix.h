@@ -1,5 +1,5 @@
 /* source: xio-unix.h */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_unix_h_included
@@ -25,5 +25,9 @@ xiosetunix(struct sockaddr_un *saun,
 	   const char *path,
 	   bool abstract,
 	   bool tight);
+extern int
+xiosetsockaddrenv_unix(int idx, char *namebuff, size_t namelen,
+		       char *valuebuff, size_t valuelen,
+		       struct sockaddr_un *sa, socklen_t salen, int ipproto);
 
 #endif /* !defined(__xio_unix_h_included) */

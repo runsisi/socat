@@ -180,9 +180,21 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sfw/lib
 For some shell scripts, it is preferable to have /usr/xpg4/bin at a prominent
 position in $PATH.
 
+With the default compiler define _GNU_SOURCE, the CMSG_* macros are not
+available, and therefore ancillary messages cannot be used. To enable these try
+the following:
+After running ./configure, edit Makefile and replace "-D_GNU_SOURCE" with
+"-D_XPG4_2 -D__EXTENSIONS__" and run make
+
 
 platform specifics - hp-ux
 --------------------------
+
+Ancillary messages cannot be compiled in with socat: both struct msghdr and
+strutc cmsghdr are required. Compiling with -D_XOPEN_SOURCE_EXTENDED provides
+struct msghdr but disables struct cmsghdr while -D_OPEN_SOURCE disables struct
+msghdr but disables struct cmsghdr. Please contact socat development if you
+know a solution.
 
 Shutting down the write channel of a UNIX domain socket does not seem to
 trigger an EOF on the other socket. This makes problems with the exec and

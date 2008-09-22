@@ -98,9 +98,14 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
    int backlog = 5;	/* why? 1 seems to cause problems under some load */
    char *rangename;
    bool dofork = false;
-   pid_t pid;	/* mostly int; only used with fork */
    char infobuff[256];
    char lisname[256];
+   union sockaddr_union _peername;
+   union sockaddr_union _sockname;
+   union sockaddr_union *pa = &_peername;	/* peer address */
+   union sockaddr_union *la = &_sockname;	/* local address */
+   socklen_t pas = sizeof(_peername);	/* peer address size */
+   socklen_t las = sizeof(_sockname);	/* local address size */
    int result;
 
    retropt_bool(opts, OPT_FORK, &dofork);
@@ -199,12 +204,6 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
       char peername[256];
       char sockname[256];
       int ps;		/* peer socket */
-      union sockaddr_union _peername;
-      union sockaddr_union _sockname;
-      union sockaddr_union *pa = &_peername;	/* peer address */
-      union sockaddr_union *la = &_sockname;	/* local address */
-      socklen_t pas = sizeof(_peername);	/* peer address size */
-      socklen_t las = sizeof(_sockname);	/* local address size */
       salen = sizeof(struct sockaddr);
 
       do {
@@ -232,16 +231,18 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
       if (Getpeername(ps, &pa->soa, &pas) < 0) {
 	 Warn4("getpeername(%d, %p, {"F_socklen"}): %s",
 	       ps, pa, pas, strerror(errno));
+	 pa = NULL;
       }
       if (Getsockname(ps, &la->soa, &las) < 0) {
 	 Warn4("getsockname(%d, %p, {"F_socklen"}): %s",
-	       ps, pa, pas, strerror(errno));
+	       ps, la, las, strerror(errno));
+	 la = NULL;
       }
       Notice2("accepting connection from %s on %s",
-	      sockaddr_info(&pa->soa, pas, peername, sizeof(peername)),
-	      sockaddr_info(&la->soa, las, sockname, sizeof(sockname)));
+	      sockaddr_info(pa?&pa->soa:NULL, pas, peername, sizeof(peername)),
+	      sockaddr_info(pa?&la->soa:NULL, las, sockname, sizeof(sockname)));
 
-      if (xiocheckpeer(xfd, pa, la) < 0) {
+      if (pa != NULL && la != NULL && xiocheckpeer(xfd, pa, la) < 0) {
 	 if (Shutdown(ps, 2) < 0) {
 	    Info2("shutdown(%d, 2): %s", ps, strerror(errno));
 	 }
@@ -253,16 +254,20 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
 			  infobuff, sizeof(infobuff)));
 
       applyopts(xfd->fd, opts, PH_FD);
-
       applyopts(xfd->fd, opts, PH_CONNECTED);
 
       if (dofork) {
-	 if ((pid = Fork()) < 0) {
-	    Msg1(level, "fork(): %s", strerror(errno));
+	 pid_t pid;	/* mostly int; only used with fork */
+	 if ((pid = xio_fork(false, level==E_ERROR?level:E_WARN)) < 0) {
 	    Close(xfd->fd);
 	    return STAT_RETRYLATER;
 	 }
 	 if (pid == 0) {	/* child */
+	    pid_t cpid = Getpid();
+
+	    Info1("just born: client process "F_pid, cpid);
+	    xiosetenvulong("PID", cpid, 1);
+
 	    if (Close(xfd->fd) < 0) {
 	       Info2("close(%d): %s", xfd->fd, strerror(errno));
 	    }
@@ -270,15 +275,9 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
 
 #if WITH_RETRY
 	    /* !? */
-	    xfd->retry = 0;
-	    xfd->forever = 0;
+	    xfd->forever = false;  xfd->retry = 0;
 	    level = E_ERROR;
 #endif /* WITH_RETRY */
-
-	    /* drop parents locks, reset FIPS... */
-	    if (xio_forked_inchild() != 0) {
-	       Exit(1);
-	    }
 
 #if WITH_UNIX
 	    /* with UNIX sockets: only listening parent is allowed to remove
@@ -295,7 +294,6 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
 	 if (Close(ps) < 0) {
 	    Info2("close(%d): %s", ps, strerror(errno));
 	 }
-	 Notice1("forked off child process "F_pid, pid);
 	 Info("still listening");
       } else {
 	 if (Close(xfd->fd) < 0) {
@@ -307,6 +305,10 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
    }
    if ((result = _xio_openlate(xfd, opts)) < 0)
       return result;
+
+   /* set the env vars describing the local and remote sockets */
+   xiosetsockaddrenv("SOCK", la, las, proto);
+   xiosetsockaddrenv("PEER", pa, pas, proto);
 
    return 0;
 }

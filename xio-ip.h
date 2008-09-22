@@ -1,5 +1,5 @@
 /* source: xio-ip.h */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_ip_h_included
@@ -24,6 +24,8 @@ extern const struct optdesc opt_ip_multicast_loop;
 extern const struct optdesc opt_ip_multicast_if;
 extern const struct optdesc opt_ip_pktoptions;
 extern const struct optdesc opt_ip_add_membership;
+extern const struct optdesc opt_ip_recvdstaddr;
+extern const struct optdesc opt_ip_recvif;
 
 extern const struct optdesc opt_res_debug;
 extern const struct optdesc opt_res_aaonly;
@@ -44,5 +46,11 @@ int xioparsenetwork(const char *rangename, int pf,
 		    union xiorange_union *range);
 extern 
 int parserange(const char *rangename, int pf, union xiorange_union *range);
+extern
+int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
+			char *typbuff, int typlen,
+			char *nambuff, int namlen,
+			char *envbuff, int envlen,
+			char *valbuff, int vallen);
 
 #endif /* !defined(__xio_ip_h_included) */

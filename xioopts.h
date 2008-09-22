@@ -327,7 +327,24 @@ enum e_optcode {
    OPT_INLCR,		/* termios.c_iflag */
    OPT_INPCK,		/* termios.c_iflag */
    OPT_INTERVALL,
+   OPT_IPV6_AUTHHDR,
+   OPT_IPV6_DSTOPTS,
+   OPT_IPV6_FLOWINFO,
+   OPT_IPV6_HOPLIMIT,
+   OPT_IPV6_HOPOPTS,
    OPT_IPV6_JOIN_GROUP,
+   OPT_IPV6_PKTINFO,
+   OPT_IPV6_RECVDSTOPTS,
+   OPT_IPV6_RECVERR,
+   OPT_IPV6_RECVHOPLIMIT,
+   OPT_IPV6_RECVHOPOPTS,
+   OPT_IPV6_RECVPATHMTU,
+   OPT_IPV6_RECVPKTINFO,
+   OPT_IPV6_RECVRTHDR,
+   OPT_IPV6_RECVTCLASS,
+   OPT_IPV6_RTHDR,
+   OPT_IPV6_TCLASS,
+   OPT_IPV6_UNICAST_HOPS,
    OPT_IPV6_V6ONLY,
 #if 0	/* see Linux: man 7 netlink; probably not what we need yet */
    OPT_IO_SIOCGIFNAME,
@@ -355,9 +372,11 @@ enum e_optcode {
 #ifdef IP_PKTOPTIONS
    OPT_IP_PKTOPTIONS,
 #endif
+   OPT_IP_RECVDSTADDR,
 #ifdef IP_RECVERR
    OPT_IP_RECVERR,
 #endif
+   OPT_IP_RECVIF,
 #ifdef IP_RECVOPTS
    OPT_IP_RECVOPTS,
 #endif
@@ -628,6 +647,7 @@ enum e_optcode {
 #ifdef SO_SNDTIMEO
    OPT_SO_SNDTIMEO,
 #endif
+   OPT_SO_TIMESTAMP,	/* Linux */
    OPT_SO_TYPE,
 #ifdef SO_USELOOPBACK
    OPT_SO_USELOOPBACK,

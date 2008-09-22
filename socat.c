@@ -267,12 +267,14 @@ int main(int argc, const char *argv[]) {
       Error("-U and -u must not be combined");
    }
 
+   xioinitialize2();
    Info(copyright_socat);
 #if WITH_OPENSSL
    Info(copyright_openssl);
    Info(copyright_ssleay);
 #endif
    Debug2("socat version %s on %s", socatversion, timestamp);
+   xiosetenv("VERSION", socatversion, 1);	/* SOCAT_VERSION */
    uname(&ubuf);	/* ! here we circumvent internal tracing (Uname) */
    Debug4("running on %s version %s, release %s, machine %s\n",
 	   ubuf.sysname, ubuf.version, ubuf.release, ubuf.machine);
