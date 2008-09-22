@@ -35,11 +35,14 @@ corrections:
 	replaced the select() calls by poll() to cleanly fix the problems with
 	many file descriptors already open
 
-	Makefile now supports datarootdir (thanks to Camillo Lugaresi for
-	providing the patch)
-
 porting:
 	socat should now build under MacOS X 10.4 (thanks to Camillo Lugaresi for
+	providing the patch)
+
+further changes:
+	filan -s prefixes output with FD number if more than one FD
+
+	Makefile now supports datarootdir (thanks to Camillo Lugaresi for
 	providing the patch)
 
 ####################### V 1.6.0.1:

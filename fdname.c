@@ -1,5 +1,5 @@
 /* source: fdname.c */
-/* Copyright Gerhard Rieger 2003-2007 */
+/* Copyright Gerhard Rieger 2003-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* the subroutine sockname prints the basic info about the address of a socket
@@ -32,7 +32,7 @@ int unixame(int fd, FILE *outfile);
 int tcpname(int fd, FILE *outfile);
 
 
-int fdname(const char *file, int fd, FILE *outfile) {
+int fdname(const char *file, int fd, FILE *outfile, const char *numform) {
    struct stat buf = {0};
    int filetype;
    Debug1("checking file descriptor %u", fd);
@@ -46,6 +46,9 @@ int fdname(const char *file, int fd, FILE *outfile) {
 	 }
       }
       filetype = (buf.st_mode&S_IFMT)>>12;
+      if (numform != NULL) {
+	 fprintf(outfile, numform, fd);
+      }
       return statname(file, fd, filetype, outfile);
    } else {
       if (Stat(file, &buf) < 0) {
