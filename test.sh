@@ -8486,7 +8486,7 @@ N=$((N+1))
 
 
 # test the SOCKET-CONNECT address (against TCP4-LISTEN)
-NAME=SOCKET_CONNECT
+NAME=SOCKET_CONNECT_TCP4
 case "$TESTS" in
 *%functions%*|*%generic%*|*%socket%*|*%$NAME%*)
 TEST="$NAME: socket connect with TCP/IPv4"
@@ -8501,7 +8501,7 @@ ts1p=$(printf "%04x" $ts0p);
 ts1a="7f000001" # "127.0.0.1"
 ts1="x${ts1p}${ts1a}x0000000000000000"
 ts1b=$(printf "%04x" $PORT); PORT=$((PORT+1))
-da="$(date) $RANDOM"
+da="test$N $(date) $RANDOM"
 CMD0="$SOCAT $opts TCP4-LISTEN:$ts0p,reuseaddr,bind=$ts0a PIPE"
 CMD1="$SOCAT $opts - SOCKET-CONNECT:2:6:$ts1,bind=x${ts1b}00000000x0000000000000000"
 printf "test $F_n $TEST... " $N
@@ -8535,6 +8535,101 @@ esac
 PORT=$((PORT+1))
 N=$((N+1))
 
+# test the SOCKET-CONNECT address (against TCP6-LISTEN)
+NAME=SOCKET_CONNECT_TCP6
+case "$TESTS" in
+*%functions%*|*%generic%*|*%tcp6%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: socket connect with TCP/IPv6"
+# start a TCP6-LISTEN process that echoes data, and send test data using
+# SOCKET-CONNECT, selecting TCP/IPv6. The sent data should be returned.
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+ts0p=$PORT; PORT=$((PORT+1))
+ts0a="[::1]"
+ts1p=$(printf "%04x" $ts0p);
+ts1a="00000000000000000000000000000001" # "127.0.0.1"
+ts1="x${ts1p}x000000000000x${ts1a}"
+ts1b=$(printf "%04x" $PORT); PORT=$((PORT+1))
+da="test$N $(date) $RANDOM"
+CMD0="$SOCAT $opts TCP6-LISTEN:$ts0p,reuseaddr,bind=$ts0a PIPE"
+CMD1="$SOCAT $opts - SOCKET-CONNECT:10:6:$ts1,bind=x${ts1b}x000000000000x00000000000000000000000000000000"
+printf "test $F_n $TEST... " $N
+$CMD0 2>"${te}0" &
+pid0="$!"
+waittcp6port $ts0p 1
+echo "$da" |$CMD1 >>"$tf" 2>>"${te}1"
+rc1="$?"
+kill "$pid0" 2>/dev/null; wait;
+if [ "$rc1" -ne 0 ]; then
+   $PRINTF "$FAILED: $SOCAT:\n"
+   echo "$CMD0 &"
+   cat "${te}0"
+   echo "$CMD1"
+   cat "${te}1"
+   numFAIL=$((numFAIL+1))
+elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
+   $PRINTF "$FAILED\n"
+   cat "$tdiff"
+   echo "$CMD0 &"
+   cat "${te}0"
+   echo "$CMD1"
+   cat "${te}1"
+   numFAIL=$((numFAIL+1))
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat $te; fi
+   numOK=$((numOK+1))
+fi ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+# test the SOCKET-CONNECT address (against UNIX-LISTEN)
+NAME=SOCKET_CONNECT_UNIX
+case "$TESTS" in
+*%functions%*|*%generic%*|*%unix%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: socket connect with UNIX domain"
+# start a UNIX-LISTEN process that echoes data, and send test data using
+# SOCKET-CONNECT, selecting UNIX socket. The sent data should be returned.
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+ts0="$td/test$N.server"
+ts1="$td/test$N.client"
+da="test$N $(date) $RANDOM"
+CMD0="$SOCAT $opts UNIX-LISTEN:$ts0,reuseaddr PIPE"
+CMD1="$SOCAT $opts - SOCKET-CONNECT:1:0:\\\"$ts0\\\0\\\",bind=\\\"$ts1\\\0\\\""
+printf "test $F_n $TEST... " $N
+$CMD0 2>"${te}0" &
+pid0="$!"
+waitfile $ts0 1
+echo "$da" |$CMD1 >>"$tf" 2>>"${te}1"
+rc1="$?"
+kill "$pid0" 2>/dev/null; wait;
+if [ "$rc1" -ne 0 ]; then
+   $PRINTF "$FAILED: $SOCAT:\n"
+   echo "$CMD0 &"
+   cat "${te}0"
+   echo "$CMD1"
+   cat "${te}1"
+   numFAIL=$((numFAIL+1))
+elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
+   $PRINTF "$FAILED\n"
+   cat "$tdiff"
+   echo "$CMD0 &"
+   cat "${te}0"
+   echo "$CMD1"
+   cat "${te}1"
+   numFAIL=$((numFAIL+1))
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat $te; fi
+   numOK=$((numOK+1))
+fi ;;
+esac
+N=$((N+1))
+
 # test the SOCKET-LISTEN address (with TCP4-CONNECT)
 NAME=SOCKET_LISTEN
 case "$TESTS" in
@@ -8552,7 +8647,7 @@ ts0a="7f000001" # "127.0.0.1"
 ts0="x${ts0p}${ts0a}x0000000000000000"
 ts1b=$PORT; PORT=$((PORT+1))
 ts1="$ts1a:$ts1p"
-da="$(date) $RANDOM"
+da="test$N $(date) $RANDOM"
 CMD0="$SOCAT $opts SOCKET-LISTEN:2:6:$ts0,reuseaddr PIPE"
 CMD1="$SOCAT $opts - TCP4-CONNECT:$ts1,bind=:$ts1b"
 printf "test $F_n $TEST... " $N
@@ -8605,7 +8700,7 @@ ts1p=$(printf "%04x" $ts0p);
 ts1a="7f000001" # "127.0.0.1"
 ts1="x${ts1p}${ts1a}x0000000000000000"
 ts1b=$(printf "%04x" $PORT); PORT=$((PORT+1))
-da="$(date) $RANDOM"
+da="test$N $(date) $RANDOM"
 CMD0="$SOCAT $opts UDP4-RECVFROM:$ts0p,reuseaddr,bind=$ts0a PIPE"
 CMD1="$SOCAT $opts - SOCKET-SENDTO:2:$SOCK_DGRAM:17:$ts1,bind=x${ts1b}x00000000x0000000000000000"
 printf "test $F_n $TEST... " $N
@@ -8656,7 +8751,7 @@ ts0a="7f000001" # "127.0.0.1"
 ts0="x${ts0p}${ts0a}x0000000000000000"
 ts1b=$PORT; PORT=$((PORT+1))
 ts1="$ts1a:$ts1p"
-da="$(date) $RANDOM"
+da="test$N $(date) $RANDOM"
 CMD0="$SOCAT $opts SOCKET-RECVFROM:2:$SOCK_DGRAM:17:$ts0,reuseaddr PIPE"
 CMD1="$SOCAT $opts - UDP4-SENDTO:$ts1,bind=:$ts1b"
 printf "test $F_n $TEST... " $N
@@ -8707,7 +8802,7 @@ ts0a="7f000001" # "127.0.0.1"
 ts0="x${ts0p}${ts0a}x0000000000000000"
 ts1b=$PORT; PORT=$((PORT+1))
 ts1="$ts1a:$ts1p"
-da="$(date) $RANDOM"
+da="test$N $(date) $RANDOM"
 CMD0="$SOCAT $opts -u SOCKET-RECV:2:$SOCK_DGRAM:17:$ts0,reuseaddr -"
 CMD1="$SOCAT $opts -u - UDP4-SENDTO:$ts1,bind=:$ts1b"
 printf "test $F_n $TEST... " $N
@@ -8760,7 +8855,7 @@ ts1a="7f000001" # "127.0.0.1"
 ts0b=$(printf "%04x" $ts0p)
 ts1b=$(printf "%04x" $ts1p)
 ts1="x${ts0b}${ts1a}x0000000000000000"
-da="$(date) $RANDOM"
+da="test$N $(date) $RANDOM"
 CMD0="$SOCAT $opts UDP4-DATAGRAM:$ts0a:$ts1p,bind=:$ts0p,reuseaddr PIPE"
 CMD1="$SOCAT $opts - SOCKET-DATAGRAM:2:$SOCK_DGRAM:17:$ts1,bind=x${ts1b}x00000000x0000000000000000"
 printf "test $F_n $TEST... " $N
@@ -8833,7 +8928,7 @@ tp="$td/test$N.pty"
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
-da="$(date)"
+da="test$N $(date) $RANDOM"
 CMD0="$SOCAT $opts PTY,LINK=$tp pipe"
 CMD1="$SOCAT $opts - file:$tp,ioctl-void=$TIOCEXCL,raw,echo=0"
 CMD2="$SOCAT $opts - file:$tp,raw,echo=0"
@@ -8896,7 +8991,7 @@ tp="$PORT"
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
-da="$(date)"
+da="test$N $(date) $RANDOM"
 CMD0="$SOCAT $opts TCP4-L:$tp,setsockopt-int=$SOL_SOCKET:$SO_REUSEADDR:1 PIPE"
 CMD1="$SOCAT $opts - TCP:localhost:$tp"
 CMD2="$CMD0"
