@@ -397,6 +397,7 @@ const struct optname optionnames[] = {
 	IF_TERMIOS("eol2",	&opt_veol2)
 	IF_TERMIOS("erase",	&opt_verase)
 	IF_SOCKET ("error",	&opt_so_error)
+	IF_ANY    ("escape",	&opt_escape)
 	IF_OPEN   ("excl",	&opt_o_excl)
 #if WITH_EXT2 && defined(EXT2_APPEND_FL)
 	IF_ANY    ("ext2-append",	&opt_ext2_append)
@@ -3339,6 +3340,8 @@ static int applyopt_offset(struct single *xfd, struct opt *opt) {
    switch (opt->desc->type) {
    case TYPE_BOOL:
       *(bool *)ptr = opt->value.u_bool;  break;
+   case TYPE_INT:
+      *(int *)ptr = opt->value.u_int;  break;
    case TYPE_DOUBLE:
       *(double *)ptr = opt->value.u_double;  break;
    case TYPE_TIMEVAL:

@@ -10,7 +10,7 @@ def(Filan)(0)(bf(Filan))
 def(procan)(0)(bf(procan))
 def(Procan)(0)(bf(Procan))
 
-manpage(socat)(1)(Feb 2008)(socat)()
+manpage(socat)(1)(Jul 2008)(socat)()
 
 whenhtml(
 label(CONTENTS)
@@ -1516,6 +1516,10 @@ label(OPTION_LOCKFILE)dit(bf(tt(lockfile=<filename>)))
 label(OPTION_WAITLOCK)dit(bf(tt(waitlock=<filename>)))
    If lockfile exists, waits until it disappears. When lockfile does not exist,
    creates it and continues, unlinks lockfile on exit.
+label(OPTION_ESCAPE)dit(bf(tt(escape=<int>)))
+   Specifies the numeric code of a character that triggers EOF on the input
+   stream. It is useful with a terminal in raw mode
+   (link(example)(EXAMPLE_OPTION_ESCAPE)).
 enddit()
 
 startdit()enddit()nl()
@@ -2630,13 +2634,15 @@ at most 512 data bytes per packet (link(mss)(OPTION_MSS)).
 label(EXAMPLE_ADDRESS_GOPEN)
 label(EXAMPLE_OPTION_RAW)
 label(EXAMPLE_OPTION_ECHO)
-dit(bf(tt(socat - /dev/ttyS0,raw,echo=0,crnl)))
+label(EXAMPLE_OPTION_ESCAPE)
+dit(bf(tt(socat -,raw,echo=0,escape=0x0f /dev/ttyS0,raw,echo=0,crnl)))
 
 Opens an interactive connection via the serial line, e.g. for talking with a
-modem. link(raw)(OPTION_RAW) and link(echo)(OPTION_ECHO) set ttyS0's terminal
-parameters to practicable values, link(crnl)(OPTION_CRNL) 
-converts to correct newline characters. Consider using
-link(READLINE)(ADDRESS_READLINE) instead of `-'.
+modem. link(raw)(OPTION_RAW) and link(echo)(OPTION_ECHO) set the console's and
+ttyS0's terminal parameters to practicable values, link(crnl)(OPTION_CRNL) 
+converts to correct newline characters. link(escape)(OPTION_ESCAPE) allows to
+terminate the socat process with character control-O. 
+Consider using link(READLINE)(ADDRESS_READLINE) instead of the first address.
 
 
 label(EXAMPLE_ADDRESS_UNIX_LISTEN)

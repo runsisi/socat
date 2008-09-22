@@ -1,5 +1,5 @@
 /* source: xioopen.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this is the source file of the extended open function */
@@ -301,6 +301,7 @@ static xiofile_t *xioallocfd(void) {
 #endif /* WITH_SOCKET */
    fd->stream.howtoend  = END_UNSPEC;
 /* fd->stream.name      = NULL; */
+   fd->stream.escape	= -1;
 /* fd->stream.para.exec.pid = 0; */
    fd->stream.lineterm  = LINETERM_RAW;
 

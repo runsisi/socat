@@ -167,6 +167,8 @@ typedef struct single {
    const char *name;		/* only with END_UNLINK */
    int (*sigchild)(struct single *);	/* callback after sigchild */
    pid_t ppid;			/* parent pid, only if we send it signals */
+   int escape;			/* escape character; -1 for no escape */
+   bool actescape;		/* escape character found in input data */
    union {
       struct {
 	 int fdout;		/* use fd for output */

@@ -1,4 +1,8 @@
 
+new features:
+	new address option "escape" allows to break a socat instance even when
+	raw terminal mode prevents ^C etc.
+
 corrections:
 	some raw IP and UNIX datagram modes failed on BSD systems
 

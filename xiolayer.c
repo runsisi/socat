@@ -16,6 +16,7 @@ const struct optdesc opt_crnl      = { "crnl",      NULL, OPT_CRNL,      GROUP_A
 const struct optdesc opt_readbytes = { "readbytes", "bytes", OPT_READBYTES, GROUP_APPL, PH_LATE, TYPE_SIZE_T, OFUNC_EXT, (int)(&((struct single *)0)->readbytes),   sizeof(((struct single *)0)->readbytes) };
 const struct optdesc opt_lockfile  = { "lockfile",  NULL, OPT_LOCKFILE,  GROUP_APPL, PH_INIT, TYPE_FILENAME, OFUNC_EXT, 0, 0 };
 const struct optdesc opt_waitlock  = { "waitlock",  NULL, OPT_WAITLOCK,  GROUP_APPL, PH_INIT,  TYPE_FILENAME, OFUNC_EXT, 0, 0 };
+const struct optdesc opt_escape    = { "escape",    NULL,    OPT_ESCAPE,    GROUP_APPL, PH_INIT, TYPE_INT,   OFUNC_OFFSET, XIO_OFFSETOF(escape), sizeof(((xiosingle_t *)0)->escape) };
 /****** APPL addresses ******/
 #if WITH_RETRY
 const struct optdesc opt_forever   = { "forever",   NULL, OPT_FOREVER,   GROUP_RETRY, PH_INIT, TYPE_BOOL, OFUNC_EXT, (int)(&((struct single *)0)->forever),   sizeof(((struct single *)0)->forever) };
