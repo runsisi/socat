@@ -136,7 +136,7 @@ char *sockaddr_info(const struct sockaddr *sa, socklen_t salen, char *buff, size
    int n;
 
 #if HAVE_STRUCT_SOCKADDR_SALEN
-   if ((n = snprintf(cp, blen, "LEN=%d ", sas->soa.sa_len)) < 0) {
+   if ((n = snprintf(cp, blen, "LEN=%d ", sau->soa.sa_len)) < 0) {
       Warn1("sockaddr_info(): buffer too short ("F_Zu")", blen);
       *buff = '\0';
       return buff;

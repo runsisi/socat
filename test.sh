@@ -1692,6 +1692,26 @@ runsip6 () {
     return $l;
 }
 
+# check if SCTP on IPv4 is available on host
+runssctp4 () {
+    PORT="$1"
+    $SOCAT /dev/null SCTP4-LISTEN:$PORT 2>"$td/sctp4.stderr" &
+    pid=$!
+    sleep 1
+    kill "$pid" 2>/dev/null
+    test ! -s "$td/sctp4.stderr"
+}
+
+# check if SCTP on IPv6 is available on host
+runssctp6 () {
+    PORT="$1"
+    $SOCAT /dev/null SCTP6-LISTEN:$PORT 2>"$td/sctp6.stderr" &
+    pid=$!
+    sleep 1
+    kill "$pid" 2>/dev/null
+    test ! -s "$td/sctp6.stderr"
+}
+
 # wait until an IP4 protocol is ready
 waitip4proto () {
     local proto="$1"
@@ -8974,8 +8994,8 @@ IP4  UDP4 127.0.0.1 PORT  ip-tos=7             ip-recvtos        IP_TOS         
 IP4  UDP4 127.0.0.1 PORT  ,                    ip-pktinfo        IP_LOCADDR     user 127.0.0.1
 IP4  UDP4 127.0.0.1 PORT  ,                    ip-pktinfo        IP_DSTADDR     user 127.0.0.1
 IP4  UDP4 127.0.0.1 PORT  ,                    ip-pktinfo        IP_IF          user lo
-IP4  UDP4 127.0.0.1 PORT  ,                    ip-recvif         IP_RECVIF      user lo0
-IP4  UDP4 127.0.0.1 PORT  ,                    ip-recvdstaddr    IP_RECVDSTADDR user 127.0.0.1
+IP4  UDP4 127.0.0.1 PORT  ,                    ip-recvif         IP_IF          user lo0
+IP4  UDP4 127.0.0.1 PORT  ,                    ip-recvdstaddr    IP_DSTADDR     user 127.0.0.1
 IP4  IP4  127.0.0.1 PROTO ip-options=x01000000 ip-recvopts       IP_OPTIONS     root x01000000
 IP4  IP4  127.0.0.1 PROTO ,                    so-timestamp      TIMESTAMP      root $(date '+%a %b %e %H:%M:.. %Y'), ...... usecs
 IP4  IP4  127.0.0.1 PROTO ip-ttl=53            ip-recvttl        IP_TTL         root 53
@@ -8983,8 +9003,8 @@ IP4  IP4  127.0.0.1 PROTO ip-tos=7             ip-recvtos        IP_TOS         
 IP4  IP4  127.0.0.1 PROTO ,                    ip-pktinfo        IP_LOCADDR     root 127.0.0.1
 IP4  IP4  127.0.0.1 PROTO ,                    ip-pktinfo        IP_DSTADDR     root 127.0.0.1
 IP4  IP4  127.0.0.1 PROTO ,                    ip-pktinfo        IP_IF          root lo
-IP4  IP4  127.0.0.1 PROTO ,                    ip-recvif         IP_RECVIF      root lo0
-IP4  IP4  127.0.0.1 PROTO ,                    ip-recvdstaddr    IP_RECVDSTADDR root 127.0.0.1
+IP4  IP4  127.0.0.1 PROTO ,                    ip-recvif         IP_IF          root lo0
+IP4  IP4  127.0.0.1 PROTO ,                    ip-recvdstaddr    IP_DSTADDR     root 127.0.0.1
 IP6  UDP6 [::1]     PORT  ,                    ipv6-recvpktinfo  IPV6_DSTADDR   user [[]0000:0000:0000:0000:0000:0000:0000:0001[]]
 IP6  UDP6 [::1]     PORT  ipv6-unicast-hops=35 ipv6-recvhoplimit IPV6_HOPLIMIT  user 35
 IP6  UDP6 [::1]     PORT  ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    user xaa000000
@@ -9045,6 +9065,8 @@ esac
 PORT=$((PORT+1))
 N=$((N+1))
 
+PF_INET6="$($PROCAN -c |grep "^#define[[:space:]]*PF_INET6[[:space:]]" |cut -d' ' -f3)"
+
 # test the SOCKET-CONNECT address (against TCP6-LISTEN)
 NAME=SOCKET_CONNECT_TCP6
 case "$TESTS" in
@@ -9058,12 +9080,12 @@ tdiff="$td/test$N.diff"
 ts0p=$PORT; PORT=$((PORT+1))
 ts0a="[::1]"
 ts1p=$(printf "%04x" $ts0p);
-ts1a="00000000000000000000000000000001" # "127.0.0.1"
-ts1="x${ts1p}x000000000000x${ts1a}"
+ts1a="00000000000000000000000000000001" # "[::1]"
+ts1="x${ts1p}x00000000x${ts1a}x00000000"
 ts1b=$(printf "%04x" $PORT); PORT=$((PORT+1))
 da="test$N $(date) $RANDOM"
 CMD0="$SOCAT $opts TCP6-LISTEN:$ts0p,reuseaddr,bind=$ts0a PIPE"
-CMD1="$SOCAT $opts - SOCKET-CONNECT:10:6:$ts1,bind=x${ts1b}x000000000000x00000000000000000000000000000000"
+CMD1="$SOCAT $opts - SOCKET-CONNECT:$PF_INET6:6:$ts1,bind=x${ts1b}x00000000x00000000000000000000000000000000x00000000"
 printf "test $F_n $TEST... " $N
 $CMD0 2>"${te}0" &
 pid0="$!"
@@ -9553,7 +9575,8 @@ NAME=SCTP4STREAM
 case "$TESTS" in
 *%functions%*|*%ip4%*|*%ipapp%*|*%sctp%*|*%$NAME%*)
 TEST="$NAME: echo via connection to SCTP V4 socket"
-if ! testaddrs sctp ip4 >/dev/null || ! runsip4 >/dev/null; then
+PORT="$((PORT+1))"
+if ! testaddrs sctp ip4 >/dev/null || ! runsip4 >/dev/null || ! runssctp4 "$((PORT-1))" >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}SCTP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 elif [ "$UNAME" = Linux ] && ! grep ^sctp /proc/modules >/dev/null; then
@@ -9603,7 +9626,8 @@ NAME=SCTP6STREAM
 case "$TESTS" in
 *%functions%*|*%ip6%*|*%ipapp%*|*%sctp%*|*%$NAME%*)
 TEST="$NAME: echo via connection to SCTP V6 socket"
-if ! testaddrs sctp ip6 >/dev/null || ! runsip6 >/dev/null; then
+PORT="$((PORT+1))"
+if ! testaddrs sctp ip6 >/dev/null || ! runsip6 >/dev/null || ! runssctp6 "$((PORT-1))" >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}SCTP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 elif [ "$UNAME" = Linux ] && ! grep ^sctp /proc/modules >/dev/null; then

@@ -85,6 +85,9 @@ int procan_cdefs(FILE *outfile) {
 #endif
 
    /* socket constants */
+#ifdef PF_INET6
+   fprintf(outfile, "#define PF_INET6 %d\n", PF_INET6);
+#endif
 #ifdef SOCK_DGRAM
    fprintf(outfile, "#define SOCK_DGRAM %d\n", SOCK_DGRAM);
 #endif
