@@ -1,5 +1,5 @@
 /* source: sycls.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* explicit system call and C library trace function, for those who miss strace
@@ -1233,6 +1233,7 @@ void *Realloc(void *ptr, size_t size) {
    return result;
 }
 
+#if _WITH_TERMIOS
 int Tcgetattr(int fd, struct termios *termios_p) {
    int i, result, _errno;
    char chars[5*NCCS], *cp = chars;
@@ -1252,7 +1253,9 @@ int Tcgetattr(int fd, struct termios *termios_p) {
    errno = _errno;
    return result;
 }
+#endif /* _WITH_TERMIOS */
 
+#if _WITH_TERMIOS
 int Tcsetattr(int fd, int optional_actions, struct termios *termios_p) {
    int i, result, _errno;
    char chars[5*NCCS], *cp = chars;
@@ -1270,6 +1273,7 @@ int Tcsetattr(int fd, int optional_actions, struct termios *termios_p) {
    errno = _errno;
    return result;
 }
+#endif /* _WITH_TERMIOS */
 
 char *Ttyname(int fd) {
    char *result;

@@ -1,4 +1,8 @@
 
+corrections:
+	socat did not compile on Solaris when configured without termios
+	feature (thanks to Pavan Gadi for reporting this bug)
+
 ####################### V 1.6.0.1:
 
 new features:

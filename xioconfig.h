@@ -1,5 +1,5 @@
 /* source: xioconfig.h */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xioconfig_h_included
@@ -18,6 +18,10 @@
 
 #if WITH_OPEN || WITH_PIPE || WITH_UNIX || WITH_PTY
 #  define WITH_NAMED 1
+#endif
+
+#if WITH_TERMIOS || WITH_PTY || WITH_READLINE
+#  define _WITH_TERMIOS 1
 #endif
 
 #if WITH_SOCKS4A

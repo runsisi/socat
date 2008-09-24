@@ -1,5 +1,5 @@
 /* source: filan.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* the subroutine filan makes a "FILe descriptor ANalysis". It checks the
@@ -412,6 +412,7 @@ int devinfo(int fd) {
 int cdevan(int fd, FILE *outfile) {
    int ret;
 
+#if _WITH_TERMIOS
    if ((ret = Isatty(fd)) < 0) {
       Warn2("isatty(%d): %s", fd, strerror(errno));
       return -1;
@@ -458,6 +459,7 @@ int cdevan(int fd, FILE *outfile) {
 	 }
       }
    }
+#endif /* _WITH_TERMIOS */
    return 0;
 }
 

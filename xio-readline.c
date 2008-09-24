@@ -1,5 +1,5 @@
 /* source: xio-readline.c */
-/* Copyright Gerhard Rieger 2002-2007 */
+/* Copyright Gerhard Rieger 2002-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening the readline address */
@@ -120,8 +120,10 @@ static int xioopen_readline(int argc, const char *argv[], struct opt *opts,
    if (xfd->stream.para.readline.history_file) {
       Read_history(xfd->stream.para.readline.history_file);
    }
+#if _WITH_TERMIOS
    xiotermios_clrflag(xfd->stream.fd, 3, ICANON);
    xiotermios_clrflag(xfd->stream.fd, 3, ECHO);
+#endif /* _WITH_TERMIOS */
    return _xio_openlate(&xfd->stream, opts);
 }
 
@@ -137,6 +139,7 @@ ssize_t xioread_readline(struct single *pipe, void *buff, size_t bufsiz) {
 	  pipe->para.readline.hasnoecho &&
 	  !regexec(&pipe->para.readline.noecho,
 		   pipe->para.readline.dynprompt, 0, NULL, 0)) {
+#if _WITH_TERMIOS
       /* under these conditions, we do not echo input, thus we circumvent
 	 readline */
 	 struct termios saveterm, setterm;
@@ -145,6 +148,7 @@ ssize_t xioread_readline(struct single *pipe, void *buff, size_t bufsiz) {
 	 setterm = saveterm;
 	 setterm.c_lflag |= ICANON;
 	 Tcsetattr(pipe->fd, TCSANOW, &setterm);	/*!*/
+#endif /* _WITH_TERMIOS */
 	 do {
 	    bytes = Read(pipe->fd, buff, bufsiz);
 	 } while (bytes < 0 && errno == EINTR);
@@ -155,16 +159,20 @@ ssize_t xioread_readline(struct single *pipe, void *buff, size_t bufsiz) {
 	    errno = _errno;
 	    return -1;
 	 }
+#if _WITH_TERMIOS
 	 setterm.c_lflag &= ~ICANON;
 	 Tcgetattr(pipe->fd, &setterm);	/*! error */
 	 Tcsetattr(pipe->fd, TCSANOW, &saveterm);	/*!*/
+#endif /* _WITH_TERMIOS */
 	 pipe->para.readline.dynend = pipe->para.readline.dynprompt;
 	 /*Write(pipe->fd, "\n", 1);*/	/*!*/
 	 return bytes;
       }
 #endif /* HAVE_REGEX_H */
 
+#if _WITH_TERMIOS
       xiotermios_setflag(pipe->fd, 3, ECHO);
+#endif /* _WITH_TERMIOS */
       if (pipe->para.readline.prompt || pipe->para.readline.dynprompt) {
 	 /* we must carriage return, because readline will first print the
 	    prompt */
@@ -191,7 +199,9 @@ ssize_t xioread_readline(struct single *pipe, void *buff, size_t bufsiz) {
       if (line == NULL) {
 	 return 0;	/* EOF */
       }
+#if _WITH_TERMIOS
       xiotermios_clrflag(pipe->fd, 3, ECHO);
+#endif /* _WITH_TERMIOS */
       Add_history(line);
       bytes = strlen(line);
       strncpy(buff, line, bufsiz);

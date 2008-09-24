@@ -1,5 +1,5 @@
 /* source: xio-termios.c */
-/* Copyright Gerhard Rieger 2001-2006 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for terminal I/O options */
@@ -10,6 +10,7 @@
 #include "xio-termios.h"
 
 /****** TERMIOS addresses ******/
+#if _WITH_TERMIOS
 #if WITH_TERMIOS
 const struct optdesc opt_tiocsctty={ "tiocsctty", "ctty",OPT_TIOCSCTTY,  GROUP_TERMIOS,   PH_LATE2, TYPE_BOOL,     OFUNC_SPEC };
 
@@ -323,4 +324,6 @@ int xiotermios_clrflag(int fd, int word, tcflag_t mask) {
    }
    return 0;
 }
+
+#endif /* _WITH_TERMIOS */
 
