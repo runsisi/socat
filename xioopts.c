@@ -2204,7 +2204,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	 }
 	 Info4("setting option \"%s\" to %d:%d:\"%s\"", ent->desc->defname,
 	       (*opts)[i].value.u_int, (*opts)[i].value2.u_int,
-	       (*opts)[i].value3.u_int);
+	       (*opts)[i].value3.u_string);
 	 break;
 #if defined(HAVE_STRUCT_IP_MREQ) || defined (HAVE_STRUCT_IP_MREQN)
       case TYPE_IP_MREQN:
@@ -2878,7 +2878,7 @@ int applyopts(int fd, struct opt *opts, unsigned int phase) {
 	    break;
 	 case TYPE_INT_INT:
 	    if (Ioctl_int(fd, opt->value.u_int, opt->value2.u_int) < 0) {
-	       Error4("ioctl(%d, %d, %p): %s",
+	       Error4("ioctl(%d, 0x%x, 0x%x): %s",
 		      fd, opt->value.u_int, opt->value2.u_int, strerror(errno));
 	       opt->desc = ODESC_ERROR; ++opt; continue;
 	    }

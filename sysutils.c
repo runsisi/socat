@@ -548,7 +548,7 @@ int xiosetenv(const char *varname, const char *value, int overwrite) {
    for (i = 0; i < l; ++i)  envname[i] = toupper(envname[i]);
    strncpy(envname+l+1, varname, XIO_ENVNAMELEN-1-l);
    if (Setenv(envname, value, overwrite) < 0) {
-      Warn3("setenv(\"...\", \"%s\", 1): %s",
+      Warn3("setenv(\"%s\", \"%s\", 1): %s",
 	    envname, value, strerror(errno));
       Unsetenv(envname);      /* dont want to have a wrong value */
       return -1;
@@ -577,7 +577,7 @@ int xiosetenv2(const char *varname, const char *varname2, const char *value,
    l += strlen(varname2);
    for (i = 0; i < l; ++i)  envname[i] = toupper(envname[i]);
    if (Setenv(envname, value, overwrite) < 0) {
-      Warn3("setenv(\"...\", \"%s\", 1): %s",
+      Warn3("setenv(\"%s\", \"%s\", 1): %s",
 	    envname, value, strerror(errno));
       Unsetenv(envname);      /* dont want to have a wrong value */
       return -1;
