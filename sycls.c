@@ -1065,15 +1065,28 @@ int Recvfrom(int s, void *buf, size_t len, int flags, struct sockaddr *from,
 int Recvmsg(int s, struct msghdr *msgh, int flags) {
    int retval, _errno;
    char infobuff[256];
+#if defined(HAVE_STRUCT_MSGHDR_MSGCONTROL) && defined(HAVE_STRUCT_MSGHDR_MSGCONTROLLEN) && defined(HAVE_STRUCT_MSGHDR_MSGFLAGS)
    Debug10("recvmsg(%d, %p{%p,%u,%p,%u,%p,%u,%d}, %d)", s, msgh,
 	  msgh->msg_name, msgh->msg_namelen,  msgh->msg_iov,  msgh->msg_iovlen,
 	  msgh->msg_control,  msgh->msg_controllen,  msgh->msg_flags, flags);
+#else
+   Debug7("recvmsg(%d, %p{%p,%u,%p,%u}, %d)", s, msgh,
+	  msgh->msg_name, msgh->msg_namelen,  msgh->msg_iov,  msgh->msg_iovlen,
+	  flags);
+#endif
    retval = recvmsg(s, msgh, flags);
    _errno = errno;
+#if defined(HAVE_STRUCT_MSGHDR_MSGCONTROLLEN)
    Debug5("recvmsg(, {%s,%u,,%u,,%u,}, ) -> %d",
 	  msgh->msg_name?sockaddr_info(msgh->msg_name, msgh->msg_namelen, infobuff, sizeof(infobuff)):"NULL",
 	  msgh->msg_namelen, msgh->msg_iovlen, msgh->msg_controllen,
 	  retval);
+#else
+   Debug4("recvmsg(, {%s,%u,,%u,,}, ) -> %d",
+	  msgh->msg_name?sockaddr_info(msgh->msg_name, msgh->msg_namelen, infobuff, sizeof(infobuff)):"NULL",
+	  msgh->msg_namelen, msgh->msg_iovlen,
+	  retval);
+#endif
    errno = _errno;
    return retval;
 }
