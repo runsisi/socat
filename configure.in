@@ -260,12 +260,28 @@ AC_ARG_ENABLE(udp, [  --disable-udp           disable UDP support],
 	       [AC_DEFINE(WITH_UDP) AC_MSG_RESULT(yes)])
 
 AC_MSG_CHECKING(whether to include SCTP support)
-AC_ARG_ENABLE(tcp, [  --disable-sctp           disable SCTP support],
+AC_ARG_ENABLE(sctp, [  --disable-sctp           disable SCTP support],
 	      [case "$enableval" in
-	       no) AC_MSG_RESULT(no);;
-	       *) AC_DEFINE(WITH_SCTP) AC_MSG_RESULT(yes);;
+	       no) AC_MSG_RESULT(no); WITH_SCTP= ;;
+	       *) AC_MSG_RESULT(yes); WITH_SCTP=1 ;;
 	       esac],
-	       [AC_DEFINE(WITH_SCTP) AC_MSG_RESULT(yes)])
+	       [AC_MSG_RESULT(yes);   WITH_SCTP=1 ])
+
+if test -n "$WITH_SCTP"; then
+AC_MSG_CHECKING(for IPPROTO_SCTP)
+AC_CACHE_VAL(sc_cv_define_ipproto_sctp,
+[AC_TRY_COMPILE([#include <sys/types.h>
+#include <netinet/in.h>],
+[IPPROTO_SCTP;],
+[sc_cv_define_ipproto_sctp=yes],
+[sc_cv_define_ipproto_sctp=no])])
+AC_MSG_RESULT($sc_cv_define_ipproto_sctp)
+if test $sc_cv_define_ipproto_sctp = yes; then
+   AC_DEFINE(WITH_SCTP)
+else
+   AC_MSG_WARN([IPPROTO_SCTP undefined, disabling SCTP support])
+fi
+fi
 
 AC_MSG_CHECKING(whether to include listen support)
 AC_ARG_ENABLE(listen, [  --disable-listen        disable listen support],
