@@ -1,5 +1,5 @@
 /* source: xio-termios.h */
-/* Copyright Gerhard Rieger 2001-2006 */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_termios_h_included
@@ -138,10 +138,10 @@ extern const struct optdesc opt_sane;
 extern const struct optdesc opt_ispeed;
 extern const struct optdesc opt_ospeed;
 
-#if WITH_TERMIOS /* otherwise tcflag_t might be reported undefined */
+#if _WITH_TERMIOS /* otherwise tcflag_t might be reported undefined */
 extern int xiotermios_setflag(int fd, int word, tcflag_t mask);
 extern int xiotermios_clrflag(int fd, int word, tcflag_t mask);
 extern int xiotermiosflag_applyopt(int fd, struct opt *opt);
-#endif /* WITH_TERMIOS */
+#endif /* _WITH_TERMIOS */
 
 #endif /* !defined(__xio_termios_h_included) */

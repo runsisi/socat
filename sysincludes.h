@@ -34,7 +34,7 @@
 #if HAVE_GRP_H
 #include <grp.h>	/* getgrnam() */
 #endif
-#if HAVE_PTY_H
+#if HAVE_PTY_H && _WITH_TERMIOS
 #include <pty.h>
 #endif
 #if HAVE_SYS_PARAM_H
@@ -135,7 +135,7 @@
 #include <linux/if_tun.h>
 #endif
 
-#if HAVE_TERMIOS_H && WITH_TERMIOS
+#if HAVE_TERMIOS_H && _WITH_TERMIOS
 #include <termios.h>
 #endif
 #if HAVE_SYS_UTSNAME_H

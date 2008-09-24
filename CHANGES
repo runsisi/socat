@@ -91,6 +91,9 @@ corrections:
 	replaced the select() calls by poll() to cleanly fix the problems with
 	many file descriptors already open
 
+	socat did not compile on Solaris when configured without termios
+	feature (thanks to Pavan Gadi for reporting this bug)
+
 porting:
 	socat should now build under MacOS X 10.4 (thanks to Camillo Lugaresi for
 	providing the patch)
