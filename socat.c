@@ -428,6 +428,11 @@ void socat_version(FILE *fd) {
 #else
    fputs("  #undef WITH_RAWIP\n", fd);
 #endif
+#ifdef WITH_GENERICSOCKET
+   fprintf(fd, "  #define WITH_GENERICSOCKET %d\n", WITH_GENERICSOCKET);
+#else
+   fputs("  #undef WITH_GENERICSOCKET\n", fd);
+#endif
 #ifdef WITH_INTERFACE
    fprintf(fd, "  #define WITH_INTERFACE %d\n", WITH_INTERFACE);
 #else
