@@ -450,7 +450,7 @@ int parseport(const char *portname, int ipproto) {
 #endif /* WITH_TCP || WITH_UDP */
 
 
-#if WITH_IP4 || WITH_IP6
+#if WITH_IP4 || WITH_IP6 || WITH_INTERFACE
 /* check the systems interfaces for ifname and return its index
    or -1 if no interface with this name was found
    The system calls require an arbitrary socket; the calling program may
@@ -501,8 +501,10 @@ int ifindexbyname(const char *ifname, int anysock) {
    return -1;
 #endif /* !defined(HAVE_ STRUCT_IFREQ) && defined(SIOCGIFCONF) && defined(SIOCGIFINDEX) */
 }
+#endif /* WITH_IP4 || WITH_IP6 || WITH_INTERFACE */
 
 
+#if WITH_IP4 || WITH_IP6 || WITH_INTERFACE
 /* like ifindexbyname(), but also allows the index number as input - in this
    case it does not lookup the index.
    writes the resulting index to *ifindex and returns 0,
@@ -526,7 +528,7 @@ int ifindex(const char *ifname, unsigned int *ifindex, int anysock) {
    *ifindex = val;
    return 0;
 }
-#endif /* WITH_IP4 || WITH_IP6 */
+#endif /* WITH_IP4 || WITH_IP6 || WITH_INTERFACE */
 
 
 /* constructs an environment variable whose name is built from socats uppercase

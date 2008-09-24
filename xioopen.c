@@ -148,18 +148,22 @@ const struct addrname addressnames[] = {
    { "sctp-l",		&addr_sctp_listen },
    { "sctp-listen",	&addr_sctp_listen },
 #endif
+#if WITH_IP4
    { "sctp4",		&addr_sctp4_connect },
    { "sctp4-connect",	&addr_sctp4_connect },
 #if WITH_LISTEN
    { "sctp4-l",		&addr_sctp4_listen },
    { "sctp4-listen",	&addr_sctp4_listen },
 #endif
+#endif /* WITH_IP4 */
+#if WITH_IP6
    { "sctp6",		&addr_sctp6_connect },
    { "sctp6-connect",	&addr_sctp6_connect },
 #if WITH_LISTEN
    { "sctp6-l",		&addr_sctp6_listen },
    { "sctp6-listen",	&addr_sctp6_listen },
 #endif
+#endif /* WITH_IP6 */
 #endif /* (WITH_IP4 || WITH_IP6) && WITH_SCTP */
 #if WITH_GENERICSOCKET
    { "sendto",			&xioaddr_socket_sendto },
@@ -167,7 +171,9 @@ const struct addrname addressnames[] = {
 #if WITH_GENERICSOCKET
    { "socket-connect",		&xioaddr_socket_connect },
    { "socket-datagram",		&xioaddr_socket_datagram },
+#if WITH_LISTEN
    { "socket-listen",		&xioaddr_socket_listen },
+#endif /* WITH_LISTEN */
    { "socket-recv",		&xioaddr_socket_recv },
    { "socket-recvfrom",		&xioaddr_socket_recvfrom },
    { "socket-sendto",		&xioaddr_socket_sendto },

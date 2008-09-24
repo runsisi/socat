@@ -65,13 +65,17 @@ xiolog_ancillary_socket(struct cmsghdr *cmsg, int *num,
 			char *valbuff, int vallen);
 
 
+#if WITH_GENERICSOCKET
 /* generic socket addresses */
 const struct addrdesc xioaddr_socket_connect = { "socket-connect",     1, xioopen_socket_connect,  GROUP_FD|GROUP_SOCKET|GROUP_CHILD|GROUP_RETRY, 0, 0, 0 HELP(":<domain>:<protocol>:<remote-address>") };
+#if WITH_LISTEN
 const struct addrdesc xioaddr_socket_listen  = { "socket-listen",      1, xioopen_socket_listen,   GROUP_FD|GROUP_SOCKET|GROUP_LISTEN|GROUP_RANGE|GROUP_CHILD|GROUP_RETRY, 0, 0, 0 HELP(":<domain>:<protocol>:<local-address>") };
+#endif /* WITH_LISTEN */
 const struct addrdesc xioaddr_socket_sendto  = { "socket-sendto",      3, xioopen_socket_sendto,   GROUP_FD|GROUP_SOCKET,                         0, 0, 0 HELP(":<domain>:<type>:<protocol>:<remote-address>") };
 const struct addrdesc xioaddr_socket_datagram= { "socket-datagram",    3, xioopen_socket_datagram, GROUP_FD|GROUP_SOCKET|GROUP_RANGE,             0, 0, 0 HELP(":<domain>:<type>:<protocol>:<remote-address>") };
 const struct addrdesc xioaddr_socket_recvfrom= { "socket-recvfrom",    3, xioopen_socket_recvfrom, GROUP_FD|GROUP_SOCKET|GROUP_RANGE|GROUP_CHILD, 0, 0, 0 HELP(":<domain>:<type>:<protocol>:<local-address>") };
 const struct addrdesc xioaddr_socket_recv    = { "socket-recv",        1, xioopen_socket_recv,     GROUP_FD|GROUP_SOCKET|GROUP_RANGE,             0, 0, 0 HELP(":<domain>:<type>:<protocol>:<local-address>") };
+#endif /* WITH_GENERICSOCKET */
 
 
 /* the following options apply not only to generic socket addresses but to all
@@ -192,6 +196,9 @@ const struct optdesc opt_setsockopt_int    = { "setsockopt-int",    "sockopt-int
 const struct optdesc opt_setsockopt_bin    = { "setsockopt-bin",    "sockopt-bin",    OPT_SETSOCKOPT_BIN,        GROUP_SOCKET,PH_PASTSOCKET,TYPE_INT_INT_BIN,     OFUNC_SOCKOPT_GENERIC, 0, 0 };
 const struct optdesc opt_setsockopt_string = { "setsockopt-string", "sockopt-string", OPT_SETSOCKOPT_STRING,     GROUP_SOCKET,PH_PASTSOCKET,TYPE_INT_INT_STRING,  OFUNC_SOCKOPT_GENERIC, 0, 0 };
 
+
+#if WITH_GENERICSOCKET
+
 static
 int xioopen_socket_connect(int argc, const char *argv[], struct opt *opts,
 			   int xioflags, xiofile_t *xxfd, unsigned groups,
@@ -272,6 +279,7 @@ int xioopen_socket_connect(int argc, const char *argv[], struct opt *opts,
    return STAT_OK;
 }
 
+#if WITH_LISTEN
 static
 int xioopen_socket_listen(int argc, const char *argv[], struct opt *opts,
 			  int xioflags, xiofile_t *xxfd, unsigned groups,
@@ -339,6 +347,7 @@ int xioopen_socket_listen(int argc, const char *argv[], struct opt *opts,
       return result;
    return STAT_OK;
 }
+#endif /* WITH_LISTEN */
 
 /* we expect the form: ...:domain:type:protocol:remote-address */
 static
@@ -683,6 +692,8 @@ int xioopen_socket_datagram(int argc, const char *argv[], struct opt *opts,
    _xio_openlate(xfd, opts);
    return STAT_OK;
 }
+
+#endif /* WITH_GENERICSOCKET */
 
 
 /* a subroutine that is common to all socket addresses that want to connect
@@ -1594,18 +1605,22 @@ int xiodopacketinfo(struct msghdr *msgh, bool withlog, bool withenv) {
 				 envbuff, sizeof(envbuff)-1,
 				 valbuff, sizeof(valbuff)-1);
 	 break;
+#if WITH_IP4 || WITH_IP6
       case SOL_IP:
 	 xiolog_ancillary_ip(cmsg, &num, typbuff, sizeof(typbuff)-1,
 			     nambuff, sizeof(nambuff)-1,
 			     envbuff, sizeof(envbuff)-1,
 			     valbuff, sizeof(valbuff)-1);
 	 break;
+#endif /* WITH_IP4 || WITH_IP6 */
+#if WITH_IP6
       case SOL_IPV6:
 	 xiolog_ancillary_ip6(cmsg, &num, typbuff, sizeof(typbuff)-1,
 			      nambuff, sizeof(nambuff)-1,
 			      envbuff, sizeof(envbuff)-1,
 			      valbuff, sizeof(valbuff)-1);
 	 break;
+#endif /* WITH_IP6 */
       default:
 	 num = 1;
 	 snprintf(typbuff, sizeof(typbuff)-1, "LEVEL%u", cmsg->cmsg_level);
@@ -1988,6 +2003,7 @@ int xiosetsockaddrenv(const char *lr,
 
    strcpy(namebuff, lr);
    switch (sau->soa.sa_family) {
+#if WITH_UNIX
    case PF_UNIX:
       result =
 	 xiosetsockaddrenv_unix(idx, strchr(namebuff, '\0'), XIOSOCKADDRENVLEN-strlen(lr),
@@ -1995,6 +2011,8 @@ int xiosetsockaddrenv(const char *lr,
 				&sau->un, salen, proto);
       xiosetenv(namebuff, valuebuff, 1);
       break;
+#endif /* WITH_UNIX */
+#if WITH_IP4
    case PF_INET:
       do {
 	 result =
@@ -2005,6 +2023,8 @@ int xiosetsockaddrenv(const char *lr,
 	 namebuff[strlen(lr)] = '\0';  ++idx;
       } while (result > 0);
       break; 
+#endif /* WITH_IP4 */
+#if WITH_IP6
    case PF_INET6:
       strcpy(namebuff, lr);
       do {
@@ -2016,6 +2036,7 @@ int xiosetsockaddrenv(const char *lr,
 	 namebuff[strlen(lr)] = '\0';  ++idx;
       } while (result > 0);
       break; 
+#endif /* WITH_IP6 */
 #if LATER
    case PF_PACKET:
       result = xiosetsockaddrenv_packet(lr, (void *)sau, proto); break;

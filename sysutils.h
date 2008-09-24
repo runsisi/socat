@@ -21,9 +21,9 @@ union sockaddr_union {
 #if WITH_UNIX
    struct sockaddr_un un;
 #endif /* WITH_UNIX */
-#if WITH_IP4
+#if _WITH_IP4
    struct sockaddr_in ip4;
-#endif /* WITH_IP4 */
+#endif /* _WITH_IP4 */
 #if WITH_IP6
    struct sockaddr_in6 ip6;
 #endif /* WITH_IP6 */

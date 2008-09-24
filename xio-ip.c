@@ -466,6 +466,7 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
       snprintf(nambuff, namlen, "type_%u", cmsg->cmsg_type);
       xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0);
       return STAT_OK;
+#if WITH_IP4
 #ifdef IP_PKTINFO
    case IP_PKTINFO: {
       struct in_pktinfo *pktinfo = (struct in_pktinfo *)CMSG_DATA(cmsg);
@@ -481,6 +482,7 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
    }
       return STAT_OK;
 #endif /* IP_PKTINFO */
+#endif /* WITH_IP4 */
 #ifdef IP_RECVERR
    case IP_RECVERR: {
       struct sock_extended_err *err =
@@ -513,6 +515,7 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
       return STAT_OK;
    }
 #endif /* defined(IP_RECVIF) */
+#if WITH_IP4
 #ifdef IP_RECVDSTADDR
    case IP_RECVDSTADDR:
       *num = 1;
@@ -522,6 +525,7 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
       inet4addr_info(ntohl(*(uint32_t *)CMSG_DATA(cmsg)), valbuff, vallen);
       return STAT_OK;
 #endif
+#endif /* WITH_IP4 */
    case IP_OPTIONS:
    case IP_RECVOPTS:
       cmsgtype = "IP_OPTIONS"; cmsgname = "options"; cmsgfmt = NULL; break;
