@@ -1904,7 +1904,7 @@ waitsctp4port () {
 #		*) l=$(netstat -an |grep '^tcp4.* .*[0-9*]\.'$port' .* \*\.\* .* LISTEN') ;;
 #		esac ;;
 #	AIX)	 l=$(netstat -an |grep '^tcp[^6]       0      0 .*[*0-9]\.'$port' .* LISTEN$') ;;
-#	SunOS)   l=$(netstat -an -f inet -P tcp |grep '.*[1-9*]\.'$port' .*\*                0 .* LISTEN') ;;
+	SunOS)   l=$(netstat -an -f inet -P sctp |grep '.*[1-9*]\.'$port' .*\*                0 .* LISTEN') ;;
 #	HP-UX)   l=$(netstat -an |grep '^tcp        0      0  .*[0-9*]\.'$port' .* LISTEN$') ;;
 #	OSF1)    l=$(/usr/sbin/netstat -an |grep '^tcp        0      0  .*[0-9*]\.'$port' [ ]*\*\.\* [ ]*LISTEN') ;;
 #	CYGWIN*) l=$(netstat -an -p TCP |grep '^  TCP    [0-9.]*:'$port' .* LISTENING') ;;
@@ -1996,7 +1996,7 @@ waitsctp6port () {
 #	NetBSD)  l=$(netstat -an |grep '^tcp6 .*[0-9*]\.'$port' [ ]* \*\.\*') ;;
 #	OpenBSD) l=$(netstat -an |grep -i 'tcp6 .*[0-9*][:.]'$port' .* listen') ;;
 #	AIX)	 l=$(netstat -an |grep '^tcp[6 ]       0      0 .*[*0-9]\.'$port' .* LISTEN$') ;;
-#	SunOS)   l=$(netstat -an -f inet6 -P tcp |grep '.*[1-9*]\.'$port' .*\* [ ]* 0 .* LISTEN') ;;
+	SunOS)   l=$(netstat -an -f inet6 -P sctp |grep '.*[1-9*]\.'$port' .*\* [ ]* 0 .* LISTEN') ;;
 #	#OSF1)    l=$(/usr/sbin/netstat -an |grep '^tcp6       0      0  .*[0-9*]\.'$port' [ ]*\*\.\* [ ]*LISTEN') /*?*/;;
  	*)       l=$(netstat -an |grep -i 'stcp6 .*:'$port' .* listen') ;;
 	esac
@@ -8818,7 +8818,7 @@ UNIX UNIX $td/test\$N.server - ,               so-timestamp      SCM_TIMESTAMP  
 # test: setting of environment variables that describe a stream socket
 # connection: SOCAT_SOCKADDR, SOCAT_PEERADDR; and SOCAT_SOCKPORT,
 # SOCAT_PEERPORT when applicable
-while read KEYW TEST_SOCKADDR TEST_PEERADDR TEST_SOCKPORT TEST_PEERPORT; do
+while read KEYW FEAT TEST_SOCKADDR TEST_PEERADDR TEST_SOCKPORT TEST_PEERPORT; do
 if [ -z "$KEYW" ]; then continue; fi
 #
 test_proto="$(echo $KEYW |tr A-Z a-z)"
@@ -8830,6 +8830,10 @@ TEST="$NAME: $KEYW-LISTEN fills environment variables with socket addresses"
 # code extracts and prints the SOCAT related environment vars.
 # outside code then checks if the environment contains the variables correctly
 # describing the peer and local sockets.
+if ! feat=$(testaddrs $FEAT); then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo $feat |tr a-z A-Z) not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 TEST_SOCKADDR="$(echo $TEST_SOCKADDR |sed "s/\$N/$N/g")"	# actual vars
@@ -8846,7 +8850,8 @@ tcp="$TEST_PEERPORT"	# test client port
 if [ "$tcp" != ',' ]; then
     tca="$tca:$tcp"
 fi
-CMD0="$SOCAT $opts -u $KEYW-LISTEN:$tsa1 system:\"export -p\""
+#CMD0="$SOCAT $opts -u $KEYW-LISTEN:$tsa1 system:\"export -p\""
+CMD0="$SOCAT $opts -u $KEYW-LISTEN:$tsa1 system:\"echo SOCAT_SOCKADDR=\\\$SOCAT_SOCKADDR; echo SOCAT_PEERADDR=\\\$SOCAT_PEERADDR; echo SOCAT_SOCKPORT=\\\$SOCAT_SOCKPORT; echo SOCAT_PEERPORT=\\\$SOCAT_PEERPORT; sleep 1\""
 CMD1="$SOCAT $opts -u - $KEYW-CONNECT:$tsa,bind=$tca"
 printf "test $F_n $TEST... " $N
 eval "$CMD0 2>\"${te}0\" >\"$tf\" &"
@@ -8886,17 +8891,17 @@ else
     numFAIL=$((numFAIL+1))
 fi
 set +xv
-;;
+fi ;; # feat
 esac
 N=$((N+1))
 #
 done <<<"
-TCP4 $LOCALHOST                                $SECONDADDR                               $PORT       $((PORT+1))
-TCP6 [0000:0000:0000:0000:0000:0000:0000:0001] [0000:0000:0000:0000:0000:0000:0000:0001] $((PORT+2)) $((PORT+3))
-UDP6 [0000:0000:0000:0000:0000:0000:0000:0001] [0000:0000:0000:0000:0000:0000:0000:0001] $((PORT+6)) $((PORT+7))
-SCTP4 $LOCALHOST                                $SECONDADDR                               $((PORT+8)) $((PORT+9))
-SCTP6 [0000:0000:0000:0000:0000:0000:0000:0001] [0000:0000:0000:0000:0000:0000:0000:0001] $((PORT+10)) $((PORT+11))
-UNIX $td/test\$N.server                        $td/test\$N.client                        ,           ,
+TCP4  TCP  $LOCALHOST                                $SECONDADDR                               $PORT       $((PORT+1))
+TCP6  IP6  [0000:0000:0000:0000:0000:0000:0000:0001] [0000:0000:0000:0000:0000:0000:0000:0001] $((PORT+2)) $((PORT+3))
+UDP6  IP6  [0000:0000:0000:0000:0000:0000:0000:0001] [0000:0000:0000:0000:0000:0000:0000:0001] $((PORT+6)) $((PORT+7))
+SCTP4 SCTP $LOCALHOST                                $SECONDADDR                               $((PORT+8)) $((PORT+9))
+SCTP6 SCTP [0000:0000:0000:0000:0000:0000:0000:0001] [0000:0000:0000:0000:0000:0000:0000:0001] $((PORT+10)) $((PORT+11))
+UNIX  UNIX $td/test\$N.server                        $td/test\$N.client                        ,           ,
 "
 # this one fails due to weakness in socats UDP4-LISTEN implementation:
 #UDP4 $LOCALHOST $SECONDADDR $((PORT+4)) $((PORT+5))
@@ -9475,10 +9480,11 @@ usleep 1000000
 $CMD2 >/dev/null 2>"${te}2" </dev/null
 rc2=$?
 kill $pid0 $pid1 2>/dev/null; wait
-if ! echo "$da" |diff - "$tf"; then
+if ! echo "$da" |diff - "$tf" >/dev/null; then
     $PRINTF "${YELLOW}phase 1 failed${NORMAL}\n"
     echo "$CMD0 &"
     echo "$CMD1"
+    echo "$da" |diff - "$tf"
     numCANT=$((numCANT+1))
 elif [ $rc2 -eq 0 ]; then
     $PRINTF "$FAILED: $SOCAT:\n"
