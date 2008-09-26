@@ -2512,6 +2512,13 @@ label(OPTION_VTDLY)dit(bf(tt(vtdly=<bool>)))
 label(OPTION_WERASE)dit(bf(tt(werase=<byte>)))
 label(OPTION_XCASE)dit(bf(tt(xcase=<bool>)))
 label(OPTION_XTABS)dit(bf(tt(xtabs)))
+label(OPTION_I_POP_ALL)dit(bf(tt(i-pop-all)))
+   With UNIX System V STREAMS, removes all drivers from the stack.
+label(OPTION_I_PUSH)dit(bf(tt(i-push=<string>)))
+   With UNIX System V STREAMS, pushes the driver (module) with the given name
+   (link(string)(TYPE_STRING)) onto the stack. For example, to make sure that a
+   character device on Solaris supports termios etc, use the following options:
+   tt(i-pop-all,i-push=ptem,i-push=ldterm,i-push=ttcompat)
 enddit()
 
 startdit()enddit()nl()

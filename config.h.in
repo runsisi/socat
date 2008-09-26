@@ -490,6 +490,7 @@
 #undef WITH_PTY
 #undef WITH_EXT2
 #undef WITH_OPENSSL
+#define WITH_STREAMS 1
 #undef WITH_FIPS
 #undef OPENSSL_FIPS
 #undef WITH_LIBWRAP

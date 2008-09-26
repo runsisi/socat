@@ -551,6 +551,12 @@ const struct optname optionnames[] = {
 #endif
 	IF_TERMIOS("hup",	&opt_hupcl)
 	IF_TERMIOS("hupcl",	&opt_hupcl)
+#ifdef I_POP
+	IF_ANY    ("i-pop-all",	&opt_streams_i_pop_all)
+#endif
+#ifdef I_PUSH
+	IF_ANY    ("i-push",	&opt_streams_i_push)
+#endif
 	IF_TERMIOS("icanon",	&opt_icanon)
 	IF_TERMIOS("icrnl",	&opt_icrnl)
 	IF_TERMIOS("iexten",	&opt_iexten)
@@ -1085,6 +1091,9 @@ const struct optname optionnames[] = {
 	IF_IP     ("pktopts",	&opt_ip_pktoptions)
 #endif
 	IF_TUN    ("pointopoint",	&opt_iff_pointopoint)
+#ifdef I_POP
+	IF_ANY    ("pop-all",	&opt_streams_i_pop_all)
+#endif
 	/*IF_IPAPP("port",	&opt_port)*/
 	IF_TUN    ("portsel",	&opt_iff_portsel)
 #if HAVE_RESOLV_H
@@ -1122,6 +1131,9 @@ const struct optname optionnames[] = {
 	IF_PTY    ("pty-intervall",	&opt_pty_intervall)
 	IF_PTY    ("pty-wait-slave",	&opt_pty_wait_slave)
 #endif /* HAVE_PTY && HAVE_POLL */
+#ifdef I_PUSH
+	IF_ANY    ("push",	&opt_streams_i_push)
+#endif
 #ifdef TCP_QUICKACK
 	IF_TCP    ("quickack",	&opt_tcp_quickack)
 #endif
@@ -1401,6 +1413,12 @@ const struct optname optionnames[] = {
 	IF_TCP    ("stdurg",	&opt_tcp_stdurg)
 #endif
 	IF_TERMIOS("stop",	&opt_vstop)
+#ifdef I_POP
+	IF_ANY    ("streams-i-pop-all",	&opt_streams_i_pop_all)
+#endif
+#ifdef I_PUSH
+	IF_ANY    ("streams-i-push",	&opt_streams_i_push)
+#endif
 	IF_ANY    ("su",	&opt_substuser)
 	IF_ANY    ("su-d",	&opt_substuser_delayed)
 	IF_ANY    ("substuser",	&opt_substuser)
@@ -2797,7 +2815,7 @@ int retropt_bind(struct opt *opts,
 /* note: not all options can be applied this way (e.g. OFUNC_SPEC with PH_OPEN)
    implemented are: OFUNC_FCNTL, OFUNC_SOCKOPT (probably not all types),
    OFUNC_TERMIOS_FLAG, OFUNC_TERMIOS_PATTERN, and some OFUNC_SPEC */
-int applyopts(int fd, struct opt *opts, unsigned int phase) {
+int applyopts(int fd, struct opt *opts, enum e_phase phase) {
    struct opt *opt;
 
    opt = opts; while (opt && opt->desc != ODESC_END) {
@@ -3573,6 +3591,12 @@ int applyopts(int fd, struct opt *opts, unsigned int phase) {
 	 }
 
 #endif /* WITH_TERMIOS */
+
+#if WITH_STREAMS
+#define ENABLE_APPLYOPT
+#include "xio-streams.c"
+#undef ENABLE_APPLYOPT
+#endif /* WITH_STREAMS */
 
       } else {
 	/*Error1("applyopts(): function %d not implemented",
