@@ -352,6 +352,9 @@
 /* define if you have struct cmsghdr */
 #undef HAVE_STRUCT_CMSGHDR
 
+/* define if you have struct in_pktinfo */
+#undef HAVE_STRUCT_IN_PKTINFO
+
 /* define if your struct ip has ip_hl; otherwise assume ip_vhl */
 #undef HAVE_STRUCT_IP_IP_HL
 

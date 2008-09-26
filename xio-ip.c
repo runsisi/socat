@@ -467,7 +467,7 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
       xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0);
       return STAT_OK;
 #if WITH_IP4
-#ifdef IP_PKTINFO
+#if defined(IP_PKTINFO) && HAVE_STRUCT_IN_PKTINFO
    case IP_PKTINFO: {
       struct in_pktinfo *pktinfo = (struct in_pktinfo *)CMSG_DATA(cmsg);
       *num = 3;
@@ -481,7 +481,7 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
 	       inet4addr_info(ntohl(pktinfo->ipi_addr.s_addr), scratch3, sizeof(scratch3)));
    }
       return STAT_OK;
-#endif /* IP_PKTINFO */
+#endif /* defined(IP_PKTINFO) && HAVE_STRUCT_IN_PKTINFO */
 #endif /* WITH_IP4 */
 #ifdef IP_RECVERR
    case IP_RECVERR: {

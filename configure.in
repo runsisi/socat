@@ -1113,6 +1113,19 @@ if test $sc_cv_struct_cmsghdr = yes; then
 fi
 AC_MSG_RESULT($sc_cv_struct_cmsghdr)
 
+dnl check for struct in_pktinfo
+AC_MSG_CHECKING(for struct in_pktinfo)
+AC_CACHE_VAL(sc_cv_struct_in_pktinfo,
+[AC_TRY_COMPILE([#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>],[struct in_pktinfo s;],
+[sc_cv_struct_in_pktinfo=yes],
+[sc_cv_struct_in_pktinfo=no])])
+if test $sc_cv_struct_in_pktinfo = yes; then
+   AC_DEFINE(HAVE_STRUCT_IN_PKTINFO)
+fi
+AC_MSG_RESULT($sc_cv_struct_in_pktinfo)
+
 dnl check for ip_hl in struct ip
 AC_MSG_CHECKING(for struct ip.ip_hl)
 AC_CACHE_VAL(sc_cv_struct_ip_ip_hl,
