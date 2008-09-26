@@ -107,6 +107,9 @@
 /* Define if you have the memrchr function. */
 #undef HAVE_MEMRCHR
 
+/* Define if you have the if_indextoname function. */
+#undef HAVE_IF_INDEXTONAME
+
 /* Define if you have the sigaction function */
 #undef HAVE_SIGACTION
 

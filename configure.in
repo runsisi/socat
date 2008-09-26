@@ -672,6 +672,7 @@ AC_FUNC_STRFTIME
 AC_CHECK_FUNCS(putenv select poll socket strdup strerror strstr strtod strtol)
 AC_CHECK_FUNCS(strtoul uname getpgid getsid getaddrinfo)
 AC_CHECK_FUNCS(getipnodebyname setgroups inet_aton memrchr)
+AC_CHECK_FUNCS(if_indextoname)
 
 AC_CHECK_FUNCS(grantpt unlockpt ptsname)
 
