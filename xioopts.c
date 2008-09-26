@@ -719,20 +719,34 @@ const struct optname optionnames[] = {
 	IF_IP6    ("ipv6-hopopts",	&opt_ipv6_hopopts)
 	IF_IP6    ("ipv6-join-group",	&opt_ipv6_join_group)
 	IF_IP6    ("ipv6-pktinfo",	&opt_ipv6_pktinfo)
+#ifdef IPV6_RECVDSTOPTS
 	IF_IP6    ("ipv6-recvdstopts",	&opt_ipv6_recvdstopts)
+#endif
 #ifdef IPV6_RECVERR
 	IF_IP6    ("ipv6-recverr",	&opt_ipv6_recverr)
 #endif
+#ifdef IPV6_RECVHOPLIMIT
 	IF_IP6    ("ipv6-recvhoplimit",	&opt_ipv6_recvhoplimit)
+#endif
+#ifdef IPV6_RECVHOPOPTS
 	IF_IP6    ("ipv6-recvhopopts",	&opt_ipv6_recvhopopts)
+#endif
 #ifdef IPV6_PATHMTU
 	IF_IP6    ("ipv6-recvpathmtu",	&opt_ipv6_recvpathmtu)
 #endif
+#ifdef IPV6_RECVPKTINFO
 	IF_IP6    ("ipv6-recvpktinfo",	&opt_ipv6_recvpktinfo)
+#endif
+#ifdef IPV6_RECVRTHDR
 	IF_IP6    ("ipv6-recvrthdr",	&opt_ipv6_recvrthdr)
+#endif
+#ifdef IPV6_RECVTCLASS
 	IF_IP6    ("ipv6-recvtclass",	&opt_ipv6_recvtclass)
+#endif
 	IF_IP6    ("ipv6-rthdr",	&opt_ipv6_rthdr)
+#ifdef IPV6_TCLASS
 	IF_IP6    ("ipv6-tclass",	&opt_ipv6_tclass)
+#endif
 	IF_IP6    ("ipv6-unicast-hops",	&opt_ipv6_unicast_hops)
 #ifdef IPV6_V6ONLY
 	IF_IP6    ("ipv6-v6only",	&opt_ipv6_v6only)
@@ -1145,20 +1159,30 @@ const struct optname optionnames[] = {
 #ifdef IP_RECVDSTADDR
 	IF_IP     ("recvdstaddr",	&opt_ip_recvdstaddr)
 #endif
+#ifdef IPV6_RECVDSTOPTS
 	IF_IP6    ("recvdstopts",	&opt_ipv6_recvdstopts)
+#endif
 #ifdef IP_RECVERR
 	IF_IP     ("recverr",	&opt_ip_recverr)
 #endif
+#ifdef IPV6_RECVHOPLIMIT
 	IF_IP6    ("recvhoplimit",	&opt_ipv6_recvhoplimit)
+#endif
+#ifdef IPV6_RECVHOPOPTS
 	IF_IP6    ("recvhopopts",	&opt_ipv6_recvhopopts)
+#endif
 #ifdef IP_RECVIF
 	IF_IP     ("recvif",		&opt_ip_recvif)
 #endif
 #ifdef IP_RECVOPTS
 	IF_IP     ("recvopts",	&opt_ip_recvopts)
 #endif
+#ifdef IPV6_RECVPKTINFO
 	IF_IP6    ("recvpktinfo",	&opt_ipv6_recvpktinfo)
+#endif
+#ifdef IPV6_RECVRTHDR
 	IF_IP6    ("recvrthdr",	&opt_ipv6_recvrthdr)
+#endif
 #ifdef IP_RECVTOS
 	IF_IP     ("recvtos",	&opt_ip_recvtos)
 #endif
