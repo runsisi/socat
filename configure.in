@@ -1227,7 +1227,11 @@ AC_CACHE_CHECK(shift offset of $1, $2,
     if (n==0) {fprintf(stderr,"$1 is 0 (impossible!)\n"); exit(1);}
     i=0; while (!(n&1)) {
        n>>=1; ++i; }
-    fprintf(f, "%u", i);
+    if (3<<i == $1) {
+       fprintf(f, "%u", i);
+    } else {
+       fprintf(f, "-1");	/* anticipate result of xioinitialize assert */
+    }
     exit(0);
  }
  ],

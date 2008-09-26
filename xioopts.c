@@ -316,7 +316,9 @@ const struct optname optionnames[] = {
 #  ifdef CR3
 	IF_TERMIOS("cr3",	&opt_cr3)
 #  endif
+#  if CRDLY_SHIFT >= 0
 	IF_TERMIOS("crdly",	&opt_crdly)
+#  endif
 #endif /* defined(CRDLY) */
 	IF_TERMIOS("cread",	&opt_cread)
 	IF_OPEN   ("creat",	&opt_o_create)
@@ -332,7 +334,9 @@ const struct optname optionnames[] = {
 	IF_TERMIOS("cs6",	&opt_cs6)
 	IF_TERMIOS("cs7",	&opt_cs7)
 	IF_TERMIOS("cs8",	&opt_cs8)
+#if CSIZE_SHIFT >= 0
 	IF_TERMIOS("csize",	&opt_csize)
+#endif
 	IF_TERMIOS("cstopb",	&opt_cstopb)
 	IF_TERMIOS("ctlecho",	&opt_echoctl)
 	IF_TERMIOS("ctty",	&opt_tiocsctty)
@@ -1456,7 +1460,9 @@ const struct optname optionnames[] = {
 #  ifdef TAB3
 	IF_TERMIOS("tab3",	&opt_tab3)
 #  endif
+#  if TABDLY_SHIFT >= 0
 	IF_TERMIOS("tabdly",	&opt_tabdly)
+#  endif
 #endif
 	IF_TERMIOS("tandem",	&opt_ixoff)
 #ifdef TCP_ABORT_THRESHOLD  /* HP_UX */
