@@ -105,7 +105,10 @@ enum e_func {
    OFUNC_TERMIOS_SPEC,	/* termios combined modes */
    OFUNC_SIGNAL,	/* a signal that should be passed to child process */
    OFUNC_RESOLVER,	/* a bit position used on _res.options */
-   OFUNC_IFFLAG		/* interface flag: locical-or a 1bit mask */
+   OFUNC_IFFLAG,	/* interface flag: locical-or a 1bit mask */
+#  define ENABLE_OFUNC
+#  include "xio-streams.h"	/* push a POSIX STREAMS module */
+#  undef ENABLE_OFUNC
 } ;
 
 /* for simpler handling of option-to-connection-type relations we define
@@ -689,6 +692,9 @@ enum e_optcode {
 #endif
    OPT_SOURCEPORT,
    OPT_STDERR,		/* with exec, system */
+#  define ENABLE_OPTCODE
+#  include "xio-streams.h"
+#  undef ENABLE_OPTCODE
    OPT_SUBSTUSER,
    OPT_SUBSTUSER_DELAYED,
    OPT_SYMBOLIC_LINK,	/* with pty */
@@ -899,7 +905,7 @@ extern int retropt_bind(struct opt *opts,
 		 int feats,	/* TCP etc: 1..address allowed,
 				   3..address and port allowed */
 		 unsigned long res_opts0, unsigned long res_opts1);
-extern int applyopts(int fd, struct opt *opts, unsigned int phase);
+extern int applyopts(int fd, struct opt *opts, enum e_phase phase);
 extern int applyopts2(int fd, struct opt *opts, unsigned int from,
 		      unsigned int to);
 extern int applyopts_flags(struct opt *opts, int group, flags_t *result);

@@ -26,7 +26,9 @@ struct sockopt {
    char *name;
 };
 
-/* dirty workaround so we dont get an error on AIX when getting linked with
+static int filan_streams_analyze(int fd, FILE *outfile);
+
+/* dirty workaround so we dont get an error on AIX when being linked with
    libwrap */
 int allow_severity, deny_severity;
 
@@ -353,6 +355,9 @@ int filan_stat(
 	   , outfile);
   }
 
+   /* ever heard of POSIX streams? here we handle these */
+   filan_streams_analyze(statfd, outfile);
+
    /* now see for type specific infos */
   if (statfd >= 0) { /*!indent */
    switch (buf->st_mode&S_IFMT) {
@@ -406,6 +411,48 @@ int devinfo(int fd) {
   ioctl();
 }
 #endif
+
+
+/* returns 0 on success (not a stream descriptor, or no module)
+   returns <0 on failure */
+static int filan_streams_analyze(int fd, FILE *outfile) {
+#ifdef I_LIST
+#  define SL_NMODS 8	/* max number of module names we can store */
+   struct str_list modnames;
+   int i;
+
+   if (!isastream(fd)) {
+      fprintf(outfile, "\t(no STREAMS modules)");
+      return 0;
+   }
+#if 0	/* uncomment for debugging */
+   fprintf(outfile, "\tfind=%d", ioctl(fd, I_FIND, "ldterm"));
+#endif
+   modnames.sl_nmods = ioctl(fd, I_LIST, 0);
+   if (modnames.sl_nmods < 0) {
+      fprintf(stderr, "ioctl(%d, I_LIST, 0): %s\n", fd, strerror(errno));
+      return -1;
+   }
+   modnames.sl_modlist = Malloc(modnames.sl_nmods*(sizeof(struct str_mlist)));
+   if (modnames.sl_modlist == NULL) {
+      fprintf(stderr, "out of memory\n");
+      return -1;
+   }
+   if (ioctl(fd, I_LIST, &modnames) < 0) {
+      fprintf(stderr, "ioctl(%d, I_LIST, %p): %s\n",
+	      fd, &modnames, strerror(errno));
+      free(modnames.sl_modlist);
+      return -1;
+   }
+   fprintf(outfile, "\tSTREAMS: ");
+   for (i = 0; i < modnames.sl_nmods; ++i) {
+      fprintf(outfile, "\"%s\"", modnames.sl_modlist[i].l_name);
+      if (i+1 < modnames.sl_nmods)  fputc(',', outfile);
+   }
+   free(modnames.sl_modlist);
+#endif /* defined(I_LIST) */
+   return 0;
+}
 
 
 /* character device analysis */

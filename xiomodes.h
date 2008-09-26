@@ -43,5 +43,6 @@
 #include "xio-tcpwrap.h"
 #include "xio-ext2.h"
 #include "xio-tun.h"
+#include "xio-streams.h"
 
 #endif /* !defined(__xiomodes_h_included) */

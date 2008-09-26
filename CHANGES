@@ -54,6 +54,9 @@ new features:
 	new address options ipv6-tclass and ipv6-unicast-hops set the related
 	socket options.
 
+	STREAMS (UNIX System V STREAMS) can be configured with the new address
+	options i-pop-all and i-push
+
 corrections:
 	some raw IP and UNIX datagram modes failed on BSD systems
 

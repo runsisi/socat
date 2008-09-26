@@ -82,3 +82,8 @@ const struct optdesc opt_ioctl_int    = { "ioctl-int",   NULL,       OPT_IOCTL_I
 const struct optdesc opt_ioctl_intp   = { "ioctl-intp",  NULL,       OPT_IOCTL_INTP,  GROUP_FD, PH_FD, TYPE_INT_INTP,  OFUNC_IOCTL_GENERIC, 0, 0, 0 };
 const struct optdesc opt_ioctl_bin    = { "ioctl-bin",   NULL,       OPT_IOCTL_BIN,   GROUP_FD, PH_FD, TYPE_INT_BIN,   OFUNC_IOCTL_GENERIC, 0, 0, 0 };
 const struct optdesc opt_ioctl_string = { "ioctl-string",NULL,       OPT_IOCTL_STRING,GROUP_FD, PH_FD, TYPE_INT_STRING,OFUNC_IOCTL_GENERIC, 0, 0, 0 };
+
+/* POSIX STREAMS */
+#define ENABLE_OPTIONS
+#include "xio-streams.c"
+#undef ENABLE_OPTIONS
