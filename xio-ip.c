@@ -527,7 +527,9 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
 #endif
 #endif /* WITH_IP4 */
    case IP_OPTIONS:
+#ifdef IP_RECVOPTS
    case IP_RECVOPTS:
+#endif
       cmsgtype = "IP_OPTIONS"; cmsgname = "options"; cmsgfmt = NULL; break;
    case IP_TOS:
       cmsgtype = "IP_TOS";     cmsgname = "tos"; cmsgfmt = "%u"; break;
