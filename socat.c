@@ -929,17 +929,36 @@ int _socat(void) {
       }
 
       if (XIO_READABLE(sock1) && XIO_GETRDFD(sock1) >= 0 &&
-	  (fd1in->revents&(POLLIN|POLLHUP|POLLERR))) {
+	  (fd1in->revents /*&(POLLIN|POLLHUP|POLLERR)*/)) {
+	 if (fd1in->revents & POLLNVAL) {
+	    /* this is what we find on Mac OS X when poll()'ing on a device or
+	       named pipe. a read() might imm. return with 0 bytes, resulting
+	       in a loop? */ 
+	    Error1("poll(...[%d]: invalid request", fd1in->fd);
+	    return -1;
+	 }
 	 mayrd1 = true;
       }
       if (XIO_READABLE(sock2) && XIO_GETRDFD(sock2) >= 0 &&
-	  (fd2in->revents&(POLLIN|POLLHUP|POLLERR))) {
+	  (fd2in->revents)) {
+	 if (fd2in->revents & POLLNVAL) {
+	    Error1("poll(...[%d]: invalid request", fd2in->fd);
+	    return -1;
+	 }
 	 mayrd2 = true;
       }
-      if (XIO_GETWRFD(sock1) >= 0 && (fd1out->revents&(POLLOUT|POLLHUP|POLLERR))) {
+      if (XIO_GETWRFD(sock1) >= 0 && (fd1out->revents)) {
+	 if (fd1out->revents & POLLNVAL) {
+	    Error1("poll(...[%d]: invalid request", fd1out->fd);
+	    return -1;
+	 }
 	 maywr1 = true;
       }
-      if (XIO_GETWRFD(sock2) >= 0 && (fd2out->revents&(POLLOUT|POLLHUP|POLLERR))) {
+      if (XIO_GETWRFD(sock2) >= 0 && (fd2out->revents)) {
+	 if (fd2out->revents & POLLNVAL) {
+	    Error1("poll(...[%d]: invalid request", fd2out->fd);
+	    return -1;
+	 }
 	 maywr2 = true;
       }
 

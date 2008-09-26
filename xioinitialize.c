@@ -37,13 +37,15 @@ int xioinitialize(void) {
 
    /* some assertions about termios */
 #if WITH_TERMIOS
-#ifdef CRDLY
+#if defined(CRDLY) && CRDLY_SHIFT >= 0
    assert(3 << opt_crdly.arg3  == CRDLY);
 #endif
-#ifdef TABDLY
+#if defined(TABDLY) && TABDLY_SHIFT >= 0
    assert(3 << opt_tabdly.arg3 == TABDLY);
 #endif
+#if CSIZE_SHIFT >= 0
    assert(3 << opt_csize.arg3  == CSIZE);
+#endif
    {
       union {
 	 struct termios termarg;
