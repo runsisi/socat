@@ -1459,6 +1459,7 @@ int Setenv(const char *name, const char *value, int overwrite) {
    return result;
 }
 
+#if HAVE_UNSETENV
 /* on Linux it returns int but on FreeBSD void.
    we do not expect many errors, so we take void which works on all systems. */
 void Unsetenv(const char *name) {
@@ -1470,6 +1471,7 @@ void Unsetenv(const char *name) {
    errno = _errno;
    return;
 }
+#endif
 
 #if WITH_READLINE
 

@@ -1869,8 +1869,13 @@ char *xiogetifname(int ind, char *val, int ins) {
 #endif
 #ifdef SIOCGIFNAME
    if(Ioctl(s, SIOCGIFNAME, &ifr) < 0) {
+#if HAVE_STRUCT_IFREQ_IFR_INDEX
+      Info3("ioctl(%d, SIOCGIFNAME, {..., ifr_index=%d, ...}: %s",
+	    s, ifr.ifr_index, strerror(errno));
+#elif HAVE_STRUCT_IFREQ_IFR_IFINDEX
       Info3("ioctl(%d, SIOCGIFNAME, {..., ifr_ifindex=%d, ...}: %s",
 	    s, ifr.ifr_ifindex, strerror(errno));
+#endif
       if (ins < 0)  Close(s);
       return NULL;
    }
