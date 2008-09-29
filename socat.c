@@ -664,7 +664,6 @@ int socat(const char *address1, const char *address2) {
 */
 int childleftdata(xiofile_t *xfd) {
    struct pollfd in;
-   int timeout = 0;	/* milliseconds */
    int retval;
 
    /* have to check if a child process died before, but left read data */
@@ -673,6 +672,7 @@ int childleftdata(xiofile_t *xfd) {
 	XIO_RDSTREAM(xfd)->howtoend == END_CLOSE_KILL ||
 	XIO_RDSTREAM(xfd)->howtoend == END_SHUTDOWN_KILL) &&
        XIO_RDSTREAM(xfd)->para.exec.pid == 0) {
+      struct timeval timeout = { 0, 0 };
 
       if (XIO_READABLE(xfd) && !(XIO_RDSTREAM(xfd)->eof >= 2 && !XIO_RDSTREAM(xfd)->ignoreeof)) {
 	 in.fd = XIO_GETRDFD(xfd);
@@ -680,7 +680,7 @@ int childleftdata(xiofile_t *xfd) {
 	 in.revents = 0;
       }
       do {
-	 retval = xiopoll(&in, 1, timeout);
+	 retval = xiopoll(&in, 1, &timeout);
       } while (retval < 0 && errno == EINTR);
 
       if (retval < 0) {
@@ -767,7 +767,7 @@ int _socat(void) {
 	   XIO_GETRDFD(sock2), XIO_GETWRFD(sock2));
    while (XIO_RDSTREAM(sock1)->eof <= 1 ||
 	  XIO_RDSTREAM(sock2)->eof <= 1) {
-      int timeout;
+      struct timeval timeout, *to = NULL;
 
       Debug6("data loop: sock1->eof=%d, sock2->eof=%d, closing=%d, wasaction=%d, total_to={"F_tv_sec"."F_tv_usec"}",
 	     XIO_RDSTREAM(sock1)->eof, XIO_RDSTREAM(sock2)->eof,
@@ -799,21 +799,21 @@ int _socat(void) {
 
       if (polling) {
 	 /* there is a ignoreeof poll timeout, use it */
-	 timeout = 1000*socat_opts.pollintv.tv_sec +
-	     socat_opts.pollintv.tv_usec/1000;	/*!!! overflow?*/
+	 timeout = socat_opts.pollintv;
+	 to = &timeout;
       } else if (socat_opts.total_timeout.tv_sec != 0 ||
 		 socat_opts.total_timeout.tv_usec != 0) {
 	 /* there might occur a total inactivity timeout */
-	 timeout = 1000*socat_opts.total_timeout.tv_sec +
-	    socat_opts.total_timeout.tv_usec/1000;
+	 timeout = socat_opts.total_timeout;
+	 to = &timeout;
       } else {
-	 timeout = -1;	/* forever */
+	 to = NULL;
       }
 
       if (closing>=1) {
 	 /* first eof already occurred, start end timer */
-	 timeout = 1000*socat_opts.closwait.tv_sec +
-	    socat_opts.closwait.tv_usec/1000;
+	 timeout = socat_opts.pollintv;
+	 to = &timeout;
 	 closing = 2;
       }
 
@@ -826,17 +826,18 @@ int _socat(void) {
 
 	 if (closing>=1) {
 	    /* first eof already occurred, start end timer */
-	    timeout = 1000*socat_opts.closwait.tv_sec +
-	       socat_opts.closwait.tv_usec/1000;
+	    timeout = socat_opts.closwait;
+	    to = &timeout;
 	    closing = 2;
 	 }
 
 	 /* use the ignoreeof timeout if appropriate */
 	 if (polling) {
-	    int ptimeout = 1000*socat_opts.pollintv.tv_sec +
-	       socat_opts.pollintv.tv_usec/1000;
-	    if (closing == 0 || ptimeout < timeout) {
-	       timeout = ptimeout;
+	    if (closing == 0 ||
+		(socat_opts.pollintv.tv_sec < timeout.tv_sec) ||
+		((socat_opts.pollintv.tv_sec == timeout.tv_sec) &&
+		 socat_opts.pollintv.tv_usec < timeout.tv_usec)) {
+	       timeout = socat_opts.pollintv;
 	    }
 	 }
 
@@ -880,7 +881,7 @@ int _socat(void) {
 	     fd2in->fd = -1;
 	 }
 	 /* frame 0: innermost part of the transfer loop: check FD status */
-	 retval = xiopoll(fds, 4, timeout);
+	 retval = xiopoll(fds, 4, to);
 	 if (retval >= 0 || errno != EINTR) {
 	    break;
 	 }
@@ -947,14 +948,14 @@ int _socat(void) {
 	 }
 	 mayrd2 = true;
       }
-      if (XIO_GETWRFD(sock1) >= 0 && (fd1out->revents)) {
+      if (XIO_GETWRFD(sock1) >= 0 && fd1out->fd >= 0 && fd1out->revents) {
 	 if (fd1out->revents & POLLNVAL) {
 	    Error1("poll(...[%d]: invalid request", fd1out->fd);
 	    return -1;
 	 }
 	 maywr1 = true;
       }
-      if (XIO_GETWRFD(sock2) >= 0 && (fd2out->revents)) {
+      if (XIO_GETWRFD(sock2) >= 0 && fd2out->fd >= 0 && fd2out->revents) {
 	 if (fd2out->revents & POLLNVAL) {
 	    Error1("poll(...[%d]: invalid request", fd2out->fd);
 	    return -1;

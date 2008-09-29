@@ -205,7 +205,7 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
 	      sockaddr_info(&us.soa, uslen, infobuff, sizeof(infobuff)));
       readfd.fd = fd->stream.fd;
       readfd.events = POLLIN|POLLERR;
-      while (Poll(&readfd, 1, -1) < 0) {
+      while (xiopoll(&readfd, 1, NULL) < 0) {
 	 if (errno != EINTR)  break;
       }
 

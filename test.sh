@@ -5697,6 +5697,7 @@ if ! feat=$(testaddrs pty); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$(echo $feat |tr a-z A-Z) not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
+set -vx
 SIG="$(signum $signam)"
 te="$td/test$N.stderr"
 tpp="$td/test$N.ppid"
@@ -5725,6 +5726,7 @@ else
     numFAIL=$((numFAIL+1))
 fi
 wait
+set +vx
 fi ;; # feat
 esac
 N=$((N+1))
