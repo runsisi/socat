@@ -840,18 +840,17 @@ int _xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
       if (errno == EINPROGRESS) {
 	 if (xfd->para.socket.connect_timeout.tv_sec  != 0 ||
 	     xfd->para.socket.connect_timeout.tv_usec != 0) {
-	    int timeout;
+	    struct timeval timeout;
 	    struct pollfd writefd;
 	    int result;
 
 	    Info4("connect(%d, %s, "F_Zd"): %s",
 		  xfd->fd, sockaddr_info(them, themlen, infobuff, sizeof(infobuff)),
 		  themlen, strerror(errno));
-	    timeout = 1000*xfd->para.socket.connect_timeout.tv_sec +
-		xfd->para.socket.connect_timeout.tv_usec/1000;
+	    timeout = xfd->para.socket.connect_timeout;
 	    writefd.fd = xfd->fd;
 	    writefd.events = (POLLIN|POLLHUP|POLLERR);
-	    result = Poll(&writefd, 1, timeout);
+	    result = xiopoll(&writefd, 1, &timeout);
 	    if (result < 0) {
 	       Msg3(level, "poll({%d,POLLIN|POLLHUP|POLLER},,%d): %s",
 		    xfd->fd, timeout, strerror(errno));
@@ -1319,7 +1318,7 @@ int _xioopen_dgram_recvfrom(struct single *xfd, int xioflags,
 	 }
 	 readfd.fd = xfd->fd;
 	 readfd.events = POLLIN;
-	 if (Poll(&readfd, 1, -1) > 0) {
+	 if (xiopoll(&readfd, 1, NULL) > 0) {
 	    break;
 	 }
 

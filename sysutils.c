@@ -413,12 +413,56 @@ const char *hstrerror(int err) {
 
 /* this function behaves like poll(). It tries to do so even when the poll()
    system call is not available. */
-int xiopoll(struct pollfd fds[], nfds_t nfds, int timeout) {
+int xiopoll(struct pollfd fds[], nfds_t nfds, struct timeval *timeout) {
+   int i, n = 0;
+   int result = 0;
+
+   while (true) { /* should be if (), but we want to break */
+      fd_set readfds;
+      fd_set writefds;
+      fd_set exceptfds;
+
+      FD_ZERO(&readfds);  FD_ZERO(&writefds);  FD_ZERO(&exceptfds);
+      for (i = 0; i < nfds; ++i) {
+	 fds[i].revents = 0;
+	 if (fds[i].fd < 0)  { continue; }
+	 if (fds[i].fd > FD_SETSIZE)  { break; /* use poll */ }
+	 if (fds[i].events & POLLIN)  {
+	    FD_SET(fds[i].fd, &readfds);  n = MAX(n, fds[i].fd); }
+	 if (fds[i].events & POLLOUT) {
+	    FD_SET(fds[i].fd, &writefds); n = MAX(n, fds[i].fd); }
+      }
+      if (fds[i].fd > FD_SETSIZE)  { break; /* use poll */ }
+
+      result = Select(n+1, &readfds, &writefds, &exceptfds, timeout);
+      if (result < 0)  { return result; }
+      for (i = 0; i < nfds; ++i) {
+	 if (fds[i].fd < 0)  { continue; }
+	 if ((fds[i].events & POLLIN)  && FD_ISSET(fds[i].fd, &readfds))  {
+	    fds[i].revents |= POLLIN;  ++result;
+	 }
+	 if ((fds[i].events & POLLOUT) && FD_ISSET(fds[i].fd, &writefds)) {
+	    fds[i].revents |= POLLOUT; ++result;
+	 }
+      }
+      return result;
+   }
 #if HAVE_POLL
-    return Poll(fds, nfds, timeout);
+   {
+      int ms = 0;
+      if (timeout == NULL) {
+	 ms = -1;
+      } else {
+	 ms = 1000*timeout->tv_sec + timeout->tv_usec/1000;
+      }
+      /*! timeout */
+      return Poll(fds, nfds, ms);
 #else /* HAVE_POLL */
-    /*!!! wrap around Select() */
+   } else {
+      Error("poll() not available");
+      return -1;
 #endif /* !HAVE_POLL */
+   }
 }
    
 
