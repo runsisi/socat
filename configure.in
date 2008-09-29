@@ -1198,6 +1198,9 @@ dnl Search for setenv()
 AC_CHECK_FUNC(setenv, AC_DEFINE(HAVE_SETENV),
 	AC_CHECK_LIB(isode, setenv, [LIBS="-lisode $LIBS"]))
 
+dnl Search for unsetenv()
+AC_CHECK_FUNC(unsetenv, AC_DEFINE(HAVE_UNSETENV))
+
 
 dnl Run time checks
 

@@ -550,7 +550,9 @@ int xiosetenv(const char *varname, const char *value, int overwrite) {
    if (Setenv(envname, value, overwrite) < 0) {
       Warn3("setenv(\"%s\", \"%s\", 1): %s",
 	    envname, value, strerror(errno));
+#if HAVE_UNSETENV
       Unsetenv(envname);      /* dont want to have a wrong value */
+#endif
       return -1;
    }
    return 0;
@@ -579,7 +581,9 @@ int xiosetenv2(const char *varname, const char *varname2, const char *value,
    if (Setenv(envname, value, overwrite) < 0) {
       Warn3("setenv(\"%s\", \"%s\", 1): %s",
 	    envname, value, strerror(errno));
+#if HAVE_UNSETENV
       Unsetenv(envname);      /* dont want to have a wrong value */
+#endif
       return -1;
    }
    return 0;

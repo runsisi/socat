@@ -331,7 +331,7 @@
 /* Define if you have struct ifreq.ifr_index */
 #undef HAVE_STRUCT_IFREQ_IFR_INDEX
 
-/* Define if you have struct ifreq.ifr_ifindex */
+/* Define if you have struct ifreq.ifr_ifindex; not on HPUX */
 #undef HAVE_STRUCT_IFREQ_IFR_IFINDEX
 
 /* Define if your struct sockaddr has sa_len */
@@ -363,6 +363,9 @@
 
 /* Define if you have the setenv function */
 #undef HAVE_SETENV
+
+/* Define if you have the unsetenv function. not on HP-UX */
+#undef HAVE_UNSETENV
 
 /* Define if you have the flock function */
 #undef HAVE_FLOCK
