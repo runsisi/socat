@@ -1764,6 +1764,7 @@ int xiocheckpeer(xiosingle_t *xfd,
 }
 
 
+#if HAVE_STRUCT_CMSGHDR
 /* converts the ancillary message in *cmsg into a form useable for further
    processing. knows the specifics of common message types.
    returns the number of resulting syntax elements is *num
@@ -1840,6 +1841,7 @@ xiolog_ancillary_socket(struct cmsghdr *cmsg, int *num,
 
 #endif /* !defined(CMSG_DATA) */
 }
+#endif /* HAVE_STRUCT_CMSGHDR */
 
 
 /* return the name of the interface with given index
