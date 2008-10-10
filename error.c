@@ -128,8 +128,8 @@ void diag_set(char what, const char *arg) {
       }
       if ((diagopts.logfile = fopen(arg, "a")) == NULL) {
 	  Error2("cannot open log file \"%s\": %s", arg, strerror(errno));
-	  break;
       }
+      break;
    case 's':
       if (diagopts.logfile != NULL && diagopts.logfile != stderr) {
 	 fclose(diagopts.logfile);
