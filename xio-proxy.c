@@ -244,9 +244,11 @@ int _xioopen_proxy_prepare(struct proxyvars *proxyvars, struct opt *opts,
       host = Gethostbyname(targetname);
       if (host == NULL) {
 	 int level = E_WARN;
+	 /* note: cast is req on AIX: */
 	 Msg2(level, "gethostbyname(\"%s\"): %s", targetname,
-	       h_errno == NETDB_INTERNAL ? strerror(errno) :
-	       hstrerror(h_errno)/*0 h_messages[h_errno-1]*/);
+	      h_errno == NETDB_INTERNAL ? strerror(errno) :
+	      (char *)hstrerror(h_errno)/*0 h_messages[h_errno-1]*/);
+
 	 proxyvars->targetaddr = strdup(targetname);
       } else {
 #define LEN 16	/* www.xxx.yyy.zzz\0 */

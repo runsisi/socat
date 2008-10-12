@@ -45,11 +45,11 @@ distributions.
 platforms
 ---------
 
-socat 1.6.0 was compiled and more or less successfully tested under the
+socat 1.7.0 was compiled and more or less successfully tested under the
 following operating systems:
 
 SuSE Linux 10.1 on x86
-AIX 5.2 on PPC with gcc
+AIX 5.3 on PPC with gcc
 Solaris 9 on Sparc with gcc
 FreeBSD 6.1 on x86
 HP-UX B 11.11 on PA-RISC with gcc

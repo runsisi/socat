@@ -32,9 +32,10 @@ int xioparsenetwork_ip4(const char *rangename, struct xiorange *range) {
       netmask_in->s_addr = htonl((0xffffffff << (32-bits)));
    } else if (delimpos = strchr(rangename1, ':')) {
       if ((maskaddr = Gethostbyname(delimpos+1)) == NULL) {
+	 /* note: cast is req on AIX: */
 	 Error2("gethostbyname(\"%s\"): %s", delimpos+1,
 		h_errno == NETDB_INTERNAL ? strerror(errno) :
-		hstrerror(h_errno));
+		(char *)hstrerror(h_errno));
 	 return STAT_NORETRY;
       }
       netmask_in->s_addr = *(uint32_t *)maskaddr->h_addr_list[0];
@@ -47,9 +48,10 @@ int xioparsenetwork_ip4(const char *rangename, struct xiorange *range) {
       struct hostent *nameaddr;
       *delimpos = 0;
       if ((nameaddr = Gethostbyname(rangename1)) == NULL) {
+	 /* note: cast is req on AIX: */
 	 Error2("gethostbyname(\"%s\"): %s", rangename1,
 		h_errno == NETDB_INTERNAL ? strerror(errno) :
-		hstrerror(h_errno));
+		(char *)hstrerror(h_errno));
 	    free(rangename1);
 	 return STAT_NORETRY;
       }

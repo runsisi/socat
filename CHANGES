@@ -98,8 +98,11 @@ corrections:
 	feature (thanks to Pavan Gadi for reporting this bug)
 
 porting:
-	socat should now build under MacOS X 10.4 (thanks to Camillo Lugaresi for
-	providing the patch)
+	socat should now build under MacOS X 10.4 (thanks to Camillo Lugaresi
+	for providing the patch)
+
+	socat compiles and runs on AIX (thanks to Andi Mather for testing and
+	patching)
 
 further changes:
 	filan -s prefixes output with FD number if more than one FD
