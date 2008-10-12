@@ -24,7 +24,9 @@
 #endif
 #include <signal.h>	/* signal(), SIGPIPE, SIG_IGN */
 #include <time.h>	/* struct timeval, strftime() */
+#if 0
 #include <sys/timeb.h>	/* struct timeb */
+#endif
 #if HAVE_UNISTD_H
 #include <unistd.h>	/* select(), read(), write(), stat(), fork() */
 #endif
