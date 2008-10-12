@@ -1125,6 +1125,9 @@ const struct optname optionnames[] = {
 #endif
 	IF_TUN    ("promisc",	&opt_iff_promisc)
 	IF_READLINE("prompt",	&opt_prompt)
+#ifdef SO_PROTOTYPE
+	IF_SOCKET ("protocol",	&opt_so_prototype)
+#endif
 	IF_SOCKET ("protocol-family",	&opt_protocol_family)
 #ifdef SO_PROTOTYPE
 	IF_SOCKET ("prototype",	&opt_so_prototype)
@@ -1430,6 +1433,7 @@ const struct optname optionnames[] = {
 	IF_SOCKET ("sockopt-string",	&opt_setsockopt_string)
 	IF_SOCKS4 ("socksport",	&opt_socksport)
 	IF_SOCKS4 ("socksuser",	&opt_socksuser)
+	IF_SOCKET ("socktype",	&opt_so_type)
 	IF_IPAPP  ("sourceport",	&opt_sourceport)
 	IF_IPAPP  ("sp",	&opt_sourceport)
 	IF_TERMIOS("start",	&opt_vstart)
@@ -2331,7 +2335,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 			       0, 0/*!!!*/) != STAT_OK) {
 	       opt->desc = ODESC_ERROR; continue;
 	    }
-	    opt->value.u_ip4addr = sa.sin_addr.s_addr;
+	    opt->value.u_ip4addr = sa.sin_addr;
 	 }
 	 break;
 #endif /* defined(WITH_IP4) */

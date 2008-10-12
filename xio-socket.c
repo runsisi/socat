@@ -1104,14 +1104,22 @@ static pid_t xio_waitingfor;	/* info from recv loop to signal handler:
 static bool xio_hashappened;	/* info from signal handler to loop: child
 				   process has read ("consumed") the packet */
 /* this is the signal handler for USR1 and CHLD */
-void xiosigaction_hasread(int signum, siginfo_t *siginfo, void *ucontext) {
+void xiosigaction_hasread(int signum
+#if HAVE_STRUCT_SIGACTION_SA_SIGACTION && defined(SA_SIGINFO)
+			  , siginfo_t *siginfo, void *ucontext
+#endif
+			  ) {
    pid_t pid;
    int _errno;
    int status = 0;
    bool wassig = false;
+#if HAVE_STRUCT_SIGACTION_SA_SIGACTION && defined(SA_SIGINFO)
    Debug5("xiosigaction_hasread(%d, {%d,%d,%d,"F_pid"}, )",
 	  signum, siginfo->si_signo, siginfo->si_errno, siginfo->si_code,
 	  siginfo->si_pid);
+#else
+   Debug1("xiosigaction_hasread(%d)", signum);
+#endif
    if (signum == SIGCHLD) {
       _errno = errno;
       do {
@@ -1146,9 +1154,13 @@ void xiosigaction_hasread(int signum, siginfo_t *siginfo, void *ucontext) {
 	 }
       } while (1);
    }
+#if HAVE_STRUCT_SIGACTION_SA_SIGACTION && defined(SA_SIGINFO)
    if (xio_waitingfor == siginfo->si_pid) {
       xio_hashappened = true;
    }
+#else
+   xio_hashappened = true;
+#endif
    Debug("xiosigaction_hasread() ->");
    return;
 }
@@ -1262,7 +1274,7 @@ int _xioopen_dgram_recvfrom(struct single *xfd, int xioflags,
          |SA_NOMASK
 #endif
          ;
-#if 1 || HAVE_SIGACTION_SASIGACTION
+#if HAVE_STRUCT_SIGACTION_SA_SIGACTION && defined(SA_SIGINFO)
       act.sa_sigaction = xiosigaction_hasread;
 #else /* Linux 2.0(.33) does not have sigaction.sa_sigaction */
       act.sa_handler = xiosighandler_hasread;

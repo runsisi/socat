@@ -293,6 +293,12 @@
 /* fdset may have component fds_bits or __fds_bits */
 #undef HAVE_FDS_BITS
 
+/* Define if you have the sa_family_t */
+#undef HAVE_TYPE_SA_FAMILY_T
+
+/* define if your struct sigaction has sa_sigaction */
+#undef HAVE_STRUCT_SIGACTION_SA_SIGACTION
+
 /* Define if your struct termios has component c_ispeed */
 #undef HAVE_TERMIOS_ISPEED
 

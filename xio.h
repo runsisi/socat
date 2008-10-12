@@ -335,7 +335,7 @@ union integral {
    } u_ip_mreq;
 #endif
 #if WITH_IP4
-   in_addr_t  u_ip4addr;
+   struct in_addr  u_ip4addr;
 #endif
 } ;
 

@@ -129,7 +129,17 @@ int filan_fd(int fd, FILE *outfile) {
       { /* see if data is available */
 	 struct pollfd ufds;
 	 ufds.fd = fd;
-	 ufds.events = POLLIN|POLLPRI|POLLOUT|POLLRDNORM|POLLRDBAND|POLLWRNORM|POLLWRBAND
+	 ufds.events = POLLIN|POLLPRI|POLLOUT
+#ifdef POLLRDNORM
+	    |POLLRDNORM
+#endif
+#ifdef POLLRDBAND
+	    |POLLRDBAND
+#endif
+	    |POLLWRNORM
+#ifdef POLLWRBAND
+	    |POLLWRBAND
+#endif
 #ifdef POLLMSG
 	    |POLLMSG
 #endif

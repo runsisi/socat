@@ -120,4 +120,8 @@
    typedef unsigned int uint32_t;
 #endif
 
+#ifndef HAVE_TYPE_SA_FAMILY_T
+   typedef uint16_t sa_family_t;
+#endif
+
 #endif /* !defined(__xioconfig_h_included) */

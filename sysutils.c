@@ -175,11 +175,20 @@ char *sockaddr_info(const struct sockaddr *sa, socklen_t salen, char *buff, size
       cp += n,  blen -= n;
       if ((snprintf(cp, blen,
 		    "0x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
-		    sau->soa.sa_data[0], sau->soa.sa_data[1], sau->soa.sa_data[2],
-		    sau->soa.sa_data[3], sau->soa.sa_data[4], sau->soa.sa_data[5],
-		    sau->soa.sa_data[6], sau->soa.sa_data[7], sau->soa.sa_data[8],
-		    sau->soa.sa_data[9], sau->soa.sa_data[10], sau->soa.sa_data[11],
-		    sau->soa.sa_data[12], sau->soa.sa_data[13])) < 0) {
+		    ((unsigned char *)sau->soa.sa_data)[0],
+		    ((unsigned char *)sau->soa.sa_data)[1],
+		    ((unsigned char *)sau->soa.sa_data)[2],
+		    ((unsigned char *)sau->soa.sa_data)[3],
+		    ((unsigned char *)sau->soa.sa_data)[4],
+		    ((unsigned char *)sau->soa.sa_data)[5],
+		    ((unsigned char *)sau->soa.sa_data)[6],
+		    ((unsigned char *)sau->soa.sa_data)[7],
+		    ((unsigned char *)sau->soa.sa_data)[8],
+		    ((unsigned char *)sau->soa.sa_data)[9],
+		    ((unsigned char *)sau->soa.sa_data)[10],
+		    ((unsigned char *)sau->soa.sa_data)[11],
+		    ((unsigned char *)sau->soa.sa_data)[12],
+		    ((unsigned char *)sau->soa.sa_data)[13])) < 0) {
 	 Warn("sockaddr_info(): buffer too short");
 	 *buff = '\0';
 	 return buff;
@@ -262,6 +271,7 @@ const char *inet_ntop(int pf, const void *binaddr,
 	 return NULL;	/* errno is valid */
       }
       break;
+#if WITH_IP6
    case PF_INET6:
       if ((retlen =
 	   snprintf(addrtext, textlen, "%x:%x:%x:%x:%x:%x:%x:%x",
@@ -278,6 +288,7 @@ const char *inet_ntop(int pf, const void *binaddr,
 	 return NULL;	/* errno is valid */
       }
       break;
+#endif /* WITH_IP6 */
    default:
       errno = EAFNOSUPPORT;
       return NULL;
@@ -413,7 +424,8 @@ const char *hstrerror(int err) {
 
 /* this function behaves like poll(). It tries to do so even when the poll()
    system call is not available. */
-int xiopoll(struct pollfd fds[], nfds_t nfds, struct timeval *timeout) {
+/* note: glibc 5.4 does not know nfds_t */
+int xiopoll(struct pollfd fds[], unsigned long nfds, struct timeval *timeout) {
    int i, n = 0;
    int result = 0;
 
@@ -432,7 +444,7 @@ int xiopoll(struct pollfd fds[], nfds_t nfds, struct timeval *timeout) {
 	 if (fds[i].events & POLLOUT) {
 	    FD_SET(fds[i].fd, &writefds); n = MAX(n, fds[i].fd); }
       }
-      if (fds[i].fd > FD_SETSIZE)  { break; /* use poll */ }
+      if (i < nfds)  { break; /* use poll */ }
 
       result = Select(n+1, &readfds, &writefds, &exceptfds, timeout);
       if (result < 0)  { return result; }
