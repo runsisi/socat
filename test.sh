@@ -1945,6 +1945,7 @@ waittcp6port () {
 	FreeBSD) l=$(netstat -an |egrep -i 'tcp(6|46) .*[0-9*][:.]'$port' .* listen') ;;
 	NetBSD)  l=$(netstat -an |grep '^tcp6 .*[0-9*]\.'$port' [ ]* \*\.\*') ;;
 	OpenBSD) l=$(netstat -an |grep -i 'tcp6 .*[0-9*][:.]'$port' .* listen') ;;
+	Darwin)  l=$(netstat -an |egrep '^tcp4?6 +[0-9]+ +[0-9]+ +[0-9a-z:%*]+\.'$port' +[0-9a-z:%*.]+ +LISTEN' ;;
 	AIX)	 l=$(netstat -an |grep '^tcp[6 ]       0      0 .*[*0-9]\.'$port' .* LISTEN$') ;;
 	SunOS)   l=$(netstat -an -f inet6 -P tcp |grep '.*[1-9*]\.'$port' .*\* [ ]* 0 .* LISTEN') ;;
 	#OSF1)    l=$(/usr/sbin/netstat -an |grep '^tcp6       0      0  .*[0-9*]\.'$port' [ ]*\*\.\* [ ]*LISTEN') /*?*/;;
@@ -1974,7 +1975,7 @@ waitudp6port () {
 	FreeBSD) l=$(netstat -an |egrep '^udp(6|46) .*[0-9*]\.'$port' .* \*\.\*') ;;
 	NetBSD)  l=$(netstat -an |grep '^udp6 .* \*\.'$port' [ ]* \*\.\*') ;;
     	OpenBSD) l=$(netstat -an |grep '^udp6 .*[0-9*]\.'$port' [ ]* \*\.\*') ;;
-	#Darwin)  l=$(netstat -an |grep '^udp6.* .*[0-9*]\.'$port' .* \*\.\* ') ;;
+	Darwin)  l=$(netstat -an |egrep '^udp4?6 +[0-9]+ +[0-9]+ +[0-9a-z:%*]+\.'$port' +[0-9a-z:%*.]+' ;;
 	AIX)	 l=$(netstat -an |grep '^udp[6 ]       0      0 .*[*0-9]\.'$port' .* \*\.\*[ ]*$') ;;
 	SunOS)   l=$(netstat -an -f inet6 -P udp |grep '.*[1-9*]\.'$port' [ ]*Idle') ;;
 	#HP-UX)   l=$(netstat -an |grep '^udp        0      0  .*[0-9*]\.'$port' ') ;;
@@ -4388,7 +4389,7 @@ $CMD >"$tf" 2>"$te" &
 bg=$!	# background process id
 psleep 0.5
 echo "$da" >>"$ti"
-sleep 3
+sleep 4
 echo X >>"$ti"
 sleep 1
 kill $bg 2>/dev/null
@@ -5805,7 +5806,7 @@ N=$((N+1))
 # derive signal number from signal name
 # kill -l should provide the info
 signum () {
-  if [ ! "$BASH_VERSION" ]; then
+  if [ ! "$BASH_VERSION" -o -o posix ]; then
     # we expect:
     for i in $(POSIXLY_CORRECT=1 kill -l); do echo $i; done |grep -n -i "^$1$" |cut -d: -f1
   else
@@ -7434,7 +7435,7 @@ if [ $? -ne 0 ]; then
    echo "$CMD2"
    cat "${te}1a" "${te}1b" "${te}2" "${te}3"
     numFAIL=$((numFAIL+1))
-elif ! echo -e "$da1a\n$da1b" |diff - "$tf" >"$tdiff"; then
+elif ! $ECHO "$da1a\n$da1b" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
    cat "${te}1a" "${te}1b" "${te}2" "${te}3"
@@ -7479,7 +7480,7 @@ if [ $? -ne 0 ]; then
    echo "$CMD2"
    cat "${te}1a" "${te}1b" "${te}2"
     numFAIL=$((numFAIL+1))
-elif ! echo -e "$da1a\n$da1b" |diff - "$tf" >"$tdiff"; then
+elif ! $ECHO "$da1a\n$da1b" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
    cat "${te}1a" "${te}1b" "${te}2"
@@ -8926,7 +8927,7 @@ N=$((N+1))
 # test: logging of ancillary message
 while read PF KEYW ADDR IPPORT SCM_ENABLE SCM_RECV SCM_TYPE SCM_NAME ROOT SCM_VALUE
 do
-if [ -z "$PF" ]; then continue; fi
+if [ -z "$PF" ] || [[ "$PF" == \#* ]]; then continue; fi
 #
 pf="$(echo $PF |tr A-Z a-z)"
 proto="$(echo $KEYW |tr A-Z a-z)"
@@ -8938,6 +8939,7 @@ TEST="$NAME: $KEYW log ancillary message $SCM_TYPE $SCM_NAME"
 # enabling option and send it a packet, ev. with some option. check the info log
 # for the appropriate output.
 if ! eval $NUMCOND; then :;
+#elif [[ "$PF" == "#*" ]]; then :
 elif [ "$ROOT" = root -a $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
@@ -9036,7 +9038,7 @@ IP6  IP6  [::1]     PROTO ,                    so-timestamp      SCM_TIMESTAMP  
 IP6  IP6  [::1]     PROTO ,                    ipv6-recvpktinfo  IPV6_PKTINFO   dstaddr   root [[]0000:0000:0000:0000:0000:0000:0000:0001[]]
 IP6  IP6  [::1]     PROTO ipv6-unicast-hops=35 ipv6-recvhoplimit IPV6_HOPLIMIT  hoplimit  root 35
 IP6  IP6  [::1]     PROTO ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    tclass    root xaa000000
-UNIX UNIX $td/test\$N.server - ,               so-timestamp      SCM_TIMESTAMP  timestamp user $(date '+%a %b %e %H:%M:.. %Y')
+#UNIX UNIX $td/test\$N.server - ,               so-timestamp      SCM_TIMESTAMP  timestamp user $(date '+%a %b %e %H:%M:.. %Y')
 "
 # this one fails, appearently due to a Linux weakness:
 # UNIX so-timestamp
@@ -9046,7 +9048,7 @@ UNIX UNIX $td/test\$N.server - ,               so-timestamp      SCM_TIMESTAMP  
 # connection: SOCAT_SOCKADDR, SOCAT_PEERADDR; and SOCAT_SOCKPORT,
 # SOCAT_PEERPORT when applicable
 while read KEYW FEAT TEST_SOCKADDR TEST_PEERADDR TEST_SOCKPORT TEST_PEERPORT; do
-if [ -z "$KEYW" ]; then continue; fi
+if [ -z "$KEYW" ] || [[ "$KEYW" == \#* ]]; then continue; fi
 #
 test_proto="$(echo $KEYW |tr A-Z a-z)"
 NAME=${KEYW}LISTENENV
@@ -9139,7 +9141,7 @@ UNIX  UNIX $td/test\$N.server                        $td/test\$N.client         
 # test: environment variables from ancillary message
 while read PF KEYW ADDR IPPORT SCM_ENABLE SCM_RECV SCM_ENVNAME ROOT SCM_VALUE
 do
-if [ -z "$PF" ]; then continue; fi
+if [ -z "$PF" ] || [[ "$PF" == \#* ]]; then continue; fi
 #
 pf="$(echo $PF |tr A-Z a-z)"
 proto="$(echo $KEYW |tr A-Z a-z)"
@@ -9245,7 +9247,7 @@ IP6  UDP6 [::1]     PORT  ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    
 IP6  IP6  [::1]     PROTO ,                    ipv6-recvpktinfo  IPV6_DSTADDR   root [[]0000:0000:0000:0000:0000:0000:0000:0001[]]
 IP6  IP6  [::1]     PROTO ipv6-unicast-hops=35 ipv6-recvhoplimit IPV6_HOPLIMIT  root 35
 IP6  IP6  [::1]     PROTO ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    root xaa000000
-UNIX UNIX $td/test\$N.server - ,               so-timestamp      TIMESTAMP      user $(date '+%a %b %e %H:%M:.. %Y')
+#UNIX UNIX $td/test\$N.server - ,               so-timestamp      TIMESTAMP      user $(date '+%a %b %e %H:%M:.. %Y')
 "
 
 
