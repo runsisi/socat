@@ -162,7 +162,7 @@ enum e_func {
 
 #define GROUP_IP_UDP	0x01000000
 #define GROUP_IP_TCP	0x02000000
-#define GROUP_IPAPP	(GROUP_IP_UDP|GROUP_IP_TCP)	/* true: indicates one of UDP, TCP */
+#define GROUP_IPAPP	(GROUP_IP_UDP|GROUP_IP_TCP|GROUP_IP_SCTP)	/* true: indicates one of UDP, TCP, SCTP */
 #define GROUP_IP_SOCKS4	0x04000000
 #define GROUP_OPENSSL	0x08000000
 
