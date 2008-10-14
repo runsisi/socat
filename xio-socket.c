@@ -852,8 +852,8 @@ int _xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
 	    writefd.events = (POLLIN|POLLHUP|POLLERR);
 	    result = xiopoll(&writefd, 1, &timeout);
 	    if (result < 0) {
-	       Msg3(level, "poll({%d,POLLIN|POLLHUP|POLLER},,%d): %s",
-		    xfd->fd, timeout, strerror(errno));
+	       Msg4(level, "xiopoll({%d,POLLIN|POLLHUP|POLLER},,{"F_tv_sec"."F_tv_usec"): %s",
+		    xfd->fd, timeout.tv_sec, timeout.tv_usec, strerror(errno));
 	       return STAT_RETRYLATER;
 	    }
 	    if (result == 0) {
@@ -1277,7 +1277,7 @@ int _xioopen_dgram_recvfrom(struct single *xfd, int xioflags,
 #if HAVE_STRUCT_SIGACTION_SA_SIGACTION && defined(SA_SIGINFO)
       act.sa_sigaction = xiosigaction_hasread;
 #else /* Linux 2.0(.33) does not have sigaction.sa_sigaction */
-      act.sa_handler = xiosighandler_hasread;
+      act.sa_handler = xiosigaction_hasread;
 #endif
       if (Sigaction(SIGUSR1, &act, NULL) < 0) {
          /*! Linux man does not explicitely say that errno is defined */
