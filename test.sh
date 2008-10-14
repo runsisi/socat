@@ -1945,7 +1945,7 @@ waittcp6port () {
 	FreeBSD) l=$(netstat -an |egrep -i 'tcp(6|46) .*[0-9*][:.]'$port' .* listen') ;;
 	NetBSD)  l=$(netstat -an |grep '^tcp6 .*[0-9*]\.'$port' [ ]* \*\.\*') ;;
 	OpenBSD) l=$(netstat -an |grep -i 'tcp6 .*[0-9*][:.]'$port' .* listen') ;;
-	Darwin)  l=$(netstat -an |egrep '^tcp4?6 +[0-9]+ +[0-9]+ +[0-9a-z:%*]+\.'$port' +[0-9a-z:%*.]+ +LISTEN' ;;
+	Darwin)  l=$(netstat -an |egrep '^tcp4?6 +[0-9]+ +[0-9]+ +[0-9a-z:%*]+\.'$port' +[0-9a-z:%*.]+ +LISTEN') ;;
 	AIX)	 l=$(netstat -an |grep '^tcp[6 ]       0      0 .*[*0-9]\.'$port' .* LISTEN$') ;;
 	SunOS)   l=$(netstat -an -f inet6 -P tcp |grep '.*[1-9*]\.'$port' .*\* [ ]* 0 .* LISTEN') ;;
 	#OSF1)    l=$(/usr/sbin/netstat -an |grep '^tcp6       0      0  .*[0-9*]\.'$port' [ ]*\*\.\* [ ]*LISTEN') /*?*/;;
@@ -1975,7 +1975,7 @@ waitudp6port () {
 	FreeBSD) l=$(netstat -an |egrep '^udp(6|46) .*[0-9*]\.'$port' .* \*\.\*') ;;
 	NetBSD)  l=$(netstat -an |grep '^udp6 .* \*\.'$port' [ ]* \*\.\*') ;;
     	OpenBSD) l=$(netstat -an |grep '^udp6 .*[0-9*]\.'$port' [ ]* \*\.\*') ;;
-	Darwin)  l=$(netstat -an |egrep '^udp4?6 +[0-9]+ +[0-9]+ +[0-9a-z:%*]+\.'$port' +[0-9a-z:%*.]+' ;;
+	Darwin)  l=$(netstat -an |egrep '^udp4?6 +[0-9]+ +[0-9]+ +[0-9a-z:%*]+\.'$port' +[0-9a-z:%*.]+') ;;
 	AIX)	 l=$(netstat -an |grep '^udp[6 ]       0      0 .*[*0-9]\.'$port' .* \*\.\*[ ]*$') ;;
 	SunOS)   l=$(netstat -an -f inet6 -P udp |grep '.*[1-9*]\.'$port' [ ]*Idle') ;;
 	#HP-UX)   l=$(netstat -an |grep '^udp        0      0  .*[0-9*]\.'$port' ') ;;
@@ -4615,18 +4615,6 @@ $ECHO "exit\n\c"
 usleep $MICROS
 ) >"$tpi"
 
-#cat >$tr <<EOF
-#readline feature test program
-#Authentication required
-#Username: Username: user
-#Password: 
-#prog> prog> test 1
-#executing test 1
-#prog> ./readline-test.sh got SIGINT
-#test 2
-#executing test 2
-#prog> prog> exit
-#EOF
 cat >$tr <<EOF
 readline feature test program
 Authentication required
