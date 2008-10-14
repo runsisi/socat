@@ -3090,7 +3090,7 @@ int applyopts(int fd, struct opt *opts, enum e_phase phase) {
 			      &opt->value.u_ip4addr, sizeof(opt->value.u_ip4addr)) < 0) {
 		  Error6("setsockopt(%d, %d, %d, {0x%x}, "F_Zu"): %s",
 			 fd, opt->desc->major, opt->desc->minor,
-			 opt->value.u_ip4addr, sizeof(opt->value.u_ip4addr),
+			 *(uint32_t *)&opt->value.u_ip4addr, sizeof(opt->value.u_ip4addr),
 			 strerror(errno));
 	       }
 	       break;
