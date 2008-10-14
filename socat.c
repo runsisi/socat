@@ -684,8 +684,9 @@ int childleftdata(xiofile_t *xfd) {
       } while (retval < 0 && errno == EINTR);
 
       if (retval < 0) {
-	 Error4("xiopoll({%d,%0o}, 1, %d): %s",
-		in.fd, in.events, timeout, strerror(errno));
+	 Error5("xiopoll({%d,%0o}, 1, {"F_tv_sec"."F_tv_usec"}): %s",
+		in.fd, in.events, timeout.tv_sec, timeout.tv_usec,
+		strerror(errno));
 	 return -1;
       }
       if (retval == 0) {
@@ -896,10 +897,10 @@ int _socat(void) {
 	 */
 
       if (retval < 0) {
-	 Error10("xiopoll({%d,%0o}{%d,%0o}{%d,%0o}{%d,%0o}, 4, %d): %s",
+	 Error11("xiopoll({%d,%0o}{%d,%0o}{%d,%0o}{%d,%0o}, 4, {"F_tv_sec"."F_tv_usec"}): %s",
 		 fds[0].fd, fds[0].events, fds[1].fd, fds[1].events,
 		 fds[2].fd, fds[2].events, fds[3].fd, fds[3].events,
-		 timeout, strerror(errno));
+		 timeout.tv_sec, timeout.tv_usec, strerror(errno));
 	    return -1;
       } else if (retval == 0) {
 	 Info2("poll timed out (no data within %ld.%06ld seconds)",
