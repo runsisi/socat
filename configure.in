@@ -1391,7 +1391,7 @@ AC_TYPEOF_COMPONENT([#include <sys/stat.h>], struct stat64, st_blksize, HAVE_TYP
 AC_TYPEOF_COMPONENT([#include <sys/stat.h>], struct stat64, st_blocks, HAVE_TYPEOF_ST64_BLOCKS, sc_cv_type_stat64_stblocks_basic)
 fi
 
-AC_TYPEOF_COMPONENT([#include <sys/time.h>], struct timeval, tv_usec, HAVE_TYPEOF_STRUCT_TIMEVAL_TVUSEC, sc_cv_type_struct_timeval_tvusec)
+AC_TYPEOF_COMPONENT([#include <sys/time.h>], struct timeval, tv_usec, HAVE_TYPEOF_STRUCT_TIMEVAL_TV_USEC, sc_cv_type_struct_timeval_tv_usec)
 
 AC_TYPEOF_COMPONENT([#include <sys/types.h>
 #include <sys/time.h>
