@@ -85,14 +85,76 @@ int procan_cdefs(FILE *outfile) {
 #endif
 
    /* socket constants */
+#ifdef PF_UNIX
+   fprintf(outfile, "#define PF_UNIX %d\n", PF_UNIX);
+#elif defined(PF_LOCAL)
+   fprintf(outfile, "#define PF_LOCAL %d\n", PF_LOCAL);
+#endif
+#ifdef PF_INET
+   fprintf(outfile, "#define PF_INET %d\n", PF_INET);
+#endif
 #ifdef PF_INET6
    fprintf(outfile, "#define PF_INET6 %d\n", PF_INET6);
+#endif
+#ifdef PF_APPLETALK
+   fprintf(outfile, "#define PF_APPLETALK %d\n", PF_APPLETALK);
+#endif
+#ifdef PF_PACKET
+   fprintf(outfile, "#define PF_PACKET %d\n", PF_PACKET);
+#endif
+#ifdef SOCK_STREAM
+   fprintf(outfile, "#define SOCK_STREAM %d\n", SOCK_STREAM);
 #endif
 #ifdef SOCK_DGRAM
    fprintf(outfile, "#define SOCK_DGRAM %d\n", SOCK_DGRAM);
 #endif
+#ifdef SOCK_RAW
+   fprintf(outfile, "#define SOCK_RAW %d\n", SOCK_RAW);
+#endif
+#ifdef SOCK_SEQPACKET
+   fprintf(outfile, "#define SOCK_SEQPACKET %d\n", SOCK_SEQPACKET);
+#endif
+#ifdef SOCK_PACKET
+   fprintf(outfile, "#define SOCK_PACKET %d\n", SOCK_PACKET);
+#endif
+#ifdef IPPROTO_IP
+   fprintf(outfile, "#define IPPROTO_IP %d\n", IPPROTO_IP);
+#endif
+#ifdef IPPROTO_TCP
+   fprintf(outfile, "#define IPPROTO_TCP %d\n", IPPROTO_TCP);
+#endif
+#ifdef IPPROTO_UDP
+   fprintf(outfile, "#define IPPROTO_UDP %d\n", IPPROTO_UDP);
+#endif
+#ifdef IPPROTO_SCTP
+   fprintf(outfile, "#define IPPROTO_SCTP %d\n", IPPROTO_SCTP);
+#endif
+#ifdef IPPROTO_DCCP
+   fprintf(outfile, "#define IPPROTO_DCCP %d\n", IPPROTO_DCCP);
+#endif
 #ifdef SOL_SOCKET
    fprintf(outfile, "#define SOL_SOCKET 0x%x\n", SOL_SOCKET);
+#endif
+#ifdef SOL_PACKET
+   fprintf(outfile, "#define SOL_PACKET 0x%x\n", SOL_PACKET);
+#endif
+#ifdef SOL_IP
+   fprintf(outfile, "#define SOL_IP 0x%x\n", SOL_IP);
+#endif
+#ifdef SOL_IPV6
+   fprintf(outfile, "#define SOL_IPV6 0x%x\n", SOL_IPV6);
+#endif
+#ifdef SOL_TCP
+   fprintf(outfile, "#define SOL_TCP 0x%x\n", SOL_TCP);
+#endif
+#ifdef SOL_UDP
+   fprintf(outfile, "#define SOL_UDP 0x%x\n", SOL_UDP);
+#endif
+#ifdef SOL_SCTP
+   fprintf(outfile, "#define SOL_SCTP 0x%x\n", SOL_SCTP);
+#endif
+#ifdef SOL_DCCP
+   fprintf(outfile, "#define SOL_DCCP 0x%x\n", SOL_DCCP);
 #endif
 #ifdef SO_REUSEADDR
    fprintf(outfile, "#define SO_REUSEADDR %d\n", SO_REUSEADDR);
