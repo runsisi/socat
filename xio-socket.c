@@ -1671,6 +1671,8 @@ int xiodopacketinfo(struct msghdr *msgh, bool withlog, bool withenv) {
 }
 
 
+/* check if peer address is within permitted range.
+   return >= 0 if so. */
 int xiocheckrange(union sockaddr_union *sa, struct xiorange *range) {
    switch (sa->soa.sa_family) {
 #if WITH_IP4
@@ -1683,6 +1685,18 @@ int xiocheckrange(union sockaddr_union *sa, struct xiorange *range) {
       return
 	 xiocheckrange_ip6(&sa->ip6, range);
 #endif /* WITH_IP6 */
+#if 0
+   case PF_UNSPEC:
+     {
+      socklen_t i;
+      for (i = 0; i < sizeof(sa->soa.sa_data); ++i) {
+	 if ((range->netmask.soa.sa_data[i] & sa->soa.sa_data[i]) != range->netaddr.soa.sa_data[i]) {
+	    return -1;
+	 }
+      }
+      return 0;
+     }
+#endif
    }
    return -1;
 }
