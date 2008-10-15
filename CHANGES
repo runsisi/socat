@@ -1,11 +1,13 @@
 
+####################### V 1.7.0.0:
+
 new features:
 	new address types SCTP-CONNECT and SCTP-LISTEN implement SCTP stream
 	mode for IPv4 and IPv6; new address options sctp-maxseg and
-	sctp-nodelay (suggested by David A. Madore; thanks to Jonathan Brennan
+	sctp-nodelay (suggested by David A. Madore; thanks to Jonathan Brannan
 	for providing an initial patch)
 
-	new address "interface" for transparent network interface handling
+	new address "INTERFACE" for transparent network interface handling
 	(suggested by Stuart Nicholson)
 
 	added generic socket addresses: SOCKET-CONNECT, SOCKET-LISTEN,
@@ -17,14 +19,14 @@ new features:
 	ioctl-bin for generic ioctl() calls.
 
 	added address options setsockopt-int, setsockopt-bin, and
-	setsockopt-string
+	setsockopt-string for generic setsockopt() calls
 
-	so-type now only affect the socket() and socketpair() calls, not the
-	name resolution. so-type and so-prototype can be applied to all socket
-	based addresses.
+	option so-type now only affects the socket() and socketpair() calls,
+	not the name resolution. so-type and so-prototype can now be applied to
+	all socket based addresses.
 
 	new address option "escape" allows to break a socat instance even when
-	raw terminal mode prevents ^C etc.
+	raw terminal mode prevents ^C etc. (feature suggested by Guido Trotter)
 
 	socat sets environment variables SOCAT_VERSION, SOCAT_PID, SOCAT_PPID
 	for use in executed scripts
@@ -40,22 +42,22 @@ new features:
 
 	socat provides the contents of ancillary messages received on RECVFROM
 	addresses in appropriate environment variables:
-	SOCAT_IP_PKTINFO_DSTADDR, SOCAT_IP_PKTINFO_IF, SOCAT_IP_PKTINFO_LOCADDR
-	(not on BSD); SOCAT_IP_RECVDSTADDR, SOCAT_IP_RECVIF (BSD);
-	SOCAT_SCM_TIMESTAMP, SOCAT_IP_OPTIONS, SOCAT_IP_TOS, SOCAT_IP_TTL,
-	SOCAT_IPV6_HOPLIMIT, SOCAT_IPV6_TCLASS, SOCAT_IPV6_PKTINFO_DSTADDR
+	SOCAT_TIMESTAMP, SOCAT_IP_DSTADDR, SOCAT_IP_IF, SOCAT_IP_LOCADDR,
+	SOCAT_IP_OPTIONS, SOCAT_IP_TOS, SOCAT_IP_TTL, SOCAT_IPV6_DSTADDR,
+	SOCAT_IPV6_HOPLIMIT, SOCAT_IPV6_TCLASS
 
 	the following address options were added to enable ancillary messages:
-	so-timestamp, ip-pktinfo, ip-recvdstaddr, ip-recverr, ip-recvif,
-	ip-recvopts, ip-recvtos, ip-recvttl, ipv6-recvdstopts, ipv6-recverr,
-	ipv6-recvhoplimit, ipv6-recvhopopts, ipv6-recvpathmtu,
+	so-timestamp, ip-pktinfo (not BSD), ip-recvdstaddr (BSD), ip-recverr,
+	ip-recvif (BSD), ip-recvopts, ip-recvtos, ip-recvttl, ipv6-recvdstopts,
+	ipv6-recverr, ipv6-recvhoplimit, ipv6-recvhopopts, ipv6-recvpathmtu,
 	ipv6-recvpktinfo, ipv6-recvrthdr, ipv6-recvtclass
 
 	new address options ipv6-tclass and ipv6-unicast-hops set the related
 	socket options.
 
 	STREAMS (UNIX System V STREAMS) can be configured with the new address
-	options i-pop-all and i-push
+	options i-pop-all and i-push (thanks to Michal Rysavy for providing a
+	patch)
 
 corrections:
 	some raw IP and UNIX datagram modes failed on BSD systems
@@ -73,6 +75,7 @@ corrections:
 	packet. test: UDP4RECVFROM_FORK
 
 	corrected a few mistakes that caused compiler warnings on 64bit hosts
+	(thanks to Jonathan Brannan e.a. for providing a patch)
 
 	EXEC and SYSTEM with stderr injected socat messages into the data
 	stream. test: EXECSTDERRLOG
@@ -94,15 +97,23 @@ corrections:
 	replaced the select() calls by poll() to cleanly fix the problems with
 	many file descriptors already open
 
+	socat option -lf did not log to file but to stderr
+
 	socat did not compile on Solaris when configured without termios
 	feature (thanks to Pavan Gadi for reporting this bug)
 
 porting:
-	socat should now build under MacOS X 10.4 (thanks to Camillo Lugaresi
-	for providing the patch)
+	socat compiles and runs on AIX with gcc (thanks to Andi Mather for his
+	help)
 
-	socat compiles and runs on AIX (thanks to Andi Mather for testing and
-	patching)
+	socat compiles and runs on Cygwin (thanks to Jan Just Keijser for his
+	help)
+
+	socat compiles and runs on HP-UX with gcc (thanks to Michal Rysavy for
+	his help)
+
+	socat compiles and runs on MacOS X (thanks to Camillo Lugaresi for his
+	help)
 
 further changes:
 	filan -s prefixes output with FD number if more than one FD

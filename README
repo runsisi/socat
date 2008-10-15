@@ -48,25 +48,24 @@ platforms
 socat 1.7.0 was compiled and more or less successfully tested under the
 following operating systems:
 
-SuSE Linux 10.1 on x86
-AIX 5.3 on PPC with gcc
-Solaris 9 on Sparc with gcc
+Debian lenny/sid on x86, kernel 2.6.24
 FreeBSD 6.1 on x86
-HP-UX B 11.11 on PA-RISC with gcc
+NetBSD4.0  on x86
+OpenBSD 4.3 on x86
+OpenSolaris 10 on x86 with gcc
+Mac OS X 10.5.5 on iMac G5, with libreadline
+HP-UX 11.23
+AIX 5.3 on 64bit Power4 with gcc
+Cygwin 1.5.25 on i686
 
 tests on Tru64 can no longer be performed because HP testdrive has taken down
 these hosts.
 
-tests on Mac OS X can no longer be performed because the Sourceforge
-compilefarm was discontinued.
-
-tests on NetBSD and OpenBSD can no longer be performed for the above reasons.
-
 Some versions of socat have been reported to successfully compile under older
 Linux versions back to RedHat 2.1 (kernel 1.2.13, gcc 2.7.0), under AIX 4.1 and
 4.3, SunOS 5.7-5.8, FreeBSD 4.2 - 4.9, MacOS X 10.1, Cygwin, Solaris 8 on x86, 
-OSR 5.0.6, NetBSD 1.6.1 and 2.0.2, OpenBSD 3.4 and 3.8, Tru64 5.1B, and Mac OS
-X 10.1-10.2.
+OSR 5.0.6, NetBSD 1.6.1 and 2.0.2, OpenBSD 3.4 and 3.8, Tru64 5.1B, Mac OS X
+10.1-10.2, and HP-UX 11
 
 It might well compile and run under other UNIX like operating systems.
 
@@ -76,7 +75,7 @@ install
 
 Get the tarball and extract it:
 	gtar xzf socat.tar.gz
-	cd socat-1.6.0.1
+	cd socat-1.7.0.0
 	./configure
 	make
 	su
@@ -197,7 +196,7 @@ msghdr but disables struct cmsghdr. Please contact socat development if you
 know a solution.
 
 Shutting down the write channel of a UNIX domain socket does not seem to
-trigger an EOF on the other socket. This makes problems with the exec and
+trigger an EOF on the peer socket. This makes problems with the exec and
 system addresses.
 
 This OS provides the type "long long", but not the strtoll() function to read
