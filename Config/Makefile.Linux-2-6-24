@@ -24,7 +24,7 @@ srcdir = .
 CC = gcc
 CCOPTS = $(CCOPT) -Wall -Wno-parentheses
 
-SYSDEFS =  -D_LONGLONG
+SYSDEFS = 
 CPPFLAGS = -I. 
 #0 INCLS = -I. @V_INCL@
 DEFS = -DHAVE_CONFIG_H

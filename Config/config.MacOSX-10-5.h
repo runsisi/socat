@@ -115,13 +115,13 @@
 #define HAVE_SIGACTION 1
 
 /* Define if you have the stat64 function */
-/* #undef HAVE_STAT64 */
+#define HAVE_STAT64 1
 
 /* Define if you have the fstat64 function */
-/* #undef HAVE_FSTAT64 */
+#define HAVE_FSTAT64 1
 
 /* Define if you have the lstat64 function */
-/* #undef HAVE_LSTAT64 */
+#define HAVE_LSTAT64 1
 
 /* Define if you have the lseek64 function */
 /* #undef HAVE_LSEEK64 */
@@ -256,10 +256,10 @@
 #define HAVE_SYS_FILE_H 1
 
 /* Define if you have the <util.h> header file. (NetBSD, OpenBSD: openpty()) */
-/* #undef HAVE_UTIL_H */
+#define HAVE_UTIL_H 1
 
 /* Define if you have the <libutil.h> header file. (FreeBSD: openpty()) */
-#define HAVE_LIBUTIL_H 1
+/* #undef HAVE_LIBUTIL_H */
 
 /* Define if you have the <sys/stropts.h> header file. (stream opts on SunOS)*/
 /* #undef HAVE_SYS_STROPTS_H */
@@ -336,7 +336,7 @@
 #define HAVE_STRUCT_IFREQ 1
 
 /* Define if you have struct ifreq.ifr_index */
-#define HAVE_STRUCT_IFREQ_IFR_INDEX 1
+/* #undef HAVE_STRUCT_IFREQ_IFR_INDEX */
 
 /* Define if you have struct ifreq.ifr_ifindex; not on HPUX */
 /* #undef HAVE_STRUCT_IFREQ_IFR_IFINDEX */
@@ -390,7 +390,7 @@
 #define HAVE_PTSNAME 1
 
 /* Define if you have the /dev/ptmx pseudo terminal multiplexer */
-/* #undef HAVE_DEV_PTMX */
+#define HAVE_DEV_PTMX 1
 
 /* Define if you have the /dev/ptc pseudo terminal multiplexer */
 /* #undef HAVE_DEV_PTC */
@@ -402,7 +402,7 @@
 #define HAVE_TYPE_SOCKLEN 1
 
 /* Define if you have the struct stat64 type */
-/* #undef HAVE_TYPE_STAT64 */
+#define HAVE_TYPE_STAT64 1
 
 /* Define if you have the struct off64_t type */
 /* #undef HAVE_TYPE_OFF64 */
@@ -426,7 +426,7 @@
 /* #undef HAVE_FORMAT_Z */
 
 /* Define the shift offset of the CRDLY mask */
-#define CRDLY_SHIFT -1
+#define CRDLY_SHIFT 12
 
 /* Define the shift offset of the TABDLY mask */
 #define TABDLY_SHIFT -1
@@ -443,36 +443,36 @@
 #endif
 
 /* 1..short, 3..int, 5..long; 2,4,6..unsigned */
-#define HAVE_BASIC_SIZE_T 4 /* unsigned int */
+#define HAVE_BASIC_SIZE_T 6 /* unsigned long */
 #define HAVE_BASIC_MODE_T 2 /* unsigned short */
 #define HAVE_BASIC_PID_T 3 /* int */
 #define HAVE_BASIC_UID_T 4 /* unsigned int */
 #define HAVE_BASIC_GID_T 4 /* unsigned int */
-#define HAVE_BASIC_TIME_T 3 /* int */
+#define HAVE_BASIC_TIME_T 5 /* long */
 #define HAVE_BASIC_OFF64_T 0 /* unknown, taking default */
 
 #define HAVE_BASIC_SOCKLEN_T 4 /* unsigned int */
 
-#define HAVE_TYPEOF_ST_DEV 4 /* unsigned int */
+#define HAVE_TYPEOF_ST_DEV 3 /* int */
 #define HAVE_TYPEOF_ST_INO 4 /* unsigned int */
 #define HAVE_TYPEOF_ST_NLINK 2 /* unsigned short */
 #define HAVE_TYPEOF_ST_SIZE 7 /* long long */
-#define HAVE_TYPEOF_ST_BLKSIZE 4 /* unsigned int */
+#define HAVE_TYPEOF_ST_BLKSIZE 3 /* int */
 #define HAVE_TYPEOF_ST_BLOCKS 7 /* long long */
 
-/* #undef HAVE_TYPEOF_ST64_DEV */
-/* #undef HAVE_TYPEOF_ST64_INO */
-/* #undef HAVE_TYPEOF_ST64_NLINK */
-/* #undef HAVE_TYPEOF_ST64_SIZE */
-/* #undef HAVE_TYPEOF_ST64_BLKSIZE */
-/* #undef HAVE_TYPEOF_ST64_BLOCKS */
+#define HAVE_TYPEOF_ST64_DEV 3 /* int */
+#define HAVE_TYPEOF_ST64_INO 8 /* unsigned long long */
+#define HAVE_TYPEOF_ST64_NLINK 2 /* unsigned short */
+#define HAVE_TYPEOF_ST64_SIZE 7 /* long long */
+#define HAVE_TYPEOF_ST64_BLKSIZE 3 /* int */
+#define HAVE_TYPEOF_ST64_BLOCKS 7 /* long long */
 
-#define HAVE_TYPEOF_STRUCT_TIMEVAL_TV_USEC 5 /* long */
+#define HAVE_TYPEOF_STRUCT_TIMEVAL_TV_USEC 3 /* int */
 
-#define HAVE_TYPEOF_RLIM_MAX 7 /* long long */
+#define HAVE_TYPEOF_RLIM_MAX 8 /* unsigned long long */
 
 /* Define if you have the /proc filesystem */
-#define HAVE_PROC_DIR 1
+/* #undef HAVE_PROC_DIR */
 
 /* Define if you have the /proc/$$/fd directories */
 /* #undef HAVE_PROC_DIR_FD */
@@ -494,7 +494,7 @@
 /* #undef WITH_INTERFACE */
 #define WITH_TCP 1
 #define WITH_UDP 1
-#define WITH_SCTP 1
+/* #undef WITH_SCTP */
 #define WITH_LISTEN 1
 #define WITH_SOCKS4 1
 #define WITH_SOCKS4A 1

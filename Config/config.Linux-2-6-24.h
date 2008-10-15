@@ -97,7 +97,7 @@
 #define HAVE_GETADDRINFO 1
 
 /* Define if you have the getipnodebyname function.  */
-#define HAVE_GETIPNODEBYNAME 1
+/* #undef HAVE_GETIPNODEBYNAME */
 
 /* Define if you have the setgroups function. */
 #define HAVE_SETGROUPS 1
@@ -106,7 +106,7 @@
 #define HAVE_INET_ATON 1
 
 /* Define if you have the memrchr function. */
-/* #undef HAVE_MEMRCHR */
+#define HAVE_MEMRCHR 1
 
 /* Define if you have the if_indextoname function. */
 #define HAVE_IF_INDEXTONAME 1
@@ -115,22 +115,22 @@
 #define HAVE_SIGACTION 1
 
 /* Define if you have the stat64 function */
-/* #undef HAVE_STAT64 */
+#define HAVE_STAT64 1
 
 /* Define if you have the fstat64 function */
-/* #undef HAVE_FSTAT64 */
+#define HAVE_FSTAT64 1
 
 /* Define if you have the lstat64 function */
-/* #undef HAVE_LSTAT64 */
+#define HAVE_LSTAT64 1
 
 /* Define if you have the lseek64 function */
-/* #undef HAVE_LSEEK64 */
+#define HAVE_LSEEK64 1
 
 /* Define if you have the truncate64 function */
-/* #undef HAVE_TRUNCATE64 */
+#define HAVE_TRUNCATE64 1
 
 /* Define if you have the ftruncate64 function */
-/* #undef HAVE_FTRUNCATE64 */
+#define HAVE_FTRUNCATE64 1
 
 /* Define if you have the strtoll function */
 #define HAVE_STRTOLL 1
@@ -199,7 +199,7 @@
 #define HAVE_SYS_UN_H 1
 
 /* Define if you have the <pty.h> header file.  */
-/* #undef HAVE_PTY_H */
+#define HAVE_PTY_H 1
 
 /* Define if you have the <netinet/in.h> header file.  */
 #define HAVE_NETINET_IN_H 1
@@ -229,22 +229,22 @@
 #define HAVE_NET_IF_H 1
 
 /* Define if you have the <net/if_dl.h> header file.  */
-#define HAVE_NET_IF_DL_H 1
+/* #undef HAVE_NET_IF_DL_H */
 
 /* Define if you have the <linux/types.h> header file.  */
-/* #undef HAVE_LINUX_TYPES_H */
+#define HAVE_LINUX_TYPES_H 1
 
 /* Define if you have the <linux/errqueue.h> header file.  */
-/* #undef HAVE_LINUX_ERRQUEUE_H */
+#define HAVE_LINUX_ERRQUEUE_H 1
 
 /* Define if you have the <linux/if_tun.h> header file.  */
-/* #undef HAVE_LINUX_IF_TUN_H */
+#define HAVE_LINUX_IF_TUN_H 1
 
 /* Define if you have the <netpacket/packet.h> header file.  */
-/* #undef HAVE_NETPACKET_PACKET_H */
+#define HAVE_NETPACKET_PACKET_H 1
 
 /* Define if you have the <netinet/if_ether.h> header file.  */
-/* #undef HAVE_NETINET_IF_ETHER_H */
+#define HAVE_NETINET_IF_ETHER_H 1
 
 /* Define if you have the <sys/utsname.h> header file.  */
 #define HAVE_SYS_UTSNAME_H 1
@@ -259,19 +259,19 @@
 /* #undef HAVE_UTIL_H */
 
 /* Define if you have the <libutil.h> header file. (FreeBSD: openpty()) */
-#define HAVE_LIBUTIL_H 1
+/* #undef HAVE_LIBUTIL_H */
 
 /* Define if you have the <sys/stropts.h> header file. (stream opts on SunOS)*/
-/* #undef HAVE_SYS_STROPTS_H */
+#define HAVE_SYS_STROPTS_H 1
 
 /* Define if you have the <regex.h> header file. */
 #define HAVE_REGEX_H 1
 
 /* Define if you have the <linux/fs.h> header file. */
-/* #undef HAVE_LINUX_FS_H */
+#define HAVE_LINUX_FS_H 1
 
 /* Define if you have the <linux/ext2_fs.h> header file. */
-/* #undef HAVE_LINUX_EXT2_FS_H */
+#define HAVE_LINUX_EXT2_FS_H 1
 
 /* Define if you have the <readline/readline.h> header file. */
 #define HAVE_READLINE_READLINE_H 1
@@ -305,7 +305,7 @@
 
 /* the offset of c_ispeed in struct termios - usable in an speed_t array.
    Applies only when HAVE_TERMIOS_ISPEED is set */
-#define ISPEED_OFFSET 9
+#define ISPEED_OFFSET 13
 
 /* the offset of c_ospeed in struct termios - see ISPEED_OFFSET */
 #ifdef ISPEED_OFFSET
@@ -327,7 +327,7 @@
 #define HAVE_STRUCT_IP_MREQ 1
 
 /* Define if you have struct ip_mreqn */
-/* #undef HAVE_STRUCT_IP_MREQN */
+#define HAVE_STRUCT_IP_MREQN 1
 
 /* Define if you have struct ipv6_mreq */
 #define HAVE_STRUCT_IPV6_MREQ 1
@@ -336,13 +336,13 @@
 #define HAVE_STRUCT_IFREQ 1
 
 /* Define if you have struct ifreq.ifr_index */
-#define HAVE_STRUCT_IFREQ_IFR_INDEX 1
+/* #undef HAVE_STRUCT_IFREQ_IFR_INDEX */
 
 /* Define if you have struct ifreq.ifr_ifindex; not on HPUX */
-/* #undef HAVE_STRUCT_IFREQ_IFR_IFINDEX */
+#define HAVE_STRUCT_IFREQ_IFR_IFINDEX 1
 
 /* Define if your struct sockaddr has sa_len */
-#define HAVE_STRUCT_SOCKADDR_SALEN 1
+/* #undef HAVE_STRUCT_SOCKADDR_SALEN */
 
 /* there are several implementations of sockaddr_in6 */
 #define HAVE_IP6_SOCKADDR 0
@@ -363,7 +363,7 @@
 #define HAVE_STRUCT_CMSGHDR 1
 
 /* define if you have struct in_pktinfo */
-/* #undef HAVE_STRUCT_IN_PKTINFO */
+#define HAVE_STRUCT_IN_PKTINFO 1
 
 /* define if your struct ip has ip_hl; otherwise assume ip_vhl */
 #define HAVE_STRUCT_IP_IP_HL 1
@@ -390,7 +390,7 @@
 #define HAVE_PTSNAME 1
 
 /* Define if you have the /dev/ptmx pseudo terminal multiplexer */
-/* #undef HAVE_DEV_PTMX */
+#define HAVE_DEV_PTMX 1
 
 /* Define if you have the /dev/ptc pseudo terminal multiplexer */
 /* #undef HAVE_DEV_PTC */
@@ -402,13 +402,13 @@
 #define HAVE_TYPE_SOCKLEN 1
 
 /* Define if you have the struct stat64 type */
-/* #undef HAVE_TYPE_STAT64 */
+#define HAVE_TYPE_STAT64 1
 
 /* Define if you have the struct off64_t type */
-/* #undef HAVE_TYPE_OFF64 */
+#define HAVE_TYPE_OFF64 1
 
 /* is sighandler_t already typedef'd? */
-/* #undef HAVE_TYPE_SIGHANDLER */
+#define HAVE_TYPE_SIGHANDLER 1
 
 /* is uint8_t already defined? */
 #define HAVE_TYPE_UINT8 1
@@ -423,16 +423,16 @@
 #define HAVE_TYPE_UINT64 1
 
 /* Define if you have the printf "Z" modifier */
-/* #undef HAVE_FORMAT_Z */
+#define HAVE_FORMAT_Z 1
 
 /* Define the shift offset of the CRDLY mask */
-#define CRDLY_SHIFT -1
+#define CRDLY_SHIFT 9
 
 /* Define the shift offset of the TABDLY mask */
-#define TABDLY_SHIFT -1
+#define TABDLY_SHIFT 11
 
 /* Define the shift offset of the CSIZE mask */
-#define CSIZE_SHIFT 8
+#define CSIZE_SHIFT 4
 
 /* Define if you have tcpwrappers (libwrap, tcpd) and it declares hosts_allow_table */
 #define HAVE_HOSTS_ALLOW_TABLE 1
@@ -444,38 +444,38 @@
 
 /* 1..short, 3..int, 5..long; 2,4,6..unsigned */
 #define HAVE_BASIC_SIZE_T 4 /* unsigned int */
-#define HAVE_BASIC_MODE_T 2 /* unsigned short */
+#define HAVE_BASIC_MODE_T 4 /* unsigned int */
 #define HAVE_BASIC_PID_T 3 /* int */
 #define HAVE_BASIC_UID_T 4 /* unsigned int */
 #define HAVE_BASIC_GID_T 4 /* unsigned int */
-#define HAVE_BASIC_TIME_T 3 /* int */
-#define HAVE_BASIC_OFF64_T 0 /* unknown, taking default */
+#define HAVE_BASIC_TIME_T 5 /* long */
+#define HAVE_BASIC_OFF64_T 7 /* long long */
 
 #define HAVE_BASIC_SOCKLEN_T 4 /* unsigned int */
 
-#define HAVE_TYPEOF_ST_DEV 4 /* unsigned int */
-#define HAVE_TYPEOF_ST_INO 4 /* unsigned int */
-#define HAVE_TYPEOF_ST_NLINK 2 /* unsigned short */
-#define HAVE_TYPEOF_ST_SIZE 7 /* long long */
-#define HAVE_TYPEOF_ST_BLKSIZE 4 /* unsigned int */
-#define HAVE_TYPEOF_ST_BLOCKS 7 /* long long */
+#define HAVE_TYPEOF_ST_DEV 8 /* unsigned long long */
+#define HAVE_TYPEOF_ST_INO 6 /* unsigned long */
+#define HAVE_TYPEOF_ST_NLINK 4 /* unsigned int */
+#define HAVE_TYPEOF_ST_SIZE 5 /* long */
+#define HAVE_TYPEOF_ST_BLKSIZE 5 /* long */
+#define HAVE_TYPEOF_ST_BLOCKS 5 /* long */
 
-/* #undef HAVE_TYPEOF_ST64_DEV */
-/* #undef HAVE_TYPEOF_ST64_INO */
-/* #undef HAVE_TYPEOF_ST64_NLINK */
-/* #undef HAVE_TYPEOF_ST64_SIZE */
-/* #undef HAVE_TYPEOF_ST64_BLKSIZE */
-/* #undef HAVE_TYPEOF_ST64_BLOCKS */
+#define HAVE_TYPEOF_ST64_DEV 8 /* unsigned long long */
+#define HAVE_TYPEOF_ST64_INO 8 /* unsigned long long */
+#define HAVE_TYPEOF_ST64_NLINK 4 /* unsigned int */
+#define HAVE_TYPEOF_ST64_SIZE 7 /* long long */
+#define HAVE_TYPEOF_ST64_BLKSIZE 5 /* long */
+#define HAVE_TYPEOF_ST64_BLOCKS 7 /* long long */
 
 #define HAVE_TYPEOF_STRUCT_TIMEVAL_TV_USEC 5 /* long */
 
-#define HAVE_TYPEOF_RLIM_MAX 7 /* long long */
+#define HAVE_TYPEOF_RLIM_MAX 6 /* unsigned long */
 
 /* Define if you have the /proc filesystem */
 #define HAVE_PROC_DIR 1
 
 /* Define if you have the /proc/$$/fd directories */
-/* #undef HAVE_PROC_DIR_FD */
+#define HAVE_PROC_DIR_FD 1
 
 #define WITH_HELP 1
 #define WITH_STDIO 1
@@ -486,12 +486,12 @@
 #define WITH_TERMIOS 1
 #define WITH_PIPE 1
 #define WITH_UNIX 1
-/* #undef WITH_ABSTRACT_UNIXSOCKET */
+#define WITH_ABSTRACT_UNIXSOCKET 1
 #define WITH_IP4 1
 #define WITH_IP6 1
 #define WITH_RAWIP 1
 #define WITH_GENERICSOCKET 1
-/* #undef WITH_INTERFACE */
+#define WITH_INTERFACE 1
 #define WITH_TCP 1
 #define WITH_UDP 1
 #define WITH_SCTP 1
@@ -502,7 +502,7 @@
 #define WITH_EXEC 1
 #define WITH_SYSTEM 1
 #define WITH_READLINE 1
-/* #undef WITH_TUN */
+#define WITH_TUN 1
 #define WITH_PTY 1
 #define WITH_EXT2 1
 #define WITH_OPENSSL 1

@@ -24,11 +24,11 @@ srcdir = .
 CC = gcc
 CCOPTS = $(CCOPT) -Wall -Wno-parentheses
 
-SYSDEFS =  -D_LONGLONG
+SYSDEFS = 
 CPPFLAGS = -I. 
 #0 INCLS = -I. @V_INCL@
 DEFS = -DHAVE_CONFIG_H
-LIBS = -lwrap -lutil  -lreadline  -lssl
+LIBS = -lwrap -lutil  -lreadline  -lssl -lcrypto
 LDFLAGS = 
 
 INSTALL = /usr/bin/install -c
@@ -73,7 +73,7 @@ HFILES = sycls.h sslcls.h error.h dalan.h procan.h filan.h hostan.h sysincludes.
 	xio-ascii.h xiolockfile.h xio-tcpwrap.h xio-ext2.h xio-tun.h
 
 
-DOCFILES = README README.FIPS CHANGES FILES EXAMPLES PORTING SECURITY DEVELOPMENT doc/socat.yo doc/socat.1 doc/socat.html doc/xio.help FAQ BUGREPORTS COPYING COPYING.OpenSSL doc/dest-unreach.css doc/socat-openssltunnel.html doc/socat-multicast.html doc/socat-tun.html
+DOCFILES = README README.FIPS CHANGES FILES EXAMPLES PORTING SECURITY DEVELOPMENT doc/socat.yo doc/socat.1 doc/socat.html doc/xio.help FAQ BUGREPORTS COPYING COPYING.OpenSSL doc/dest-unreach.css doc/socat-openssltunnel.html doc/socat-multicast.html doc/socat-tun.html doc/socat-genericsocket.html
 SHFILES = daemon.sh mail.sh ftp.sh readline.sh
 TESTFILES = test.sh socks4echo.sh proxyecho.sh gatherinfo.sh readline-test.sh \
 	proxy.sh socks4a-echo.sh testcert.conf

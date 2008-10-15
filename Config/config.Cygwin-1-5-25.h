@@ -94,10 +94,10 @@
 #define HAVE_NANOSLEEP 1
 
 /* Define if you have the getaddrinfo function.  */
-#define HAVE_GETADDRINFO 1
+/* #undef HAVE_GETADDRINFO */
 
 /* Define if you have the getipnodebyname function.  */
-#define HAVE_GETIPNODEBYNAME 1
+/* #undef HAVE_GETIPNODEBYNAME */
 
 /* Define if you have the setgroups function. */
 #define HAVE_SETGROUPS 1
@@ -109,7 +109,7 @@
 /* #undef HAVE_MEMRCHR */
 
 /* Define if you have the if_indextoname function. */
-#define HAVE_IF_INDEXTONAME 1
+/* #undef HAVE_IF_INDEXTONAME */
 
 /* Define if you have the sigaction function */
 #define HAVE_SIGACTION 1
@@ -199,7 +199,7 @@
 #define HAVE_SYS_UN_H 1
 
 /* Define if you have the <pty.h> header file.  */
-/* #undef HAVE_PTY_H */
+#define HAVE_PTY_H 1
 
 /* Define if you have the <netinet/in.h> header file.  */
 #define HAVE_NETINET_IN_H 1
@@ -214,13 +214,13 @@
 #define HAVE_NETINET_TCP_H 1
 
 /* Define if you have the <netinet/ip6.h> header file.  */
-#define HAVE_NETINET_IP6_H 1
+/* #undef HAVE_NETINET_IP6_H */
 
 /* Define if you have the <arpa/nameser.h> header file.  */
-#define HAVE_ARPA_NAMESER_H 1
+/* #undef HAVE_ARPA_NAMESER_H */
 
 /* Define if you have the <resolv.h> header file.  */
-#define HAVE_RESOLV_H 1
+/* #undef HAVE_RESOLV_H */
 
 /* Define if you have the <termios.h> header file.  */
 #define HAVE_TERMIOS_H 1
@@ -229,7 +229,7 @@
 #define HAVE_NET_IF_H 1
 
 /* Define if you have the <net/if_dl.h> header file.  */
-#define HAVE_NET_IF_DL_H 1
+/* #undef HAVE_NET_IF_DL_H */
 
 /* Define if you have the <linux/types.h> header file.  */
 /* #undef HAVE_LINUX_TYPES_H */
@@ -259,7 +259,7 @@
 /* #undef HAVE_UTIL_H */
 
 /* Define if you have the <libutil.h> header file. (FreeBSD: openpty()) */
-#define HAVE_LIBUTIL_H 1
+/* #undef HAVE_LIBUTIL_H */
 
 /* Define if you have the <sys/stropts.h> header file. (stream opts on SunOS)*/
 /* #undef HAVE_SYS_STROPTS_H */
@@ -330,22 +330,22 @@
 /* #undef HAVE_STRUCT_IP_MREQN */
 
 /* Define if you have struct ipv6_mreq */
-#define HAVE_STRUCT_IPV6_MREQ 1
+/* #undef HAVE_STRUCT_IPV6_MREQ */
 
 /* Define if you have struct ifreq */
 #define HAVE_STRUCT_IFREQ 1
 
 /* Define if you have struct ifreq.ifr_index */
-#define HAVE_STRUCT_IFREQ_IFR_INDEX 1
+/* #undef HAVE_STRUCT_IFREQ_IFR_INDEX */
 
 /* Define if you have struct ifreq.ifr_ifindex; not on HPUX */
 /* #undef HAVE_STRUCT_IFREQ_IFR_IFINDEX */
 
 /* Define if your struct sockaddr has sa_len */
-#define HAVE_STRUCT_SOCKADDR_SALEN 1
+/* #undef HAVE_STRUCT_SOCKADDR_SALEN */
 
 /* there are several implementations of sockaddr_in6 */
-#define HAVE_IP6_SOCKADDR 0
+/* #undef HAVE_IP6_SOCKADDR */
 
 /* Define if you have struct iovec */
 #define HAVE_STRUCT_IOVEC 1
@@ -390,7 +390,7 @@
 #define HAVE_PTSNAME 1
 
 /* Define if you have the /dev/ptmx pseudo terminal multiplexer */
-/* #undef HAVE_DEV_PTMX */
+#define HAVE_DEV_PTMX 1
 
 /* Define if you have the /dev/ptc pseudo terminal multiplexer */
 /* #undef HAVE_DEV_PTC */
@@ -426,13 +426,13 @@
 /* #undef HAVE_FORMAT_Z */
 
 /* Define the shift offset of the CRDLY mask */
-#define CRDLY_SHIFT -1
+#define CRDLY_SHIFT 7
 
 /* Define the shift offset of the TABDLY mask */
-#define TABDLY_SHIFT -1
+#define TABDLY_SHIFT 11
 
 /* Define the shift offset of the CSIZE mask */
-#define CSIZE_SHIFT 8
+#define CSIZE_SHIFT 4
 
 /* Define if you have tcpwrappers (libwrap, tcpd) and it declares hosts_allow_table */
 #define HAVE_HOSTS_ALLOW_TABLE 1
@@ -444,20 +444,20 @@
 
 /* 1..short, 3..int, 5..long; 2,4,6..unsigned */
 #define HAVE_BASIC_SIZE_T 4 /* unsigned int */
-#define HAVE_BASIC_MODE_T 2 /* unsigned short */
+#define HAVE_BASIC_MODE_T 4 /* unsigned int */
 #define HAVE_BASIC_PID_T 3 /* int */
-#define HAVE_BASIC_UID_T 4 /* unsigned int */
-#define HAVE_BASIC_GID_T 4 /* unsigned int */
-#define HAVE_BASIC_TIME_T 3 /* int */
+#define HAVE_BASIC_UID_T 6 /* unsigned long */
+#define HAVE_BASIC_GID_T 6 /* unsigned long */
+#define HAVE_BASIC_TIME_T 5 /* long */
 #define HAVE_BASIC_OFF64_T 0 /* unknown, taking default */
 
-#define HAVE_BASIC_SOCKLEN_T 4 /* unsigned int */
+#define HAVE_BASIC_SOCKLEN_T 3 /* int */
 
-#define HAVE_TYPEOF_ST_DEV 4 /* unsigned int */
-#define HAVE_TYPEOF_ST_INO 4 /* unsigned int */
+#define HAVE_TYPEOF_ST_DEV 6 /* unsigned long */
+#define HAVE_TYPEOF_ST_INO 8 /* unsigned long long */
 #define HAVE_TYPEOF_ST_NLINK 2 /* unsigned short */
 #define HAVE_TYPEOF_ST_SIZE 7 /* long long */
-#define HAVE_TYPEOF_ST_BLKSIZE 4 /* unsigned int */
+#define HAVE_TYPEOF_ST_BLKSIZE 5 /* long */
 #define HAVE_TYPEOF_ST_BLOCKS 7 /* long long */
 
 /* #undef HAVE_TYPEOF_ST64_DEV */
@@ -469,13 +469,13 @@
 
 #define HAVE_TYPEOF_STRUCT_TIMEVAL_TV_USEC 5 /* long */
 
-#define HAVE_TYPEOF_RLIM_MAX 7 /* long long */
+#define HAVE_TYPEOF_RLIM_MAX 6 /* unsigned long */
 
 /* Define if you have the /proc filesystem */
 #define HAVE_PROC_DIR 1
 
 /* Define if you have the /proc/$$/fd directories */
-/* #undef HAVE_PROC_DIR_FD */
+#define HAVE_PROC_DIR_FD 1
 
 #define WITH_HELP 1
 #define WITH_STDIO 1
@@ -488,13 +488,13 @@
 #define WITH_UNIX 1
 /* #undef WITH_ABSTRACT_UNIXSOCKET */
 #define WITH_IP4 1
-#define WITH_IP6 1
+/* #undef WITH_IP6 */
 #define WITH_RAWIP 1
 #define WITH_GENERICSOCKET 1
 /* #undef WITH_INTERFACE */
 #define WITH_TCP 1
 #define WITH_UDP 1
-#define WITH_SCTP 1
+/* #undef WITH_SCTP */
 #define WITH_LISTEN 1
 #define WITH_SOCKS4 1
 #define WITH_SOCKS4A 1

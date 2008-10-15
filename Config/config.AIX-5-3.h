@@ -115,22 +115,22 @@
 #define HAVE_SIGACTION 1
 
 /* Define if you have the stat64 function */
-/* #undef HAVE_STAT64 */
+#define HAVE_STAT64 1
 
 /* Define if you have the fstat64 function */
-/* #undef HAVE_FSTAT64 */
+#define HAVE_FSTAT64 1
 
 /* Define if you have the lstat64 function */
-/* #undef HAVE_LSTAT64 */
+#define HAVE_LSTAT64 1
 
 /* Define if you have the lseek64 function */
-/* #undef HAVE_LSEEK64 */
+#define HAVE_LSEEK64 1
 
 /* Define if you have the truncate64 function */
-/* #undef HAVE_TRUNCATE64 */
+#define HAVE_TRUNCATE64 1
 
 /* Define if you have the ftruncate64 function */
-/* #undef HAVE_FTRUNCATE64 */
+#define HAVE_FTRUNCATE64 1
 
 /* Define if you have the strtoll function */
 #define HAVE_STRTOLL 1
@@ -259,10 +259,10 @@
 /* #undef HAVE_UTIL_H */
 
 /* Define if you have the <libutil.h> header file. (FreeBSD: openpty()) */
-#define HAVE_LIBUTIL_H 1
+/* #undef HAVE_LIBUTIL_H */
 
 /* Define if you have the <sys/stropts.h> header file. (stream opts on SunOS)*/
-/* #undef HAVE_SYS_STROPTS_H */
+#define HAVE_SYS_STROPTS_H 1
 
 /* Define if you have the <regex.h> header file. */
 #define HAVE_REGEX_H 1
@@ -274,13 +274,13 @@
 /* #undef HAVE_LINUX_EXT2_FS_H */
 
 /* Define if you have the <readline/readline.h> header file. */
-#define HAVE_READLINE_READLINE_H 1
+/* #undef HAVE_READLINE_READLINE_H */
 
 /* Define if you have the <readline/history.h> header file. */
-#define HAVE_READLINE_HISTORY_H 1
+/* #undef HAVE_READLINE_HISTORY_H */
 
 /* Define if you have the readline library. */
-#define HAVE_LIBREADLINE 1
+/* #undef HAVE_LIBREADLINE */
 
 /* Define if you have the m library (-lm).  */
 /* #undef HAVE_LIBM */
@@ -301,11 +301,11 @@
 #define HAVE_STRUCT_SIGACTION_SA_SIGACTION 1
 
 /* Define if your struct termios has component c_ispeed */
-#define HAVE_TERMIOS_ISPEED 1
+/* #undef HAVE_TERMIOS_ISPEED */
 
 /* the offset of c_ispeed in struct termios - usable in an speed_t array.
    Applies only when HAVE_TERMIOS_ISPEED is set */
-#define ISPEED_OFFSET 9
+/* #undef ISPEED_OFFSET */
 
 /* the offset of c_ospeed in struct termios - see ISPEED_OFFSET */
 #ifdef ISPEED_OFFSET
@@ -336,7 +336,7 @@
 #define HAVE_STRUCT_IFREQ 1
 
 /* Define if you have struct ifreq.ifr_index */
-#define HAVE_STRUCT_IFREQ_IFR_INDEX 1
+/* #undef HAVE_STRUCT_IFREQ_IFR_INDEX */
 
 /* Define if you have struct ifreq.ifr_ifindex; not on HPUX */
 /* #undef HAVE_STRUCT_IFREQ_IFR_IFINDEX */
@@ -375,10 +375,11 @@
 #define HAVE_UNSETENV 1
 
 /* Define if you have the flock function */
+/* #undef HAVE_FLOCK */
 #define HAVE_FLOCK 1
 
 /* Define if you have the openpty function */
-#define HAVE_OPENPTY 1
+/* #undef HAVE_OPENPTY */
 
 /* Define if you have the grantpt function */
 #define HAVE_GRANTPT 1
@@ -393,7 +394,7 @@
 /* #undef HAVE_DEV_PTMX */
 
 /* Define if you have the /dev/ptc pseudo terminal multiplexer */
-/* #undef HAVE_DEV_PTC */
+#define HAVE_DEV_PTC 1
 
 /* Define if you have the long long type */
 #define HAVE_TYPE_LONGLONG 1
@@ -402,10 +403,10 @@
 #define HAVE_TYPE_SOCKLEN 1
 
 /* Define if you have the struct stat64 type */
-/* #undef HAVE_TYPE_STAT64 */
+#define HAVE_TYPE_STAT64 1
 
 /* Define if you have the struct off64_t type */
-/* #undef HAVE_TYPE_OFF64 */
+#define HAVE_TYPE_OFF64 1
 
 /* is sighandler_t already typedef'd? */
 /* #undef HAVE_TYPE_SIGHANDLER */
@@ -426,16 +427,16 @@
 /* #undef HAVE_FORMAT_Z */
 
 /* Define the shift offset of the CRDLY mask */
-#define CRDLY_SHIFT -1
+#define CRDLY_SHIFT 8
 
 /* Define the shift offset of the TABDLY mask */
-#define TABDLY_SHIFT -1
+#define TABDLY_SHIFT 10
 
 /* Define the shift offset of the CSIZE mask */
-#define CSIZE_SHIFT 8
+#define CSIZE_SHIFT 4
 
 /* Define if you have tcpwrappers (libwrap, tcpd) and it declares hosts_allow_table */
-#define HAVE_HOSTS_ALLOW_TABLE 1
+/* #undef HAVE_HOSTS_ALLOW_TABLE */
 #if defined(HAVE_HOSTS_ALLOW_TABLE) && HAVE_HOSTS_ALLOW_TABLE
 #   define HAVE_HOSTS_DENY_TABLE 1
 #else
@@ -443,39 +444,39 @@
 #endif
 
 /* 1..short, 3..int, 5..long; 2,4,6..unsigned */
-#define HAVE_BASIC_SIZE_T 4 /* unsigned int */
-#define HAVE_BASIC_MODE_T 2 /* unsigned short */
-#define HAVE_BASIC_PID_T 3 /* int */
-#define HAVE_BASIC_UID_T 4 /* unsigned int */
-#define HAVE_BASIC_GID_T 4 /* unsigned int */
-#define HAVE_BASIC_TIME_T 3 /* int */
+#define HAVE_BASIC_SIZE_T 0 /* unknown, taking default */
+#define HAVE_BASIC_MODE_T 0 /* unknown, taking default */
+#define HAVE_BASIC_PID_T 0 /* unknown, taking default */
+#define HAVE_BASIC_UID_T 0 /* unknown, taking default */
+#define HAVE_BASIC_GID_T 0 /* unknown, taking default */
+#define HAVE_BASIC_TIME_T 0 /* unknown, taking default */
 #define HAVE_BASIC_OFF64_T 0 /* unknown, taking default */
 
-#define HAVE_BASIC_SOCKLEN_T 4 /* unsigned int */
+#define HAVE_BASIC_SOCKLEN_T 0 /* unknown, taking default */
 
-#define HAVE_TYPEOF_ST_DEV 4 /* unsigned int */
-#define HAVE_TYPEOF_ST_INO 4 /* unsigned int */
-#define HAVE_TYPEOF_ST_NLINK 2 /* unsigned short */
-#define HAVE_TYPEOF_ST_SIZE 7 /* long long */
-#define HAVE_TYPEOF_ST_BLKSIZE 4 /* unsigned int */
-#define HAVE_TYPEOF_ST_BLOCKS 7 /* long long */
+#define HAVE_TYPEOF_ST_DEV 0 /* unknown, taking default */
+#define HAVE_TYPEOF_ST_INO 0 /* unknown, taking default */
+#define HAVE_TYPEOF_ST_NLINK 0 /* unknown, taking default */
+#define HAVE_TYPEOF_ST_SIZE 0 /* unknown, taking default */
+#define HAVE_TYPEOF_ST_BLKSIZE 0 /* unknown, taking default */
+#define HAVE_TYPEOF_ST_BLOCKS 0 /* unknown, taking default */
 
-/* #undef HAVE_TYPEOF_ST64_DEV */
-/* #undef HAVE_TYPEOF_ST64_INO */
-/* #undef HAVE_TYPEOF_ST64_NLINK */
-/* #undef HAVE_TYPEOF_ST64_SIZE */
-/* #undef HAVE_TYPEOF_ST64_BLKSIZE */
-/* #undef HAVE_TYPEOF_ST64_BLOCKS */
+#define HAVE_TYPEOF_ST64_DEV 0 /* unknown, taking default */
+#define HAVE_TYPEOF_ST64_INO 0 /* unknown, taking default */
+#define HAVE_TYPEOF_ST64_NLINK 0 /* unknown, taking default */
+#define HAVE_TYPEOF_ST64_SIZE 0 /* unknown, taking default */
+#define HAVE_TYPEOF_ST64_BLKSIZE 0 /* unknown, taking default */
+#define HAVE_TYPEOF_ST64_BLOCKS 0 /* unknown, taking default */
 
-#define HAVE_TYPEOF_STRUCT_TIMEVAL_TV_USEC 5 /* long */
+#define HAVE_TYPEOF_STRUCT_TIMEVAL_TV_USEC 0 /* unknown, taking default */
 
-#define HAVE_TYPEOF_RLIM_MAX 7 /* long long */
+#define HAVE_TYPEOF_RLIM_MAX 0 /* unknown, taking default */
 
 /* Define if you have the /proc filesystem */
 #define HAVE_PROC_DIR 1
 
 /* Define if you have the /proc/$$/fd directories */
-/* #undef HAVE_PROC_DIR_FD */
+#define HAVE_PROC_DIR_FD 1
 
 #define WITH_HELP 1
 #define WITH_STDIO 1
@@ -501,7 +502,7 @@
 #define WITH_PROXY 1
 #define WITH_EXEC 1
 #define WITH_SYSTEM 1
-#define WITH_READLINE 1
+/* #undef WITH_READLINE */
 /* #undef WITH_TUN */
 #define WITH_PTY 1
 #define WITH_EXT2 1
@@ -509,9 +510,9 @@
 #define WITH_STREAMS 1
 /* #undef WITH_FIPS */
 /* #undef OPENSSL_FIPS */
-#define WITH_LIBWRAP 1
-#define HAVE_TCPD_H 1
-#define HAVE_LIBWRAP 1
+/* #undef WITH_LIBWRAP */
+/* #undef HAVE_TCPD_H */
+/* #undef HAVE_LIBWRAP */
 
 #define WITH_SYCLS 1
 #define WITH_FILAN 1

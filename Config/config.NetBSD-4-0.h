@@ -97,7 +97,7 @@
 #define HAVE_GETADDRINFO 1
 
 /* Define if you have the getipnodebyname function.  */
-#define HAVE_GETIPNODEBYNAME 1
+/* #undef HAVE_GETIPNODEBYNAME */
 
 /* Define if you have the setgroups function. */
 #define HAVE_SETGROUPS 1
@@ -256,10 +256,10 @@
 #define HAVE_SYS_FILE_H 1
 
 /* Define if you have the <util.h> header file. (NetBSD, OpenBSD: openpty()) */
-/* #undef HAVE_UTIL_H */
+#define HAVE_UTIL_H 1
 
 /* Define if you have the <libutil.h> header file. (FreeBSD: openpty()) */
-#define HAVE_LIBUTIL_H 1
+/* #undef HAVE_LIBUTIL_H */
 
 /* Define if you have the <sys/stropts.h> header file. (stream opts on SunOS)*/
 /* #undef HAVE_SYS_STROPTS_H */
@@ -274,13 +274,13 @@
 /* #undef HAVE_LINUX_EXT2_FS_H */
 
 /* Define if you have the <readline/readline.h> header file. */
-#define HAVE_READLINE_READLINE_H 1
+/* #undef HAVE_READLINE_READLINE_H */
 
 /* Define if you have the <readline/history.h> header file. */
-#define HAVE_READLINE_HISTORY_H 1
+/* #undef HAVE_READLINE_HISTORY_H */
 
 /* Define if you have the readline library. */
-#define HAVE_LIBREADLINE 1
+/* #undef HAVE_LIBREADLINE */
 
 /* Define if you have the m library (-lm).  */
 /* #undef HAVE_LIBM */
@@ -336,7 +336,7 @@
 #define HAVE_STRUCT_IFREQ 1
 
 /* Define if you have struct ifreq.ifr_index */
-#define HAVE_STRUCT_IFREQ_IFR_INDEX 1
+/* #undef HAVE_STRUCT_IFREQ_IFR_INDEX */
 
 /* Define if you have struct ifreq.ifr_ifindex; not on HPUX */
 /* #undef HAVE_STRUCT_IFREQ_IFR_IFINDEX */
@@ -390,7 +390,7 @@
 #define HAVE_PTSNAME 1
 
 /* Define if you have the /dev/ptmx pseudo terminal multiplexer */
-/* #undef HAVE_DEV_PTMX */
+#define HAVE_DEV_PTMX 1
 
 /* Define if you have the /dev/ptc pseudo terminal multiplexer */
 /* #undef HAVE_DEV_PTC */
@@ -444,18 +444,18 @@
 
 /* 1..short, 3..int, 5..long; 2,4,6..unsigned */
 #define HAVE_BASIC_SIZE_T 4 /* unsigned int */
-#define HAVE_BASIC_MODE_T 2 /* unsigned short */
+#define HAVE_BASIC_MODE_T 4 /* unsigned int */
 #define HAVE_BASIC_PID_T 3 /* int */
 #define HAVE_BASIC_UID_T 4 /* unsigned int */
 #define HAVE_BASIC_GID_T 4 /* unsigned int */
-#define HAVE_BASIC_TIME_T 3 /* int */
+#define HAVE_BASIC_TIME_T 5 /* long */
 #define HAVE_BASIC_OFF64_T 0 /* unknown, taking default */
 
 #define HAVE_BASIC_SOCKLEN_T 4 /* unsigned int */
 
 #define HAVE_TYPEOF_ST_DEV 4 /* unsigned int */
-#define HAVE_TYPEOF_ST_INO 4 /* unsigned int */
-#define HAVE_TYPEOF_ST_NLINK 2 /* unsigned short */
+#define HAVE_TYPEOF_ST_INO 8 /* unsigned long long */
+#define HAVE_TYPEOF_ST_NLINK 4 /* unsigned int */
 #define HAVE_TYPEOF_ST_SIZE 7 /* long long */
 #define HAVE_TYPEOF_ST_BLKSIZE 4 /* unsigned int */
 #define HAVE_TYPEOF_ST_BLOCKS 7 /* long long */
@@ -494,14 +494,14 @@
 /* #undef WITH_INTERFACE */
 #define WITH_TCP 1
 #define WITH_UDP 1
-#define WITH_SCTP 1
+/* #undef WITH_SCTP */
 #define WITH_LISTEN 1
 #define WITH_SOCKS4 1
 #define WITH_SOCKS4A 1
 #define WITH_PROXY 1
 #define WITH_EXEC 1
 #define WITH_SYSTEM 1
-#define WITH_READLINE 1
+/* #undef WITH_READLINE */
 /* #undef WITH_TUN */
 #define WITH_PTY 1
 #define WITH_EXT2 1

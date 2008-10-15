@@ -21,23 +21,23 @@ MANDEST = ${datarootdir}/man
 srcdir = .
 
 
-CC = gcc
-CCOPTS = $(CCOPT) -Wall -Wno-parentheses
+CC = cc -qlanglvl=extc89
+CCOPTS = $(CCOPT) 
 
-SYSDEFS =  -D_LONGLONG
+SYSDEFS = 
 CPPFLAGS = -I. 
 #0 INCLS = -I. @V_INCL@
 DEFS = -DHAVE_CONFIG_H
-LIBS = -lwrap -lutil  -lreadline  -lssl
+LIBS = -lbsd  -lssl -lcrypto
 LDFLAGS = 
 
-INSTALL = /usr/bin/install -c
+INSTALL = ./install-sh -c
 
 #OBJ = $(CSRC:.c=.o) $(GENSRC:.c=.o) 
 
 
-#0 CFLAGS = -O -D_GNU_SOURCE $(CCOPTS) $(DEFS) $(INCLS)
-CFLAGS = -O -D_GNU_SOURCE $(CCOPTS) $(DEFS) $(CPPFLAGS)
+#0 CFLAGS = -O $(CCOPTS) $(DEFS) $(INCLS)
+CFLAGS = -O $(CCOPTS) $(DEFS) $(CPPFLAGS)
 CLIBS = $(LIBS)
 #CLIBS = $(LIBS) -lm -lefence
 XIOSRCS = xioinitialize.c xiohelp.c xioparam.c xiodiag.c xioopen.c xioopts.c \
@@ -73,7 +73,7 @@ HFILES = sycls.h sslcls.h error.h dalan.h procan.h filan.h hostan.h sysincludes.
 	xio-ascii.h xiolockfile.h xio-tcpwrap.h xio-ext2.h xio-tun.h
 
 
-DOCFILES = README README.FIPS CHANGES FILES EXAMPLES PORTING SECURITY DEVELOPMENT doc/socat.yo doc/socat.1 doc/socat.html doc/xio.help FAQ BUGREPORTS COPYING COPYING.OpenSSL doc/dest-unreach.css doc/socat-openssltunnel.html doc/socat-multicast.html doc/socat-tun.html
+DOCFILES = README README.FIPS CHANGES FILES EXAMPLES PORTING SECURITY DEVELOPMENT doc/socat.yo doc/socat.1 doc/socat.html doc/xio.help FAQ BUGREPORTS COPYING COPYING.OpenSSL doc/dest-unreach.css doc/socat-openssltunnel.html doc/socat-multicast.html doc/socat-tun.html doc/socat-genericsocket.html
 SHFILES = daemon.sh mail.sh ftp.sh readline.sh
 TESTFILES = test.sh socks4echo.sh proxyecho.sh gatherinfo.sh readline-test.sh \
 	proxy.sh socks4a-echo.sh testcert.conf

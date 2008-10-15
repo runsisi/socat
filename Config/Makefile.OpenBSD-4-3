@@ -24,11 +24,11 @@ srcdir = .
 CC = gcc
 CCOPTS = $(CCOPT) -Wall -Wno-parentheses
 
-SYSDEFS =  -D_LONGLONG
+SYSDEFS =  -D__GNUC__=3 -D__GNUC_MINOR__=3 -D__GNUC_PATCHLEVEL__=5
 CPPFLAGS = -I. 
 #0 INCLS = -I. @V_INCL@
 DEFS = -DHAVE_CONFIG_H
-LIBS = -lwrap -lutil  -lreadline  -lssl
+LIBS = -lwrap -lutil  -lreadline -lcurses -lssl -lcrypto
 LDFLAGS = 
 
 INSTALL = /usr/bin/install -c
