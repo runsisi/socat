@@ -37,6 +37,16 @@ $ socat -,raw,echo=0 tcp:172.16.181.130:2023
 // replace /bin/login by /bin/bash when using SSL client authentication, can be
 // run without root then
 
+// this is a cool trick, proposed by Christophe Lohr, to dump communications to
+// two files; it would also work for other manipulations (recode, compress...)
+// and it might also work with netcat ;-)
+$ socat TCP-LISTEN:5555 SYSTEM:'tee l2r | socat - "TCP:remote:5555"  | tee r2l' 
+
+///////////////////////////////////////////////////////////////////////////////
+// emergence solution because usleep(1) is not always available
+// this will "sleep" for 0.1s
+$ socat -T 0.1 pipe pipe
+
 ///////////////////////////////////////////////////////////////////////////////
 // a very primitive HTTP/1.0 echo server (problems: sends reply headers before
 // request; hangs if client does not shutdown - HTTP keep-alive) 
@@ -44,6 +54,11 @@ $ socat -,raw,echo=0 tcp:172.16.181.130:2023
 // start a shell that sends reply headers and an empty line; then echo all
 // incoming data back to client
 $ socat TCP-LISTEN:8000,crlf SYSTEM:"echo HTTP/1.0 200; echo Content-Type\: text/plain; echo; cat"
+
+// a less primitive HTTP echo server that sends back not only the reqest but
+// also server and client address and port. Might have portability issues with
+// echo
+./socat -T 1 -d -d tcp-l:10081,reuseaddr,fork,crlf system:"echo -e \"\\\"HTTP/1.0 200 OK\\\nDocumentType: text/html\\\n\\\n<html>date: \$\(date\)<br>server:\$SOCAT_SOCKADDR:\$SOCAT_SOCKPORT<br>client: \$SOCAT_PEERADDR:\$SOCAT_PEERPORT\\\n<pre>\\\"\"; cat; echo -e \"\\\"\\\n</pre></html>\\\"\""
 
 ///////////////////////////////////////////////////////////////////////////////
 // for communicating with an attached modem, I had reasonable results with
@@ -292,6 +307,7 @@ $ socat -d -d -d -d - udp-datagram:224.0.0.2:6666,bind=:6666,ip-add-membership=2
 // on my Linux system I find in /usr/include/linux/cdrom.h the define:
 // #define CDROMEJECT           0x5309 /* Ejects the cdrom media */
 // the following command makes something like ioctl(fd, CDROMEJECT, NULL)
+// (don't care about the read error):
 $ socat /dev/cdrom,o-nonblock,ioctl-void=0x5309 -
 
 // setsockopt(): SO_REUSEADDR
