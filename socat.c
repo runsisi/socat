@@ -1045,13 +1045,15 @@ int _socat(void) {
 	    xioshutdown(sock2, SHUT_WR);
 	    XIO_RDSTREAM(sock1)->eof = 2;
 	    XIO_RDSTREAM(sock1)->ignoreeof = false;
-	    if (socat_opts.lefttoright) {
-	       break;
-	    }
-	    closing = 1;
 	 }
       } else if (polling && XIO_RDSTREAM(sock1)->ignoreeof) {
 	 polling = 0;
+      }
+      if (XIO_RDSTREAM(sock1)->eof >= 2) {
+	 if (socat_opts.lefttoright) {
+	    break;
+	 }
+	 closing = 1;
       }
 
       if (bytes2 == 0 || XIO_RDSTREAM(sock2)->eof >= 2) {
@@ -1066,13 +1068,15 @@ int _socat(void) {
 	    xioshutdown(sock1, SHUT_WR);
 	    XIO_RDSTREAM(sock2)->eof = 2;
 	    XIO_RDSTREAM(sock2)->ignoreeof = false;
-	    if (socat_opts.righttoleft) {
-	       break;
-	    }
-	    closing = 1;
 	 }
       } else if (polling && XIO_RDSTREAM(sock2)->ignoreeof) {
 	 polling = 0;
+      }
+      if (XIO_RDSTREAM(sock2)->eof >= 2) {
+	 if (socat_opts.righttoleft) {
+	    break;
+	 }
+	 closing = 1;
       }
    }
 
