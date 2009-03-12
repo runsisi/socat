@@ -1,6 +1,6 @@
 #! /bin/bash
 # source: test.sh
-# Copyright Gerhard Rieger 2001-2008
+# Copyright Gerhard Rieger 2001-2009
 # Published under the GNU General Public License V.2, see file COPYING
 
 # perform lots of tests on socat
@@ -7479,6 +7479,37 @@ else
    numOK=$((numOK+1))
 fi
 fi ;; # NUMCOND
+esac
+N=$((N+1))
+
+
+# up to 1.7.0.0 option end-close led to an error with some address types due to
+# bad internal handling. here we check it for address PTY
+NAME=PTYENDCLOSE
+case "$TESTS" in
+*%functions%*|*%bugs%*|*%pty%*|*%$NAME%*)
+TEST="$NAME: PTY handles option end-close"
+# with the bug, socat exits with error. we invoke socat in a no-op mode and
+# check its return status.
+if ! eval $NUMCOND; then :;
+ else
+tf="$td/test$N.stout"
+te="$td/test$N.stderr"
+CMD="$SOCAT $opts /dev/null pty,end-close"
+printf "test $F_n $TEST... " $N
+$CMD 2>"${te}"
+rc=$?
+if [ "$rc" = 0 ]; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD"
+    cat "${te}"
+    numFAIL=$((numFAIL+1))
+fi
+fi # NUMCOND
+ ;;
 esac
 N=$((N+1))
 

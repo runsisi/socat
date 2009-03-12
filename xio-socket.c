@@ -1,5 +1,5 @@
 /* source: xio-socket.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2009 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for socket related functions, and the
@@ -237,8 +237,8 @@ int xioopen_socket_connect(int argc, const char *argv[], struct opt *opts,
    /*retropt_int(opts, OPT_IP_PROTOCOL, &proto);*/
    xfd->howtoend = END_SHUTDOWN;
 
-   applyopts(-1, opts, PH_INIT);
    if (applyopts_single(xfd, opts, PH_INIT) < 0)  return -1;
+   applyopts(-1, opts, PH_INIT);
    applyopts(-1, opts, PH_EARLY);
 
    themlen = 0;

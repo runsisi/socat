@@ -1,4 +1,8 @@
 
+corrections:
+	option end-close "did not apply" to addresses PTY, SOCKET-CONNECT,
+	and most UNIX-* and ABSTRACT-*
+
 ####################### V 1.7.0.0:
 
 new features:
