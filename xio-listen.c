@@ -1,5 +1,5 @@
 /* source: xio-listen.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2009 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for listen socket options */
@@ -254,8 +254,10 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
 	 la = NULL;
       }
       Notice2("accepting connection from %s on %s",
-	      sockaddr_info(pa?&pa->soa:NULL, pas, peername, sizeof(peername)),
-	      sockaddr_info(pa?&la->soa:NULL, las, sockname, sizeof(sockname)));
+	      pa?
+	      sockaddr_info(&pa->soa, pas, peername, sizeof(peername)):"NULL",
+	      la?
+	      sockaddr_info(&la->soa, las, sockname, sizeof(sockname)):"NULL");
 
       if (pa != NULL && la != NULL && xiocheckpeer(xfd, pa, la) < 0) {
 	 if (Shutdown(ps, 2) < 0) {
@@ -264,9 +266,10 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
 	 continue;
       }
 
-      Info1("permitting connection from %s",
-	    sockaddr_info((struct sockaddr *)pa, pas,
-			  infobuff, sizeof(infobuff)));
+      if (pa != NULL)
+	 Info1("permitting connection from %s",
+	       sockaddr_info((struct sockaddr *)pa, pas,
+			     infobuff, sizeof(infobuff)));
 
       applyopts(xfd->fd, opts, PH_FD);
       applyopts(xfd->fd, opts, PH_CONNECTED);
@@ -322,8 +325,8 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
       return result;
 
    /* set the env vars describing the local and remote sockets */
-   xiosetsockaddrenv("SOCK", la, las, proto);
-   xiosetsockaddrenv("PEER", pa, pas, proto);
+   if (la != NULL)  xiosetsockaddrenv("SOCK", la, las, proto);
+   if (pa != NULL)  xiosetsockaddrenv("PEER", pa, pas, proto);
 
    return 0;
 }

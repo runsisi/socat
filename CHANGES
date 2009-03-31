@@ -1,4 +1,9 @@
 
+corrections:
+	fixed possible SIGSEGV in listening addresses when a new connection was
+	reset by peer before the socket addresses could be retrieved. Thanks to
+	Mike Perry for sending a patch.
+
 ####################### V 1.7.0.0:
 
 new features:
