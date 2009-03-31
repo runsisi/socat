@@ -1,5 +1,5 @@
 /* source: xio-unix.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2009 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening addresses of UNIX socket type */
@@ -155,6 +155,7 @@ static int xioopen_unix_listen(int argc, const char *argv[], struct opt *opts, i
       }
    }
 
+   if (applyopts_single(xfd, opts, PH_INIT) < 0) return STAT_NORETRY;
    applyopts(-1, opts, PH_INIT);
    applyopts(-1, opts, PH_EARLY);
 
@@ -227,8 +228,8 @@ static int xioopen_unix_connect(int argc, const char *argv[], struct opt *opts, 
       xfd->opt_unlink_close = true;
    }
 
-   applyopts(-1, opts, PH_INIT);
    if (applyopts_single(xfd, opts, PH_INIT) < 0)  return -1;
+   applyopts(-1, opts, PH_INIT);
    applyopts(-1, opts, PH_EARLY);
 
    if ((result =
@@ -290,8 +291,8 @@ static int xioopen_unix_sendto(int argc, const char *argv[], struct opt *opts, i
       xfd->opt_unlink_close = true;
    }
 
-   applyopts(-1, opts, PH_INIT);
    if (applyopts_single(xfd, opts, PH_INIT) < 0)  return -1;
+   applyopts(-1, opts, PH_INIT);
 
    return
       _xioopen_dgram_sendto(needbind?&us:NULL, uslen,
@@ -463,8 +464,8 @@ _xioopen_unix_client(xiosingle_t *xfd, int xioflags, unsigned groups,
    struct opt *opts0;
    int result;
 
-   applyopts(-1, opts, PH_INIT);
    if (applyopts_single(xfd, opts, PH_INIT) < 0)  return -1;
+   applyopts(-1, opts, PH_INIT);
 
    xfd->howtoend = END_SHUTDOWN;
    retropt_socket_pf(opts, &pf);

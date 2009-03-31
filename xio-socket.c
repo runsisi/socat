@@ -237,8 +237,8 @@ int xioopen_socket_connect(int argc, const char *argv[], struct opt *opts,
    /*retropt_int(opts, OPT_IP_PROTOCOL, &proto);*/
    xfd->howtoend = END_SHUTDOWN;
 
-   applyopts(-1, opts, PH_INIT);
    if (applyopts_single(xfd, opts, PH_INIT) < 0)  return -1;
+   applyopts(-1, opts, PH_INIT);
    applyopts(-1, opts, PH_EARLY);
 
    themlen = 0;

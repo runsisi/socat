@@ -8,6 +8,9 @@ corrections:
 	connections with option connect-timeout fail when the connections
 	succeeded. Thanks to Bruno De Fraine for reporting this bug.
 
+	option end-close "did not apply" to addresses PTY, SOCKET-CONNECT,
+	and most UNIX-* and ABSTRACT-*
+
 	half close of EXEC and SYSTEM addresses did not work for pipes and
 	sometimes socketpair
 

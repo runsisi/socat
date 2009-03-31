@@ -7527,6 +7527,37 @@ esac
 N=$((N+1))
 
 
+# up to 1.7.0.0 option end-close led to an error with some address types due to
+# bad internal handling. here we check it for address PTY
+NAME=PTYENDCLOSE
+case "$TESTS" in
+*%functions%*|*%bugs%*|*%pty%*|*%$NAME%*)
+TEST="$NAME: PTY handles option end-close"
+# with the bug, socat exits with error. we invoke socat in a no-op mode and
+# check its return status.
+if ! eval $NUMCOND; then :;
+ else
+tf="$td/test$N.stout"
+te="$td/test$N.stderr"
+CMD="$SOCAT $opts /dev/null pty,end-close"
+printf "test $F_n $TEST... " $N
+$CMD 2>"${te}"
+rc=$?
+if [ "$rc" = 0 ]; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD"
+    cat "${te}"
+    numFAIL=$((numFAIL+1))
+fi
+fi # NUMCOND
+ ;;
+esac
+N=$((N+1))
+
+
 NAME=UDP6LISTENBIND
 # this tests for a bug in (up to) 1.5.0.0:
 #    with udp*-listen, the bind option supported only IPv4

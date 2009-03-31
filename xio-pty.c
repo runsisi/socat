@@ -1,5 +1,5 @@
 /* source: xio-pty.c */
-/* Copyright Gerhard Rieger 2002-2008 */
+/* Copyright Gerhard Rieger 2002-2009 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for creating pty addresses */
@@ -49,8 +49,8 @@ static int xioopen_pty(int argc, const char *argv[], struct opt *opts, int xiofl
 
    xfd->stream.howtoend = END_CLOSE;
 
-   applyopts(-1, opts, PH_INIT);
    if (applyopts_single(&xfd->stream, opts, PH_INIT) < 0)  return -1;
+   applyopts(-1, opts, PH_INIT);
 
    retropt_bool(opts, OPT_UNLINK_CLOSE, &opt_unlink_close);
 
@@ -82,8 +82,8 @@ static int xioopen_pty(int argc, const char *argv[], struct opt *opts, int xiofl
    retropt_timespec(opts, OPT_PTY_INTERVALL, &pollintv);
 #endif /* HAVE_POLL */
 
-   applyopts2(-1, opts, PH_INIT, PH_EARLY);
    if (applyopts_single(&xfd->stream, opts, PH_INIT) < 0)  return -1;
+   applyopts2(-1, opts, PH_INIT, PH_EARLY);
 
    applyopts(-1, opts, PH_PREBIGEN);
 
