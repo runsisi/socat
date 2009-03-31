@@ -1,5 +1,5 @@
 /* source: xio-progcall.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2009 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains common code dealing with program calls (exec, system) */
@@ -420,6 +420,7 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 
 #if HAVE_PTY
 	 if (usepty) {
+	    Close(ptyfd);
 	    if (rw != XIO_RDONLY && fdi != ttyfd) {
 	       if (Dup2(ttyfd, fdi) < 0) {
 		  Error3("dup2(%d, %d): %s", ttyfd, fdi, strerror(errno));
@@ -448,6 +449,8 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 		  a graceful solution via temporary descriptors */
 	       int tmpi, tmpo;
 
+	       if (rw != XIO_WRONLY)  Close(rdpip[0]);
+	       if (rw != XIO_RDONLY)  Close(wrpip[1]);
 	       if (fdi == rdpip[1]) {	/* a conflict here */
 		  if ((tmpi = Dup(wrpip[0])) < 0) {
 		     Error2("dup(%d): %s", wrpip[0], strerror(errno));
@@ -491,6 +494,7 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 	       applyopts(fdo, *copts, PH_LATE2);
 
 	    } else {	/* socketpair */
+	       Close(sv[0]);
 	       if (rw != XIO_RDONLY && fdi != sv[1]) {
 		  if (Dup2(sv[1], fdi) < 0) {
 		     Error3("dup2(%d, %d): %s", sv[1], fdi, strerror(errno));
@@ -505,6 +509,7 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 	       }
 	       if (fdi != sv[1] && fdo != sv[1]) {
 		  applyopts_cloexec(sv[1], *copts);
+		  Close(sv[1]);
 	       }
 
 	       applyopts(fdi, *copts, PH_LATE);
@@ -546,13 +551,14 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
       if (Close(ttyfd) < 0) {
 	 Info2("close(%d): %s", ttyfd, strerror(errno));
       }
-   } /*0 else*/
+   } else
 #endif /* HAVE_PTY */
-#if 0
    if (usepipes) {
+      Close(rdpip[1]);
+      Close(wrpip[0]);
    } else {
+      Close(sv[1]);
    }
-#endif
    fd->para.exec.pid = pid;
 
    if (applyopts_single(fd, popts, PH_LATE) < 0)  return -1;

@@ -1,5 +1,8 @@
 
 corrections:
+	half close of EXEC and SYSTEM addresses did not work for pipes and
+	sometimes socketpair
+
 	help displayed some option types wrong
 
 	under some circumstances shutdown was called multiple times for the

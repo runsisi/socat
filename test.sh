@@ -2272,14 +2272,13 @@ esac
 N=$((N+1))
 
 
-## LATER:
-#NAME=SYSTEMPIPESFLUSH
-#case "$TESTS" in
-#*%functions%*|*%system%*|*%$NAME%*)
-#TEST="$NAME: call to od via system() with pipes"
-#testod "$N" "$TEST" "" "system:$OD_C,pipes" "$opts"
-#esac
-#N=$((N+1))
+NAME=SYSTEMPIPESFLUSH
+case "$TESTS" in
+*%functions%*|*%system%*|*%$NAME%*)
+TEST="$NAME: call to od via system() with pipes"
+testod "$N" "$TEST" "" "system:$OD_C,pipes" "$opts" "$val_t"
+esac
+N=$((N+1))
 
 
 ## LATER:
@@ -2312,24 +2311,22 @@ N=$((N+1))
 #N=$((N+1))
 
 
-## LATER:
-#NAME=SYSTEMPIPESFDSFLUSH
-#case "$TESTS" in
-#*%functions%*|*%system%*|*%$NAME%*)
-#TEST="$NAME: call to od via system() with pipes, non stdio"
-#testod "$N" "$TEST" "" "system:$OD_C>&9 <&8,pipes,fdin=8,fdout=9" "$opts"
-#esac
-#N=$((N+1))
+NAME=SYSTEMPIPESFDSFLUSH
+case "$TESTS" in
+*%functions%*|*%system%*|*%$NAME%*)
+TEST="$NAME: call to od via system() with pipes, non stdio"
+testod "$N" "$TEST" "" "system:$OD_C>&9 <&8,pipes,fdin=8,fdout=9" "$opts" "$val_t"
+esac
+N=$((N+1))
 
 
-## LATER:
-#NAME=DUALSYSTEMFDSFLUSH
-#case "$TESTS" in
-#*%functions%*|*%system%*|*%$NAME%*)
-#TEST="$NAME: call to od via dual system()"
-#testecho "$N" "$TEST" "system:$OD_C>&6,fdout=6!!system:$CAT<&7,fdin=7" "" "$opts"
-#esac
-#N=$((N+1))
+NAME=DUALSYSTEMFDSFLUSH
+case "$TESTS" in
+*%functions%*|*%system%*|*%$NAME%*)
+TEST="$NAME: call to od via dual system()"
+testod "$N" "$TEST" "system:$OD_C>&6,fdout=6!!system:$CAT<&7,fdin=7" "pipe" "$opts" "$val_t"
+esac
+N=$((N+1))
 
 
 case "$UNAME" in
