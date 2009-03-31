@@ -1,6 +1,6 @@
 #! /bin/bash
 # source: test.sh
-# Copyright Gerhard Rieger 2001-2008
+# Copyright Gerhard Rieger 2001-2009
 # Published under the GNU General Public License V.2, see file COPYING
 
 # perform lots of tests on socat
@@ -5694,7 +5694,7 @@ N=$((N+1))
 
 NAME=CONNECTTIMEOUT
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%timeout%*|*%$NAME%*)
 TEST="$NAME: test the connect-timeout option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp); then
@@ -5742,6 +5742,53 @@ fi
 wait
 fi ;; # testaddrs, NUMCOND
 esac
+N=$((N+1))
+
+
+# version 1.7.0.0 had a bug with the connect-timeout option: while it correctly
+# terminated a hanging connect attempt, it prevented a successful connection
+# establishment from being recognized by socat, instead the timeout occurred
+NAME=CONNECTTIMEOUT_CONN
+if ! eval $NUMCOND; then :; else
+case "$TESTS" in
+*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%timeout%*|*%$NAME%*)
+TEST="$NAME: TCP4 connect-timeout option when server replies"
+# just try a connection that is expected to succeed with the usual data
+# transfer; with the bug it will fail
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+tsl=$PORT
+ts="127.0.0.1:$tsl"
+da="test$N $(date) $RANDOM"
+CMD1="$SOCAT $opts TCP4-LISTEN:$tsl,reuseaddr PIPE"
+CMD2="$SOCAT $opts STDIO TCP4:$ts,connect-timeout=1"
+printf "test $F_n $TEST... " $N
+$CMD1 >"$tf" 2>"${te}1" &
+pid1=$!
+waittcp4port $tsl 1
+echo "$da" |$CMD2 >>"$tf" 2>>"${te}2"
+if [ $? -ne 0 ]; then
+   $PRINTF "$FAILED: $SOCAT:\n"
+   echo "$CMD1 &"
+   cat "${te}1"
+   echo "$CMD2"
+   cat "${te}2"
+   numFAIL=$((numFAIL+1))
+elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
+   $PRINTF "$FAILED\n"
+   cat "$tdiff"
+   numFAIL=$((numFAIL+1))
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
+   numOK=$((numOK+1))
+fi
+kill $pid1 2>/dev/null
+wait ;;
+esac
+PORT=$((PORT+1))
+fi # NUMCOND
 N=$((N+1))
 
 
