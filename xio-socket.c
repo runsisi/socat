@@ -1,5 +1,5 @@
 /* source: xio-socket.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2009 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for socket related functions, and the
@@ -849,10 +849,10 @@ int _xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
 		  themlen, strerror(errno));
 	    timeout = xfd->para.socket.connect_timeout;
 	    writefd.fd = xfd->fd;
-	    writefd.events = (POLLIN|POLLHUP|POLLERR);
+	    writefd.events = (POLLOUT|POLLERR);
 	    result = xiopoll(&writefd, 1, &timeout);
 	    if (result < 0) {
-	       Msg4(level, "xiopoll({%d,POLLIN|POLLHUP|POLLER},,{"F_tv_sec"."F_tv_usec"): %s",
+	       Msg4(level, "xiopoll({%d,POLLOUT|POLLERR},,{"F_tv_sec"."F_tv_usec"): %s",
 		    xfd->fd, timeout.tv_sec, timeout.tv_usec, strerror(errno));
 	       return STAT_RETRYLATER;
 	    }
@@ -862,7 +862,7 @@ int _xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
 		    strerror(ETIMEDOUT));
 	       return STAT_RETRYLATER;
 	    }
-	    if (writefd.revents & POLLOUT) {
+	    if (writefd.revents & POLLERR) {
 #if 0
 	       unsigned char dummy[1];
 	       Read(xfd->fd, &dummy, 1);	/* get error message */

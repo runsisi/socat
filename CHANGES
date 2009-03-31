@@ -1,4 +1,9 @@
 
+corrections:
+	fixed a bug, introduced with version 1.7.0.0, that let client
+	connections with option connect-timeout fail when the connections
+	succeeded. Thanks to Bruno De Fraine for reporting this bug.
+
 ####################### V 1.7.0.0:
 
 new features:
