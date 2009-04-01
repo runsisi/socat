@@ -1,4 +1,6 @@
 
+####################### V 1.7.0.1:
+
 corrections:
 	fixed possible SIGSEGV in listening addresses when a new connection was
 	reset by peer before the socket addresses could be retrieved. Thanks to
@@ -14,7 +16,7 @@ corrections:
 	half close of EXEC and SYSTEM addresses did not work for pipes and
 	sometimes socketpair
 
-	help displayed some option types wrong
+	help displayed for some option a wrong type
 
 	under some circumstances shutdown was called multiple times for the
 	same fd

@@ -1,5 +1,5 @@
 /* source: socat.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2009 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this is the main source, including command line option parsing, general
