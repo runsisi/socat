@@ -1,5 +1,5 @@
 /* source: sysincludes.h */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2009 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __sysincludes_h_included
@@ -36,7 +36,7 @@
 #if HAVE_GRP_H
 #include <grp.h>	/* getgrnam() */
 #endif
-#if HAVE_PTY_H && _WITH_TERMIOS
+#if HAVE_PTY_H && (_WITH_TERMIOS || HAVE_OPENPTY)
 #include <pty.h>
 #endif
 #if HAVE_SYS_PARAM_H
