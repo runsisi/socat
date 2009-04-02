@@ -8,7 +8,9 @@
 # This is an example for a shell script that can be fed to socat with exec.
 # Its clue is that it does not use stdin/stdout for communication with socat,
 # so you may feed the mail message via stdin to the script. The message should
-# contain appropriate mail headers.
+# contain appropriate mail headers without continuation lines.
+# socat establishes the connection to the SMTP server; the script performs the
+# SMTP dialog and afterwards transfers the message body to the server.
 # Lines with only a dot are not permitted - use two dots as escape.
 # This script supports multiline answers from server, but not much more yet.
 

@@ -340,21 +340,21 @@ label(ADDRESS_IP_SENDTO)dit(bf(tt(IP-SENDTO:<host>:<protocol>)))
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4),link(IP6)(GROUP_IP6) nl()
    Useful options:
    link(pf)(OPTION_PROTOCOL_FAMILY),
-   link(ttl)(OPTION_TTL)
+   link(ttl)(OPTION_TTL) nl()
    See also:
    link(IP4-SENDTO)(ADDRESS_IP4_SENDTO),
    link(IP6-SENDTO)(ADDRESS_IP6_SENDTO),
    link(IP-RECVFROM)(ADDRESS_IP_RECVFROM),
    link(IP-RECV)(ADDRESS_IP_RECV),
-   link(UDP-SENDTO)(ADDRESS_UDP_SENDTO)
+   link(UDP-SENDTO)(ADDRESS_UDP_SENDTO),
    link(UNIX-SENDTO)(ADDRESS_UNIX_SENDTO)
 label(ADDRESS_INTERFACE)dit(bf(tt(INTERFACE:<interface>)))
-   Communicate with a network connected on an interface using raw packets
+   Communicates with a network connected on an interface using raw packets
    including link level data. link(<interface>)(TYPE_INTERFACE) is the name of
    the network interface. Currently only available on Linux.
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET) nl()
    Useful options:
-   link(pf)(OPTION_PROTOCOL_FAMILY)
+   link(pf)(OPTION_PROTOCOL_FAMILY),
    link(type)(OPTION_SO_TYPE)nl()
    See also: link(ip-recv)(ADDRESS_IP_RECV)
 label(ADDRESS_IP4_SENDTO)dit(bf(tt(IP4-SENDTO:<host>:<protocol>)))
@@ -368,7 +368,7 @@ label(ADDRESS_IP_DATAGRAM)dit(bf(tt(IP-DATAGRAM:<address>:<protocol>)))
    Sends outgoing data to the specified address which may in particular be a
    broadcast or multicast address. Packets arriving on the local socket are
    checked if their source addresses match
-   eventual link(RANGE)(OPTION_RANGE) or link(TCPWRAP)(OPTION_TCPWRAPPERS)
+   link(RANGE)(OPTION_RANGE) or link(TCPWRAP)(OPTION_TCPWRAPPERS)
    options. This address type can for example be used for implementing
    symmetric or asymmetric broadcast or multicast communications.nl()
    Option groups: link(FD)(GROUP_FD), link(SOCKET)(GROUP_SOCKET),
@@ -395,19 +395,21 @@ label(ADDRESS_IP_DATAGRAM)dit(bf(tt(IP-DATAGRAM:<address>:<protocol>)))
 label(ADDRESS_IP4_DATAGRAM)dit(bf(tt(IP4-DATAGRAM:<host>:<protocol>)))
    Like link(IP-DATAGRAM)(ADDRESS_IP_DATAGRAM), but always uses IPv4.
    (link(example)(EXAMPLE_ADDRESS_IP4_BROADCAST_CLIENT))nl()
-   Option groups: link(FD)(GROUP_FD), link(SOCKET)(GROUP_SOCKET),
-      link(IP4)(GROUP_IP4), link(RANGE)(GROUP_RANGE) nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4),link(RANGE)(GROUP_RANGE) nl()
 label(ADDRESS_IP6_DATAGRAM)dit(bf(tt(IP6-DATAGRAM:<host>:<protocol>)))
    Like link(IP-DATAGRAM)(ADDRESS_IP_DATAGRAM), but always uses IPv6. Please
    note that IPv6 does not know broadcasts.nl()
-   Option groups: link(FD)(GROUP_FD), link(SOCKET)(GROUP_SOCKET),
-      link(IP6)(GROUP_IP6), link(RANGE)(GROUP_RANGE) nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP6)(GROUP_IP6),link(RANGE)(GROUP_RANGE) nl()
 
 label(ADDRESS_IP_RECVFROM)dit(bf(tt(IP-RECVFROM:<protocol>)))
    Opens a raw IP socket of link(<protocol>)(TYPE_PROTOCOL). Depending on option link(pf)(OPTION_PROTOCOL_FAMILY), IP procotol version
    4 or 6 is used. It receives one packet from an unspecified peer and may send one or more answer packets to that peer.
    This mode is particularly useful with fork option where each arriving packet - from arbitrary peers - is handled by its own sub process.
-   This allows a behaviour similar to typical UDP based servers like ntpd or named.
+   This allows a behaviour similar to typical UDP based servers like ntpd or
+   named.nl()
+   Please note that the reply packets might be fetched as incoming traffic when
+   sender and receiver IP address are identical because there is no port number
+   to distinguish the sockets.nl()
    This address works well with IP-SENDTO address peers (see above).
    Protocol 255 uses the raw socket with the IP header being part of the
    data.nl()
@@ -675,7 +677,7 @@ label(ADDRESS_SCTP6_LISTEN)dit(bf(tt(SCTP6-LISTEN:<port>)))
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(LISTEN)(GROUP_LISTEN),link(CHILD)(GROUP_CHILD),link(RANGE)(GROUP_RANGE),link(IP6)(GROUP_IP6),link(SCTP)(GROUP_SCTP),link(RETRY)(GROUP_RETRY) nl()
 label(ADDRESS_SOCKET_CONNECT)dit(bf(tt(SOCKET-CONNECT:<domain>:<protocol>:<remote-address>)))
    Creates a stream socket using the first and second given socket parameters
-   and tt(SOCK_STREAM) (see man socket(2)) and connects to the remote-address.
+   and tt(SOCK_STREAM) (see man socket\(2)) and connects to the remote-address.
    The two socket parameters have to be specified by link(int)(TYPE_INT)
    numbers. Consult your OS documentation and include files to find the
    appropriate values. The remote-address must be the link(data)(TYPE_DATA)
@@ -699,7 +701,7 @@ label(ADDRESS_SOCKET_CONNECT)dit(bf(tt(SOCKET-CONNECT:<domain>:<protocol>:<remot
    link(SOCKET-SENDTO)(ADDRESS_SOCKET_SENDTO)
 label(ADDRESS_SOCKET_DATAGRAM)dit(bf(tt(SOCKET-DATAGRAM:<domain>:<type>:<protocol>:<remote-address>)))
    Creates a datagram socket using the first three given socket parameters (see
-   man socket(2)) and sends outgoing data to the remote-address. The three
+   man socket\(2)) and sends outgoing data to the remote-address. The three
    socket parameters have to be specified by link(int)(TYPE_INT)
    numbers. Consult your OS documentation and include files to find the
    appropriate values. The remote-address must be the link(data)(TYPE_DATA)
@@ -724,7 +726,7 @@ label(ADDRESS_SOCKET_DATAGRAM)dit(bf(tt(SOCKET-DATAGRAM:<domain>:<type>:<protoco
    link(SOCKET-RECVFROM)(ADDRESS_SOCKET_RECVFROM)
 label(ADDRESS_SOCKET_LISTEN)dit(bf(tt(SOCKET-LISTEN:<domain>:<protocol>:<local-address>)))
    Creates a stream socket using the first and second given socket parameters
-   and tt(SOCK_STREAM) (see man socket(2)) and waits for incoming connections
+   and tt(SOCK_STREAM) (see man socket\(2)) and waits for incoming connections
    on local-address. The two socket parameters have to be specified by
    link(int)(TYPE_INT) numbers. Consult your OS documentation and include files
    to find the appropriate values. The local-address must be the
@@ -746,8 +748,8 @@ label(ADDRESS_SOCKET_LISTEN)dit(bf(tt(SOCKET-LISTEN:<domain>:<protocol>:<local-a
    link(SOCKET-LISTEN)(ADDRESS_SOCKET_CONNECT),
    link(SOCKET-SENDTO)(ADDRESS_SOCKET_RECVFROM),
    link(SOCKET-SENDTO)(ADDRESS_SOCKET_RECV)
-label(ADDRESS_SOCKET_RECV)dit(bf(tt(SOCKET_RECV:<domain>:<type>:<protocol>:<local-address>)))
-   Creates a socket using the three given socket parameters (see man socket(2))
+label(ADDRESS_SOCKET_RECV)dit(bf(tt(SOCKET-RECV:<domain>:<type>:<protocol>:<local-address>)))
+   Creates a socket using the three given socket parameters (see man socket\(2))
    and binds it to <local-address>. Receives arriving data. The three
    parameters have to be specified by link(int)(TYPE_INT) numbers. Consult your
    OS documentation and include files to find the appropriate values. The
@@ -767,8 +769,8 @@ label(ADDRESS_SOCKET_RECV)dit(bf(tt(SOCKET_RECV:<domain>:<type>:<protocol>:<loca
    link(SOCKET-DATAGRAM)(ADDRESS_SOCKET_DATAGRAM),
    link(SOCKET-SENDTO)(ADDRESS_SOCKET_SENDTO),
    link(SOCKET-RECVFROM)(ADDRESS_SOCKET_RECVFROM)
-label(ADDRESS_SOCKET_RECVFROM)dit(bf(tt(SOCKET_RECVFROM:<domain>:<type>:<protocol>:<local-address>)))
-   Creates a socket using the three given socket parameters (see man socket(2))
+label(ADDRESS_SOCKET_RECVFROM)dit(bf(tt(SOCKET-RECVFROM:<domain>:<type>:<protocol>:<local-address>)))
+   Creates a socket using the three given socket parameters (see man socket\(2))
    and binds it to <local-address>. Receives arriving data and sends replies
    back to the sender. The first three parameters have to be specified as
    link(int)(TYPE_INT) numbers. Consult your OS documentation and include files
@@ -790,9 +792,9 @@ label(ADDRESS_SOCKET_RECVFROM)dit(bf(tt(SOCKET_RECVFROM:<domain>:<type>:<protoco
    link(SOCKET-DATAGRAM)(ADDRESS_SOCKET_DATAGRAM),
    link(SOCKET-SENDTO)(ADDRESS_SOCKET_SENDTO),
    link(SOCKET-RECV)(ADDRESS_SOCKET_RECV)
-label(ADDRESS_SOCKET_SENDTO)dit(bf(tt(SOCKET_SENDTO:<domain>:<type>:<protocol>:<remote-address>)))
+label(ADDRESS_SOCKET_SENDTO)dit(bf(tt(SOCKET-SENDTO:<domain>:<type>:<protocol>:<remote-address>)))
    Creates a socket using the three given socket parameters (see man
-   socket(2)). Sends outgoing data to the given address and receives replies.
+   socket\(2)). Sends outgoing data to the given address and receives replies.
    The three parameters have to be specified as link(int)(TYPE_INT)
    numbers. Consult your OS documentation and include files to find the
    appropriate values. The remote-address must be the link(data)(TYPE_DATA)
@@ -996,7 +998,7 @@ label(ADDRESS_UDP_DATAGRAM)dit(bf(tt(UDP-DATAGRAM:<address>:<port>)))
    Sends outgoing data to the specified address which may in particular be a
    broadcast or multicast address. Packets arriving on the local socket are
    checked for the correct remote port and if their source addresses match
-   eventual link(RANGE)(OPTION_RANGE) or link(TCPWRAP)(OPTION_TCPWRAPPERS)
+   link(RANGE)(OPTION_RANGE) or link(TCPWRAP)(OPTION_TCPWRAPPERS)
    options. This address type can for example be used for implementing
    symmetric or asymmetric broadcast or multicast communications.nl()
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4),link(IP6)(GROUP_IP6),link(RANGE)(GROUP_RANGE) nl()
@@ -1026,13 +1028,11 @@ label(ADDRESS_UDP4_DATAGRAM)dit(bf(tt(UDP4-DATAGRAM:<address>:<port>)))
    Like link(UDP-DATAGRAM)(ADDRESS_UDP_DATAGRAM), but only supports IPv4
    protocol (link(example1)(EXAMPLE_ADDRESS_UDP4_BROADCAST_CLIENT),
    link(example2)(EXAMPLE_ADDRESS_UDP4_MULTICAST)).nl() 
-   Option groups: link(FD)(GROUP_FD), link(SOCKET)(GROUP_SOCKET),
-      link(IP4)(GROUP_IP4), link(RANGE)(GROUP_RANGE)
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4), link(RANGE)(GROUP_RANGE)
 label(ADDRESS_UDP6_DATAGRAM)dit(bf(tt(UDP6-DATAGRAM:<address>:<port>)))
    Like link(UDP-DATAGRAM)(ADDRESS_UDP_DATAGRAM), but only supports IPv6
    protocol.nl() 
-   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),
-      link(IP6)(GROUP_IP6),link(RANGE)(GROUP_RANGE)
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP6)(GROUP_IP6),link(RANGE)(GROUP_RANGE)
 label(ADDRESS_UDP_LISTEN)dit(bf(tt(UDP-LISTEN:<port>)))
    Waits for a UDP/IP packet arriving on <port>
    [link(UDP service)(TYPE_UDP_SERVICE)] and `connects' back to sender.
@@ -1104,7 +1104,7 @@ label(ADDRESS_UDP_RECVFROM)dit(bf(tt(UDP-RECVFROM:<port>)))
    option 
    where each arriving packet - from arbitrary peers - is handled by its own sub
    process. This allows a behaviour similar to typical UDP based servers like ntpd
-   or named. This address works well with socat SENDTO address peers.nl()
+   or named. This address works well with socat UDP-SENDTO address peers.nl()
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4),link(IP6)(GROUP_IP6),link(CHILD)(GROUP_CHILD),link(RANGE)(GROUP_RANGE) nl()
    Useful options:
    link(fork)(OPTION_FORK),
@@ -1165,9 +1165,7 @@ label(ADDRESS_UNIX_CONNECT)dit(bf(tt(UNIX-CONNECT:<filename>)))
    if <filename> is not a unixdomain() socket, this is an error;
    if <filename> is a unixdomain() socket, but no process is listening, this is
    an error.nl() 
-   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),
-      link(NAMED)(GROUP_NAMED),link(RETRY)(GROUP_RETRY),
-      link(UNIX)(GROUP_SOCK_UNIX) nl())
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(NAMED)(GROUP_NAMED),link(RETRY)(GROUP_RETRY),link(UNIX)(GROUP_SOCK_UNIX) nl())
    Useful options:
    link(bind)(OPTION_BIND)nl()
    See also:
@@ -1184,10 +1182,7 @@ label(ADDRESS_UNIX_LISTEN)dit(bf(tt(UNIX-LISTEN:<filename>)))
    Note that opening this address usually blocks until a client connects.
    Beginning with socat version 1.4.3, the file system entry is removed when
    this address is closed (but see option link(unlink-close)(OPTION_UNLINK_CLOSE)) (link(example)(EXAMPLE_ADDRESS_UNIX_LISTEN)).nl()
-   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),
-      link(NAMED)(GROUP_NAMED),link(LISTEN)(GROUP_LISTEN),
-      link(CHILD)(GROUP_CHILD),link(RETRY)(GROUP_RETRY),
-      link(UNIX)(GROUP_SOCK_UNIX) nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(NAMED)(GROUP_NAMED),link(LISTEN)(GROUP_LISTEN),link(CHILD)(GROUP_CHILD),link(RETRY)(GROUP_RETRY),link(UNIX)(GROUP_SOCK_UNIX) nl()
    Useful options:
    link(fork)(OPTION_FORK),
    link(umask)(OPTION_UMASK),
@@ -1204,9 +1199,12 @@ label(ADDRESS_UNIX_LISTEN)dit(bf(tt(UNIX-LISTEN:<filename>)))
 label(ADDRESS_UNIX_SENDTO)dit(bf(tt(UNIX-SENDTO:<filename>)))
    Communicates with the specified peer socket, defined by [link(<filename>)(TYPE_FILENAME)] assuming it is a unixdomain() datagram socket.
    It sends packets to and receives packets from that peer socket only.
-   It works well with socat UNIX-RECVFROM and UNIX-RECV address peers.nl()
-   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),
-      link(NAMED)(GROUP_NAMED),link(UNIX)(GROUP_SOCK_UNIX)nl()
+   Please note that it might be neccessary to link(bind)(OPTION_BIND) the
+   local socket to an address (e.g. tt(/tmp/sock1), which must not exist
+   before).
+   This address type works well with socat UNIX-RECVFROM and UNIX-RECV address
+   peers.nl() 
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(NAMED)(GROUP_NAMED),link(UNIX)(GROUP_SOCK_UNIX)nl()
    Useful options:
    link(bind)(OPTION_BIND)nl()
    See also:
@@ -1221,9 +1219,7 @@ label(ADDRESS_UNIX_RECVFROM)dit(bf(tt(UNIX-RECVFROM:<filename>)))
    Receives one packet and may send one or more answer packets to that peer.
    This mode is particularly useful with fork option where each arriving packet - from arbitrary peers - is handled by its own sub process.
    This address works well with socat UNIX-SENDTO address peers.nl()
-   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),
-      link(NAMED)(GROUP_NAMED),link(CHILD)(GROUP_CHILD),
-      link(UNIX)(GROUP_SOCK_UNIX) nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(NAMED)(GROUP_NAMED),link(CHILD)(GROUP_CHILD),link(UNIX)(GROUP_SOCK_UNIX) nl()
    Useful options:
    link(fork)(OPTION_FORK)nl()
    See also:
@@ -1238,8 +1234,7 @@ label(ADDRESS_UNIX_RECV)dit(bf(tt(UNIX-RECV:<filename>)))
    Receives packets from multiple unspecified peers and merges the data.
    No replies are possible. It can be, e.g., addressed by socat UNIX-SENDTO address peers.
    It behaves similar to a syslog server.
-   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),
-      link(NAMED)(GROUP_NAMED),link(UNIX)(GROUP_SOCK_UNIX) nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(NAMED)(GROUP_NAMED),link(UNIX)(GROUP_SOCK_UNIX) nl()
    See also:
    link(UNIX-SENDTO)(ADDRESS_UNIX_SENDTO),
    link(UNIX-RECVFROM)(ADDRESS_UNIX_RECVFROM),
@@ -1252,8 +1247,7 @@ label(ADDRESS_UNIX_CLIENT)dit(bf(tt(UNIX-CLIENT:<filename>)))
    [link(<filename>)(TYPE_FILENAME)] assuming it is a unixdomain() socket.
    It first tries to connect and, if that fails, assumes it is a datagram
    socket, thus supporting both types.nl()
-   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),
-      link(NAMED)(GROUP_NAMED),link(UNIX)(GROUP_SOCK_UNIX) nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(NAMED)(GROUP_NAMED),link(UNIX)(GROUP_SOCK_UNIX) nl()
    Useful options:
    link(bind)(OPTION_BIND)nl()
    See also:
@@ -1610,21 +1604,24 @@ startdit()
 label(OPTION_SEEK)dit(bf(tt(seek=<offset>)))
    Applies the code(lseek(fd, <offset>, SEEK_SET)) (or code(lseek64)) system
    call, thus positioning the file pointer absolutely to <offset>
-   [link(off_t)(TYPE_OFF) or link(off64_t)(TYPE_OFF64)].
+   [link(off_t)(TYPE_OFF) or link(off64_t)(TYPE_OFF64)]. Please note that a
+   missing value defaults to 1, not 0.
 label(OPTION_SEEK_CUR)dit(bf(tt(seek-cur=<offset>)))
    Applies the code(lseek(fd, <offset>, SEEK_CUR)) (or code(lseek64)) system
    call, thus positioning the file pointer <offset> [link(off_t)(TYPE_OFF) or
    link(off64_t)(TYPE_OFF64)] bytes relatively to its current position (which
-   is usually 0).
+   is usually 0). Please note that a missing value defaults to 1, not 0.
 label(OPTION_SEEK_END)dit(bf(tt(seek-end=<offset>)))
    Applies the code(lseek(fd, <offset>, SEEK_END)) (or code(lseek64)) system
    call, thus positioning the file pointer <offset> [link(off_t)(TYPE_OFF) or
-   link(off64_t)(TYPE_OFF64)] bytes relatively to the files current end.  
+   link(off64_t)(TYPE_OFF64)] bytes relatively to the files current end. Please
+   note that a missing value defaults to 1, not 0.  
 label(OPTION_FTRUNCATE)dit(bf(tt(ftruncate=<offset>)))
    Applies the code(ftruncate(fd, <offset>))
    (or code(ftruncate64) if available) system call, thus
    truncating the file at the position <offset> [link(off_t)(TYPE_OFF) or 
-   link(off64_t)(TYPE_OFF64)].
+   link(off64_t)(TYPE_OFF64)]. Please note that a missing value defaults to 1,
+   not 0.
 
 label(OPTION_EXT2_SECRM_FL)dit(bf(tt(secrm=<bool>)))
 label(OPTION_EXT2_UNRM)dit(bf(tt(unrm=<bool>)))
@@ -1712,7 +1709,7 @@ label(OPTION_NOECHO)dit(bf(tt(noecho=<pattern>)))
    The prompt is defined as the text that was output to the readline address 
    after the lastest newline character and before an input character was
    typed. The pattern is a regular expression, e.g.
-   "^[Pp]assword:.*$" or "([Uu]ser:|[Pp]assword:)". See regex(7) for details.
+   "^[Pp]assword:.*$" or "([Uu]ser:|[Pp]assword:)". See regex\(7) for details.
    (link(example)(EXAMPLE_OPTION_NOECHO))
 label(OPTION_PROMPT)dit(bf(tt(prompt=<string>)))
    Passes the string as prompt to the readline function. readline prints this
@@ -1768,11 +1765,11 @@ label(OPTION_BIND)dit(bf(tt(bind=<sockname>)))
    Binds the socket to the given socket address using the code(bind()) system
    call. The form of <sockname> is socket domain dependent:
    IP4 and IP6 allow the form [hostname|hostaddress][:(service|port)] (link(example)(EXAMPLE_OPTION_BIND_TCP4)),
-   unixdomain() sockets require link(<filename>)(TYPE_FILENAME). 
+   unixdomain() sockets require link(<filename>)(TYPE_FILENAME).
 label(OPTION_CONNECT_TIMEOUT)dit(bf(tt(connect-timeout=<seconds>)))
    Abort the connection attempt after <seconds> [link(timeval)(TYPE_TIMEVAL)]
    with error status.
-label(OPTION_INTERFACE)dit(bf(tt(interface=<interface>)))
+label(OPTION_SO_BINDTODEV)dit(bf(tt(so-bindtodev=<interface>)))
    Binds the socket to the given link(<interface>)(TYPE_INTERFACE).
    This option might require root privilege.
 label(OPTION_SO_BROADCAST)dit(bf(tt(broadcast)))
@@ -1893,7 +1890,7 @@ label(OPTION_SETSOCKOPT_INT)dit(bf(tt(setsockopt-int=<level>:<optname>:<optval>)
    set. For the actual numbers you might have to look up the appropriate include
    files of your system. The 4th tt(setsockopt()) parameter, tt(value)
    [link(int)(TYPE_INT)], is passed to the function per pointer, and for the
-   length parameter sizeof(int) is taken implicitely.
+   length parameter sizeof\(int) is taken implicitely.
 label(OPTION_SETSOCKOPT_BIN)dit(bf(tt(setsockopt-bin=<level>:<optname>:<optval>)))
    Like tt(setsockopt-int), but <optval> must be provided in
    link(dalan)(TYPE_DATA) format and specifies an arbitrary sequence of bytes;
@@ -2015,7 +2012,7 @@ label(OPTION_RES_DEFNAMES)dit(bf(tt(res-defnames)))
 label(OPTION_RES_STAYOPEN)dit(bf(tt(res-stayopen)))
 label(OPTION_RES_DNSRCH)dit(bf(tt(res-dnsrch)))
    These options set the corresponding resolver (name resolution) option flags.
-   Append "=0" to clear a default option. See man resolver(5) for more
+   Append "=0" to clear a default option. See man resolver\(5) for more
    information on these options. Note: these options are valid only for the
    address they are applied to.
    
@@ -2122,7 +2119,7 @@ label(OPTION_TCP_CONN_ABORT_THRESHOLD)dit(bf(tt(conn-abort-threshold=<millisecon
    Sets the time to wait for an answer of the server during the initial connect
    (HP-UX).
 label(OPTION_TCP_KEEPINIT)dit(bf(tt(keepinit)))
-   Sets the time to wait for an answer of the server during connect() before
+   Sets the time to wait for an answer of the server during connect\() before
    giving up. Value in half seconds, default is 150 (75s) (Tru64).
 label(OPTION_TCP_PAWS)dit(bf(tt(paws)))
    Enables the "protect against wrapped sequence numbers" feature (Tru64).
@@ -2306,8 +2303,8 @@ child process uses file descriptors 0 and 1 for communicating with the main
 socat process.
 startdit()
 label(OPTION_NOFORK)dit(bf(tt(nofork)))
-   Does not fork a subprocess for executing the program, instead calls execvp()
-   or system() directly from the actual socat instance. This avoids the
+   Does not fork a subprocess for executing the program, instead calls execvp\()
+   or system\() directly from the actual socat instance. This avoids the
    overhead of another process between the program and its peer,
    but introduces a lot of restrictions:
    startit()
@@ -2352,7 +2349,7 @@ label(OPTION_FDOUT)dit(bf(tt(fdout=<fdnum>)))
    instead of stdout (1). The program started from the subprocess has to use 
    this fd for writing data to socat() (link(example)(EXAMPLE_OPTION_FDOUT)).
 label(OPTION_SIGHUP)label(OPTION_SIGINT)label(OPTION_SIGQUIT)dit(bf(tt(sighup)), bf(tt(sigint)), bf(tt(sigquit)))
-   Has socat() pass an eventual signal of this type to the sub process.
+   Has socat() pass signals of this type to the sub process.
    If no address has this option, socat terminates on these signals.
 enddit()
 
@@ -2629,7 +2626,7 @@ label(OPTION_OPENSSL_PSEUDO)dit(bf(tt(pseudo)))
    gathering daemon can be utilized, this option activates a mechanism for
    providing pseudo entropy. This is archieved by taking the current time in
    microseconds for feeding the libc pseudo random number generator with an
-   initial value. openssl is then feeded with output from random() calls.nl()
+   initial value. openssl is then feeded with output from random\() calls.nl()
    NOTE:This mechanism is not sufficient for generation of secure keys!
 label(OPTION_OPENSSL_FIPS)dit(bf(tt(fips)))
    Enables FIPS mode if compiled in. For info about the FIPS encryption
@@ -3171,8 +3168,8 @@ dit(bf(tt(socat -U TCP:target:9999,end-close TCP-L:8888,reuseaddr,fork)))
 merges data arriving from different TCP streams on port 8888 to just one stream
 to target:9999. The link(end-close)(OPTION_END_CLOSE) option prevents the child
 processes forked off by the second address from terminating the shared
-connection to 9999 (close(2) just unlinks the inode which stays active as long
-as the parent process lives; shutdown(2) would actively terminate the
+connection to 9999 (close\(2) just unlinks the inode which stays active as long
+as the parent process lives; shutdown\(2) would actively terminate the
 connection).
 
 
@@ -3195,7 +3192,7 @@ tt(SO_BROADCAST).
 label(EXAMPLE_ADDRESS_IP4_BROADCAST_CLIENT)
 dit(bf(tt(socat - IP4-DATAGRAM:255.255.255.255:44,broadcast,range=10.0.0.0/8)))
 
-sends a broadcast to the local network(s) using protocol 44. Accepts replies
+sends a broadcast to the local network\(s) using protocol 44. Accepts replies
 from the private address range only.
 
 
@@ -3245,7 +3242,7 @@ servers), and the original client request.
 label(EXAMPLE_ANCILLARY)
 dit(bf(tt(socat -d -d UDP4-RECVFROM:9999,so-broadcast,so-timestamp,ip-pktinfo,ip-recverr,ip-recvopts,ip-recvtos,ip-recvttl!!- SYSTEM:'export; sleep 1' |grep SOCAT)))
 
-waits for incoming UDP packets on port 9999 and prints the environment 
+waits for an incoming UDP packets on port 9999 and prints the environment 
 variables provided by socat. On BSD based systems you have to replace
 link(tt(ip-pktinfo))(OPTION_IP_PKTINFO) with link(tt(ip-recvdstaddr))(OPTION_IP_RECVDSTADDR),link(tt(ip-recvif))(OPTION_IP_RECVIF). Especially interesting is
 SOCAT_IP_DSTADDR: it contains the target address of the packet which may be a
@@ -3323,7 +3320,7 @@ result (with differing IP version) is taken. With value 0, socat always selects
 the first record and its IP version. 
 
 dit(bf(SOCAT_FORK_WAIT) (input)) Specifies the time (seconds) to sleep the
-parent and child processes after successful fork(). Useful for debugging.
+parent and child processes after successful fork\(). Useful for debugging.
 
 dit(bf(SOCAT_VERSION) (output)) Socat sets this variable to its version string,
 e.g. tt("1.7.0.0") for released versions or e.g. tt("1.6.0.1+envvar") for
@@ -3472,8 +3469,8 @@ label(SEEALSO)
 manpageseealso()
 
 COMMENT(procan\(1), filan\(1), )
-nc(1), netcat6(1), sock(1), rinetd(8), cage(1), socks.conf(5), openssl(1),
-stunnel(8), pty(1), rlwrap(1), setsid(1)
+nc\(1), netcat6\(1), sock\(1), rinetd\(8), cage\(1), socks.conf\(5), openssl\(1),
+stunnel\(8), pty\(1), rlwrap\(1), setsid\(1)
 
 Socat() home page lurl(http://www.dest-unreach.org/socat/)
 

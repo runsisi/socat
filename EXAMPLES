@@ -230,7 +230,7 @@ $ socat -d -d tcp:localhost:25,crlf,nodelay exec:'/usr/sbin/chat -v -s "\"220 \"
 //////////////////////////////////////////////////////////////////////////////
 // IP6
 
-# socat readline TCP6:::1:21	# if your inetd/ftp is listening on ip6
+# socat readline TCP6:[::1]:21	# if your inetd/ftp is listening on ip6
 
 
 ///////////////////////////////////////////////////////////////////////////////

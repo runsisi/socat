@@ -2054,7 +2054,7 @@ waitfile () {
 # generate a test certificate and key
 gentestcert () {
     local name="$1"
-    if [ -f $name.key -a -f $name.crt -a -f $name.pem ]; then return; fi
+    if [ -s $name.key -a -s $name.crt -a -s $name.pem ]; then return; fi
     openssl genrsa $OPENSSL_RAND -out $name.key 768 >/dev/null 2>&1
     openssl req -new -config testcert.conf -key $name.key -x509 -out $name.crt -days 3653 >/dev/null 2>&1
     cat $name.key $name.crt >$name.pem
@@ -2063,7 +2063,7 @@ gentestcert () {
 # generate a test DSA key and certificate
 gentestdsacert () {
     local name="$1"
-    if [ -f $name.key -a -f $name.crt -a -f $name.pem ]; then return; fi
+    if [ -s $name.key -a -s $name.crt -a -s $name.pem ]; then return; fi
     openssl dsaparam -out $name-dsa.pem 512 >/dev/null 2>&1
     openssl dhparam -dsaparam -out $name-dh.pem 512 >/dev/null 2>&1
     openssl req -newkey dsa:$name-dsa.pem -keyout $name.key -nodes -x509 -config testcert.conf -out $name.crt -days 3653 >/dev/null 2>&1
@@ -4564,7 +4564,7 @@ case "$TESTS" in
 TEST="$NAME: readline with password and sigint"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs readline pty); then
-    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo $feat| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
+    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
 SAVETERM="$TERM"; TERM=	# 'cause konsole might print controls even in raw
@@ -4708,7 +4708,7 @@ case "$TESTS" in
 TEST="$NAME: gender changer via SSL through HTTP proxy, oneshot"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs openssl proxy); then
-    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo $feat |tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
+    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat" |tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
 gentestcert testsrv
@@ -4793,7 +4793,7 @@ case "$TESTS" in
 TEST="$NAME: gender changer via SSL through HTTP proxy, daemons"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs openssl proxy); then
-    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo $feat| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
+    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
 gentestcert testsrv
@@ -5661,10 +5661,10 @@ case "$TESTS" in
 TEST="$NAME: test if master pty ($PTYTYPE) waits for slave connection"
 if ! eval $NUMCOND; then :; else
 if ! feat=$(testaddrs pty); then
-    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo $feat| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
+    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 elif ! feat=$(testoptions "$PTYTYPE" pty-wait-slave); then
-    $PRINTF "test $F_n $TEST... ${YELLOW}option $(echo $feat| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
+    $PRINTF "test $F_n $TEST... ${YELLOW}option $(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
    testptywaitslave "$N" "$TEST" "$PTYTYPE" "$opts"
@@ -5680,10 +5680,10 @@ case "$TESTS" in
 TEST="$NAME: test if master pty ($PTYTYPE) waits for slave connection"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs pty); then
-    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo $feat| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
+    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 elif ! feat=$(testoptions "$PTYTYPE" pty-wait-slave); then
-    $PRINTF "test $F_n $TEST... ${YELLOW}option $(echo $feat| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
+    $PRINTF "test $F_n $TEST... ${YELLOW}option $(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
    testptywaitslave "$N" "$TEST" "$PTYTYPE" "$opts"
@@ -5698,10 +5698,10 @@ case "$TESTS" in
 TEST="$NAME: test the connect-timeout option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp); then
-    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo $feat| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
+    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 elif ! feat=$(testoptions connect-timeout); then
-    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo $feat| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
+    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
 # we need a hanging connection attempt, guess an address for this
@@ -5840,7 +5840,7 @@ N=$((N+1))
 signum () {
   if [ ! "$BASH_VERSION" -o -o posix ]; then
     # we expect:
-    for i in $(POSIXLY_CORRECT=1 kill -l); do echo $i; done |grep -n -i "^$1$" |cut -d: -f1
+    for i in $(POSIXLY_CORRECT=1 kill -l); do echo "$i"; done |grep -n -i "^$1$" |cut -d: -f1
   else
     # expect:
     # " 1) SIGHUP       2) SIGINT       3) SIGQUIT      4) SIGILL"
@@ -5860,7 +5860,7 @@ case "$TESTS" in
 TEST="$NAME: exit status when dying on SIG$signam"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs pty); then
-    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo $feat |tr a-z A-Z) not available${NORMAL}\n" $N
+    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat" |tr a-z A-Z) not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
 SIG="$(signum $signam)"
@@ -5904,7 +5904,7 @@ case "$TESTS" in
 TEST="$NAME: restrict reading from file with bytes option"
 if ! eval $NUMCOND; then :;
 elif false; then
-    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo $feat| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
+    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
 tr="$td/test$N.ref"
@@ -7902,7 +7902,8 @@ waitip4proto $ts1p 1
 usleep $MICROS
 echo "$da" |$CMD2 2>>"${te}2"
 rc2="$?"
-usleep $MICROS
+#usleep $MICROS
+sleep 1
 kill "$pid1" 2>/dev/null; wait;
 if [ "$rc2" -ne 0 ]; then
    $PRINTF "$FAILED: $SOCAT:\n"
@@ -8353,7 +8354,7 @@ TEST="$NAME: socat handles data buffered by openssl"
 # transferred, the test has failed.
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs openssl) >/dev/null; then
-    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo $feat| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
+    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
 tf="$td/test$N.out"
@@ -8405,7 +8406,7 @@ TEST="$NAME: trigger EOF after that many bytes, even when socket idle"
 # the process did not terminate and the bug is still there.
 if ! eval $NUMCOND; then :;
 elif false; then
-    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo $feat| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
+    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
 tr="$td/test$N.ref"
@@ -8992,8 +8993,8 @@ while read PF KEYW ADDR IPPORT SCM_ENABLE SCM_RECV SCM_TYPE SCM_NAME ROOT SCM_VA
 do
 if [ -z "$PF" ] || [[ "$PF" == \#* ]]; then continue; fi
 #
-pf="$(echo $PF |tr A-Z a-z)"
-proto="$(echo $KEYW |tr A-Z a-z)"
+pf="$(echo "$PF" |tr A-Z a-z)"
+proto="$(echo "$KEYW" |tr A-Z a-z)"
 NAME=${KEYW}SCM_$SCM_TYPE
 case "$TESTS" in
 *%functions%*|*%$pf%*|*%dgram%*|*%udp%*|*%$proto%*|*%recv%*|*%ancillary%*|*%$ROOT%*|*%$NAME%*)
@@ -9113,7 +9114,7 @@ IP6  IP6  [::1]     PROTO ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    
 while read KEYW FEAT TEST_SOCKADDR TEST_PEERADDR TEST_SOCKPORT TEST_PEERPORT; do
 if [ -z "$KEYW" ] || [[ "$KEYW" == \#* ]]; then continue; fi
 #
-test_proto="$(echo $KEYW |tr A-Z a-z)"
+test_proto="$(echo "$KEYW" |tr A-Z a-z)"
 NAME=${KEYW}LISTENENV
 case "$TESTS" in
 *%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%$test_proto%*|*%envvar%*|*%$NAME%*)
@@ -9124,12 +9125,12 @@ TEST="$NAME: $KEYW-LISTEN fills environment variables with socket addresses"
 # describing the peer and local sockets.
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs $FEAT); then
-    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo $feat |tr a-z A-Z) not available${NORMAL}\n" $N
+    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat" |tr a-z A-Z) not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
-TEST_SOCKADDR="$(echo $TEST_SOCKADDR |sed "s/\$N/$N/g")"	# actual vars
+TEST_SOCKADDR="$(echo "$TEST_SOCKADDR" |sed "s/\$N/$N/g")"	# actual vars
 tsa="$TEST_SOCKADDR"	# test server address
 tsp="$TEST_SOCKPORT"	# test server port
 if [ "$tsp" != ',' ]; then
@@ -9137,7 +9138,7 @@ if [ "$tsp" != ',' ]; then
 else
     tsa1="$tsa"; tsa2=				# tsa1 used for addr parameter
 fi
-TEST_PEERADDR="$(echo $TEST_PEERADDR |sed "s/\$N/$N/g")"	# actual vars
+TEST_PEERADDR="$(echo "$TEST_PEERADDR" |sed "s/\$N/$N/g")"	# actual vars
 tca="$TEST_PEERADDR"	# test client address
 tcp="$TEST_PEERPORT"	# test client port
 if [ "$tcp" != ',' ]; then
@@ -9183,11 +9184,11 @@ else
     cat "${te}1"
     numFAIL=$((numFAIL+1))
 fi
-set +xv
 fi # NUMCOND, feats
  ;;
 esac
 N=$((N+1))
+set +xv
 #
 done <<<"
 TCP4  TCP  $LOCALHOST                                $SECONDADDR                               $PORT       $((PORT+1))
@@ -9206,8 +9207,8 @@ while read PF KEYW ADDR IPPORT SCM_ENABLE SCM_RECV SCM_ENVNAME ROOT SCM_VALUE
 do
 if [ -z "$PF" ] || [[ "$PF" == \#* ]]; then continue; fi
 #
-pf="$(echo $PF |tr A-Z a-z)"
-proto="$(echo $KEYW |tr A-Z a-z)"
+pf="$(echo "$PF" |tr A-Z a-z)"
+proto="$(echo "$KEYW" |tr A-Z a-z)"
 NAME=${KEYW}ENV_$SCM_ENVNAME
 case "$TESTS" in
 *%functions%*|*%$pf%*|*%dgram%*|*%udp%*|*%$proto%*|*%recv%*|*%ancillary%*|*%envvar%*|*%$ROOT%*|*%$NAME%*)
@@ -9918,7 +9919,7 @@ printf "test $F_n $TEST... " $N
 $CMD1 >"$tf" 2>"${te}1" &
 pid1=$!
 waitsctp4port $tsl 1
-# SCTP does not seem to support half close, so we let it 1s to finish
+# SCTP does not seem to support half close, so we give it 1s to finish
 (echo "$da"; sleep 1) |$CMD2 >>"$tf" 2>>"${te}2"
 if [ $? -ne 0 ]; then
    $PRINTF "$FAILED: $SOCAT:\n"
@@ -9974,8 +9975,9 @@ waitsctp6port $tsl 1
 if [ $? -ne 0 ]; then
    $PRINTF "$FAILED: $SOCAT:\n"
    echo "$CMD1 &"
+   cat "${te}1"
    echo "$CMD2"
-   cat "$te"
+   cat "${te}2"
    numFAIL=$((numFAIL+1))
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED: diff:\n"
@@ -10025,12 +10027,12 @@ case "$TESTS" in
 TEST="$NAME: give a one line description of test"
 # describe how the test is performed, and what's the success criteria
 if ! eval $NUMCOND; then :; else
-tf="$td/test$N.stout"
+tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
 CMD0="$SOCAT $opts server-address PIPE"
-CMD1="$SOCAT - client-address"
+CMD1="$SOCAT $opts - client-address"
 printf "test $F_n $TEST... " $N
 $CMD0 >/dev/null 2>"${te}0" &
 pid0=$!

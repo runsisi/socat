@@ -926,6 +926,7 @@ const struct optname optionnames[] = {
 #ifdef O_NSHARE
 	IF_OPEN   ("nshare",	&opt_o_nshare)
 #endif
+	IF_ANY    ("o-append",		&opt_append)
 #ifdef O_ASYNC
 	IF_ANY    ("o-async",		&opt_async)
 #endif
