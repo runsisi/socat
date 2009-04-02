@@ -1490,6 +1490,16 @@ label(OPTION_SHUT_DOWN)dit(bf(tt(shut-down)))
 label(OPTION_SHUT_CLOSE)dit(bf(tt(shut-close)))
    Changes the (address dependent) method of shutting down the write part of a
    connection to tt(close\(fd)).
+label(OPTION_SHUT_NULL)dit(bf(tt(shut-null)))
+   When one address indicates EOF, socat() will send a zero sized packet to the
+   write channel of the other address to transfer the EOF condition. This is
+   useful with UDP and other datagram protocols. Has been tested against
+   netcat and socat with option link(null-eof)(OPTION_NULL_EOF).
+label(OPTION_NULL_EOF)dit(bf(tt(null-eof)))
+   Normally socat() will ignore empty (zero size payload) packets arriving on
+   datagram sockets, so it survives port scans. With this option socat()
+   interprets empty datagram packets as EOF indicator (see
+   link(shut-null)(OPTION_SHUT_NULL).
 label(OPTION_IOCTL_VOID)dit(bf(tt(ioctl-void=<request>)))
    Calls tt(ioctl()) with the request value as second argument and NULL as
    third argument. This option allows to utilize ioctls that are not

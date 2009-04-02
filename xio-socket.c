@@ -196,6 +196,8 @@ const struct optdesc opt_setsockopt_int    = { "setsockopt-int",    "sockopt-int
 const struct optdesc opt_setsockopt_bin    = { "setsockopt-bin",    "sockopt-bin",    OPT_SETSOCKOPT_BIN,        GROUP_SOCKET,PH_PASTSOCKET,TYPE_INT_INT_BIN,     OFUNC_SOCKOPT_GENERIC, 0, 0 };
 const struct optdesc opt_setsockopt_string = { "setsockopt-string", "sockopt-string", OPT_SETSOCKOPT_STRING,     GROUP_SOCKET,PH_PASTSOCKET,TYPE_INT_INT_STRING,  OFUNC_SOCKOPT_GENERIC, 0, 0 };
 
+const struct optdesc opt_null_eof = { "null-eof", NULL, OPT_NULL_EOF, GROUP_SOCKET, PH_INIT, TYPE_BOOL, OFUNC_OFFSET, (bool)&((xiofile_t *)0)->stream.para.socket.null_eof };
+
 
 #if WITH_GENERICSOCKET
 

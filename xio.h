@@ -147,10 +147,11 @@ typedef struct single {
    char  *unlink_close;	/* name of a symlink or unix socket to be removed */
    int dtype;
    enum {
-      XIOSHUT_UNSPEC,	/* fall back to old (up to 1.7.0.0) behaviour */
+      XIOSHUT_UNSPEC,	/* standard (address dependent) behaviour */
       XIOSHUT_NONE,	/* do nothing on shutdown */
       XIOSHUT_CLOSE,	/* close the FD */
-      XIOSHUT_DOWN	/* shutdown() */
+      XIOSHUT_DOWN,	/* shutdown() */
+      XIOSHUT_NULL	/* send an empty packet (dgram socket) */
    } howtoshut;
    enum {
       END_UNSPEC,	/* after init, when no end-close... option */
@@ -183,7 +184,7 @@ typedef struct single {
       struct {
 	 struct timeval connect_timeout; /* how long to hang in connect() */
 	 union sockaddr_union la;	/* local socket address */
-	 bool emptyiseof;	/* with dgram: empty packet means EOF */
+	 bool null_eof;		/* with dgram: empty packet means EOF */
 	 bool dorange;
 	 struct xiorange range;	/* restrictions for peer address */
 #if _WITH_IP4 || _WITH_IP6

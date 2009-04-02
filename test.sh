@@ -7558,6 +7558,58 @@ esac
 N=$((N+1))
 
 
+# test the shut-null and null-eof options
+NAME=SHUTNULLEOF
+case "$TESTS" in
+*%functions%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: options shut-null and null-eof"
+# run a receiving background process with option null-eof. 
+# start a sending process with option shut-null that sends a test record to the
+# receiving process and then terminates.
+# send another test record.
+# whe the receiving process just got the first test record the test succeeded
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$SOCAT $opts -u UDP-RECV:$PORT,null-eof CREAT:$tf"
+CMD1="$SOCAT $opts -u - UDP-SENDTO:127.0.0.1:$PORT,shut-null"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+waitudp4port $PORT 1
+echo "$da" |$CMD1 >"${tf}1" 2>"${te}1"
+rc1=$?
+echo "xyz" |$CMD1 >"${tf}2" 2>"${te}2"
+rc2=$?
+kill $pid0 2>/dev/null; wait
+if [ $rc1 != 0 -o $rc2 != 0 ]; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "${te}0"
+    cat "${te}1"
+    cat "${te}2"
+    numFAIL=$((numFAIL+1))
+elif echo "$da" |diff - "${tf}" >"$tdiff"; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "${te}0"
+    cat "${te}1"
+    cat "${tdiff}"
+    numFAIL=$((numFAIL+1))
+fi
+fi # NUMCOND
+ ;;
+esac
+N=$((N+1))
+
+
 NAME=UDP6LISTENBIND
 # this tests for a bug in (up to) 1.5.0.0:
 #    with udp*-listen, the bind option supported only IPv4

@@ -1,5 +1,5 @@
 /* source: xioread.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2009 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this is the source of the extended read function */
@@ -159,7 +159,7 @@ ssize_t xioread(xiofile_t *file, void *buff, size_t bufsiz) {
 	      bytes,
 	      sockaddr_info(&from.soa, fromlen, infobuff, sizeof(infobuff)));
       if (bytes == 0) {
-	 if (!pipe->para.socket.emptyiseof) {
+	 if (!pipe->para.socket.null_eof) {
 	    errno = EAGAIN; return -1;
 	 }
 	 return bytes;
@@ -350,7 +350,7 @@ ssize_t xioread(xiofile_t *file, void *buff, size_t bufsiz) {
 	      bytes,
 	      sockaddr_info(&from.soa, fromlen, infobuff, sizeof(infobuff)));
       if (bytes == 0) {
-	 if (!pipe->para.socket.emptyiseof) {
+	 if (!pipe->para.socket.null_eof) {
 	    errno = EAGAIN; return -1;
 	 }
 	 return bytes;

@@ -1,7 +1,13 @@
 
 new features:
-	new address options shut-none, shut-down, and shut-close allow to
-	control socat's half close behaviour
+	address options shut-none, shut-down, and shut-close allow to control
+	socat's half close behaviour
+
+	with address option shut-null socat sends an empty packet to the peer
+	to indicate EOF
+
+	option null-eof changes the behaviour of sockets that receive an empty
+	packet to see EOF instead of ignoring it
 
 ####################### V 1.7.0.1:
 

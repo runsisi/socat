@@ -78,6 +78,7 @@ const struct optdesc opt_end_close = { "end-close", "close", OPT_END_CLOSE, GROU
 const struct optdesc opt_shut_none = { "shut-none", NULL,    OPT_SHUT_NONE,  GROUP_FD, PH_INIT, TYPE_BOOL,  OFUNC_OFFSET, (bool)&((xiofile_t *)0)->stream.howtoshut, XIOSHUT_NONE };
 const struct optdesc opt_shut_down = { "shut-down", NULL,    OPT_SHUT_DOWN,  GROUP_FD, PH_INIT, TYPE_BOOL,  OFUNC_OFFSET, (bool)&((xiofile_t *)0)->stream.howtoshut, XIOSHUT_DOWN };
 const struct optdesc opt_shut_close= { "shut-close", NULL,   OPT_SHUT_CLOSE, GROUP_FD, PH_INIT, TYPE_BOOL,  OFUNC_OFFSET, (bool)&((xiofile_t *)0)->stream.howtoshut, XIOSHUT_CLOSE };
+const struct optdesc opt_shut_null = { "shut-null", NULL,        OPT_SHUT_NULL, GROUP_FD, PH_INIT, TYPE_CONST, OFUNC_OFFSET, (bool)&((xiofile_t *)0)->stream.howtoshut, XIOSHUT_NULL };
 
 /****** generic ioctl() options ******/
 const struct optdesc opt_ioctl_void   = { "ioctl-void",  "ioctl",    OPT_IOCTL_VOID,  GROUP_FD, PH_FD, TYPE_INT,       OFUNC_IOCTL_GENERIC, 0, 0, 0 };

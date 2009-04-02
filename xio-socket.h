@@ -1,5 +1,5 @@
 /* source: xio-socket.h */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2009 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_socket_h_included
@@ -67,6 +67,7 @@ extern const struct optdesc opt_protocol_family;
 extern const struct optdesc opt_setsockopt_int;
 extern const struct optdesc opt_setsockopt_bin;
 extern const struct optdesc opt_setsockopt_string;
+extern const struct optdesc opt_null_eof;
 
 
 extern

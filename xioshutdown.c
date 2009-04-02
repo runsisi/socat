@@ -35,6 +35,7 @@ int xioshutdown(xiofile_t *sock, int how) {
    }
 
    switch (sock->stream.howtoshut) {
+      char writenull;
    case XIOSHUT_NONE:
       return 0;
    case XIOSHUT_CLOSE:
@@ -49,8 +50,15 @@ int xioshutdown(xiofile_t *sock, int how) {
 	       sock->stream.fd, how, strerror(errno));
       }
       return 0;
+#if _WITH_SOCKET
+   case XIOSHUT_NULL:
+      /* send an empty packet; only useful on datagram sockets? */
+      xiowrite(sock, &writenull, 0);
+      return 0;
+#endif /* _WITH_SOCKET */
    default: ;
    }
+
 
 #if WITH_OPENSSL
    if ((sock->stream.dtype & XIODATA_MASK) == XIODATA_OPENSSL) {
