@@ -444,7 +444,7 @@ enum e_optcode {
    OPT_NOFLSH,		/* termios.c_lflag */
    OPT_NOFORK,		/* exec, system */
    OPT_NOPROMPT,	/* readline */
-   OPT_NULL_EOF,		/* receiving empty packet triggers EOF */
+   OPT_NULL_EOF,	/* receiving empty packet triggers EOF */
 #ifdef OCRNL
    OPT_OCRNL,		/* termios.c_oflag */
 #endif

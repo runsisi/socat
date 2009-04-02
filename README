@@ -75,7 +75,7 @@ install
 
 Get the tarball and extract it:
 	gtar xzf socat.tar.gz
-	cd socat-1.7.0.0
+	cd socat-1.7.1.0
 	./configure
 	make
 	su

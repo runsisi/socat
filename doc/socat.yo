@@ -53,7 +53,6 @@ from a large set of different types of data sinks and sources
 (see link(address types)(ADDRESS_TYPES)), and because lots of
 link(address options)(ADDRESS_OPTIONS) may be applied to the streams, socat can
 be used for many different purposes. 
-It might be one of the tools that one `has already needed'.
 
 Filan() is a utility that prints information about its active file
 descriptors to stdout. It has been written for debugging socat(), but might be
@@ -497,6 +496,7 @@ label(ADDRESS_OPENSSL_CONNECT)dit(bf(tt(OPENSSL:<host>:<port>)))
    link(cafile)(OPTION_OPENSSL_CAFILE),
    link(capath)(OPTION_OPENSSL_CAPATH),
    link(certificate)(OPTION_OPENSSL_CERTIFICATE),
+   link(key)(OPTION_OPENSSL_KEY),
    link(bind)(OPTION_BIND),
    link(pf)(OPTION_PROTOCOL_FAMILY),
    link(connect-timeout)(OPTION_CONNECT_TIMEOUT),
@@ -523,6 +523,7 @@ label(ADDRESS_OPENSSL_LISTEN)dit(bf(tt(OPENSSL-LISTEN:<port>)))
    link(cafile)(OPTION_OPENSSL_CAFILE),
    link(capath)(OPTION_OPENSSL_CAPATH),
    link(certificate)(OPTION_OPENSSL_CERTIFICATE),
+   link(key)(OPTION_OPENSSL_KEY),
    link(fork)(OPTION_FORK),
    link(bind)(OPTION_BIND),
    link(range)(OPTION_RANGE),
@@ -1689,7 +1690,7 @@ label(OPTION_SETUID)dit(bf(tt(setuid=<user>)))
    option does not drop group related privileges. Check if option
    link(su)(OPTION_SUBSTUSER) better fits your needs.
 label(OPTION_SETUID_EARLY)dit(bf(tt(setuid-early=<user>)))
-   Like link(setuid)(OPTION_SETSUID) but is performed before opening the
+   Like link(setuid)(OPTION_SETUID) but is performed before opening the
    address.
 label(OPTION_SUBSTUSER)dit(bf(tt(su=<user>)))
    Changes the link(<user>)(TYPE_USER) (owner) and groups of the process after
@@ -3263,14 +3264,13 @@ servers), and the original client request.
 label(EXAMPLE_ANCILLARY)
 dit(bf(tt(socat -d -d UDP4-RECVFROM:9999,so-broadcast,so-timestamp,ip-pktinfo,ip-recverr,ip-recvopts,ip-recvtos,ip-recvttl!!- SYSTEM:'export; sleep 1' |grep SOCAT)))
 
-waits for an incoming UDP packets on port 9999 and prints the environment 
+waits for an incoming UDP packet on port 9999 and prints the environment 
 variables provided by socat. On BSD based systems you have to replace
 link(tt(ip-pktinfo))(OPTION_IP_PKTINFO) with link(tt(ip-recvdstaddr))(OPTION_IP_RECVDSTADDR),link(tt(ip-recvif))(OPTION_IP_RECVIF). Especially interesting is
 SOCAT_IP_DSTADDR: it contains the target address of the packet which may be a
 unicast, multicast, or broadcast address.
 
 
-label(EXAMPLE_GENERICSOCKET)
 dit(bf(tt()))
 
 
@@ -3466,7 +3466,7 @@ standard specifications available on the Internet for free.
 label(VERSION)
 manpagesection(VERSION)
 
-This man page describes version 1.7.0 of socat().
+This man page describes version 1.7.1 of socat().
 
 
 label(BUGS)

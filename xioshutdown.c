@@ -59,9 +59,10 @@ int xioshutdown(xiofile_t *sock, int how) {
    default: ;
    }
 
-
+   if (false) {
+      ;
 #if WITH_OPENSSL
-   if ((sock->stream.dtype & XIODATA_MASK) == XIODATA_OPENSSL) {
+   } else if ((sock->stream.dtype & XIODATA_MASK) == XIODATA_OPENSSL) {
       sycSSL_shutdown (sock->stream.para.openssl.ssl);
       /*! what about half/full close? */
 #endif /* WITH_OPENSSL */

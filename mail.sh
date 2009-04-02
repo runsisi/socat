@@ -1,6 +1,6 @@
 #! /bin/sh
 # source: mail.sh
-# Copyright Gerhard Rieger 2001-2005
+# Copyright Gerhard Rieger 2001-2009
 # Published under the GNU General Public License V.2, see file COPYING
 
 #set -vx
