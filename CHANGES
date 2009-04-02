@@ -1,4 +1,8 @@
 
+new features:
+	new address options shut-none, shut-down, and shut-close allow to
+	control socat's half close behaviour
+
 ####################### V 1.7.0.1:
 
 corrections:

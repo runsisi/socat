@@ -1,5 +1,5 @@
 /* source: xioopts.h */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2009 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xioopts_h_included
@@ -590,6 +590,9 @@ enum e_optcode {
    OPT_SETSOCKOPT_STRING,
    OPT_SETUID,
    OPT_SETUID_EARLY,
+   OPT_SHUT_CLOSE,
+   OPT_SHUT_DOWN,
+   OPT_SHUT_NONE,
    OPT_SIGHUP,
    OPT_SIGINT,
    OPT_SIGQUIT,

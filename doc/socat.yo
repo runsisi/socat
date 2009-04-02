@@ -1481,6 +1481,15 @@ label(OPTION_END_CLOSE)dit(bf(tt(end-close)))
    Similarly, when an address of type EXEC or SYSTEM is ended, socat usually
    will explicitely kill the sub process. With this option, it will just close
    the file descriptors.
+label(OPTION_SHUT_NONE)dit(bf(tt(shut-none)))
+   Changes the (address dependent) method of shutting down the write part of a
+   connection to not do anything.
+label(OPTION_SHUT_DOWN)dit(bf(tt(shut-down)))
+   Changes the (address dependent) method of shutting down the write part of a
+   connection to tt(shutdown\(fd, SHUT_WR)). Is only useful with sockets.
+label(OPTION_SHUT_CLOSE)dit(bf(tt(shut-close)))
+   Changes the (address dependent) method of shutting down the write part of a
+   connection to tt(close\(fd)).
 label(OPTION_IOCTL_VOID)dit(bf(tt(ioctl-void=<request>)))
    Calls tt(ioctl()) with the request value as second argument and NULL as
    third argument. This option allows to utilize ioctls that are not

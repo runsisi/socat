@@ -1,5 +1,5 @@
 /* source: xioopts.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2009 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for address options handling */
@@ -1313,6 +1313,9 @@ const struct optname optionnames[] = {
 	IF_SOCKET ("setsockopt-string",	&opt_setsockopt_string)
 	IF_ANY    ("setuid",	&opt_setuid)
 	IF_ANY    ("setuid-early",	&opt_setuid_early)
+	IF_ANY    ("shut-close",	&opt_shut_close)
+	IF_ANY    ("shut-down",	&opt_shut_down)
+	IF_ANY    ("shut-none",	&opt_shut_none)
 #if WITH_EXEC || WITH_SYSTEM
 	IF_ANY    ("sid",	&opt_setsid)
 #endif

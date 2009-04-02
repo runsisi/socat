@@ -1,5 +1,5 @@
 /* source: xioshutdown.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2009 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this is the source of the extended shutdown function */
@@ -31,9 +31,29 @@ int xioshutdown(xiofile_t *sock, int how) {
       if ((how+1)&2) {
 	 result |= xioshutdown((xiofile_t *)sock->dual.stream[1], 1);
       }
+      return result;
+   }
+
+   switch (sock->stream.howtoshut) {
+   case XIOSHUT_NONE:
+      return 0;
+   case XIOSHUT_CLOSE:
+      if (Close(sock->stream.fd) < 0) {
+	 Info2("close(%d): %s",
+	       sock->stream.fd, strerror(errno));
+      }
+      return 0;
+   case XIOSHUT_DOWN:
+      if ((result = Shutdown(sock->stream.fd, how)) < 0) {
+	 Info3("shutdown(%d, %d): %s",
+	       sock->stream.fd, how, strerror(errno));
+      }
+      return 0;
+   default: ;
+   }
 
 #if WITH_OPENSSL
-   } else if ((sock->stream.dtype & XIODATA_MASK) == XIODATA_OPENSSL) {
+   if ((sock->stream.dtype & XIODATA_MASK) == XIODATA_OPENSSL) {
       sycSSL_shutdown (sock->stream.para.openssl.ssl);
       /*! what about half/full close? */
 #endif /* WITH_OPENSSL */

@@ -1,5 +1,5 @@
 /* source: xio-fd.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2009 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains common file descriptor related option definitions */
@@ -75,6 +75,9 @@ const struct optdesc opt_cool_write = { "cool-write", "coolwrite", OPT_COOL_WRIT
 
 /* control closing of connections */
 const struct optdesc opt_end_close = { "end-close", "close", OPT_END_CLOSE, GROUP_FD, PH_INIT, TYPE_CONST, OFUNC_OFFSET, (bool)&((xiofile_t *)0)->stream.howtoend, END_CLOSE };
+const struct optdesc opt_shut_none = { "shut-none", NULL,    OPT_SHUT_NONE,  GROUP_FD, PH_INIT, TYPE_BOOL,  OFUNC_OFFSET, (bool)&((xiofile_t *)0)->stream.howtoshut, XIOSHUT_NONE };
+const struct optdesc opt_shut_down = { "shut-down", NULL,    OPT_SHUT_DOWN,  GROUP_FD, PH_INIT, TYPE_BOOL,  OFUNC_OFFSET, (bool)&((xiofile_t *)0)->stream.howtoshut, XIOSHUT_DOWN };
+const struct optdesc opt_shut_close= { "shut-close", NULL,   OPT_SHUT_CLOSE, GROUP_FD, PH_INIT, TYPE_BOOL,  OFUNC_OFFSET, (bool)&((xiofile_t *)0)->stream.howtoshut, XIOSHUT_CLOSE };
 
 /****** generic ioctl() options ******/
 const struct optdesc opt_ioctl_void   = { "ioctl-void",  "ioctl",    OPT_IOCTL_VOID,  GROUP_FD, PH_FD, TYPE_INT,       OFUNC_IOCTL_GENERIC, 0, 0, 0 };

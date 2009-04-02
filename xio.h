@@ -1,5 +1,5 @@
 /* source: xio.h */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2009 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_h_included
@@ -146,6 +146,12 @@ typedef struct single {
    bool   opt_unlink_close;	/* option unlink_close */
    char  *unlink_close;	/* name of a symlink or unix socket to be removed */
    int dtype;
+   enum {
+      XIOSHUT_UNSPEC,	/* fall back to old (up to 1.7.0.0) behaviour */
+      XIOSHUT_NONE,	/* do nothing on shutdown */
+      XIOSHUT_CLOSE,	/* close the FD */
+      XIOSHUT_DOWN	/* shutdown() */
+   } howtoshut;
    enum {
       END_UNSPEC,	/* after init, when no end-close... option */
       END_NONE,		/* no action */
