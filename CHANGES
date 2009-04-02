@@ -1,4 +1,8 @@
 
+new features:
+	introduced option names substuser-early and su-e, currently equivalent
+	to option substuser (thanks to Mike Perry for providing the patch)
+
 ####################### V 1.7.0.1:
 
 corrections:

@@ -1,5 +1,5 @@
 /* source: xioopts.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2009 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for address options handling */
@@ -1453,8 +1453,10 @@ const struct optname optionnames[] = {
 #endif
 	IF_ANY    ("su",	&opt_substuser)
 	IF_ANY    ("su-d",	&opt_substuser_delayed)
+	IF_ANY    ("su-e",	&opt_substuser_early)
 	IF_ANY    ("substuser",	&opt_substuser)
 	IF_ANY    ("substuser-delayed",	&opt_substuser_delayed)
+	IF_ANY    ("substuser-early",	&opt_substuser_early)
 	IF_TERMIOS("susp",	&opt_vsusp)
 #ifdef VSWTC
 	IF_TERMIOS("swtc",	&opt_vswtc)
@@ -3257,6 +3259,7 @@ int applyopts(int fd, struct opt *opts, enum e_phase phase) {
 	       opt->desc = ODESC_ERROR; ++opt; continue;
 	    }
 	    break;
+	 case OPT_SUBSTUSER_EARLY:
 	 case OPT_SUBSTUSER:
 	    {
 	       struct passwd *pwd;
