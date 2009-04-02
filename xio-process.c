@@ -1,5 +1,5 @@
 /* source: xio-process.c */
-/* Copyright Gerhard Rieger 2001-2003 */
+/* Copyright Gerhard Rieger 2001-2009 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file handles process related addresses options */
@@ -14,6 +14,7 @@ const struct optdesc opt_setgid_early= { "setgid-early",NULL,  OPT_SETGID_EARLY,
 const struct optdesc opt_setgid      = { "setgid",      NULL,  OPT_SETGID,      GROUP_PROCESS, PH_LATE2,    TYPE_GIDT, OFUNC_SPEC };
 const struct optdesc opt_setuid_early= { "setuid-early",NULL,  OPT_SETUID_EARLY,GROUP_PROCESS, PH_EARLY,   TYPE_UIDT, OFUNC_SPEC };
 const struct optdesc opt_setuid      = { "setuid",      NULL,  OPT_SETUID,      GROUP_PROCESS, PH_LATE2,    TYPE_UIDT, OFUNC_SPEC };
+const struct optdesc opt_substuser_early   = { "substuser-early", "su-e",  OPT_SUBSTUSER_EARLY,   GROUP_PROCESS, PH_EARLY,  TYPE_UIDT, OFUNC_SPEC };
 const struct optdesc opt_substuser   = { "substuser", "su",  OPT_SUBSTUSER,   GROUP_PROCESS, PH_LATE2,  TYPE_UIDT, OFUNC_SPEC };
 const struct optdesc opt_substuser_delayed = { "substuser-delayed", "su-d", OPT_SUBSTUSER_DELAYED,   GROUP_PROCESS, PH_INIT,  TYPE_UIDT, OFUNC_SPEC };
 const struct optdesc opt_chroot_early = { "chroot-early", NULL, OPT_CHROOT_EARLY, GROUP_PROCESS, PH_EARLY, TYPE_STRING, OFUNC_SPEC };

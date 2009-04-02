@@ -700,6 +700,7 @@ enum e_optcode {
 #  define ENABLE_OPTCODE
 #  include "xio-streams.h"
 #  undef ENABLE_OPTCODE
+   OPT_SUBSTUSER_EARLY,
    OPT_SUBSTUSER,
    OPT_SUBSTUSER_DELAYED,
    OPT_SYMBOLIC_LINK,	/* with pty */

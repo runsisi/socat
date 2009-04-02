@@ -1458,8 +1458,10 @@ const struct optname optionnames[] = {
 #endif
 	IF_ANY    ("su",	&opt_substuser)
 	IF_ANY    ("su-d",	&opt_substuser_delayed)
+	IF_ANY    ("su-e",	&opt_substuser_early)
 	IF_ANY    ("substuser",	&opt_substuser)
 	IF_ANY    ("substuser-delayed",	&opt_substuser_delayed)
+	IF_ANY    ("substuser-early",	&opt_substuser_early)
 	IF_TERMIOS("susp",	&opt_vsusp)
 #ifdef VSWTC
 	IF_TERMIOS("swtc",	&opt_vswtc)
@@ -3262,6 +3264,7 @@ int applyopts(int fd, struct opt *opts, enum e_phase phase) {
 	       opt->desc = ODESC_ERROR; ++opt; continue;
 	    }
 	    break;
+	 case OPT_SUBSTUSER_EARLY:
 	 case OPT_SUBSTUSER:
 	    {
 	       struct passwd *pwd;

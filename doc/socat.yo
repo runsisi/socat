@@ -1682,16 +1682,18 @@ label(OPTION_CHROOT_EARLY)dit(bf(tt(chroot-early=<directory>)))
    before opening the address. This call might require root privilege.
 label(OPTION_SETGID)dit(bf(tt(setgid=<group>)))
    Changes the primary link(<group>)(TYPE_GROUP) of the process after
-   processing the address. This call might require root privilege.
+   processing the address. This call might require root privilege. Please note
+   that this option does not drop other group related privileges.
 label(OPTION_SETGID_EARLY)dit(bf(tt(setgid-early=<group>)))
-   Changes the primary link(<group>)(TYPE_GROUP) of the process before opening
-   the address. This call might require root privilege.
+   Like link(setgit)(OPTION_SETGID) but is performed before opening the address.
 label(OPTION_SETUID)dit(bf(tt(setuid=<user>)))
    Changes the link(<user>)(TYPE_USER) (owner) of the process after processing
-   the address. This call might require root privilege.
+   the address. This call might require root privilege. Please note that this
+   option does not drop group related privileges. Check if option
+   link(su)(OPTION_SUBSTUSER) better fits your needs.
 label(OPTION_SETUID_EARLY)dit(bf(tt(setuid-early=<user>)))
-   Changes the link(<user>)(TYPE_USER) (owner) of the process before opening
-   the address. This call might require root privilege. 
+   Like link(setuid)(OPTION_SETSUID) but is performed before opening the
+   address.
 label(OPTION_SUBSTUSER)dit(bf(tt(su=<user>)))
    Changes the link(<user>)(TYPE_USER) (owner) and groups of the process after
    processing the address (link(example)(EXAMPLE_OPTION_SUBSTUSER)). This call might require root privilege. 

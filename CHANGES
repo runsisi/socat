@@ -9,6 +9,9 @@ new features:
 	option null-eof changes the behaviour of sockets that receive an empty
 	packet to see EOF instead of ignoring it
 
+	introduced option names substuser-early and su-e, currently equivalent
+	to option substuser (thanks to Mike Perry for providing the patch)
+
 ####################### V 1.7.0.1:
 
 corrections:
