@@ -1,4 +1,9 @@
 
+corrections:
+	corrected the "fixed possible SIGSEGV" fix because SIGSEGV still might
+	occur under those conditions. Thanks to Toni Mattila for first
+	reporting this problem.
+
 ####################### V 1.7.1.0:
 
 new features:
