@@ -1,4 +1,7 @@
 
+corrections:
+	ftruncate64 cut its argument to 32 bits on systems with 32 bit long type
+
 ####################### V 1.7.1.0:
 
 new features:

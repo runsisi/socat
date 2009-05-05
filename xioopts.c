@@ -1877,6 +1877,9 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	 Info2("setting option \"%s\" to %d", ent->desc->defname,
 	       (*opts)[i].value.u_byte);
 	 break;
+#if HAVE_BASIC_OFF_T==3
+      case TYPE_OFF32:
+#endif
       case TYPE_INT:
 	 if (assign) {
 	    char *rest;
@@ -1939,7 +1942,9 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	       (*opts)[i].value.u_ushort);
 	 break;
 
+#if HAVE_BASIC_OFF_T==5
       case TYPE_OFF32:
+#endif
 #if HAVE_STAT64 && defined(HAVE_BASIC_OFF64_T) && HAVE_BASIC_OFF64_T==5
       case TYPE_OFF64:
 #endif
@@ -1991,6 +1996,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	       (*opts)[i].value.u_longlong);
 	 break;
 #endif /* HAVE_TYPE_LONGLONG */
+
       case TYPE_UIDT:
 	 if (!assign) {
 	    Error1("option \"%s\": value required", a0);
@@ -2010,6 +2016,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	 Info2("setting option \"%s\" to %u", ent->desc->defname,
 	       (*opts)[i].value.u_uidt);
 	 break;
+
       case TYPE_GIDT:
 	 if (!assign) { Error1("option \"%s\": value required", a0);
 	    continue; }
@@ -2028,6 +2035,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	 Info2("setting option \"%s\" to %u", ent->desc->defname,
 	       (*opts)[i].value.u_gidt);
 	 break;
+
       case TYPE_MODET:
 	 if (!assign) { Error1("option \"%s\": value required", a0);
 	    continue;
@@ -2039,6 +2047,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	 Info2("setting option \"%s\" to %u", ent->desc->defname,
 	       (*opts)[i].value.u_modet);
 	 break;
+
       case TYPE_STRING:
 	 if (!assign) {
 	    Error1("option \"%s\": value required", a0);
@@ -2050,6 +2059,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	 Info2("setting option \"%s\" to \"%s\"", ent->desc->defname,
 	       (*opts)[i].value.u_string);
 	 break;
+
       case TYPE_STRING_NULL:
 	 if (!assign) {
 	    (*opts)[i].value.u_string = NULL;
@@ -2060,11 +2070,13 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 		  (*opts)[i].value.u_string);
 	 }
 	 break;
+
 #if LATER
       case TYPE_INT3:
 	 
 	 break;
 #endif
+
       case TYPE_TIMEVAL:
 	 if (!assign) {
 	    Error1("option \"%s\": value required", a0);
@@ -2082,6 +2094,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	       (val-(*opts)[i].value.u_timeval.tv_sec) * 1000000;
 	 }
 	 break;
+
 #if HAVE_STRUCT_TIMESPEC
       case TYPE_TIMESPEC:
 	 if (!assign) {
@@ -2101,6 +2114,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	 }
 	 break;
 #endif /* HAVE_STRUCT_TIMESPEC */
+
 #if HAVE_STRUCT_LINGER
       case TYPE_LINGER:
 	 if (!assign) {
@@ -2117,6 +2131,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	       (*opts)[i].value.u_linger.l_linger);
 	 break;
 #endif /* HAVE_STRUCT_LINGER */
+
       case TYPE_INT_INT:
 	 if (!assign) {
 	    Error1("option \"%s\": values required", a0);
@@ -2135,6 +2150,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	 Info3("setting option \"%s\" to %d:%d", ent->desc->defname,
 	       (*opts)[i].value.u_int, (*opts)[i].value2.u_int);
 	 break;
+
       case TYPE_INT_BIN:
 	 if (!assign) {
 	    Error1("option \"%s\": values required", a0);
@@ -2162,6 +2178,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	 Info2("setting option \"%s\" to %d:..."/*!!!*/, ent->desc->defname,
 	       (*opts)[i].value.u_int);
 	 break;
+
       case TYPE_INT_STRING:
 	 if (!assign) {
 	    Error1("option \"%s\": values required", a0);
@@ -2182,6 +2199,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	 Info3("setting option \"%s\" to %d:\"%s\"", ent->desc->defname,
 	       (*opts)[i].value.u_int, (*opts)[i].value2.u_string);
 	 break;
+
       case TYPE_INT_INT_INT:
 	 if (!assign) {
 	    Error1("option \"%s\": values required", a0);
@@ -2206,6 +2224,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	 Info4("setting option \"%s\" to %d:%d:%d", ent->desc->defname,
 	       (*opts)[i].value.u_int, (*opts)[i].value2.u_int, (*opts)[i].value3.u_int);
 	 break;
+
       case TYPE_INT_INT_BIN:
 	 if (!assign) {
 	    Error1("option \"%s\": values required", a0);
@@ -2239,6 +2258,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	 Info3("setting option \"%s\" to %d:%d:..."/*!!!*/, ent->desc->defname,
 	       (*opts)[i].value.u_int, (*opts)[i].value2.u_int);
 	 break;
+
       case TYPE_INT_INT_STRING:
 	 if (!assign) {
 	    Error1("option \"%s\": values required", a0);
@@ -2267,6 +2287,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	       (*opts)[i].value3.u_string);
 	 break;
 #if defined(HAVE_STRUCT_IP_MREQ) || defined (HAVE_STRUCT_IP_MREQN)
+
       case TYPE_IP_MREQN:
 	 {
 	    /* we do not resolve the addresses here because we do not yet know
@@ -2866,16 +2887,16 @@ int applyopts(int fd, struct opt *opts, enum e_phase phase) {
 	 ++opt; continue; }
 
       if (opt->desc->func == OFUNC_SEEK32) {
-	 if (Lseek(fd, opt->value.u_long, opt->desc->major) < 0) {
-	    Error4("lseek(%d, %ld, %d): %s",
-		   fd, opt->value.u_long, opt->desc->major, strerror(errno));
+	 if (Lseek(fd, opt->value.u_off, opt->desc->major) < 0) {
+	    Error4("lseek(%d, "F_off", %d): %s",
+		   fd, opt->value.u_off, opt->desc->major, strerror(errno));
 	 }
 #if HAVE_LSEEK64
       } else if (opt->desc->func == OFUNC_SEEK64) {
 
 	 /*! this depends on off64_t atomic type */
 	 if (Lseek64(fd, opt->value.u_off64, opt->desc->major) < 0) {
-	    Error4("lseek64(%d, %Ld, %d): %s",
+	    Error4("lseek64(%d, "F_off64", %d): %s",
 		   fd, opt->value.u_off64, opt->desc->major, strerror(errno));
 	 }
 #endif /* HAVE_LSEEK64 */
@@ -3217,17 +3238,17 @@ int applyopts(int fd, struct opt *opts, enum e_phase phase) {
 	    }
 	    break;
 	 case OPT_FTRUNCATE32:
-	    if (Ftruncate(fd, opt->value.u_long) < 0) {
-	       Error3("ftruncate(%d, %ld): %s",
-		      fd, opt->value.u_long, strerror(errno));
+	    if (Ftruncate(fd, opt->value.u_off) < 0) {
+	       Error3("ftruncate(%d, "F_off"): %s",
+		      fd, opt->value.u_off, strerror(errno));
 	       opt->desc = ODESC_ERROR; ++opt; continue;
 	    }
 	    break;
 #if HAVE_FTRUNCATE64
 	 case OPT_FTRUNCATE64:
-	    if (Ftruncate64(fd, opt->value.u_long) < 0) {
-	       Error3("ftruncate64(%d, %ld): %s",
-		      fd, opt->value.u_long, strerror(errno));
+	    if (Ftruncate64(fd, opt->value.u_off64) < 0) {
+	       Error3("ftruncate64(%d, "F_off64"): %s",
+		      fd, opt->value.u_off64, strerror(errno));
 	       opt->desc = ODESC_ERROR; ++opt; continue;
 	    }
 #endif /* HAVE_FTRUNCATE64 */

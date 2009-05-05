@@ -349,6 +349,14 @@ union integral {
 /* some aliases */
 #define u_off u_long	/* please report when this causes problems */
 
+#if HAVE_BASIC_OFF_T==3
+#  define u_off u_int
+#elif HAVE_BASIC_OFF_T==5
+#  define u_off u_long
+#else
+#  error "unexpected size of off_t, please report this as bug"
+#endif
+
 #if defined(HAVE_BASIC_OFF64_T) && HAVE_BASIC_OFF64_T
 #  if HAVE_BASIC_OFF64_T==5
 #     define u_off64 u_long
