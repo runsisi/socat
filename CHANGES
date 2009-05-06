@@ -4,6 +4,8 @@ corrections:
 	occur under those conditions. Thanks to Toni Mattila for first
 	reporting this problem.
 
+	ftruncate64 cut its argument to 32 bits on systems with 32 bit long type
+
 	socat crashed on systems without setenv() (esp. SunOS up to Solaris 9);
 	thanks to Todd Stansell for reporting this bug
 

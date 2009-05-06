@@ -263,7 +263,13 @@
 
 /* might be checked in later versions */
 #ifndef F_off
-#define F_off "%ld"
+#  if HAVE_BASIC_OFF_T==3
+#     define F_off "%d"
+#  elif HAVE_BASIC_OFF_T==5
+#     define F_off "%ld"
+#  else
+#error "HAVE_BASIC_OFF_T is out of range:" HAVE_BASIC_OFF_T
+#  endif
 #endif
 
 /* default: long long */

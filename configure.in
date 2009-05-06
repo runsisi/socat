@@ -1372,6 +1372,9 @@ AC_BASIC_TYPE([#include <sys/types.h>
 	sc_cv_type_socklent_basic)
 
 AC_BASIC_TYPE([#include <sys/types.h>
+#include <unistd.h>], off_t, HAVE_BASIC_OFF_T, sc_cv_type_off_basic)
+
+AC_BASIC_TYPE([#include <sys/types.h>
 #include <unistd.h>], off64_t, HAVE_BASIC_OFF64_T, sc_cv_type_off64_basic)
 
 # oh god, __dev_t in Linux 2.4 is struct{int[2];}, not handled here yet.
