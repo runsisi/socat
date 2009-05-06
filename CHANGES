@@ -1,4 +1,8 @@
 
+corrections:
+	socat crashed on systems without setenv() (esp. SunOS up to Solaris 9);
+	thanks to Todd Stansell for reporting this bug
+
 ####################### V 1.7.1.0:
 
 new features:

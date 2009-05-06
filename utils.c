@@ -75,7 +75,7 @@ int setenv(const char *name, const char *value, int overwrite) {
    if (!overwrite) {
       if (getenv(name))  return 0;	/* already exists */
    }
-   if ((env = Malloc(strlen(name)+strlen(value)+2)) != NULL) {
+   if ((env = Malloc(strlen(name)+strlen(value)+2)) == NULL) {
       return -1;
    }
    sprintf(env, "%s=%s", name, value);
