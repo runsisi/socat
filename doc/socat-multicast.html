@@ -216,12 +216,14 @@ When you receive an error like:</p>
 <table border="1" bgcolor="#e08080"><tr><td><tt>... E sendto(3, 0x80c2e44, 4,
 0, AF=2 224.1.0.1:6666, 16): Network is unreachable</tt></td></tr></table>
 <p>you have a routing problem. The (Linux) IP stack seems to handle multicast
-addresses just like unicast addresses when determining their route (interface and gateway).</p>
+addresses just like unicast addresses when determining their route (interface
+  and gateway), i.e. the routing table needs an entry that somehow matches the
+  target address. </p>
 <p>
 For the same reason, multicast packets will probably leave your host on the
-interface with the default route.</p>
+interface with the default route if it is specified.</p>
 <p>
-Set a multicast/broadcast route with the following command:</p>
+Set a multicast/broadcast route with the following command (Linux):</p>
 <span class="frame"><span class="shell">
 route add -net 224.0.0.0/3 gw 192.168.10.2
 </span></span>
@@ -231,7 +233,8 @@ route add -net 224.0.0.0/3 gw 192.168.10.2
 <p>
 <tt>224.0.0.1</tt></a> is the all-systems multicast address: all
 datagram sockets appear to be automatically member of this group on all
-interfaces. This membership cannot be dropped on Linux.
+interfaces. This membership cannot be dropped on Linux (you need iptables to
+filter packets).
 </p>
 
 
@@ -240,11 +243,11 @@ interfaces. This membership cannot be dropped on Linux.
 <p>When you use the above examples you should understand that all datagram
 sockets without exception accept all packets that are directly addressed to
 them;
-the multi- and broadcast receiving features are just extensions to the normal
+the multi- and broadcast receiving features are just extensions to this
 functionality. socat currently has no means to handle incoming packets
-differently when it is addressed to a unicast, multicast, or broadcast
-address. However, for EXEC'd scripts socat can provide this info in environment
-variables.
+differently whether they are addressed to unicast, multicast, or broadcast
+addresses. However, for EXEC'd scripts socat can provide this info in
+environment variables.
 </p>
 
 <p>Authentication or encryption are not available.</p>

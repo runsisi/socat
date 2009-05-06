@@ -1,4 +1,10 @@
 
+corrections:
+	docu mentions option so-bindtodev but correct name is so-bindtodevice. 
+	Thanks to Jim Zimmerman for reporting.
+
+	minor corrections in doc
+
 ####################### V 1.7.1.0:
 
 new features:
