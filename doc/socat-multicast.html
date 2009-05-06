@@ -216,22 +216,25 @@ When you receive an error like:</p>
 <table border="1" bgcolor="#e08080"><tr><td><tt>... E sendto(3, 0x80c2e44, 4,
 0, AF=2 224.1.0.1:6666, 16): Network is unreachable</tt></td></tr></table>
 <p>you have a routing problem. The (Linux) IP stack seems to handle multicast
-addresses just like unicast addresses when determining their route (interface and gateway).</p>
+addresses just like unicast addresses when determining their route (interface
+  and gateway), i.e. the routing table needs an entry that somehow matches the
+  target address. </p>
 <p>
 For the same reason, multicast packets will probably leave your host on the
-interface with the default route.</p>
+interface with the default route if it is specified.</p>
 <p>
-Set a multicast/broadcast route with the following command:</p>
+Set a multicast/broadcast route with the following command (Linux):</p>
 <span class="frame"><span class="shell">
 route add -net 224.0.0.0/3 gw 192.168.10.2
 </span></span>
 
-<a name="ALLSYSTEMS">
+<a name="ALLSYSTEMS"></a>
 <h3>ALL-SYSTEMS multicast address</h3>
 <p>
-<tt>224.0.0.1</tt></a> is the all-systems multicast address: all
+<tt>224.0.0.1</tt> is the all-systems multicast address: all
 datagram sockets appear to be automatically member of this group on all
-interfaces. This membership cannot be dropped on Linux.
+interfaces. This membership cannot be dropped on Linux (you need iptables to
+filter packets).
 </p>
 
 
@@ -240,11 +243,11 @@ interfaces. This membership cannot be dropped on Linux.
 <p>When you use the above examples you should understand that all datagram
 sockets without exception accept all packets that are directly addressed to
 them;
-the multi- and broadcast receiving features are just extensions to the normal
+the multi- and broadcast receiving features are just extensions to this
 functionality. socat currently has no means to handle incoming packets
-differently when it is addressed to a unicast, multicast, or broadcast
-address. However, for EXEC'd scripts socat can provide this info in environment
-variables.
+differently whether they are addressed to unicast, multicast, or broadcast
+addresses. However, for EXEC'd scripts socat can provide this info in
+environment variables.
 </p>
 
 <p>Authentication or encryption are not available.</p>
@@ -301,7 +304,51 @@ Please note that the new features could not be successfully tested on IPv6;
 these sections thus apply to IPv4 only.
 </p>
 
-<p>This document was last modified in April 2009.</p>
+<h3>New Features in socat 1.7.0</h3>
+
+<p>
+socat version 1.7.0 helps to find more information about incoming packets in
+environment variables that can be used in scripts or programs invoked by
+socat. The option <tt>ip-pktinfo</tt> (on non-BSD systems) 
+or <tt>ip-recvdstaddr</tt> (on BSD systems) is required to get basic
+information about incoming packets.
+</p>
+
+<p>
+Example: Start a receiver of the following form (tried on Linux):
+</p>
+
+<span class="frame"><span class="shell">
+socat -u udp-recvfrom:8888,reuseaddr,ip-add-membership=224.1.0.1:192.168.10.2,ip-pktinfo,fork system:export
+</span></span>
+
+<p>
+Then send a multicast packet from the client:
+</p>
+
+<span class="frame"><span class="shell">
+echo |socat -u - udp-datagram:224.1.0.1:8888
+</span></span>
+
+<p>
+On the server the following text should appear (only interesting lines shown):
+</p>
+
+<pre>
+export SOCAT_IP_DSTADDR="224.1.0.1"
+export SOCAT_IP_IF="eth0"
+export SOCAT_IP_LOCADDR="192.168.10.2"
+export SOCAT_PEERADDR="192.168.10.1"
+export SOCAT_PEERPORT="41159"
+</pre>
+
+<p>
+<tt>SOCAT_IP_IF</tt> shows the interface where the packet entered the server;
+<tt>SOCAT_IP_LOCADDR</tt> shows the IP address of this interface;
+<tt>SOCAT_IP_DSTADDR</tt> shows the target address of the packet;
+<tt>SOCAT_PEERADDR</tt> and <tt>SOCAT_PEERPORT</tt> are the client socket
+values.
+</p>
 
 <h2>More info about socat datagrams</h2>
 
@@ -336,6 +383,7 @@ with one peer address<br>
 <a href="http://en.wikipedia.org/wiki/Broadcast_address">broadcasting on Wikipedia</a><br>
 
 <p>
+<small>This document was last modified in May 2009.</small><br>
 <small>Copyright: Gerhard Rieger 2007-2009</small><br>
 <small>License: <a href="http://www.fsf.org/licensing/licenses/fdl.html">GNU Free Documentation License (FDL)</a></small>
 </p>

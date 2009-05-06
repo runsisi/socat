@@ -15,6 +15,11 @@ corrections:
 	fixed a compile problem caused by size_t/socklen_t mismatch on 64bit
 	systems
 
+	docu mentions option so-bindtodev but correct name is so-bindtodevice. 
+	Thanks to Jim Zimmerman for reporting.
+
+	added environment example to doc/socat-multicast.html
+
 ####################### V 1.7.1.0:
 
 new features:
