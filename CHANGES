@@ -9,6 +9,12 @@ corrections:
 	socat crashed on systems without setenv() (esp. SunOS up to Solaris 9);
 	thanks to Todd Stansell for reporting this bug
 
+	with unidirectional EXEC and SYSTEM a close() operation was performed
+	on a random number which could result in hanging e.a.
+
+	fixed a compile problem caused by size_t/socklen_t mismatch on 64bit
+	systems
+
 ####################### V 1.7.1.0:
 
 new features:

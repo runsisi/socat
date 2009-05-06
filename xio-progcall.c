@@ -554,8 +554,8 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
    } else
 #endif /* HAVE_PTY */
    if (usepipes) {
-      Close(rdpip[1]);
-      Close(wrpip[0]);
+      if (rw == XIO_RDONLY)  Close(rdpip[1]);
+      if (rw == XIO_WRONLY)  Close(wrpip[0]);
    } else {
       Close(sv[1]);
    }
