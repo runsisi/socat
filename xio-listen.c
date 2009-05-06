@@ -219,8 +219,10 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
       char peername[256];
       char sockname[256];
       int ps;		/* peer socket */
-      salen = sizeof(struct sockaddr);
 
+      pa = &_peername;
+      la = &_sockname;
+      salen = sizeof(struct sockaddr);
       do {
 	 /*? int level = E_ERROR;*/
 	 Notice1("listening on %s", sockaddr_info(us, uslen, lisname, sizeof(lisname)));
