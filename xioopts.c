@@ -1975,6 +1975,9 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	       (*opts)[i].value.u_ulong);
 	 break;
 
+#if HAVE_BASIC_OFF_T==7
+      case TYPE_OFF32:
+#endif
 #if HAVE_TYPE_LONGLONG
       case TYPE_LONGLONG:
 #  if HAVE_STAT64 && defined(HAVE_BASIC_OFF64_T) && HAVE_BASIC_OFF64_T==7

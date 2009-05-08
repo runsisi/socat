@@ -1,5 +1,5 @@
 /* source: compat.h */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2009 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __compat_h_included
@@ -267,6 +267,8 @@
 #     define F_off "%d"
 #  elif HAVE_BASIC_OFF_T==5
 #     define F_off "%ld"
+#  elif HAVE_BASIC_OFF_T==7
+#     define F_off "%Ld"
 #  else
 #error "HAVE_BASIC_OFF_T is out of range:" HAVE_BASIC_OFF_T
 #  endif

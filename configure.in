@@ -1,5 +1,5 @@
 nl source: configure.in
-dnl Copyright Gerhard Rieger 2001-2008
+dnl Copyright Gerhard Rieger 2001-2009
 dnl Published under the GNU General Public License V.2, see file COPYING
 
 dnl Process this file with autoconf to produce a configure script.

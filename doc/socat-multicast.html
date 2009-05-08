@@ -319,7 +319,7 @@ Example: Start a receiver of the following form (tried on Linux):
 </p>
 
 <span class="frame"><span class="shell">
-socat -u udp-recvfrom:8888,reuseaddr,ip-add-membership=224.1.0.1:192.168.10.2,ip-pktinfo,fork system:export
+socat -u UDP-RECVFROM:8888,reuseaddr,ip-add-membership=224.1.0.1:192.168.10.2,ip-pktinfo,fork SYSTEM:export
 </span></span>
 
 <p>
@@ -327,7 +327,7 @@ Then send a multicast packet from the client:
 </p>
 
 <span class="frame"><span class="shell">
-echo |socat -u - udp-datagram:224.1.0.1:8888
+echo |socat -u STDIO UDP-DATAGRAM:224.1.0.1:8888
 </span></span>
 
 <p>
