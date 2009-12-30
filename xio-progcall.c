@@ -414,8 +414,10 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
       gid_t group;
 
       if (withfork) {
-	 if (Signal(SIGCHLD, SIG_IGN) == SIG_ERR) {
-	    Warn1("signal(SIGCHLD, SIG_IGN): %s", strerror(errno));
+	 /* The child should have default handling for SIGCHLD. */
+	 /* In particular, it's not defined whether ignoring SIGCHLD is inheritable. */
+	 if (Signal(SIGCHLD, SIG_DFL) == SIG_ERR) {
+	    Warn1("signal(SIGCHLD, SIG_DFL): %s", strerror(errno));
 	 }
 
 #if HAVE_PTY

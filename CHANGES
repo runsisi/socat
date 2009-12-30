@@ -1,4 +1,8 @@
 
+corrections:
+	Debian bug 531078: socat execs children with SIGCHLD ignored; corrected
+	to default. Thanks to Martin Dorey for reporting this bug.
+
 ####################### V 1.7.1.1:
 
 corrections:
