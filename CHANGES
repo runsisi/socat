@@ -1,4 +1,9 @@
 
+corrections:
+	info message during socks connect showed bad port number on little
+	endian systems due to wrong byte order (thanks to Peter M. Galbavy for
+	bug report and patch)
+
 ####################### V 1.7.1.1:
 
 corrections:
