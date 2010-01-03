@@ -823,7 +823,7 @@ Option group: FD
 Phase: LATE
 Platforms: all
 
-This option changes the mode (permissions) of a file descriptor with fchown()
+This option changes the mode (permissions) of a file descriptor with fchmod()
 in the last phase of address processing.
 
 
@@ -1481,7 +1481,7 @@ Phase: PREOPEN
 Platforms: all
 
 This option changes the mode (permissions) of an already existing filesystem
-entry with chown() before the file is opened or after the UNIX domain socket is
+entry with chmod() before the file is opened or after the UNIX domain socket is
 bound, but before it listens/connects.
 
 
