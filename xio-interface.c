@@ -1,5 +1,5 @@
 /* source: xio-interface.c */
-/* Copyright Gerhard Rieger 2008 */
+/* Copyright Gerhard Rieger 2010 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening addresses of raw socket type */
@@ -60,9 +60,9 @@ int _xioopen_interface(const char *ifname,
       needbind = true;
    }
    /*!!! parse by ':' */
-   ((struct sockaddr_ll *)&us)->sll_family = pf;
-   ((struct sockaddr_ll *)&us)->sll_protocol = htons(ETH_P_ALL);
-   ((struct sockaddr_ll *)&us)->sll_ifindex = ifidx;
+   us.ll.sll_family = pf;
+   us.ll.sll_protocol = htons(ETH_P_ALL);
+   us.ll.sll_ifindex = ifidx;
    uslen = sizeof(sall);
    needbind = true;
    xfd->peersa = (union sockaddr_union)us;

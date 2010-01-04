@@ -1,4 +1,8 @@
 
+corrections:
+	added struct sockaddr_ll to union sockaddr_union to avoid "strict
+	aliasing" warnings (problem reported by Paul Wouters)
+
 ####################### V 1.7.1.1:
 
 corrections:
