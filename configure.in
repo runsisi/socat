@@ -84,7 +84,7 @@ AC_CHECK_FUNC(setsockopt, , AC_CHECK_LIB(socket, setsockopt))
 dnl Check for hstrerror prototype
 AC_MSG_CHECKING(for hstrerror prototype)
 AC_CACHE_VAL(sc_cv_have_prototype_hstrerror,
-[CFLAGS1="$CFLAGS"; CFLAGS="-Werror -O0 $CFLAGS1";
+[CFLAGS1="$CFLAGS"; CFLAGS="-Werror -O0 $(echo "$CFLAGS1" | sed -e 's@-Wall@@g')";
  AC_TRY_COMPILE([#include <netdb.h>],[hstrerror();],
  [sc_cv_have_prototype_hstrerror=no],
  [sc_cv_have_prototype_hstrerror=yes]);
@@ -1296,7 +1296,7 @@ dnl   output values: 1..short, 2..unsigned short, 3..int, 4..u-int,
 dnl                  5..long, 6..u-long; others not yet supported
 define(AC_BASIC_TYPE,[
 AC_CACHE_CHECK(for equivalent simple type of $2, $4,
-[CFLAGS1="$CFLAGS"; CFLAGS="-Werror -O0 $CFLAGS1"
+[CFLAGS1="$CFLAGS"; CFLAGS="-Werror -O0 $(echo "$CFLAGS1" | sed -e 's@-Wall@@g')"
  AC_TRY_COMPILE([$1],[$2 u; short v; &u==&v;],
  [$4="1 /* short */"],
  [AC_TRY_COMPILE([$1],[$2 u; unsigned short v; &u==&v;],
@@ -1328,7 +1328,7 @@ dnl arg4: output variable, values see AC_BASIC_TYPE
 dnl arg5: cache variable (might be constructed automatically)
 define(AC_TYPEOF_COMPONENT,[
 AC_CACHE_CHECK(for basic type of $2.$3, $5,
-[CFLAGS1="$CFLAGS"; CFLAGS="-Werror -O0 $CFLAGS1"
+[CFLAGS1="$CFLAGS"; CFLAGS="-Werror -O0 $(echo "$CFLAGS1" | sed -e 's@-Wall@@g')"
 AC_TRY_COMPILE([$1],[$2 u;short v; &u.$3==&v;],
 [$5="1 /* short */"],
 [AC_TRY_COMPILE([$1],[$2 u; unsigned short v; &u.$3==&v;],

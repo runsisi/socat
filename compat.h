@@ -261,7 +261,10 @@
 #  endif
 #endif
 
-/* might be checked in later versions */
+#if !defined(HAVE_BASIC_OFF_T) || !HAVE_BASIC_OFF_T
+#  undef HAVE_BASIC_OFF_T
+#  define HAVE_BASIC_OFF_T 5 /*long*/
+#endif
 #ifndef F_off
 #  if HAVE_BASIC_OFF_T==3
 #     define F_off "%d"

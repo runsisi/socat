@@ -1,4 +1,9 @@
 
+porting:
+	building socat on systems that predefined the CFLAGS environment to
+	contain -Wall failed (esp.RedHat). Thanks to Paul Wouters for reporting
+	this problem and to Simon Matter for providing the patch
+
 ####################### V 1.7.1.1:
 
 corrections:
