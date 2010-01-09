@@ -1,11 +1,16 @@
 
 porting:
+<<<<<<< HEAD:CHANGES
 	building socat on systems that predefined the CFLAGS environment to
 	contain -Wall failed (esp.RedHat). Thanks to Paul Wouters for reporting
 	this problem and to Simon Matter for providing the patch
 
 	support for Solaris 8 and Sun Studio support (thanks to Sebastian
 	Kayser for providing the patches)
+=======
+	on some 64bit systems a compiler warning "cast from pointer to integer
+	of different size" was issued on some option definitions
+>>>>>>> 64bit:CHANGES
 
 ####################### V 1.7.1.1:
 

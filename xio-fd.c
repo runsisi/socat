@@ -71,14 +71,14 @@ const struct optdesc opt_flock_sh_nb  = { "flock-sh-nb", NULL,    OPT_FLOCK_SH_N
 const struct optdesc opt_flock_ex     = { "flock-ex",    "flock", OPT_FLOCK_EX,    GROUP_FD, PH_FD,TYPE_BOOL, OFUNC_FLOCK, LOCK_EX };
 const struct optdesc opt_flock_ex_nb  = { "flock-ex-nb", "flock-nb", OPT_FLOCK_EX_NB, GROUP_FD, PH_FD,TYPE_BOOL, OFUNC_FLOCK, LOCK_EX|LOCK_NB };
 #endif /* HAVE_FLOCK */
-const struct optdesc opt_cool_write = { "cool-write", "coolwrite", OPT_COOL_WRITE, GROUP_FD, PH_INIT, TYPE_BOOL, OFUNC_OFFSET, (bool)&((xiofile_t *)0)->stream.cool_write };
+const struct optdesc opt_cool_write = { "cool-write", "coolwrite", OPT_COOL_WRITE, GROUP_FD, PH_INIT, TYPE_BOOL, OFUNC_OFFSET, XIO_OFFSETOF(cool_write) };
 
 /* control closing of connections */
-const struct optdesc opt_end_close = { "end-close", "close", OPT_END_CLOSE, GROUP_FD, PH_INIT, TYPE_CONST, OFUNC_OFFSET, (bool)&((xiofile_t *)0)->stream.howtoend, END_CLOSE };
-const struct optdesc opt_shut_none = { "shut-none", NULL,    OPT_SHUT_NONE,  GROUP_FD, PH_INIT, TYPE_BOOL,  OFUNC_OFFSET, (bool)&((xiofile_t *)0)->stream.howtoshut, XIOSHUT_NONE };
-const struct optdesc opt_shut_down = { "shut-down", NULL,    OPT_SHUT_DOWN,  GROUP_FD, PH_INIT, TYPE_BOOL,  OFUNC_OFFSET, (bool)&((xiofile_t *)0)->stream.howtoshut, XIOSHUT_DOWN };
-const struct optdesc opt_shut_close= { "shut-close", NULL,   OPT_SHUT_CLOSE, GROUP_FD, PH_INIT, TYPE_BOOL,  OFUNC_OFFSET, (bool)&((xiofile_t *)0)->stream.howtoshut, XIOSHUT_CLOSE };
-const struct optdesc opt_shut_null = { "shut-null", NULL,        OPT_SHUT_NULL, GROUP_FD, PH_INIT, TYPE_CONST, OFUNC_OFFSET, (bool)&((xiofile_t *)0)->stream.howtoshut, XIOSHUT_NULL };
+const struct optdesc opt_end_close = { "end-close", "close", OPT_END_CLOSE, GROUP_FD, PH_INIT, TYPE_CONST, OFUNC_OFFSET, XIO_OFFSETOF(howtoend), END_CLOSE };
+const struct optdesc opt_shut_none = { "shut-none", NULL,    OPT_SHUT_NONE,  GROUP_FD, PH_INIT, TYPE_BOOL,  OFUNC_OFFSET, XIO_OFFSETOF(howtoshut), XIOSHUT_NONE };
+const struct optdesc opt_shut_down = { "shut-down", NULL,    OPT_SHUT_DOWN,  GROUP_FD, PH_INIT, TYPE_BOOL,  OFUNC_OFFSET, XIO_OFFSETOF(howtoshut), XIOSHUT_DOWN };
+const struct optdesc opt_shut_close= { "shut-close", NULL,   OPT_SHUT_CLOSE, GROUP_FD, PH_INIT, TYPE_BOOL,  OFUNC_OFFSET, XIO_OFFSETOF(howtoshut), XIOSHUT_CLOSE };
+const struct optdesc opt_shut_null = { "shut-null", NULL,        OPT_SHUT_NULL, GROUP_FD, PH_INIT, TYPE_CONST, OFUNC_OFFSET, XIO_OFFSETOF(howtoshut), XIOSHUT_NULL };
 
 /****** generic ioctl() options ******/
 const struct optdesc opt_ioctl_void   = { "ioctl-void",  "ioctl",    OPT_IOCTL_VOID,  GROUP_FD, PH_FD, TYPE_INT,       OFUNC_IOCTL_GENERIC, 0, 0, 0 };
