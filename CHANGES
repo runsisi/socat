@@ -1,4 +1,8 @@
 
+porting:
+	on some 64bit systems a compiler warning "cast from pointer to integer
+	of different size" was issued on some option definitions
+
 ####################### V 1.7.1.1:
 
 corrections:

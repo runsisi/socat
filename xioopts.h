@@ -10,6 +10,7 @@
 #define ODESC_ERROR ODESC_DONE	/* maybe later */
 
 #define XIO_OFFSETOF(x) ((size_t)&((xiosingle_t *)0)->x)
+#define XIO_SIZEOF(x) (sizeof(((struct single *)0)->x))
 
 /* atomic structure for use in the option search table; keep compatible with
    struct wordent! */
@@ -20,7 +21,7 @@ struct optname {
 
 /* keep consistent with xiohelp.c:optiontypenames[] ! */
 enum e_types {
-   TYPE_CONST,		/* keyword means a fix value */
+   TYPE_CONST,		/* keyword means a fix value - implies int type */
    TYPE_BIN,		/* raw binary data, length determined by data */
    TYPE_BOOL,		/* value is 0 or 1 (no-value is interpreted as 1) */
    TYPE_BYTE,		/* unsigned char */
