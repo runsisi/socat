@@ -1,5 +1,5 @@
 /* source: xio-socks.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2009 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening addresses of socks4 type */
@@ -211,7 +211,8 @@ int _xioopen_socks4_prepare(const char *targetport, struct opt *opts, char **soc
    /* generate socks header - points to final target */
    sockhead->version = 4;
    sockhead->action  = 1;
-   sockhead->port    = parseport(targetport, IPPROTO_TCP);
+   sockhead->port    = parseport(targetport, IPPROTO_TCP);	/* network byte
+								   order */
 
    if (retropt_string(opts, OPT_SOCKSPORT, socksport) < 0) {
       if ((se = getservbyname("socks", "tcp")) != NULL) {
@@ -309,7 +310,7 @@ int _xioopen_socks4_connect(struct single *xfd,
    }
    Info11("sending socks4%s request VN=%d DC=%d DSTPORT=%d DSTIP=%d.%d.%d.%d USERID=%s%s%s",
 	  destdomname?"a":"",
-	  sockhead->version, sockhead->action, sockhead->port,
+	  sockhead->version, sockhead->action, ntohs(sockhead->port),
 	  ((unsigned char *)&sockhead->dest)[0],
 	  ((unsigned char *)&sockhead->dest)[1],
 	  ((unsigned char *)&sockhead->dest)[2],

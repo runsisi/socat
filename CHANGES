@@ -8,6 +8,10 @@ corrections:
 	complete" when the peer performed a renegotiation. Thanks to Benjamin
 	Delpy for reporting this bug.
 
+	info message during socks connect showed bad port number on little
+	endian systems due to wrong byte order (thanks to Peter M. Galbavy for
+	bug report and patch)
+
 porting:
 	building socat on systems that predefined the CFLAGS environment to
 	contain -Wall failed (esp.RedHat). Thanks to Paul Wouters for reporting
