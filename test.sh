@@ -10048,6 +10048,88 @@ PORT=$((PORT+1))
 N=$((N+1))
 
 
+# socat up to 1.7.1.1 (and 2.0.0-b3) terminated with error when an openssl peer
+# performed a renegotiation. Test if this is fixed.
+NAME=OPENSSLRENEG1
+case "$TESTS" in
+*%functions%*|*%bugs%*|*%openssl%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: OpenSSL connections survives renogotiation"
+# connect with s_client to socat ssl-l; force a renog, then transfer data. When
+# data is passed the test succeeded
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,cert=testsrv.crt,key=testsrv.key,verify=0 PIPE"
+CMD1="openssl s_client -port $PORT -verify 0"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+waittcp4port $PORT 1
+(echo "R"; sleep 1; echo "$da"; sleep 1) |$CMD1 2>"${te}1" |fgrep "$da" >"${tf}1"
+rc1=$?
+kill $pid0 2>/dev/null; wait
+if echo "$da" |diff - ${tf}1 >"$tdiff"; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "${te}0"
+#    cat "${te}1"
+    cat "$tdiff"
+    numFAIL=$((numFAIL+1))
+fi
+fi # NUMCOND
+ ;;
+esac
+N=$((N+1))
+
+
+# socat up to 1.7.1.1 (and 2.0.0-b3) terminated with error when an openssl peer
+# performed a renegotiation. The first temporary fix to this problem might
+# leave socat in a blocking ssl-read state. Test if this has been fixed.
+NAME=OPENSSLRENEG2
+case "$TESTS" in
+*%functions%*|*%bugs%*|*%openssl%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: OpenSSL connections do not block after renogotiation"
+# connect with s_client to socat ssl-l; force a renog, then transfer data from
+# socat to the peer. When data is passed this means that the former ssl read no
+# longer blocks and the test succeeds
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,cert=testsrv.crt,key=testsrv.key,verify=0 SYSTEM:\"sleep 1; echo \\\\\\\"\\\"$da\\\"\\\\\\\"; sleep 1\"!!STDIO"
+CMD1="openssl s_client -port $PORT -verify 0"
+printf "test $F_n $TEST... " $N
+eval "$CMD0 >/dev/null 2>\"${te}0\" &"
+pid0=$!
+waittcp4port $PORT 1
+(echo "R"; sleep 2) |$CMD1 2>"${te}1" |fgrep "$da" >"${tf}1"
+rc1=$?
+kill $pid0 2>/dev/null; wait
+if echo "$da" |diff - ${tf}1 >"$tdiff"; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "${te}0"
+#    cat "${te}1"
+    cat "$tdiff"
+    numFAIL=$((numFAIL+1))
+fi
+fi # NUMCOND
+ ;;
+esac
+N=$((N+1))
+
+
 echo "summary: $((N-1)) tests; $numOK ok, $numFAIL failed, $numCANT could not be performed"
 
 if [ "$numFAIL" -gt 0 ]; then

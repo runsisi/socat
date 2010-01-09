@@ -1,4 +1,9 @@
 
+corrections:
+	socats openssl addresses failed with "nonblocking operation did not
+	complete" when the peer performed a renegotiation. Thanks to Benjamin
+	Delpy for reporting this bug.
+
 ####################### V 1.7.1.1:
 
 corrections:
