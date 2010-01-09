@@ -1,5 +1,5 @@
 /* source: xioclose.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2009 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this is the source of the extended close function */
@@ -72,9 +72,6 @@ int xioclose1(struct single *pipe) {
 	     Info3("shutdown(%d, %d): %s", pipe->fd, 2, strerror(errno)); }
          break;
 #endif /* _WITH_SOCKET */
-      case END_UNLINK: if (Unlink((const char *)pipe->name) < 0) {
-	    Warn2("unlink(\"%s\"): %s", pipe->name, strerror(errno)); }
-         break;
       case END_NONE: default: break;
       }
    }
