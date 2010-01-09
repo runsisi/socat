@@ -158,7 +158,6 @@ typedef struct single {
       END_NONE,		/* no action */
       END_CLOSE,	/* close() */
       END_SHUTDOWN,	/* shutdown() */
-      END_UNLINK,	/* unlink() */
       END_KILL,		/* has subprocess */
       END_CLOSE_KILL,	/* first close fd, then kill subprocess */
       END_SHUTDOWN_KILL	/* first shutdown fd, then kill subprocess */
@@ -171,7 +170,6 @@ typedef struct single {
    bool ttyvalid;		/* the following struct is valid */
    struct termios savetty;	/* save orig tty settings for later restore */
 #endif /* WITH_TERMIOS */
-   const char *name;		/* only with END_UNLINK */
    int (*sigchild)(struct single *);	/* callback after sigchild */
    pid_t ppid;			/* parent pid, only if we send it signals */
    int escape;			/* escape character; -1 for no escape */
