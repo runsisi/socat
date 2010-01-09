@@ -536,7 +536,7 @@ label(ADDRESS_OPENSSL_LISTEN)dit(bf(tt(OPENSSL-LISTEN:<port>)))
    link(TCP)(ADDRESS_TCP_CONNECT)
 label(ADDRESS_NAMED_PIPE)dit(bf(tt(PIPE:<filename>)))
    If link(<filename>)(TYPE_FILENAME) already exists, it is opened.
-   If is does not exist, a named pipe is created and opened. Beginning with
+   If it does not exist, a named pipe is created and opened. Beginning with
    socat version 1.4.3, the named pipe is removed when the address is closed
    (but see option link(unlink-close)(OPTION_UNLINK_CLOSE)nl()
    Note: When a pipe is used for both reading and writing, it works
@@ -1494,22 +1494,22 @@ label(OPTION_NULL_EOF)dit(bf(tt(null-eof)))
    Normally socat() will ignore empty (zero size payload) packets arriving on
    datagram sockets, so it survives port scans. With this option socat()
    interprets empty datagram packets as EOF indicator (see
-   link(shut-null)(OPTION_SHUT_NULL).
+   link(shut-null)(OPTION_SHUT_NULL)).
 label(OPTION_IOCTL_VOID)dit(bf(tt(ioctl-void=<request>)))
    Calls tt(ioctl()) with the request value as second argument and NULL as
    third argument. This option allows to utilize ioctls that are not
    explicitely implemented in socat.
-label(OPTION_IOCTL_INT)dit(bf(tt(ioctl-int=<reqeust>:<value>)))
+label(OPTION_IOCTL_INT)dit(bf(tt(ioctl-int=<request>:<value>)))
    Calls tt(ioctl()) with the request value as second argument and the integer
    value as third argument.
-label(OPTION_IOCTL_INTP)dit(bf(tt(ioctl-intp=<reqeust>:<value>)))
+label(OPTION_IOCTL_INTP)dit(bf(tt(ioctl-intp=<request>:<value>)))
    Calls tt(ioctl()) with the request value as second argument and a pointer to
    the integer value as third argument.
-label(OPTION_IOCTL_BIN)dit(bf(tt(ioctl-bin=<reqeust>:<value>)))
+label(OPTION_IOCTL_BIN)dit(bf(tt(ioctl-bin=<request>:<value>)))
    Calls tt(ioctl()) with the request value as second argument and a pointer to
    the given data value as third argument. This data must be specified in
    link(<dalan>)(TYPE_DATA) form.
-label(OPTION_IOCTL_STRING)dit(bf(tt(ioctl-string=<reqeust>:<value>)))
+label(OPTION_IOCTL_STRING)dit(bf(tt(ioctl-string=<request>:<value>)))
    Calls tt(ioctl()) with the request value as second argument and a pointer to
    the given string as third argument.
    link(<dalan>)(TYPE_DATA) form.
@@ -3100,9 +3100,9 @@ prompts.
 
 label(EXAMPLE_ADDRESS_PTY)
 label(EXAMPLE_OPTION_SYMBOLIC_LINK)
-label(EXAMPLE_OPTION_WAITSLAVE)
+label(EXAMPLE_OPTION_WAIT_SLAVE)
 label(EXAMPLE_OPTION_NONBLOCK)
-(bf(tt(socat PTY,link=$HOME/dev/vmodem0,raw,echo=0,waitslave EXEC:'"ssh modemserver.us.org socat - /dev/ttyS0,nonblock,raw,echo=0"')))
+(bf(tt(socat PTY,link=$HOME/dev/vmodem0,raw,echo=0,wait-slave EXEC:'"ssh modemserver.us.org socat - /dev/ttyS0,nonblock,raw,echo=0"')))
 
 generates a pseudo terminal 
 device (link(PTY)(ADDRESS_PTY)) on the client that can be reached under the
