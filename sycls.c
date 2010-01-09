@@ -1,5 +1,5 @@
 /* source: sycls.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2009 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* explicit system call and C library trace function, for those who miss strace
@@ -18,6 +18,7 @@
 
 #include "error.h"
 #include "filan.h"
+#include "utils.h"
 #include "sysutils.h"
 #include "sycls.h"
 

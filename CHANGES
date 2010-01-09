@@ -4,6 +4,9 @@ porting:
 	contain -Wall failed (esp.RedHat). Thanks to Paul Wouters for reporting
 	this problem and to Simon Matter for providing the patch
 
+	support for Solaris 8 and Sun Studio support (thanks to Sebastian
+	Kayser for providing the patches)
+
 ####################### V 1.7.1.1:
 
 corrections:

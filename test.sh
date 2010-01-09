@@ -97,6 +97,11 @@ HP-UX|OSF1)
     chmod a+x cat.sh
     CAT=./cat.sh
     ;;
+SunOS)
+    # /usr/bin/tr doesn't handle the a-z range syntax (needs [a-z]), use
+    # /usr/xpg4/bin/tr instead
+    alias tr=/usr/xpg4/bin/tr
+    ;;
 *)
     CAT=cat
     ;;
@@ -9059,6 +9064,9 @@ if ! eval $NUMCOND; then :;
 elif [ "$ROOT" = root -a $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+elif [ "$PF" = "IP6" ] && ( ! feat=$(testaddrs ip6) || ! runsip6 >/dev/null ); then
+    $PRINTF "test $F_n $TEST... ${YELLOW}IP6 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -9179,6 +9187,10 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs $FEAT); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat" |tr a-z A-Z) not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+elif [ "$KEYW" = "TCP6" -o "$KEYW" = "UDP6" -o "$KEYW" = "SCTP6" ] && \
+    ! runsip6 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}IP6 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -9273,6 +9285,9 @@ TEST="$NAME: $KEYW ancillary message brings $SCM_ENVNAME into environment"
 if ! eval $NUMCOND; then :;
 elif [ "$ROOT" = root -a $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+elif [ "$PF" = "IP6" ] && ( ! feat=$(testaddrs ip6) || ! runsip6 ) >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}IP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
 tf="$td/test$N.stdout"
@@ -9427,7 +9442,11 @@ NAME=SOCKET_CONNECT_TCP6
 case "$TESTS" in
 *%functions%*|*%generic%*|*%tcp6%*|*%socket%*|*%$NAME%*)
 TEST="$NAME: socket connect with TCP/IPv6"
-if ! eval $NUMCOND; then :; else
+if ! eval $NUMCOND; then :;
+elif ! testaddrs tcp ip6 >/dev/null || ! runsip6 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
 # start a TCP6-LISTEN process that echoes data, and send test data using
 # SOCKET-CONNECT, selecting TCP/IPv6. The sent data should be returned.
 tf="$td/test$N.stdout"

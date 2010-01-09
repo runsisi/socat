@@ -42,7 +42,11 @@ AC_CHECK_PROG(AR, ar, ar, gar)
 AC_LANG_COMPILER_REQUIRE()
 
 if test "$GCC" = yes; then
-   CFLAGS="$CFLAGS -D_GNU_SOURCE"
+   CFLAGS="$CFLAGS -D_GNU_SOURCE -Wall -Wno-parentheses"
+   ERRONWARN="-Werror -O0"
+else
+   # Sun Studio?
+   ERRONWARN="-errwarn"
 fi
 export CFLAGS
 
@@ -53,9 +57,15 @@ AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS(fcntl.h limits.h strings.h sys/param.h sys/ioctl.h sys/time.h syslog.h unistd.h)
 AC_CHECK_HEADERS(pwd.h grp.h stdint.h sys/types.h sys/poll.h sys/socket.h sys/uio.h sys/stat.h netdb.h sys/un.h)
 AC_CHECK_HEADERS(pty.h)
-AC_CHECK_HEADERS(netinet/in.h netinet/in_systm.h netinet/ip.h netinet/tcp.h)
+AC_CHECK_HEADERS(netinet/in.h netinet/in_systm.h)
+AC_CHECK_HEADERS(netinet/ip.h, [], [], [AC_INCLUDES_DEFAULT
+	#if HAVE_NETINET_IN_H && HAVE_NETINET_IN_SYSTM_H
+	#include <netinet/in.h>
+	#include <netinet/in_systm.h>
+	#endif])	# Solaris prerequisites for netinet/ip.h
+AC_CHECK_HEADERS(netinet/tcp.h)
 AC_CHECK_HEADERS(netinet6/in6.h)	# found on OpenBSD, used for IPV6_*
-AC_CHECK_HEADERS(net/if.h, [], [], [AC_INCLUDES_DEFAULT
+AC_CHECK_HEADER(net/if.h, [], [], [AC_INCLUDES_DEFAULT
 	#if HAVE_SYS_SOCKET_H
 	#include <sys/socket.h>
 	#endif])	# Mac OS X requires including sys/socket.h
@@ -84,7 +94,7 @@ AC_CHECK_FUNC(setsockopt, , AC_CHECK_LIB(socket, setsockopt))
 dnl Check for hstrerror prototype
 AC_MSG_CHECKING(for hstrerror prototype)
 AC_CACHE_VAL(sc_cv_have_prototype_hstrerror,
-[CFLAGS1="$CFLAGS"; CFLAGS="-Werror -O0 $(echo "$CFLAGS1" | sed -e 's@-Wall@@g')";
+[CFLAGS1="$CFLAGS"; CFLAGS="$ERRONWARN $(echo "$CFLAGS1" | sed -e 's@-Wall@@g')";
  AC_TRY_COMPILE([#include <netdb.h>],[hstrerror();],
  [sc_cv_have_prototype_hstrerror=no],
  [sc_cv_have_prototype_hstrerror=yes]);
@@ -1296,7 +1306,7 @@ dnl   output values: 1..short, 2..unsigned short, 3..int, 4..u-int,
 dnl                  5..long, 6..u-long; others not yet supported
 define(AC_BASIC_TYPE,[
 AC_CACHE_CHECK(for equivalent simple type of $2, $4,
-[CFLAGS1="$CFLAGS"; CFLAGS="-Werror -O0 $(echo "$CFLAGS1" | sed -e 's@-Wall@@g')"
+[CFLAGS1="$CFLAGS"; CFLAGS="$ERRONWARN $(echo "$CFLAGS1" | sed -e 's@-Wall@@g')"
  AC_TRY_COMPILE([$1],[$2 u; short v; &u==&v;],
  [$4="1 /* short */"],
  [AC_TRY_COMPILE([$1],[$2 u; unsigned short v; &u==&v;],
@@ -1328,7 +1338,7 @@ dnl arg4: output variable, values see AC_BASIC_TYPE
 dnl arg5: cache variable (might be constructed automatically)
 define(AC_TYPEOF_COMPONENT,[
 AC_CACHE_CHECK(for basic type of $2.$3, $5,
-[CFLAGS1="$CFLAGS"; CFLAGS="-Werror -O0 $(echo "$CFLAGS1" | sed -e 's@-Wall@@g')"
+[CFLAGS1="$CFLAGS"; CFLAGS="$ERRONWARN $(echo "$CFLAGS1" | sed -e 's@-Wall@@g')"
 AC_TRY_COMPILE([$1],[$2 u;short v; &u.$3==&v;],
 [$5="1 /* short */"],
 [AC_TRY_COMPILE([$1],[$2 u; unsigned short v; &u.$3==&v;],
