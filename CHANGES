@@ -26,6 +26,9 @@ porting:
 	on some 64bit systems a compiler warning "cast from pointer to integer
 	of different size" was issued on some option definitions
 
+	added struct sockaddr_ll to union sockaddr_union to avoid "strict
+	aliasing" warnings (problem reported by Paul Wouters)
+
 ####################### V 1.7.1.1:
 
 corrections:

@@ -1,5 +1,5 @@
 /* source: sysutils.h */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2010 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __sysutils_h_included
@@ -27,6 +27,9 @@ union sockaddr_union {
 #if WITH_IP6
    struct sockaddr_in6 ip6;
 #endif /* WITH_IP6 */
+#if WITH_INTERFACE
+   struct sockaddr_ll ll;
+#endif
 } ;
 #endif /* _WITH_SOCKET */
 
