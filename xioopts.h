@@ -935,4 +935,52 @@ extern int _groupbits(mode_t mode);
 extern int dropopts(struct opt *opts, unsigned int phase);
 extern int dropopts2(struct opt *opts, unsigned int from, unsigned int to);
 
+#if HAVE_BASIC_UID_T==1
+#  define retropt_uid(o,c,r) retropt_short(o,c,r)
+#elif HAVE_BASIC_UID_T==2
+#  define retropt_uid(o,c,r) retropt_ushort(o,c,r)
+#elif HAVE_BASIC_UID_T==3
+#  define retropt_uid(o,c,r) retropt_int(o,c,r)
+#elif HAVE_BASIC_UID_T==4
+#  define retropt_uid(o,c,r) retropt_uint(o,c,r)
+#elif HAVE_BASIC_UID_T==5
+#  define retropt_uid(o,c,r) retropt_long(o,c,r)
+#elif HAVE_BASIC_UID_T==6
+#  define retropt_uid(o,c,r) retropt_ulong(o,c,r)
+#else
+#  error "HAVE_BASIC_UID_T is out of range: " HAVE_BASIC_UID_T
+#endif
+
+#if HAVE_BASIC_GID_T==1
+#  define retropt_gid(o,c,r) retropt_short(o,c,r)
+#elif HAVE_BASIC_GID_T==2
+#  define retropt_gid(o,c,r) retropt_ushort(o,c,r)
+#elif HAVE_BASIC_GID_T==3
+#  define retropt_gid(o,c,r) retropt_int(o,c,r)
+#elif HAVE_BASIC_GID_T==4
+#  define retropt_gid(o,c,r) retropt_uint(o,c,r)
+#elif HAVE_BASIC_GID_T==5
+#  define retropt_gid(o,c,r) retropt_long(o,c,r)
+#elif HAVE_BASIC_GID_T==6
+#  define retropt_gid(o,c,r) retropt_ulong(o,c,r)
+#else
+#  error "HAVE_BASIC_GID_T is out of range: " HAVE_BASIC_GID_T
+#endif
+
+#if HAVE_BASIC_MODE_T==1
+#  define retropt_mode(o,c,r) retropt_short(o,c,r)
+#elif HAVE_BASIC_MODE_T==2
+#  define retropt_mode(o,c,r) retropt_ushort(o,c,r)
+#elif HAVE_BASIC_MODE_T==3
+#  define retropt_mode(o,c,r) retropt_int(o,c,r)
+#elif HAVE_BASIC_MODE_T==4
+#  define retropt_mode(o,c,r) retropt_uint(o,c,r)
+#elif HAVE_BASIC_MODE_T==5
+#  define retropt_mode(o,c,r) retropt_long(o,c,r)
+#elif HAVE_BASIC_MODE_T==6
+#  define retropt_mode(o,c,r) retropt_ulong(o,c,r)
+#else
+#  error "HAVE_BASIC_MODE_T is out of range: " HAVE_BASIC_MODE_T
+#endif
+
 #endif /* !defined(__xioopts_h_included) */

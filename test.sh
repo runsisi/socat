@@ -1,6 +1,6 @@
 #! /bin/bash
 # source: test.sh
-# Copyright Gerhard Rieger 2001-2009
+# Copyright Gerhard Rieger 2001-2010
 # Published under the GNU General Public License V.2, see file COPYING
 
 # perform lots of tests on socat
@@ -10047,6 +10047,70 @@ esac
 PORT=$((PORT+1))
 N=$((N+1))
 
+
+# here come tests that might affect your systems integrity. Put normal tests
+# before this paragraph.
+# tests must be explicitely selected by roottough or name (not number)
+
+NAME=PTYGROUPLATE
+case "$TESTS" in
+*%roottough%*|*%$NAME%*)
+TEST="$NAME: pty with group-late works on pty"
+# up to socat 1.7.1.1 address pty changed the ownership of /dev/ptmx instead of
+# the pty with options user-late, group-late, or perm-late.
+# here we check for correct behaviour. 
+# ATTENTION: in case of failure of this test the
+# group of /dev/ptmx might be changed!
+if ! eval $NUMCOND; then :; else
+# save current /dev/ptmx properties
+F=
+for f in /dev/ptmx /dev/ptc; do
+    if [ -e $f ]; then
+	F=$(echo "$f" |tr / ..)
+	ls -l $f >"$td/test$N.$F.ls-l"
+	break
+    fi
+done
+printf "test $F_n $TEST... " $N
+if [ -z "$F" ]; then
+    echo -e "${YELLOW}no /dev/ptmx or /dev/ptc${NORMAL}"
+else
+GROUP=daemon
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tl="$td/test$N.pty"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$SOCAT $opts pty,link=$tl,group-late=$GROUP,escape=0x1a PIPE"
+CMD1="$SOCAT $opts - $tl,raw,echo=0"
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+(echo "$da"; usleep $MICROS; echo -e "\x1a") |$CMD1 >"${tf}1" 2>"${te}1" >"$tf"
+rc1=$?
+kill $pid0 2>/dev/null; wait
+if [ $rc1 -ne 0 ]; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "${te}0"
+    cat "${te}1"
+    numFAIL=$((numFAIL+1))
+elif echo "$da" |diff - "$tf" >$tdiff; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    cat "$tdiff"
+    numFAIL=$((numFAIL+1))
+fi
+if ! ls -l $f |diff "$td/test$N.$F.ls-l" -; then
+    $PRINTF "${RED}this test changed properties of $f!${NORMAL}\n"
+fi
+fi # no /dev/ptmx
+fi # NUMCOND
+ ;;
+esac
+N=$((N+1))
 
 echo "summary: $((N-1)) tests; $numOK ok, $numFAIL failed, $numCANT could not be performed"
 

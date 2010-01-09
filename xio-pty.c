@@ -165,7 +165,33 @@ static int xioopen_pty(int argc, const char *argv[], struct opt *opts, int xiofl
    xfd->stream.dtype    = XIODATA_PTY;
 
    applyopts(ptyfd, opts, PH_FD);
-   
+
+   {
+      /* special handling of user-late etc.; with standard behaviour (up to
+	 1.7.1.1) they affected /dev/ptmx instead of /dev/pts/N */
+      uid_t uid = -1, gid = -1;
+      mode_t perm;
+
+      bool dont;
+      dont = retropt_uid(opts, OPT_USER_LATE, &uid);
+      dont &= retropt_gid(opts, OPT_GROUP_LATE, &gid);
+
+      if (!dont) {
+	 if (Chown(ptyname, uid, gid) < 0) {
+	    Error4("chown(\"%s\", %d, %d): %s",
+		   ptyname, uid, gid, strerror(errno));
+	 }
+      }
+
+      if (retropt_mode(opts, OPT_PERM_LATE, &perm) == 0) {
+	 if (Chmod(ptyname, perm) < 0) {
+	    Error3("chmod(\"%s\", %03o): %s",
+		   ptyname, perm, strerror(errno));
+	 }
+      }
+
+   }
+
    xfd->stream.fd = ptyfd;
    applyopts(ptyfd, opts, PH_LATE);
    if (applyopts_single(&xfd->stream, opts, PH_LATE) < 0)  return -1;
