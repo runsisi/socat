@@ -1,4 +1,13 @@
 
+corrections:
+	user-late and group-late, when applied to a pty, affected the system
+	device /dev/ptmx instead of the pty (thanks to Matthew Cloke for
+	pointing me to this bug)
+
+	socats openssl addresses failed with "nonblocking operation did not
+	complete" when the peer performed a renegotiation. Thanks to Benjamin
+	Delpy for reporting this bug.
+
 porting:
 	building socat on systems that predefined the CFLAGS environment to
 	contain -Wall failed (esp.RedHat). Thanks to Paul Wouters for reporting
@@ -9,11 +18,6 @@ porting:
 
 	on some 64bit systems a compiler warning "cast from pointer to integer
 	of different size" was issued on some option definitions
-
-corrections:
-	user-late and group-late, when applied to a pty, affected the system
-	device /dev/ptmx instead of the pty (thanks to Matthew Cloke for
-	pointing me to this bug)
 
 ####################### V 1.7.1.1:
 
