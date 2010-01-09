@@ -3976,7 +3976,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"; da="$da$($ECHO '\r')"
 # we have a normal tcp echo listening - so the socks header must appear in answer
-CMD2="$SOCAT tcp4-l:$PORT,reuseaddr exec:\"./socks4echo.sh\""
+CMD2="$SOCAT $opts tcp4-l:$PORT,reuseaddr exec:\"./socks4echo.sh\""
 CMD="$SOCAT $opts - socks4:$LOCALHOST:32.98.76.54:32109,pf=ip4,socksport=$PORT",socksuser="nobody"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}1\" &"
@@ -4020,7 +4020,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"; da="$da$($ECHO '\r')"
 # we have a normal tcp echo listening - so the socks header must appear in answer
-CMD2="$SOCAT tcp6-l:$PORT,reuseaddr exec:\"./socks4echo.sh\""
+CMD2="$SOCAT $opts tcp6-l:$PORT,reuseaddr exec:\"./socks4echo.sh\""
 CMD="$SOCAT $opts - socks4:$LOCALHOST6:32.98.76.54:32109,socksport=$PORT",socksuser="nobody"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}1\" &"
@@ -4065,7 +4065,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"; da="$da$($ECHO '\r')"
 # we have a normal tcp echo listening - so the socks header must appear in answer
-CMD2="$SOCAT tcp4-l:$PORT,reuseaddr exec:\"./socks4a-echo.sh\""
+CMD2="$SOCAT $opts tcp4-l:$PORT,reuseaddr exec:\"./socks4a-echo.sh\""
 CMD="$SOCAT $opts - socks4a:$LOCALHOST:localhost:32109,pf=ip4,socksport=$PORT",socksuser="nobody"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}1\" &"
@@ -4109,7 +4109,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"; da="$da$($ECHO '\r')"
 # we have a normal tcp echo listening - so the socks header must appear in answer
-CMD2="$SOCAT tcp6-l:$PORT,reuseaddr exec:\"./socks4a-echo.sh\""
+CMD2="$SOCAT $opts tcp6-l:$PORT,reuseaddr exec:\"./socks4a-echo.sh\""
 CMD="$SOCAT $opts - socks4a:$LOCALHOST6:localhost:32109,socksport=$PORT",socksuser="nobody"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}1\" &"
@@ -4155,7 +4155,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"; da="$da$($ECHO '\r')"
 #CMD2="$SOCAT tcp4-l:$PORT,crlf system:\"read; read; $ECHO \\\"HTTP/1.0 200 OK\n\\\"; cat\""
-CMD2="$SOCAT tcp4-l:$PORT,reuseaddr,crlf exec:\"/bin/bash proxyecho.sh\""
+CMD2="$SOCAT $opts tcp4-l:$PORT,reuseaddr,crlf exec:\"/bin/bash proxyecho.sh\""
 CMD="$SOCAT $opts - proxy:$LOCALHOST:127.0.0.1:1000,pf=ip4,proxyport=$PORT"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}2\" &"
@@ -4199,8 +4199,8 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"; da="$da$($ECHO '\r')"
-#CMD2="$SOCAT tcp6-l:$PORT,crlf system:\"read; read; $ECHO \\\"HTTP/1.0 200 OK\n\\\"; cat\""
-CMD2="$SOCAT tcp6-l:$PORT,reuseaddr,crlf exec:\"/bin/bash proxyecho.sh\""
+#CMD2="$SOCAT $opts tcp6-l:$PORT,crlf system:\"read; read; $ECHO \\\"HTTP/1.0 200 OK\n\\\"; cat\""
+CMD2="$SOCAT $opts tcp6-l:$PORT,reuseaddr,crlf exec:\"/bin/bash proxyecho.sh\""
 CMD="$SOCAT $opts - proxy:$LOCALHOST6:127.0.0.1:1000,proxyport=$PORT"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}2\" &"
@@ -4426,8 +4426,8 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"; da="$da$($ECHO '\r')"
-#CMD2="$SOCAT tcp-l:$PORT,crlf system:\"read; read; $ECHO \\\"HTTP/1.0 200 OK\n\\\"; cat\""
-CMD2="$SOCAT tcp4-l:$PORT,reuseaddr,crlf exec:\"/bin/bash proxyecho.sh -w 2\""
+#CMD2="$SOCAT $opts tcp-l:$PORT,crlf system:\"read; read; $ECHO \\\"HTTP/1.0 200 OK\n\\\"; cat\""
+CMD2="$SOCAT $opts tcp4-l:$PORT,reuseaddr,crlf exec:\"/bin/bash proxyecho.sh -w 2\""
 CMD="$SOCAT $opts - proxy:$LOCALHOST:127.0.0.1:1000,pf=ip4,proxyport=$PORT"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}1\" &"
@@ -4818,9 +4818,9 @@ CMD2="$SOCAT $opts -lpproxy -t1 tcp4-l:$((PORT+1)),reuseaddr,bind=$LOCALHOST,for
 # this is our proxy connect wrapper in the protected network
 CMD3="$SOCAT $opts -lpwrapper -t3 tcp4-l:$((PORT+2)),reuseaddr,bind=$LOCALHOST,fork proxy:$LOCALHOST:$LOCALHOST:$((PORT+3)),pf=ip4,proxyport=$((PORT+1)),resolve"
 # this is our double client in the protected network using SSL
-CMD4="$SOCAT $opts -lp2client -t3 ssl:$LOCALHOST:$((PORT+2)),retry=10,interval=1,cert=testcli.pem,cafile=testsrv.crt,verify,fork,$SOCAT_EGD tcp4:$LOCALHOST:$PORT,forever,intervall=0.1"
+CMD4="$SOCAT $opts -lp2client -t3 ssl:$LOCALHOST:$((PORT+2)),retry=10,interval=1,cert=testcli.pem,cafile=testsrv.crt,verify,fork,$SOCAT_EGD tcp4:$LOCALHOST:$PORT,forever,interval=0.1"
 # this is the double server in the outside network
-CMD5="$SOCAT $opts -lp2server -t4 tcp4-l:$((PORT+4)),reuseaddr,bind=$LOCALHOST,backlog=3,fork ssl-l:$((PORT+3)),pf=ip4,reuseaddr,bind=$LOCALHOST,$SOCAT_EGD,cert=testsrv.pem,cafile=testcli.crt,retry=20,intervall=0.5"
+CMD5="$SOCAT $opts -lp2server -t4 tcp4-l:$((PORT+4)),reuseaddr,bind=$LOCALHOST,backlog=3,fork ssl-l:$((PORT+3)),pf=ip4,reuseaddr,bind=$LOCALHOST,$SOCAT_EGD,cert=testsrv.pem,cafile=testcli.crt,retry=20,interval=0.5"
 # this is the outside client that wants to use the protected server
 CMD6="$SOCAT $opts -lpclient -t6 - tcp4:$LOCALHOST:$((PORT+4)),retry=3"
 printf "test $F_n $TEST... " $N
@@ -6063,6 +6063,7 @@ eval "$SRV 2>${te}s &"
 pids=$!
 waitfile "$ts1"
 echo "$da1" |eval "$CLI" >"${tf}1" 2>"${te}1"
+wait
 if [ $? -ne 0 ]; then
     kill "$pids" 2>/dev/null
     $PRINTF "$FAILED:\n"
@@ -6084,7 +6085,6 @@ else
     $PRINTF "$OK\n"
     numOK=$((numOK+1))
 fi # !(rc -ne 0)
-wait
 fi ;; # NUMCOND
 esac
 N=$((N+1))
