@@ -12,6 +12,9 @@ corrections:
 	endian systems due to wrong byte order (thanks to Peter M. Galbavy for
 	bug report and patch)
 
+	Debian bug 531078: socat execs children with SIGCHLD ignored; corrected
+	to default. Thanks to Martin Dorey for reporting this bug.
+
 porting:
 	building socat on systems that predefined the CFLAGS environment to
 	contain -Wall failed (esp.RedHat). Thanks to Paul Wouters for reporting
