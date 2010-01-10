@@ -10076,7 +10076,17 @@ case "$TESTS" in
 TEST="$NAME: OpenSSL connections survives renogotiation"
 # connect with s_client to socat ssl-l; force a renog, then transfer data. When
 # data is passed the test succeeded
-if ! eval $NUMCOND; then :; else
+if ! eval $NUMCOND; then :;
+elif ! testaddrs openssl >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+elif ! type openssl >/dev/null 2>&1; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}openssl executable not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
@@ -10118,7 +10128,17 @@ TEST="$NAME: OpenSSL connections do not block after renogotiation"
 # connect with s_client to socat ssl-l; force a renog, then transfer data from
 # socat to the peer. When data is passed this means that the former ssl read no
 # longer blocks and the test succeeds
-if ! eval $NUMCOND; then :; else
+if ! eval $NUMCOND; then :;
+elif ! testaddrs openssl >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+elif ! type openssl >/dev/null 2>&1; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}openssl executable not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"

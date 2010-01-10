@@ -1,4 +1,6 @@
 
+####################### V 1.7.1.2:
+
 corrections:
 	user-late and group-late, when applied to a pty, affected the system
 	device /dev/ptmx instead of the pty (thanks to Matthew Cloke for
