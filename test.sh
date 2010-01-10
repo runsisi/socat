@@ -6063,8 +6063,9 @@ eval "$SRV 2>${te}s &"
 pids=$!
 waitfile "$ts1"
 echo "$da1" |eval "$CLI" >"${tf}1" 2>"${te}1"
+rc=$?
 wait
-if [ $? -ne 0 ]; then
+if [ $rc -ne 0 ]; then
     kill "$pids" 2>/dev/null
     $PRINTF "$FAILED:\n"
     echo "$SRV &"
