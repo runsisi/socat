@@ -5945,6 +5945,63 @@ esac
 N=$((N+1))
 
 
+NAME=UDPLISTENFORK
+case "$TESTS" in
+*%functions%*|*%ip4%*|*%udp%*|*%listen%*|*%fork%*|*%$NAME%*)
+TEST="$NAME: UDP socket rebinds after first connection"
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da1="test$N $(date) $RANDOM"
+da2="test$N $(date) $RANDOM"
+#establish a listening and forking udp socket in background
+SRV="$SOCAT $opts -lpserver UDP4-LISTEN:$PORT,bind=$LOCALHOST,fork PIPE"
+#make a first and a second connection
+CLI="$SOCAT $opts -lpclient - UDP4-CONNECT:$LOCALHOST:$PORT"
+$PRINTF "test $F_n $TEST... " $N
+eval "$SRV 2>${te}s &"
+pids=$!
+waitudp4port "$PORT"
+echo "$da1" |eval "$CLI" >"${tf}1" 2>"${te}1"
+if [ $? -ne 0 ]; then
+    kill "$pids" 2>/dev/null
+    $PRINTF "$NO_RESULT (first conn failed):\n"
+    echo "$SRV &"
+    echo "$CLI"
+    cat "${te}s" "${te}1"
+    numCANT=$((numCANT+1))
+elif ! echo "$da1" |diff - "${tf}1" >"$tdiff"; then
+    kill "$pids" 2>/dev/null
+    $PRINTF "$NO_RESULT (first conn failed); diff:\n"
+    cat "$tdiff"
+    numCANT=$((numCANT+1))
+else
+sleep 2		# UDP-LISTEN sleeps 1s
+echo "$da2" |eval "$CLI" >"${tf}2" 2>"${te}2"
+rc="$?"; kill "$pids" 2>/dev/null
+if [ $rc -ne 0 ]; then
+    $PRINTF "$FAILED:\n"
+    echo "$SRV &"
+    echo "$CLI"
+    cat "${te}s" "${te}2"
+    numFAIL=$((numFAIL+1))
+elif ! echo "$da2" |diff - "${tf}2" >"$tdiff"; then
+    $PRINTF "$FAILED: diff\n"
+    cat "$tdiff"
+    numFAIL=$((numFAIL+1))
+else
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+fi # !( $? -ne 0)
+fi # !(rc -ne 0)
+wait
+fi ;; # NUMCOND, feats
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
 NAME=UNIXLISTENFORK
 case "$TESTS" in
 *%functions%*|*%unix%*|*%listen%*|*%fork%*|*%$NAME%*)

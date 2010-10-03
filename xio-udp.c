@@ -1,5 +1,5 @@
 /* source: xio-udp.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2010 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for handling UDP addresses */
@@ -170,7 +170,8 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
    while (true) {	/* we loop with fork or prohibited packets */
       /* now wait for some packet on this datagram socket, get its sender
 	 address, connect there, and return */
-      int one = 1;
+      int reuseaddr = dofork;
+      int doreuseaddr = (dofork != 0);
       char infobuff[256];
       union sockaddr_union _sockname;
       union sockaddr_union *la = &_sockname;	/* local address */
@@ -178,12 +179,17 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
       if ((fd->stream.fd = xiosocket(opts, pf, socktype, ipproto, E_ERROR)) < 0) {
 	 return STAT_RETRYLATER;
       }
+      doreuseaddr |= (retropt_int(opts, OPT_SO_REUSEADDR, &reuseaddr) >= 0);
       applyopts(fd->stream.fd, opts, PH_PASTSOCKET);
-      if (Setsockopt(fd->stream.fd, opt_so_reuseaddr.major,
-		     opt_so_reuseaddr.minor, &one, sizeof(one)) < 0) {
-	 Warn6("setsockopt(%d, %d, %d, {%d}, "F_Zd"): %s",
-	       fd->stream.fd, opt_so_reuseaddr.major,
-	       opt_so_reuseaddr.minor, one, sizeof(one), strerror(errno));
+      if (doreuseaddr) {
+	 if (Setsockopt(fd->stream.fd, opt_so_reuseaddr.major,
+			opt_so_reuseaddr.minor, &reuseaddr, sizeof(reuseaddr))
+	     < 0) {
+	    Warn6("setsockopt(%d, %d, %d, {%d}, "F_Zd"): %s",
+		  fd->stream.fd, opt_so_reuseaddr.major,
+		  opt_so_reuseaddr.minor, reuseaddr, sizeof(reuseaddr),
+		  strerror(errno));
+	 }
       }
       applyopts_cloexec(fd->stream.fd, opts);
       applyopts(fd->stream.fd, opts, PH_PREBIND);
