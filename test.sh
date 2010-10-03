@@ -10297,7 +10297,37 @@ fi # NUMCOND
  ;;
 esac
 N=$((N+1))
-set +vx
+
+
+# test if socat keeps an existing file where it wanted to create a UNIX socket
+NAME=UNIXLISTEN_KEEPFILE
+case "$TESTS" in
+*%functions%*|*%bugs%*|*%unix%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: socat keeps an existing file where it wanted to create a UNIX socket"
+# we create a file and start socat with UNIX-LISTEN on this file. expected
+# behaviour: socat exits immediately with error, but keeps the file
+# up to 1.7.1.3, it removed the file
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.file"
+te="$td/test$N.stderr"
+CMD0="$SOCAT $opts -u UNIX-LISTEN:$tf /dev/null"
+printf "test $F_n $TEST... " $N
+rm -f "$tf"; touch "$tf"
+$CMD0 >/dev/null 2>"${te}0"
+rc0=$?
+if [ $rc0 -ne 0 -a -f "$tf" ]; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0"
+    cat "${te}0"
+    numFAIL=$((numFAIL+1))
+fi
+fi # NUMCOND
+ ;;
+esac
+N=$((N+1))
 
 
 ###############################################################################

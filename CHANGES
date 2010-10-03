@@ -1,5 +1,9 @@
 
 corrections:
+	when UNIX-LISTEN was applied to an existing file it failed as expected
+	but removed the file. Thanks to Bjoern Bosselmann for reporting this
+	problem
+
 	fixed a bug where socat might crash when connecting to a unix domain
 	socket using address GOPEN. Thanks to Martin Forssen for bug report and
 	patch.

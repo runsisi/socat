@@ -1,5 +1,5 @@
 /* source: xio-unix.c */
-/* Copyright Gerhard Rieger 2001-2009 */
+/* Copyright Gerhard Rieger 2001-2010 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening addresses of UNIX socket type */
@@ -126,6 +126,7 @@ static int xioopen_unix_listen(int argc, const char *argv[], struct opt *opts, i
    socklen_t uslen;
    bool tight = true;
    struct opt *opts0 = NULL;
+   pid_t pid = Getpid();
    bool opt_unlink_early = false;
    bool opt_unlink_close = true;
    int result;
@@ -147,12 +148,6 @@ static int xioopen_unix_listen(int argc, const char *argv[], struct opt *opts, i
       /* only for non abstract because abstract do not work in file system */
       retropt_bool(opts, OPT_UNLINK_EARLY, &opt_unlink_early);
       retropt_bool(opts, OPT_UNLINK_CLOSE, &opt_unlink_close);
-      if (opt_unlink_close) {
-	 if ((xfd->unlink_close = strdup(name)) == NULL) {
-	    Error1("strdup(\"%s\"): out of memory", name);
-	 }
-	 xfd->opt_unlink_close = true;
-      }
    }
 
    if (applyopts_single(xfd, opts, PH_INIT) < 0) return STAT_NORETRY;
@@ -183,6 +178,19 @@ static int xioopen_unix_listen(int argc, const char *argv[], struct opt *opts, i
 		       opts, opts0, pf, socktype, protocol))
        != 0)
       return result;
+
+   /* we set this option as late as now because we should not remove an
+      existing entry when bind() failed */
+   if (!(ABSTRACT && abstract)) {
+      if (opt_unlink_close) {
+	 if (pid == Getpid()) {
+	    if ((xfd->unlink_close = strdup(name)) == NULL) {
+	       Error1("strdup(\"%s\"): out of memory", name);
+	    }
+	    xfd->opt_unlink_close = true;
+	 }
+      }
+   }
    return 0;
 }
 #endif /* WITH_LISTEN */

@@ -1,5 +1,5 @@
 /* source: xio-listen.c */
-/* Copyright Gerhard Rieger 2001-2009 */
+/* Copyright Gerhard Rieger 2001-2010 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for listen socket options */
@@ -298,12 +298,6 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
 	    xfd->forever = false;  xfd->retry = 0;
 	    level = E_ERROR;
 #endif /* WITH_RETRY */
-
-#if WITH_UNIX
-	    /* with UNIX sockets: only listening parent is allowed to remove
-	       the socket file */
-	    xfd->opt_unlink_close = false;
-#endif /* WITH_UNIX */
 
 	    break;
 	 }
