@@ -1,4 +1,13 @@
 
+security:
+	fixed a stack overflow vulnerability that occurred when command
+	line arguments (whole addresses, host names, file names) were longer
+	than 512 bytes.
+	Note that this could only be exploited when an attacker was able to
+	inject data into socat's command line.
+	Full credits to Felix Gröbert, Google Security Team, for finding and
+	reporting this issue
+
 ####################### V 1.7.1.2:
 
 corrections:

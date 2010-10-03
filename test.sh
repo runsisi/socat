@@ -10115,6 +10115,7 @@ fi
 fi # NUMCOND
  ;;
 esac
+PORT=$((PORT+1))
 N=$((N+1))
 
 
@@ -10167,6 +10168,76 @@ fi
 fi # NUMCOND
  ;;
 esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
+# socat up to 1.7.1.2 had a stack overflow vulnerability that occurred when
+# command line arguments (whole addresses, host names, file names) were longer
+# than 512 bytes.
+NAME=HOSTNAMEOVFL
+case "$TESTS" in
+*%functions%*|*%bugs%*|*%security%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: stack overflow on overly long host name"
+# provide a long host name to TCP-CONNECT and check socats exit code
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+# prepare long data - perl might not be installed
+rm -f "$td/terst$N.dat"
+i=0; while [ $i -lt 64 ]; do  echo -n "AAAAAAAAAAAAAAAA" >>"$td/test$N.dat"; i=$((i+1)); done
+CMD0="$SOCAT $opts TCP-CONNECT:$(cat "$td/test$N.dat"):$PORT STDIO"
+printf "test $F_n $TEST... " $N
+$CMD0 </dev/null 1>&0 2>"${te}0"
+rc0=$?
+if [ $rc0 -lt 128 ] || [ $rc0 -eq 255 ]; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0"
+    cat "${te}0"
+    numFAIL=$((numFAIL+1))
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+# socat up to 1.7.1.2 had a stack overflow vulnerability that occurred when
+# command line arguments (whole addresses, host names, file names) were longer
+# than 512 bytes.
+NAME=FILENAMEOVFL
+case "$TESTS" in
+*%functions%*|*%bugs%*|*%security%*|*%openssl%*|*%$NAME%*)
+TEST="$NAME: stack overflow on overly long file name"
+# provide a 600 bytes long key file option to SSL-CONNECT and check socats exit code
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+i=0; while [ $i -lt 64 ]; do  echo -n "AAAAAAAAAAAAAAAA" >>"$td/test$N.dat"; i=$((i+1)); done
+CMD0="$SOCAT $opts OPENSSL:localhost:$PORT,key=$(cat "$td/test$N.dat") STDIO"
+printf "test $F_n $TEST... " $N
+$CMD0 </dev/null 1>&0 2>"${te}0"
+rc0=$?
+if [ $rc0 -lt 128 ] || [ $rc0 -eq 255 ]; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0"
+    cat "${te}0"
+    numFAIL=$((numFAIL+1))
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
 N=$((N+1))
 
 
@@ -10276,7 +10347,7 @@ CMD1="$SOCAT $opts - client-address"
 printf "test $F_n $TEST... " $N
 $CMD0 >/dev/null 2>"${te}0" &
 pid0=$!
-wait<something>port $xy 1
+wait<something>port $PORT 1
 echo "$da" |$CMD1 >"${tf}1" 2>"${te}1"
 rc1=$?
 kill $pid0 2>/dev/null; wait
@@ -10294,4 +10365,5 @@ fi
 fi # NUMCOND
  ;;
 esac
+PORT=$((PORT+1))
 N=$((N+1))

@@ -1,5 +1,5 @@
 /* source: nestlex.c */
-/* Copyright Gerhard Rieger 2006 */
+/* Copyright Gerhard Rieger 2006-2010 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* a function for lexical scanning of nested character patterns */
@@ -211,7 +211,7 @@ int nestlex(const char **addr,	/* input string; aft points to end token */
 	 }
 	 *out++ = c;
 	 --*len;
-	 if (len == 0) {
+	 if (*len == 0) {
 	    *addr = in;
 	    *token = out;
 	    return -1;	/* output overflow */
@@ -222,7 +222,7 @@ int nestlex(const char **addr,	/* input string; aft points to end token */
       /* just a simple char */
       *out++ = c;
       --*len;
-      if (len == 0) {
+      if (*len == 0) {
 	 *addr = in;
 	 *token = out;
 	 return -1;	/* output overflow */
