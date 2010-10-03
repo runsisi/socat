@@ -11,6 +11,9 @@ corrections:
 	UDP-LISTEN would alway set SO_REUSEADDR even without fork option and
 	when user set it to 0. Thanks to Michal Svoboda for reporting this bug.
 
+	UNIX-CONNECT did not support half-close. Thanks to Greg Hughes who
+	pointed me to that bug
+
 ####################### V 1.7.1.3:
 
 security:

@@ -3772,32 +3772,39 @@ esac
 PORT=$((PORT+1))
 N=$((N+1))
 
-# does our OpenSSL implementation support halfclose?
-NAME=OPENSSLEOF
+
+while read NAMEKEYW TESTTMPL PEERTMPL WAITTMPL; do
+if [ -z "$NAMEKEYW" ] || [[ "$NAMEKEYW" == \#* ]]; then continue; fi
+
+export ts="$td/test$N.socket"
+WAITTMPL="$(echo "$WAITTMPL" |sed -e 's/\040/ /g')"
+TESTADDR=$(eval echo $TESTTMPL)
+PEERADDR=$(eval echo $PEERTMPL)
+WAITCMD=$(eval echo $WAITTMPL)
+TESTKEYW=${TESTADDR%%:*}
+
+# does our address implementation support halfclose?
+NAME=${NAMEKEYW}_HALFCLOSE
 case "$TESTS" in
-*%functions%*|*%openssl%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
-TEST="$NAME: openssl half close"
-# have an SSL server that executes "$OD_C" and see if EOF on the SSL client
-# brings the result of od to the client
+*%functions%*|*%socket%*|*%halfclose%*|*%$NAME%*)
+TEST="$NAME: $TESTKEYW half close"
+# have a "peer" socat "peer" that executes "$OD_C" and see if EOF on the
+# connecting socat  brings the result of od
 if ! eval $NUMCOND; then :;
-elif ! testaddrs openssl >/dev/null; then
-    $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
-    numCANT=$((numCANT+1))
-elif ! testaddrs listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
-    $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
-    numCANT=$((numCANT+1))
+#elif ! testaddrs unix >/dev/null; then
+#    $PRINTF "test $F_n $TEST... ${YELLOW}UNIX not available${NORMAL}\n" $N
+#    numCANT=$((numCANT+1))
 else
-gentestcert testsrv
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD2="$SOCAT $opts OPENSSL-LISTEN:$PORT,pf=ip4,reuseaddr,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 exec:'$OD_C'"
-CMD="$SOCAT -T1 $OPTS - openssl:$LOCALHOST:$PORT,verify=0,$SOCAT_EGD"
+CMD2="$SOCAT $opts \"$PEERADDR\" EXEC:'$OD_C'"
+CMD="$SOCAT -T1 $opts - $TESTADDR"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}1\" &"
 pid=$!	# background process id
-waittcp4port $PORT
+$WAITCMD
 echo "$da" |$CMD >$tf 2>"${te}2"
 if ! echo "$da" |$OD_C |diff - "$tf" >"$tdiff"; then
     $PRINTF "$FAILED: $SOCAT:\n"
@@ -3818,6 +3825,21 @@ fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
 N=$((N+1))
+
+done <<<"
+UNIXCONNECT UNIX-CONNECT:\$ts UNIX-LISTEN:\$ts waitfile\040\$ts
+UNIXCLIENT UNIX-CLIENT:\$ts UNIX-LISTEN:\$ts waitfile\040\$ts
+GOPEN_UNIXSTREAM GOPEN:\$ts UNIX-LISTEN:\$ts waitfile\040\$ts
+UNIXLISTEN UNIX-LISTEN:\$ts UNIX-CONNECT:\$ts,retry=3 sleep\040\1
+TCP4CONNECT TCP4-CONNECT:\$LOCALHOST:\$PORT TCP4-LISTEN:\$PORT waittcp4port\040\$PORT
+TCP4LISTEN TCP4-LISTEN:\$PORT TCP4-CONNECT:\$LOCALHOST:\$PORT,retry=3
+TCP6CONNECT TCP6-CONNECT:\$LOCALHOST6:\$PORT TCP6-LISTEN:\$PORT waittcp6port\040\$PORT
+TCP6LISTEN TCP6-LISTEN:\$PORT TCP6-CONNECT:\$LOCALHOST6:\$PORT,retry=3
+OPENSSL4CLIENT OPENSSL:\$LOCALHOST:\$PORT,verify=0 OPENSSL-LISTEN:\$PORT,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 waittcp4port\040\$PORT
+OPENSSL4SERVER OPENSSL-LISTEN:\$PORT,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 OPENSSL:\$LOCALHOST:\$PORT,verify=0,retry=3
+OPENSSL6CLIENT OPENSSL:\$LOCALHOST6:\$PORT,pf=ip6,verify=0 OPENSSL-LISTEN:\$PORT,pf=ip6,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 waittcp6port\040\$PORT
+OPENSSL6SERVER OPENSSL-LISTEN:\$PORT,pf=ip6,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 OPENSSL:\$LOCALHOST:\$PORT,pf=ip6,verify=0,retry=3
+"
 
 
 NAME=OPENSSL_SERVERAUTH
