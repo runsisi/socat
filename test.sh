@@ -10241,6 +10241,65 @@ PORT=$((PORT+1))
 N=$((N+1))
 
 
+# test for a bug in gopen that lead to crash or warning when opening a unix
+# domain socket with GOPEN
+NAME=GOPEN_UNIX_CRASH
+case "$TESTS" in
+*%functions%*|*%bugs%*|*%gopen%*|*%unix%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: check crash when connecting to a unix domain socket using address GOPEN"
+# a unix domain server is started in background. the check process connects to
+# its socket. when this process crashes or issues a warning the bug is present.
+# please note that a clean behaviour does not proof anything; behaviour of bug
+# depends on the value of an uninitialized var
+#set -vx
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+ts="$td/test$N.sock"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$SOCAT $opts UNIX-LISTEN:$ts PIPE"
+CMD1="$SOCAT $opts -d - GOPEN:$ts"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0" </dev/null &
+pid0=$!
+waitunixport "$ts" 1
+echo "$da" |$CMD1 >"${tf}1" 2>"${te}1"
+rc1=$?
+kill $pid0 2>/dev/null; wait
+if [ $rc1 -ne 0 ]; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "${te}0"
+    cat "${te}1"
+    numFAIL=$((numFAIL+1))
+elif grep -q ' W ' "${te}1"; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "${te}0"
+    cat "${te}1"
+    numFAIL=$((numFAIL+1))
+elif  ! echo "$da" |diff - ${tf}1 >"$tdiff"; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "${te}0"
+    cat "${te}1"
+    cat "$tdiff"
+    numFAIL=$((numFAIL+1))
+else
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+fi
+fi # NUMCOND
+ ;;
+esac
+N=$((N+1))
+set +vx
+
+
 ###############################################################################
 # here come tests that might affect your systems integrity. Put normal tests
 # before this paragraph.

@@ -1,5 +1,5 @@
 /* source: xio-gopen.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2010 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening addresses of generic open type */
@@ -46,7 +46,7 @@ static int xioopen_gopen(int argc, const char *argv[], struct opt *opts, int xio
    if (exists && S_ISSOCK(st_mode)) {
 #if WITH_UNIX
       union sockaddr_union us;
-      socklen_t uslen;
+      socklen_t uslen = sizeof(us);
       char infobuff[256];
 
       Info1("\"%s\" is a socket, connecting to it", filename);

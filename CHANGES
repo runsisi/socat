@@ -1,4 +1,9 @@
 
+corrections:
+	fixed a bug where socat might crash when connecting to a unix domain
+	socket using address GOPEN. Thanks to Martin Forssen for bug report and
+	patch.
+
 ####################### V 1.7.1.3:
 
 security:
