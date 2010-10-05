@@ -1,5 +1,5 @@
 /* source: xioopts.c */
-/* Copyright Gerhard Rieger 2001-2009 */
+/* Copyright Gerhard Rieger 2001-2010 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for address options handling */
@@ -2136,6 +2136,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 #endif /* HAVE_STRUCT_LINGER */
 
       case TYPE_INT_INT:
+      case TYPE_INT_INTP:
 	 if (!assign) {
 	    Error1("option \"%s\": values required", a0);
 	    continue;

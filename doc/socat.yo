@@ -261,7 +261,10 @@ label(ADDRESS_CREAT)dit(bf(tt(CREATE:<filename>)))
    Opens link(<filename>)(TYPE_FILENAME) with code(creat()) and uses the file
    descriptor for writing. 
    This address type requires write-only context, because a file opened with
-   code(creat) cannot be read from.
+   code(creat) cannot be read from. nl()
+   Flags like O_LARGEFILE cannot be applied. If you need them use
+   link(OPEN)(ADDRESS_OPEN) with options
+   link(create)(OPTION_O_CREAT),link(create)(OPTION_O_TRUNC). nl()
    <filename> must be a valid existing or not existing path.
    If <filename> is a named pipe, code(creat()) might block;
    if <filename> refers to a socket, this is an error.nl() 
@@ -465,7 +468,7 @@ label(ADDRESS_OPEN)dit(bf(tt(OPEN:<filename>)))
    Note: This address type is rarly useful in bidirectional mode.nl()
    Option groups: link(FD)(GROUP_FD),link(REG)(GROUP_REG),link(NAMED)(GROUP_NAMED),link(OPEN)(GROUP_OPEN) nl()
    Useful options:
-   link(creat)(OPTION_CREAT),
+   link(creat)(OPTION_O_CREAT),
    link(excl)(OPTION_EXCL),
    link(noatime)(OPTION_O_NOATIME),
    link(nofollow)(OPTION_NOFOLLOW),
@@ -1573,7 +1576,7 @@ E.g., option `creat' sets the code(O_CREAT) flag.nl()
 See also options link(append)(OPTION_APPEND) and
 link(nonblock)(OPTION_NONBLOCK).
 startdit()
-label(OPTION_CREAT)dit(bf(tt(creat=<bool>)))
+label(OPTION_O_CREAT)dit(bf(tt(creat=<bool>)))
    Creates the file if it does not exist (link(example)(EXAMPLE_OPTION_CREAT)).
 label(OPTION_DSYNC)dit(bf(tt(dsync=<bool>)))
    Blocks code(write()) calls until metainfo is physically written to media.
@@ -1608,7 +1611,7 @@ COMMENT(label(OPTION_RDWR)dit(bf(tt(rdwr=<bool>)))
    Opens the file for reading and writing.)
 label(OPTION_WRONLY)dit(bf(tt(wronly=<bool>)))
    Opens the file for writing only.
-label(OPTION_TRUNC)dit(bf(tt(trunc)))
+label(OPTION_O_TRUNC)dit(bf(tt(trunc)))
    Truncates the file to size 0 during opening it.
 enddit()
 
@@ -3063,7 +3066,7 @@ htmlcommand(<dt><code><strong>socat -u TCP4-LISTEN:3334,reuseaddr,fork \</strong
 implements a simple network based message collector. 
 For each client connecting to port 3334, a new child process is generated (option link(fork)(OPTION_FORK)).
 All data sent by the clients are link(append)(OPTION_APPEND)'ed to the file /tmp/in.log.
-If the file does not exist, socat link(creat)(OPTION_CREAT)'s it. 
+If the file does not exist, socat link(creat)(OPTION_O_CREAT)'s it. 
 Option link(reuseaddr)(OPTION_REUSEADDR) allows immediate restart of the server
 process. 
 
