@@ -14,6 +14,9 @@ corrections:
 	UNIX-CONNECT did not support half-close. Thanks to Greg Hughes who
 	pointed me to that bug
 
+	TCP-CONNECT with option nonblock reported successful connect even when
+	it was still pending
+
 ####################### V 1.7.1.3:
 
 security:

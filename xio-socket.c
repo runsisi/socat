@@ -910,14 +910,14 @@ int _xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
 	 Close(xfd->fd);
 	 return STAT_RETRYLATER;
       }
+   } else {	/* result >= 0 */
+      Notice1("successfully connected from local address %s",
+	      sockaddr_info(&la.soa, themlen, infobuff, sizeof(infobuff)));
    }
 
    applyopts_fchown(xfd->fd, opts);	/* OPT_USER, OPT_GROUP */
    applyopts(xfd->fd, opts, PH_CONNECTED);
    applyopts(xfd->fd, opts, PH_LATE);
-
-   Notice1("successfully connected from local address %s",
-	   sockaddr_info(&la.soa, themlen, infobuff, sizeof(infobuff)));
 
    return STAT_OK;
 }
