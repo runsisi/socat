@@ -1,5 +1,5 @@
 /* source: socat.c */
-/* Copyright Gerhard Rieger 2001-2009 */
+/* Copyright Gerhard Rieger 2001-2010 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this is the main source, including command line option parsing, general
@@ -1297,7 +1297,8 @@ int xiotransfer(xiofile_t *inpipe, xiofile_t *outpipe,
 	       }
 	    } else if (socat_opts.verbhex) {
 	       int i;
-	       /*! prefix? */
+	       /* print prefix */
+	       xioprintblockheader(stderr, bytes, righttoleft);
 	       for (i = 0; i < bytes; ++i) {
 		  fprintf(stderr, " %02x", (*buff)[i]);
 	       }

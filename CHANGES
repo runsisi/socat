@@ -20,6 +20,9 @@ corrections:
 	address option ioctl-intp failed with "unimplemented type 26". Thanks
 	to Jeremy W. Sherman for reporting and fixing that bug
 
+	socat option -x did not print packet direction, timestamp etc; thanks
+	to Anthony Sharobaiko for sending a patch
+
 ####################### V 1.7.1.3:
 
 security:
