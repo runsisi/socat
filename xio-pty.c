@@ -1,5 +1,5 @@
 /* source: xio-pty.c */
-/* Copyright Gerhard Rieger 2002-2009 */
+/* Copyright Gerhard Rieger 2002-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for creating pty addresses */
@@ -46,6 +46,10 @@ static int xioopen_pty(int argc, const char *argv[], struct opt *opts, int xiofl
 				   default behaviour as well as backward 
 				   compatibility we choose "no" as default */
    struct timespec pollintv = { PTY_INTERVALL };
+
+   if (argc != 1) {
+      Error2("%s: wrong number of parameters (%d instead of 0)", argv[0], argc-1);
+   }
 
    xfd->stream.howtoend = END_CLOSE;
 

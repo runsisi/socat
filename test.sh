@@ -1,6 +1,6 @@
 #! /bin/bash
 # source: test.sh
-# Copyright Gerhard Rieger 2001-2010
+# Copyright Gerhard Rieger 2001-2011
 # Published under the GNU General Public License V.2, see file COPYING
 
 # perform lots of tests on socat
@@ -10395,6 +10395,36 @@ rm -f "$tf"; touch "$tf"
 $CMD0 >/dev/null 2>"${te}0"
 rc0=$?
 if [ $rc0 -ne 0 -a -f "$tf" ]; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0"
+    cat "${te}0"
+    numFAIL=$((numFAIL+1))
+fi
+fi # NUMCOND
+ ;;
+esac
+N=$((N+1))
+
+
+# PTY address allowed to sepcify address parameters but ignored them
+NAME=PTY_VOIDARG
+case "$TESTS" in
+*%functions%*|*%bugs%*|*%pty%*|*%$NAME%*)
+TEST="$NAME: check if address params of PTY produce error"
+# invoke socat with address PTY and some param; expect an error
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$SOCAT $opts /dev/null PTY:/tmp/xyz"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0"
+rc0=$?
+if [ $rc0 -ne 0 ]; then
     $PRINTF "$OK\n"
     numOK=$((numOK+1))
 else

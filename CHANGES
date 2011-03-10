@@ -23,6 +23,9 @@ corrections:
 	socat option -x did not print packet direction, timestamp etc; thanks
 	to Anthony Sharobaiko for sending a patch
 
+	address PTY does not take any parameters but did not report an error
+	when some were given
+
 ####################### V 1.7.1.3:
 
 security:
