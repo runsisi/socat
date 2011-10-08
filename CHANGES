@@ -26,6 +26,10 @@ corrections:
 	address PTY does not take any parameters but did not report an error
 	when some were given
 
+	Marcus Meissner provided a patch that fixes invalid output and possible
+	process crash when socat prints info about an unnamed unix domain
+	socket
+
 ####################### V 1.7.1.3:
 
 security:

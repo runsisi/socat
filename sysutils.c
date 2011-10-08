@@ -1,5 +1,5 @@
 /* source: sysutils.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* translate socket addresses into human readable form */
@@ -215,10 +215,14 @@ char *sockaddr_unix_info(const struct sockaddr_un *sa, socklen_t salen, char *bu
    } else
 #endif /* WITH_ABSTRACT_UNIXSOCKET */
    {
-      nextc =
-	 sanitize_string(sa->sun_path,
-			 MIN(UNIX_PATH_MAX, strlen(sa->sun_path)),
-			 ubuff, XIOSAN_DEFAULT_BACKSLASH_OCT_3);
+      if (salen <= XIOUNIXSOCKOVERHEAD) {
+	 nextc = sanitize_string ("<anon>", MIN(UNIX_PATH_MAX, strlen("<anon>")),
+				  ubuff, XIOSAN_DEFAULT_BACKSLASH_OCT_3);
+      } else {
+	 nextc = sanitize_string(sa->sun_path,
+				 MIN(UNIX_PATH_MAX, strlen(sa->sun_path)),
+				 ubuff, XIOSAN_DEFAULT_BACKSLASH_OCT_3);
+      }
       *nextc = '\0';
       strncpy(buff, ubuff, blen);
    }
