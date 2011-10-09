@@ -1,5 +1,5 @@
 /* source: xiolockfile.c */
-/* Copyright Gerhard Rieger 2005-2006 */
+/* Copyright Gerhard Rieger 2005-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains socats explicit locking mechanisms */
@@ -52,7 +52,10 @@ int xiogetlock(const char *lockfile) {
   
    pid = Getpid();
    bytes = sprintf(pidbuf, F_pid, pid);
-   Write(fd, pidbuf, bytes);
+   if (writefull(fd, pidbuf, bytes) < 0) {
+      Error4("write(%d, %p, "F_Zu"): %s", fd, pidbuf, bytes, strerror(errno));
+      return -1;
+   }
    Close(fd);
 
    /* Chmod(lockfile, 0600); */

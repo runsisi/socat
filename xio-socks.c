@@ -1,5 +1,5 @@
 /* source: xio-socks.c */
-/* Copyright Gerhard Rieger 2001-2009 */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening addresses of socks4 type */
@@ -328,10 +328,7 @@ int _xioopen_socks4_connect(struct single *xfd,
       }
    }
 #endif /* WITH_MSGLEVEL <= E_DEBUG */
-   do {
-      result = Write(xfd->fd, sockhead, headlen);
-   } while (result < 0 && errno == EINTR);
-   if (result < 0) {
+   if (writefull(xfd->fd, sockhead, headlen) < 0) {
       Msg4(level, "write(%d, %p, "F_Zu"): %s",
 	   xfd->fd, sockhead, headlen, strerror(errno));
       if (Close(xfd->fd) < 0) {

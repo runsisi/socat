@@ -1,5 +1,5 @@
 /* source: xio-proxy.c */
-/* Copyright Gerhard Rieger 2002-2008 */
+/* Copyright Gerhard Rieger 2002-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening addresses of HTTP proxy CONNECT
@@ -293,10 +293,7 @@ int _xioopen_proxy_connect(struct single *xfd,
    * xiosanitize(request, strlen(request), textbuff) = '\0';
    Info1("sending \"%s\"", textbuff);
    /* write errors are assumed to always be hard errors, no retry */
-   do {
-      sresult = Write(xfd->fd, request, strlen(request));
-   } while (sresult < 0 && errno == EINTR);
-   if (sresult < 0) {
+   if (writefull(xfd->fd, request, strlen(request)) < 0) {
       Msg4(level, "write(%d, %p, "F_Zu"): %s",
 	   xfd->fd, request, strlen(request), strerror(errno));
       if (Close(xfd->fd) < 0) {
@@ -326,10 +323,7 @@ int _xioopen_proxy_connect(struct single *xfd,
       *next = '\0';
       Info1("sending \"%s\\r\\n\"", header);
       *next++ = '\r';  *next++ = '\n'; *next++ = '\0';
-      do {
-	 sresult = Write(xfd->fd, header, strlen(header));
-      } while (sresult < 0 && errno == EINTR);
-      if (sresult < 0) {
+      if (writefull(xfd->fd, header, strlen(header)) < 0) {
 	 Msg4(level, "write(%d, %p, "F_Zu"): %s",
 	      xfd->fd, header, strlen(header), strerror(errno));
 	 if (Close(xfd->fd) < 0) {
@@ -342,10 +336,14 @@ int _xioopen_proxy_connect(struct single *xfd,
    }
 
    Info("sending \"\\r\\n\"");
-   do {
-      sresult = Write(xfd->fd, "\r\n", 2);
-   } while (sresult < 0 && errno == EINTR);
-   /*! */
+   if (writefull(xfd->fd, "\r\n", 2) < 0) {
+      Msg2(level, "write(%d, %p, "F_Zu"): %s",
+	   xfd->fd, strerror(errno));
+      if (Close(xfd->fd) < 0) {
+	 Info2("close(%d): %s", xfd->fd, strerror(errno));
+      }
+      return STAT_RETRYLATER;
+   }
 
    /* request is kept for later error messages */
    *strstr(request, " HTTP") = '\0';

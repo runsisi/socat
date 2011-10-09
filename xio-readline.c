@@ -1,5 +1,5 @@
 /* source: xio-readline.c */
-/* Copyright Gerhard Rieger 2002-2009 */
+/* Copyright Gerhard Rieger 2002-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening the readline address */
@@ -177,9 +177,7 @@ ssize_t xioread_readline(struct single *pipe, void *buff, size_t bufsiz) {
 	 /* we must carriage return, because readline will first print the
 	    prompt */
 	 ssize_t writt;
-	 do {
-	    writt = Write(pipe->fd, "\r", 1);
-	 } while (writt < 0 && errno == EINTR);
+	 writt = writefull(pipe->fd, "\r", 1);
 	 if (writt < 0) {
 	    Warn2("write(%d, \"\\r\", 1): %s",
 		   pipe->fd, strerror(errno));

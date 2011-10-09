@@ -1,5 +1,5 @@
 /* source: sysutils.h */
-/* Copyright Gerhard Rieger 2001-2010 */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __sysutils_h_included
@@ -39,6 +39,8 @@ struct xiorange {
    union sockaddr_union netmask;
 } ;
 #endif /* _WITH_SOCKET */
+
+extern ssize_t writefull(int fd, const void *buff, size_t bytes);
 
 #if _WITH_SOCKET
 extern socklen_t socket_init(int af, union sockaddr_union *sa);

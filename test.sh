@@ -10439,6 +10439,51 @@ esac
 N=$((N+1))
 
 
+# incomplete writes were reported but led to data loss
+NAME=INCOMPLETE_WRITE
+case "$TESTS" in
+*%functions%*|*%bugs%*|*%$NAME%*)
+TEST="$NAME: check if incomplete writes are handled properly"
+# write to a nonblocking fd a block that is too large for atomic write
+# and check if all data arrives
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tp="$td/test$N.pipe"
+tw="$td/test$N.wc-c"
+# this is the size we write() in one call; data is never stored on disk, so
+# make it large enough to exceed any atomic write size; but higher number might
+# take much time
+bytes=100000	# for Linux 2.6.? this must be >65536
+CMD0="$SOCAT $opts -u PIPE:$tp STDOUT"
+CMD1="$SOCAT $opts -u -b $bytes OPEN:/dev/zero,readbytes=$bytes FILE:$tp,o-nonblock"
+printf "test $F_n $TEST... " $N
+$CMD0 2>"${te}0" |wc -c >"$tw" &
+pid=$!
+waitfile "$tp"
+$CMD1 2>"${te}1" >"${tf}1"
+rc1=$?
+wait
+if [ $rc1 -ne 0 ]; then
+    $PRINTF "$NO_RESULT\n"
+    numCANT=$((numCANT+1))
+elif [ ! -e "$tw" ]; then 
+    $PRINTF "$NO_RESULT\n"
+    numCANT=$((numCANT+1))
+elif [ "$bytes" -eq $(cat "$tw") ]; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "transferred only $(cat $tw) of $bytes bytes" >&2
+    numFAIL=$((numFAIL+1))
+fi
+fi # NUMCOND
+ ;;
+esac
+N=$((N+1))
+
+
 ###############################################################################
 # here come tests that might affect your systems integrity. Put normal tests
 # before this paragraph.

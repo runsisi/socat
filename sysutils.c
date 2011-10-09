@@ -16,6 +16,40 @@
 #include "utils.h"
 #include "sysutils.h"
 
+/* Substitute for Write():
+   Try to write all bytes before returning; this handles EINTR,
+   EAGAIN/EWOULDBLOCK, and partial write situations. The drawback is that this
+   function might block even with O_NONBLOCK option.
+   Returns <0 on unhandled error, errno valid
+   Will only return <0 or bytes
+*/
+ssize_t writefull(int fd, const void *buff, size_t bytes) {
+   size_t writt = 0;
+   ssize_t chk;
+   while (1) {
+      chk = Write(fd, (const char *)buff + writt, bytes - writt);
+      if (chk < 0) {
+	 switch (errno) {
+	 case EINTR:
+	 case EAGAIN:
+#if EAGAIN != EWOULDBLOCK
+	 case EWOULDBLOCK:
+#endif
+	    Warn4("write(%d, %p, "F_Zu"): %s", fd, (const char *)buff+writt, bytes-writt, strerror(errno));
+	    Sleep(1); continue;
+	 default: return -1;
+	 }
+      } else if (writt+chk < bytes) {
+	 Warn4("write(%d, %p, "F_Zu"): only wrote "F_Zu" bytes, trying to continue ",
+	       fd, (const char *)buff+writt, bytes-writt, chk);
+	 writt += chk;
+      } else {
+	 writt = bytes;
+	 break;
+      }
+   }
+   return writt;
+}
 
 #if WITH_UNIX
 void socket_un_init(struct sockaddr_un *sa) {
