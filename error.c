@@ -1,5 +1,5 @@
 /* source: error.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* the logging subsystem */
@@ -191,6 +191,9 @@ void msg(int level, const char *format, ...) {
 #else /* !HAVE_GETTIMEOFDAY */
    time_t now;
 #endif /* !HAVE_GETTIMEOFDAY */
+#if HAVE_STRFTIME
+   struct tm struct_tm;
+#endif
 #define BUFLEN 512
    char buff[BUFLEN], *bufp, *syslp;
    size_t bytes;
@@ -211,11 +214,11 @@ void msg(int level, const char *format, ...) {
       nowt = now.tv_sec;
 #if HAVE_STRFTIME
       if (diagopts.micros) {
-	 bytes = strftime(buff, 20, "%Y/%m/%d %H:%M:%S", localtime(&nowt));
+ 	 bytes = strftime(buff, 20, "%Y/%m/%d %H:%M:%S", localtime_r(&nowt, &struct_tm));
 	 bytes += sprintf(buff+19, "."F_tv_usec" ", now.tv_usec);
       } else {
 	 bytes =
-	    strftime(buff, 21, "%Y/%m/%d %H:%M:%S ", localtime(&nowt));
+	    strftime(buff, 21, "%Y/%m/%d %H:%M:%S ", localtime_r(&nowt, &struct_tm));
       }
 #else
       strcpy(buff, ctime(&nowt));
@@ -231,7 +234,7 @@ void msg(int level, const char *format, ...) {
       strcpy(buff, "unknown time        ");  bytes = 20;
    } else {
 #if HAVE_STRFTIME
-      bytes = strftime(buff, 21, "%Y/%m/%d %H:%M:%S ", localtime(&now));
+      bytes = strftime(buff, 21, "%Y/%m/%d %H:%M:%S ", localtime_r(&now, &struct_tm));
 #else
       strcpy(buff, ctime(&now));
       bytes = strlen(buff);

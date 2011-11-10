@@ -38,6 +38,12 @@ corrections:
 	may result in partial writes and/or EAGAIN errors that were not handled
 	properly but resulted in data loss or process termination.
 
+	Fixed a bug that could freeze socat when during assembly of a log
+	message a signal was handled that also printed a log message. socat
+	development had been aware that localtime() is not thread safe but had
+	only expected broken messages, not corrupted stack (glibc 2.11.1,
+	Ubuntu 10.4)
+
 ####################### V 1.7.1.3:
 
 security:
