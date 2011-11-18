@@ -1,5 +1,5 @@
 /* source: xioinitialize.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for the initialize function */
@@ -172,7 +172,11 @@ static int xio_nokill(xiofile_t *sock) {
    returns 0 on success or != 0 if an error occurred */
 int xio_forked_inchild(void) {
    int result = 0;
+   int i;
 
+   for (i=0; i<NUMUNKNOWN; ++i) {
+      diedunknown[i] = 0;
+   }
    xiodroplocks();
 #if WITH_FIPS
    if (xio_reset_fips_mode() != 0) {

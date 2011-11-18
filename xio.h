@@ -1,5 +1,5 @@
 /* source: xio.h */
-/* Copyright Gerhard Rieger 2001-2009 */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_h_included
@@ -402,10 +402,12 @@ extern int xioopenhelp(FILE *of, int level);
 
 /* must be outside function for use by childdied handler */
 extern xiofile_t *sock1, *sock2;
-extern pid_t diedunknown1;	/* child died before it is registered */
-extern pid_t diedunknown2;
-extern pid_t diedunknown3;
-extern pid_t diedunknown4;
+#define NUMUNKNOWN 4
+extern pid_t diedunknown[NUMUNKNOWN];	/* child died before it is registered */
+#define diedunknown1 (diedunknown[0])
+#define diedunknown2 (diedunknown[1])
+#define diedunknown3 (diedunknown[2])
+#define diedunknown4 (diedunknown[3])
 
 extern int xiosetsigchild(xiofile_t *xfd, int (*callback)(struct single *));
 extern int xiosetchilddied(void);
