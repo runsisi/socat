@@ -1325,10 +1325,13 @@ AC_CACHE_CHECK(shift offset of $1, $2,
  ],
  [$2=`cat $conftestoffset`],
  [$2=-1],
- [AC_MSG_RESULT(please determine $1_SHIFT manually)]
+ [$2=-1]
 )
  LIBS="$LIBS1"])
 AC_DEFINE_UNQUOTED($1_SHIFT, ${$2})
+if test "$2" = -1; then
+AC_MSG_WARN(please determine $1_SHIFT manually)
+fi
 ])
 
 AC_SHIFT_OFFSET(CRDLY,  sc_cv_sys_crdly_shift)

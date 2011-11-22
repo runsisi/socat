@@ -1,5 +1,5 @@
 /* source: xio-termios.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for terminal I/O options */
@@ -270,8 +270,12 @@ const struct optdesc opt_raw      = { "raw",    NULL,    OPT_RAW,      GROUP_TER
 const struct optdesc opt_sane     = { "sane",   NULL,    OPT_SANE,     GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_SPEC };
 
 #ifdef HAVE_TERMIOS_ISPEED
+#if defined(ISPEED_OFFSET) && (ISPEED_OFFSET != -1)
+#if defined(OSPEED_OFFSET) && (OSPEED_OFFSET != -1)
 const struct optdesc opt_ispeed = { "ispeed", NULL, OPT_ISPEED, GROUP_TERMIOS, PH_FD, TYPE_UINT, OFUNC_TERMIOS_SPEED, ISPEED_OFFSET };
 const struct optdesc opt_ospeed = { "ospeed", NULL, OPT_OSPEED, GROUP_TERMIOS, PH_FD, TYPE_UINT, OFUNC_TERMIOS_SPEED, OSPEED_OFFSET };
+#endif
+#endif
 #endif /* HAVE_TERMIOS_ISPEED */
 
 
