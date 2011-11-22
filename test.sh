@@ -1946,7 +1946,7 @@ waittcp6port () {
     [ "$timeout" ] || timeout=5
     while [ $timeout -gt 0 ]; do
 	case "$UNAME" in
-	Linux)   l=$(netstat -an |grep -E '^tcp6? .* [0-9a-f:]*:'$port' .* LISTEN') ;;
+	Linux)   l=$(netstat -an |grep -E '^tcp6? .* [0-9a-f:%]*:'$port' .* LISTEN') ;;
 	FreeBSD) l=$(netstat -an |egrep -i 'tcp(6|46) .*[0-9*][:.]'$port' .* listen') ;;
 	NetBSD)  l=$(netstat -an |grep '^tcp6 .*[0-9*]\.'$port' [ ]* \*\.\*') ;;
 	OpenBSD) l=$(netstat -an |grep -i 'tcp6 .*[0-9*][:.]'$port' .* listen') ;;
@@ -1976,7 +1976,7 @@ waitudp6port () {
     [ "$timeout" ] || timeout=5
     while [ $timeout -gt 0 ]; do
 	case "$UNAME" in
-	Linux)   l=$(netstat -an |grep -E '^udp6? .* .*[0-9*:]:'$port' [ ]*:::\*') ;;
+	Linux)   l=$(netstat -an |grep -E '^udp6? .* .*[0-9*:%]:'$port' [ ]*:::\*') ;;
 	FreeBSD) l=$(netstat -an |egrep '^udp(6|46) .*[0-9*]\.'$port' .* \*\.\*') ;;
 	NetBSD)  l=$(netstat -an |grep '^udp6 .* \*\.'$port' [ ]* \*\.\*') ;;
     	OpenBSD) l=$(netstat -an |grep '^udp6 .*[0-9*]\.'$port' [ ]* \*\.\*') ;;
@@ -8242,7 +8242,7 @@ CMD1="$SOCAT $opts -u - UDP4-SENDTO:$TUNNET.2:$PORT"
 #CMD="$SOCAT $opts -u -L $tl TUN,ifaddr=$TUNNET.1,netmask=255.255.255.0,iff-up=1 -"
 CMD="$SOCAT $opts -u -L $tl TUN:$TUNNET.1/24,iff-up=1 -"
 printf "test $F_n $TEST... " $N
-$CMD 2>"${te}" |tail --bytes=$dalen >"${tf}" &
+$CMD 2>"${te}" |tail -c $dalen >"${tf}" &
 sleep 1
 echo "$da" |$CMD1 2>"${te}1"
 sleep 1
@@ -9275,6 +9275,11 @@ elif [ "$KEYW" = "TCP6" -o "$KEYW" = "UDP6" -o "$KEYW" = "SCTP6" ] && \
     ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}IP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+elif [ "$KEYW" = "SCTP4" ] && ! runssctp4 "$((PORT))"; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$KEYW not available${NORMAL}\n" $N
+elif [ "$KEYW" = "SCTP6" ] && ! runssctp4 "$((PORT))"; then
+    #!!! branch not reached - caught above!
+    $PRINTF "test $F_n $TEST... ${YELLOW}$KEYW not available${NORMAL}\n" $N
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"

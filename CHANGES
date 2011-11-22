@@ -81,6 +81,9 @@ porting:
 	corrections for OpenEmbedded, especially termios SHIFT values and
 	ISPEED/OSPEED. Thanks to John Faith for providing the patch
 
+	minor corrections to docu and test.sh resulting from local compilation
+	on Openmoko SHR
+
 ####################### V 1.7.1.3:
 
 security:

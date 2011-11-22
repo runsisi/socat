@@ -93,8 +93,12 @@ reasons: you are not on Linux or are using an older version of socat.
 <h3>Missing kernel support</h3>
 <p>An error message like:</p>
 <table border="1" bgcolor="#e08080"><tr><td><tt>... E open("/dev/net/tun", 02, 0666): No such file or directory</tt></td></tr></table>
-<p>indicates that your kernel does not have TUN/TAP support compiled
-in. Rebuild your kernel with the appropriate configuration (probably under
+<p>indicates that your kernel either needs to load the tun module or does not
+  have TUN/TAP support compiled in. Try to load the module:</p>
+<span class="frame"><span class="shell">modprobe tun</span></span>
+<p>and check
+ for /dev/net/tun. If that does not succeed you need to
+ rebuild your kernel with the appropriate configuration (probably under
 <b>Device driver / Network device support / Network device / Universal TUN/TAP</b>).
 </p>
 
@@ -140,7 +144,7 @@ transfer.<p>
 <p>
 Linux TUN/TAP support was added to socat in version 1.6.0.</p>
 
-<p>This document was last modified in April 2009.</p>
+<p>This document was last modified in February 2010.</p>
 
 <h2>More info about socat TUN/TAP support</h2>
 
@@ -157,7 +161,7 @@ Linux TUN/TAP support was added to socat in version 1.6.0.</p>
 <a href="http://en.wikipedia.org/wiki/TUN/TAP">TUN/TAP on Wikipedia</a><br>
 
 <p>
-<small>Copyright: Gerhard Rieger 2007-2009</small><br>
+<small>Copyright: Gerhard Rieger 2007-2010</small><br>
 <small>License: <a href="http://www.fsf.org/licensing/licenses/fdl.html">GNU Free Documentation License (FDL)</a></small>
 </p>
 
