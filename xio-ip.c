@@ -1,5 +1,5 @@
 /* source: xio-ip.c */
-/* Copyright Gerhard Rieger 2001-2009 */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for IP related functions */
@@ -477,8 +477,15 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
 	       "IP_LOCADDR", '\0', "IP_DSTADDR");
       snprintf(valbuff, vallen, "%s%c%s%c%s",
 	       xiogetifname(pktinfo->ipi_ifindex, scratch1, -1), '\0',
-	       inet4addr_info(ntohl(pktinfo->ipi_spec_dst.s_addr), scratch2, sizeof(scratch2)), '\0',
-	       inet4addr_info(ntohl(pktinfo->ipi_addr.s_addr), scratch3, sizeof(scratch3)));
+#if HAVE_PKTINFO_IPI_SPEC_DST
+	       inet4addr_info(ntohl(pktinfo->ipi_spec_dst.s_addr),
+			      scratch2, sizeof(scratch2)),
+#else
+	       "",
+#endif
+	       '\0',
+	       inet4addr_info(ntohl(pktinfo->ipi_addr.s_addr),
+			      scratch3, sizeof(scratch3)));
    }
       return STAT_OK;
 #endif /* defined(IP_PKTINFO) && HAVE_STRUCT_IN_PKTINFO */

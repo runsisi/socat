@@ -1,5 +1,5 @@
 /* source: config.h.in */
-/* Copyright Gerhard Rieger 2001-2009 */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __config_h_included
@@ -363,6 +363,9 @@
 
 /* define if you have struct in_pktinfo */
 #undef HAVE_STRUCT_IN_PKTINFO
+
+/* define if your struct in_pktinfo has component ipi_spec_dst */
+#undef HAVE_PKTINFO_IPI_SPEC_DST
 
 /* define if your struct ip has ip_hl; otherwise assume ip_vhl */
 #undef HAVE_STRUCT_IP_IP_HL

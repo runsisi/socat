@@ -1,5 +1,5 @@
 nl source: configure.in
-dnl Copyright Gerhard Rieger 2001-2009
+dnl Copyright Gerhard Rieger 2001-2011
 dnl Published under the GNU General Public License V.2, see file COPYING
 
 dnl Process this file with autoconf to produce a configure script.
@@ -1160,6 +1160,21 @@ if test $sc_cv_struct_in_pktinfo = yes; then
    AC_DEFINE(HAVE_STRUCT_IN_PKTINFO)
 fi
 AC_MSG_RESULT($sc_cv_struct_in_pktinfo)
+
+if test $sc_cv_struct_in_pktinfo = 'yes'; then
+   dnl check for component ipi_spec_dst in struct in_pktinfo
+   AC_MSG_CHECKING(for ipi_spec_dst in struct in_pktinfo)
+   AC_CACHE_VAL(sc_cv_pktinfo_ipi_spec_dst,
+   [AC_TRY_COMPILE([#include <sys/types.h>
+   #include <sys/socket.h>
+   #include <netinet/in.h>],[struct in_pktinfo s; s.ipi_spec_dst],
+   [sc_cv_pktinfo_ipi_spec_dst=yes],
+   [sc_cv_pktinfo_ipi_spec_dst=no])])
+   if test $sc_cv_pktinfo_ipi_spec_dst = yes; then
+      AC_DEFINE(HAVE_PKTINFO_IPI_SPEC_DST)
+   fi
+   AC_MSG_RESULT($sc_cv_pktinfo_ipi_spec_dst)
+fi
 
 dnl check for ip_hl in struct ip
 AC_MSG_CHECKING(for struct ip.ip_hl)
