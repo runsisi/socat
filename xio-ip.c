@@ -454,8 +454,10 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
    const char *cmsgtype, *cmsgname = NULL, *cmsgenvn = NULL, *cmsgfmt = NULL;
    size_t msglen;
    char scratch1[16];	/* can hold an IPv4 address in ASCII */
+#if WITH_IP4 && defined(IP_PKTINFO) && HAVE_STRUCT_IN_PKTINFO
    char scratch2[16];
    char scratch3[16];
+#endif
 
    msglen = cmsg->cmsg_len-((char *)CMSG_DATA(cmsg)-(char *)cmsg);
    envbuff[0] = '\0';

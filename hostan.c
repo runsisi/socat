@@ -1,5 +1,5 @@
 /* source: hostan.c */
-/* Copyright Gerhard Rieger 2006-2008 */
+/* Copyright Gerhard Rieger 2006-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* the subroutine hostan makes a "HOST ANalysis". It gathers information
@@ -59,7 +59,9 @@ static int iffan(FILE *outfile) {
 
    for (i = 0; i < ic.ifc_len; i += sizeof(struct ifreq)) {
       struct ifreq *ifp = (struct ifreq *)((caddr_t)ic.ifc_req + i);
+#if 0 || defined(SIOCGIFINDEX)	/* not NetBSD, OpenBSD */
       struct ifreq ifr;
+#endif
 
 #if 0 || defined(SIOCGIFINDEX)	/* not NetBSD, OpenBSD */
       strcpy(ifr.ifr_name, ifp->ifr_name);
@@ -74,7 +76,7 @@ static int iffan(FILE *outfile) {
       fprintf(outfile, "%2d: %s\n", ifr.ifr_ifindex, ifp->ifr_name);
 #endif /* HAVE_STRUCT_IFREQ_IFR_INDEX */
 #else /* !defined(SIOCGIFINDEX) */
-      fprintf(outfile, "%2d: %s\n", i/sizeof(struct ifreq), ifp->ifr_name);
+      fprintf(outfile, "%2d: %s\n", i/(int)sizeof(struct ifreq), ifp->ifr_name);
 #endif /* defined(SIOCGIFINDEX) */
    }
    Close(s);

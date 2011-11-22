@@ -1,5 +1,5 @@
 /* source: xio-socket.c */
-/* Copyright Gerhard Rieger 2001-2009 */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for socket related functions, and the
@@ -1846,7 +1846,7 @@ xiolog_ancillary_socket(struct cmsghdr *cmsg, int *num,
       cmsgname = "timestamp";
       cmsgenvn = "TIMESTAMP";
       { time_t t = tv->tv_sec; ctime_r(&t, valbuff); }
-      sprintf(strchr(valbuff, '\0')-1/*del \n*/, ", %06ld usecs", tv->tv_usec);
+      sprintf(strchr(valbuff, '\0')-1/*del \n*/, ", %06ld usecs", (long)tv->tv_usec);
       break;
 #endif /* defined(SO_TIMESTAMP) */
       ;

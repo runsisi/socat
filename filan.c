@@ -1,5 +1,5 @@
 /* source: filan.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* the subroutine filan makes a "FILe descriptor ANalysis". It checks the
@@ -490,7 +490,10 @@ int cdevan(int fd, FILE *outfile) {
 	 return -1;
       }
       fprintf(outfile, " \tIFLAGS=%08x OFLAGS=%08x CFLAGS=%08x LFLAGS=%08x",
-	      termarg.c_iflag, termarg.c_oflag, termarg.c_cflag, termarg.c_lflag);
+	      (unsigned int)termarg.c_iflag,
+	      (unsigned int)termarg.c_oflag,
+	      (unsigned int)termarg.c_cflag,
+	      (unsigned int)termarg.c_lflag);
 
       /* and the control characters */
       if (filan_rawoutput) {

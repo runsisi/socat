@@ -75,6 +75,9 @@ porting:
 	Lion 7.1); thanks to Jerry Jacobs to reporting this problem and
 	proposing a solution
 
+	fixed compiler warnings on Mac OS X 64bit. Thanks to Guy Harris for
+	providing the patch.
+
 ####################### V 1.7.1.3:
 
 security:
