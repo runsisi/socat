@@ -64,7 +64,6 @@ AC_CHECK_HEADERS(netinet/ip.h, [], [], [AC_INCLUDES_DEFAULT
 	#include <netinet/in_systm.h>
 	#endif])	# Solaris prerequisites for netinet/ip.h
 AC_CHECK_HEADERS(netinet/tcp.h)
-AC_CHECK_HEADERS(netinet6/in6.h)	# found on OpenBSD, used for IPV6_*
 AC_CHECK_HEADER(net/if.h, [], [], [AC_INCLUDES_DEFAULT
 	#if HAVE_SYS_SOCKET_H
 	#include <sys/socket.h>
@@ -215,6 +214,27 @@ if test "$WITH_IP6"; then
      #ifdef HAVE_NETINET_IN_H
      # include <netinet/in.h>
      #endif])
+  AC_CHECK_HEADERS(netinet6/in6.h)	# found on OpenBSD and Lion, used for IPV6_*
+
+AC_MSG_CHECKING(if __APPLE_USE_RFC_2292 is helpful)
+AC_CACHE_VAL(ac_cv_apple_use_rfc_2292,
+ [AC_TRY_COMPILE(,[#ifndef IPV6_HOPOPTS
+  murks;
+#endif],
+ [ac_cv_apple_use_rfc_2292=no],
+ [AC_TRY_COMPILE([#define __APPLE_USE_RFC_2292],
+ [#ifndef IPV6_HOPOPTS
+  murks;
+#endif],
+   [ac_cv_apple_use_rfc_2292=yes],
+   [ac_cv_apple_use_rfc_2292=no]
+ )]
+)])
+if test "$ac_cv_apple_use_rfc_2292" = yes; then
+  AC_DEFINE(__APPLE_USE_RFC_2292)
+fi
+AC_MSG_RESULT($ac_cv_apple_use_rfc_2292)
+
 fi
 
 AC_MSG_CHECKING(whether to include raw IP support)

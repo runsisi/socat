@@ -71,6 +71,10 @@ porting:
 	IPV6_PKTINFO IPV6_RTHDR IPV6_DSTOPTS IPV6_HOPOPTS IPV6_HOPLIMIT
 	Thanks to Jerry Jacobs for reporting this problem (Mac OS X Lion 10.7)
 
+	check if define __APPLE_USE_RFC_2292 helps to enable IPV6_* (MacOSX
+	Lion 7.1); thanks to Jerry Jacobs to reporting this problem and
+	proposing a solution
+
 ####################### V 1.7.1.3:
 
 security:
