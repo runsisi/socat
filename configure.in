@@ -80,6 +80,8 @@ AC_CHECK_HEADERS(sys/utsname.h sys/select.h sys/file.h)
 AC_CHECK_HEADERS(util.h libutil.h sys/stropts.h regex.h)
 AC_CHECK_HEADERS(linux/fs.h linux/ext2_fs.h)
 
+dnl Checks for setgrent, getgrent and endgrent.
+AC_CHECK_FUNCS(setgrent getgrent endgrent)
 
 dnl Link libresolv if necessary (for Mac OS X)
 AC_SEARCH_LIBS([res_9_init], [resolv])

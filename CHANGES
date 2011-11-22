@@ -53,6 +53,10 @@ corrections:
 	Fixed by providing temporary DH parameters. Thanks to Philip Rowlands
 	for drawing my attention to this issue.
 
+porting:
+	Cedril Priscal ported socat to Android (using Googles cross compiler).
+	The port includes the socat_buildscript_for_android.sh script
+
 ####################### V 1.7.1.3:
 
 security:

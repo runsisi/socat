@@ -703,7 +703,9 @@ enum e_optcode {
 #  undef ENABLE_OPTCODE
    OPT_SUBSTUSER_EARLY,
    OPT_SUBSTUSER,
+#if defined(HAVE_SETGRENT) && defined(HAVE_GETGRENT) && defined(HAVE_ENDGRENT)
    OPT_SUBSTUSER_DELAYED,
+#endif
    OPT_SYMBOLIC_LINK,	/* with pty */
 #ifdef TABDLY
 #  ifdef TAB0

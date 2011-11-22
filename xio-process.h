@@ -11,7 +11,9 @@ extern const struct optdesc opt_setuid_early;
 extern const struct optdesc opt_setuid;
 extern const struct optdesc opt_substuser_early;
 extern const struct optdesc opt_substuser;
+#if defined(HAVE_SETGRENT) && defined(HAVE_GETGRENT) && defined(HAVE_ENDGRENT)
 extern const struct optdesc opt_substuser_delayed;
+#endif
 extern const struct optdesc opt_chroot_early;
 extern const struct optdesc opt_chroot;
 extern const struct optdesc opt_setsid;

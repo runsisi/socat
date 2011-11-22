@@ -477,6 +477,10 @@
 /* Define if you have the /proc/$$/fd directories */
 #undef HAVE_PROC_DIR_FD
 
+#undef HAVE_SETGRENT
+#undef HAVE_GETGRENT
+#undef HAVE_ENDGRENT
+
 #undef WITH_HELP
 #undef WITH_STDIO
 #undef WITH_FDNUM

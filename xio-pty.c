@@ -78,7 +78,9 @@ static int xioopen_pty(int argc, const char *argv[], struct opt *opts, int xiofl
    useptmx = true;
 #  endif /* !HAVE_OPENPTY */
 #else
+# if HAVE_OPENPTY
    useopenpty = true;
+# endif /* HAVE_OPENPTY */
 #endif /* ! (defined(HAVE_DEV_PTMX) || defined(HAVE_DEV_PTC)) */
 
 #if HAVE_POLL

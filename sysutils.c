@@ -412,6 +412,7 @@ char *sockaddr_inet6_info(const struct sockaddr_in6 *sa, char *buff, size_t blen
 }
 #endif /* WITH_IP6 */
 
+#if defined(HAVE_SETGRENT) && defined(HAVE_GETGRENT) && defined(HAVE_ENDGRENT)
 /* fill the list with the supplementary group ids of user.
    caller passes size of list in ngroups, function returns number of groups in
    ngroups.
@@ -438,6 +439,7 @@ int getusergroups(const char *user, gid_t *list, size_t *ngroups) {
    *ngroups = i;
    return 0;
 }
+#endif
 
 #if !HAVE_HSTRERROR
 const char *hstrerror(int err) {

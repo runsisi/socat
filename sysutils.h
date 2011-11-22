@@ -73,7 +73,9 @@ extern const char *inet_ntop(int pf, const void *binaddr,
 			     char *addrtext, socklen_t textlen);
 #endif
 
+#if defined(HAVE_SETGRENT) && defined(HAVE_GETGRENT) && defined(HAVE_ENDGRENT)
 extern int getusergroups(const char *user, gid_t *list, size_t *ngroups);
+#endif
 
 #if !HAVE_HSTRERROR
 extern const char *hstrerror(int err);
