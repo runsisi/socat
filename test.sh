@@ -10484,6 +10484,50 @@ esac
 N=$((N+1))
 
 
+NAME=OPENSSL_ANULL
+case "$TESTS" in
+*%functions%*|*%openssl%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
+TEST="$NAME: OpenSSL server with cipher aNULL "
+if ! eval $NUMCOND; then :;
+elif ! testaddrs openssl >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+elif ! testaddrs listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD2="$SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,$SOCAT_EGD,ciphers=aNULL,verify=0 pipe"
+CMD="$SOCAT $opts - openssl:$LOCALHOST:$PORT,ciphers=aNULL,verify=0,$SOCAT_EGD"
+printf "test $F_n $TEST... " $N
+eval "$CMD2 2>\"${te}1\" &"
+pid=$!	# background process id
+waittcp4port $PORT
+echo "$da" |$CMD >$tf 2>"${te}2"
+if ! echo "$da" |diff - "$tf" >"$tdiff"; then
+    $PRINTF "$FAILED: $SOCAT:\n"
+    echo "$CMD2 &"
+    echo "$CMD"
+    cat "${te}1"
+    cat "${te}2"
+    cat "$tdiff"
+    numFAIL=$((numFAIL+1))
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
+   numOK=$((numOK+1))
+fi
+kill $pid 2>/dev/null
+wait
+fi ;; # NUMCOND, feats
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
 ###############################################################################
 # here come tests that might affect your systems integrity. Put normal tests
 # before this paragraph.

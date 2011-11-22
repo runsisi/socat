@@ -49,6 +49,10 @@ corrections:
 	were used. Thanks to Tetsuya Sodo for reporting this problem and
 	sending a patch
 
+	OpenSSL server failed with "no shared cipher" when using cipher aNULL.
+	Fixed by providing temporary DH parameters. Thanks to Philip Rowlands
+	for drawing my attention to this issue.
+
 ####################### V 1.7.1.3:
 
 security:

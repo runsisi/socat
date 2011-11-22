@@ -1,5 +1,5 @@
 /* source: xio-openssl.c */
-/* Copyright Gerhard Rieger 2002-2009 */
+/* Copyright Gerhard Rieger 2002-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the implementation of the openssl addresses */
@@ -737,6 +737,50 @@ int
 
       /*ERR_clear_error;*/
       return STAT_RETRYLATER;
+   }
+
+   {
+      static unsigned char dh512_p[] = {
+	 0xDA,0x58,0x3C,0x16,0xD9,0x85,0x22,0x89,0xD0,0xE4,0xAF,0x75,
+	 0x6F,0x4C,0xCA,0x92,0xDD,0x4B,0xE5,0x33,0xB8,0x04,0xFB,0x0F,
+	 0xED,0x94,0xEF,0x9C,0x8A,0x44,0x03,0xED,0x57,0x46,0x50,0xD3,
+	 0x69,0x99,0xDB,0x29,0xD7,0x76,0x27,0x6B,0xA2,0xD3,0xD4,0x12,
+	 0xE2,0x18,0xF4,0xDD,0x1E,0x08,0x4C,0xF6,0xD8,0x00,0x3E,0x7C,
+	 0x47,0x74,0xE8,0x33,
+      };
+      static unsigned char dh512_g[] = {
+	 0x02,
+      };
+      DH *dh;
+      unsigned long err;
+
+      if ((dh = DH_new()) == NULL) {
+	 while (err = ERR_get_error()) {
+	    Warn1("DH_new(): %s",
+		   ERR_error_string(err, NULL));
+	 }
+	 Error("DH_new() failed");
+      } else {
+	 dh->p = BN_bin2bn(dh512_p, sizeof(dh512_p), NULL);
+	 dh->g = BN_bin2bn(dh512_g, sizeof(dh512_g), NULL);
+	 if ((dh->p == NULL) || (dh->g == NULL)) {
+	    while (err = ERR_get_error()) {
+	       Warn1("BN_bin2bn(): %s",
+		     ERR_error_string(err, NULL));
+	    }
+	    Error("BN_bin2bn() failed");
+	 } else {
+	    if (SSL_CTX_set_tmp_dh(*ctx, dh) <= 0) {
+	       while (err = ERR_get_error()) {
+		  Warn1("SSL_CTX_set_tmp_dh(%p, %p): %s",
+			ERR_error_string(err, NULL));
+	       }
+	       Error2("SSL_CTX_set_tmp_dh(%p, %p) failed", *ctx, dh);
+	    }
+	    /*! OPENSSL_free(dh->p,g)? doc does not tell so */
+	 }
+	 DH_free(dh);
+      }
    }
 
    if (opt_cafile != NULL || opt_capath != NULL) {
