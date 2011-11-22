@@ -61,6 +61,10 @@ porting:
 	compilation does not fail on Cygwin (thanks to Peter Wagemans for
 	reporting this problem)
 
+	build failed on RHEL6 due to presence of fips.h; configure now checks
+	for fipsld too. Thanks to Andreas Gruenbacher for reporting this
+	problem
+
 ####################### V 1.7.1.3:
 
 security:

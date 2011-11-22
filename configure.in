@@ -525,7 +525,9 @@ AC_ARG_ENABLE(fips, [  --disable-fips          disable OpenSSL FIPS support],
 
 if test -n "$WITH_FIPS"; then
   if test -n "$WITH_OPENSSL"; then
-    if test "$sc_cv_have_openssl_ssl_h" != "yes" -o "$sc_cv_have_libssl" != "yes"; then
+    AC_CHECK_PROG(HAVE_FIPSLD, fipsld, 1)
+    if test "$sc_cv_have_openssl_ssl_h" != "yes" -o "$sc_cv_have_libssl" != "yes" -o ! "$HAVE_FIPSLD";
+ then
       AC_MSG_WARN([not all components of OpenSSL found, disabling FIPS]);
       WITH_FIPS=
     fi
