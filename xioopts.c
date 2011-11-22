@@ -1,5 +1,5 @@
 /* source: xioopts.c */
-/* Copyright Gerhard Rieger 2001-2010 */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for address options handling */
@@ -388,7 +388,9 @@ const struct optname optionnames[] = {
 	IF_SOCKET ("dontlinger",	&opt_so_dontlinger)
 #endif
 	IF_SOCKET ("dontroute",	&opt_so_dontroute)
+#ifdef IPV6_DSTOPTS
 	IF_IP6    ("dstopts",	&opt_ipv6_dstopts)
+#endif
 #ifdef VDSUSP	/* HP-UX */
 	IF_TERMIOS("dsusp",	&opt_vdsusp)
 #endif
@@ -545,8 +547,12 @@ const struct optname optionnames[] = {
 #endif
 	IF_READLINE("history",	&opt_history_file)
 	IF_READLINE("history-file",	&opt_history_file)
+#ifdef IPV6_HOPLIMIT
 	IF_IP6    ("hoplimit",	&opt_ipv6_hoplimit)
+#endif
+#ifdef	IPV6_HOPOPTS
 	IF_IP6    ("hopopts",	&opt_ipv6_hopopts)
+#endif
 #if WITH_LIBWRAP && defined(HAVE_HOSTS_ALLOW_TABLE)
 	IF_IPAPP  ("hosts-allow",	&opt_tcpwrap_hosts_allow_table)
 #endif
@@ -721,14 +727,22 @@ const struct optname optionnames[] = {
 #ifdef IPV6_AUTHHDR
 	IF_IP6    ("ipv6-authhdr",	&opt_ipv6_authhdr)
 #endif
+#ifdef IPV6_DSTOPTS
 	IF_IP6    ("ipv6-dstopts",	&opt_ipv6_dstopts)
+#endif
 #ifdef IPV4_FLOWINFO
 	IF_IP6    ("ipv6-flowinfo",	&opt_ipv6_flowinfo)
 #endif
+#ifdef IPV6_HOPLIMIT
 	IF_IP6    ("ipv6-hoplimit",	&opt_ipv6_hoplimit)
+#endif
+#ifdef IPV6_HOPOPTS
 	IF_IP6    ("ipv6-hopopts",	&opt_ipv6_hopopts)
+#endif
 	IF_IP6    ("ipv6-join-group",	&opt_ipv6_join_group)
+#ifdef IPV6_PKTINFO
 	IF_IP6    ("ipv6-pktinfo",	&opt_ipv6_pktinfo)
+#endif
 #ifdef IPV6_RECVDSTOPTS
 	IF_IP6    ("ipv6-recvdstopts",	&opt_ipv6_recvdstopts)
 #endif
@@ -753,7 +767,9 @@ const struct optname optionnames[] = {
 #ifdef IPV6_RECVTCLASS
 	IF_IP6    ("ipv6-recvtclass",	&opt_ipv6_recvtclass)
 #endif
+#ifdef IPV6_RTHDR
 	IF_IP6    ("ipv6-rthdr",	&opt_ipv6_rthdr)
+#endif
 #ifdef IPV6_TCLASS
 	IF_IP6    ("ipv6-tclass",	&opt_ipv6_tclass)
 #endif
@@ -1250,7 +1266,9 @@ const struct optname optionnames[] = {
 #ifdef O_RSYNC
 	IF_OPEN   ("rsync",	&opt_o_rsync)
 #endif
+#ifdef IPV6_RTHDR
 	IF_IP6    ("rthdr",	&opt_ipv6_rthdr)
+#endif
 	IF_TUN    ("running",	&opt_iff_running)
 #ifdef TCP_SACK_DISABLE
 	IF_TCP    ("sack-disable",	&opt_tcp_sack_disable)

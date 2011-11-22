@@ -215,6 +215,9 @@
 /* Define if you have the <netinet/ip6.h> header file.  */
 #undef HAVE_NETINET_IP6_H
 
+/* Define if you have the <netinet6/in6.h> header file.  */
+#undef HAVE_NETINET6_IN6_H
+
 /* Define if you have the <arpa/nameser.h> header file.  */
 #undef HAVE_ARPA_NAMESER_H
 

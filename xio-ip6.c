@@ -1,5 +1,5 @@
 /* source: xio-ip6.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for IP6 related functions */
@@ -25,29 +25,39 @@ const struct optdesc opt_ipv6_v6only = { "ipv6-v6only", "ipv6only", OPT_IPV6_V6O
 #ifdef IPV6_JOIN_GROUP
 const struct optdesc opt_ipv6_join_group = { "ipv6-join-group", "join-group", OPT_IPV6_JOIN_GROUP, GROUP_SOCK_IP6, PH_PASTBIND, TYPE_IP_MREQN, OFUNC_SOCKOPT, SOL_IPV6, IPV6_JOIN_GROUP };
 #endif
+#ifdef IPV6_PKTINFO
 const struct optdesc opt_ipv6_pktinfo = { "ipv6-pktinfo", "pktinfo", OPT_IPV6_PKTINFO, GROUP_SOCK_IP6, PH_PASTSOCKET, TYPE_BOOL, OFUNC_SOCKOPT, SOL_IPV6, IPV6_PKTINFO };
+#endif
 #ifdef IPV6_RECVPKTINFO
 const struct optdesc opt_ipv6_recvpktinfo = { "ipv6-recvpktinfo", "recvpktinfo", OPT_IPV6_RECVPKTINFO, GROUP_SOCK_IP6, PH_PASTSOCKET, TYPE_BOOL, OFUNC_SOCKOPT, SOL_IPV6, IPV6_RECVPKTINFO };
 #endif
+#ifdef IPV6_RTHDR
 const struct optdesc opt_ipv6_rthdr   = { "ipv6-rthdr",   "rthdr",   OPT_IPV6_RTHDR,   GROUP_SOCK_IP6, PH_PASTSOCKET, TYPE_BOOL, OFUNC_SOCKOPT, SOL_IPV6, IPV6_RTHDR };
+#endif
 #ifdef IPV6_RECVRTHDR
 const struct optdesc opt_ipv6_recvrthdr   = { "ipv6-recvrthdr",   "recvrthdr",   OPT_IPV6_RECVRTHDR,   GROUP_SOCK_IP6, PH_PASTSOCKET, TYPE_BOOL, OFUNC_SOCKOPT, SOL_IPV6, IPV6_RECVRTHDR };
 #endif
 #ifdef IPV6_AUTHHDR
 const struct optdesc opt_ipv6_authhdr = { "ipv6-authhdr", "authhdr", OPT_IPV6_AUTHHDR, GROUP_SOCK_IP6, PH_PASTSOCKET, TYPE_BOOL, OFUNC_SOCKOPT, SOL_IPV6, IPV6_AUTHHDR };
 #endif
+#ifdef IPV6_DSTOPTS
 const struct optdesc opt_ipv6_dstopts = { "ipv6-dstopts", "dstopts", OPT_IPV6_DSTOPTS, GROUP_SOCK_IP6, PH_PASTSOCKET, TYPE_BOOL, OFUNC_SOCKOPT, SOL_IPV6, IPV6_DSTOPTS };
+#endif
 #ifdef IPV6_RECVDSTOPTS
 const struct optdesc opt_ipv6_recvdstopts = { "ipv6-recvdstopts", "recvdstopts", OPT_IPV6_RECVDSTOPTS, GROUP_SOCK_IP6, PH_PASTSOCKET, TYPE_BOOL, OFUNC_SOCKOPT, SOL_IPV6, IPV6_RECVDSTOPTS };
 #endif
+#ifdef IPV6_HOPOPTS
 const struct optdesc opt_ipv6_hopopts = { "ipv6-hopopts", "hopopts", OPT_IPV6_HOPOPTS, GROUP_SOCK_IP6, PH_PASTSOCKET, TYPE_BOOL, OFUNC_SOCKOPT, SOL_IPV6, IPV6_HOPOPTS };
+#endif
 #ifdef IPV6_RECVHOPOPTS
 const struct optdesc opt_ipv6_recvhopopts = { "ipv6-recvhopopts", "recvhopopts", OPT_IPV6_RECVHOPOPTS, GROUP_SOCK_IP6, PH_PASTSOCKET, TYPE_BOOL, OFUNC_SOCKOPT, SOL_IPV6, IPV6_RECVHOPOPTS };
 #endif
 #ifdef IPV6_FLOWINFO /* is in linux/in6.h */
 const struct optdesc opt_ipv6_flowinfo= { "ipv6-flowinfo","flowinfo",OPT_IPV6_FLOWINFO,GROUP_SOCK_IP6, PH_PASTSOCKET, TYPE_BOOL, OFUNC_SOCKOPT, SOL_IPV6, IPV6_FLOWINFO };
 #endif
+#ifdef IPV6_HOPLIMIT
 const struct optdesc opt_ipv6_hoplimit= { "ipv6-hoplimit","hoplimit",OPT_IPV6_HOPLIMIT,GROUP_SOCK_IP6, PH_PASTSOCKET, TYPE_BOOL, OFUNC_SOCKOPT, SOL_IPV6, IPV6_HOPLIMIT };
+#endif
 const struct optdesc opt_ipv6_unicast_hops= { "ipv6-unicast-hops","unicast-hops",OPT_IPV6_UNICAST_HOPS,GROUP_SOCK_IP6, PH_PASTSOCKET, TYPE_INT, OFUNC_SOCKOPT, SOL_IPV6, IPV6_UNICAST_HOPS };
 #ifdef IPV6_RECVHOPLIMIT
 const struct optdesc opt_ipv6_recvhoplimit= { "ipv6-recvhoplimit","recvhoplimit",OPT_IPV6_RECVHOPLIMIT,GROUP_SOCK_IP6, PH_PASTSOCKET, TYPE_BOOL, OFUNC_SOCKOPT, SOL_IPV6, IPV6_RECVHOPLIMIT };
@@ -203,6 +213,7 @@ int xiolog_ancillary_ip6(struct cmsghdr *cmsg, int *num,
    msglen = cmsg->cmsg_len-((char *)CMSG_DATA(cmsg)-(char *)cmsg);
       envbuff[0] = '\0';
    switch (cmsg->cmsg_type) {
+#ifdef IPV6_PKTINFO
    case IPV6_PKTINFO: {
       struct in6_pktinfo *pktinfo = (struct in6_pktinfo *)CMSG_DATA(cmsg);
       *num = 2;
@@ -214,16 +225,21 @@ int xiolog_ancillary_ip6(struct cmsghdr *cmsg, int *num,
 	       '\0', xiogetifname(pktinfo->ipi6_ifindex, scratch2, -1));
    }
       return STAT_OK;
+#endif /* defined(IPV6_PKTINFO) */
+#ifdef IPV6_HOPLIMIT
    case IPV6_HOPLIMIT:
       strncpy(typbuff, "IPV6_HOPLIMIT", typlen);
       strncpy(nambuff, "hoplimit", namlen);
       snprintf(valbuff, vallen, "%d", *(int *)CMSG_DATA(cmsg));
       return STAT_OK;
+#endif /* defined(IPV6_HOPLIMIT) */
+#ifdef IPV6_RTHDR
    case IPV6_RTHDR:
       strncpy(typbuff, "IPV6_RTHDR", typlen);
       strncpy(nambuff, "rthdr", namlen);
       xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0);
       return STAT_OK;
+#endif /* defined(IPV6_RTHDR) */
 #ifdef IPV6_AUTHHDR
    case IPV6_AUTHHDR:
       strncpy(typbuff, "IPV6_AUTHHDR", typlen);
@@ -231,16 +247,20 @@ int xiolog_ancillary_ip6(struct cmsghdr *cmsg, int *num,
       xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0);
       return STAT_OK;
 #endif
+#ifdef IPV6_DSTOPTS
    case IPV6_DSTOPTS:
       strncpy(typbuff, "IPV6_DSTOPTS", typlen);
       strncpy(nambuff, "dstopts", namlen);
       xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0);
       return STAT_OK;
+#endif /* defined(IPV6_DSTOPTS) */
+#ifdef IPV6_HOPOPTS
    case IPV6_HOPOPTS:
       strncpy(typbuff, "IPV6_HOPOPTS", typlen);
       strncpy(nambuff, "hopopts", namlen);
       xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0);
       return STAT_OK;
+#endif /* defined(IPV6_HOPOPTS) */
 #ifdef IPV6_FLOWINFO
    case IPV6_FLOWINFO:
       strncpy(typbuff, "IPV6_FLOWINFO", typlen);
