@@ -97,6 +97,11 @@ new features:
 	feature of newer OpenSSL versions. Thanks to Michael Hanselmann for
 	providing this contribution (sponsored by Google Inc.)
 
+docu:
+	minor corrections in docu (thanks to Paggas)
+
+	client process -> child process
+
 ####################### V 1.7.1.3:
 
 security:

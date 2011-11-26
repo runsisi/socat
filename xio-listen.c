@@ -1,5 +1,5 @@
 /* source: xio-listen.c */
-/* Copyright Gerhard Rieger 2001-2010 */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for listen socket options */
@@ -307,7 +307,7 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
 	    pid_t cpid = Getpid();
 	    Sigprocmask(SIG_UNBLOCK, &mask_sigchld, NULL);
 
-	    Info1("just born: client process "F_pid, cpid);
+	    Info1("just born: child process "F_pid, cpid);
 	    xiosetenvulong("PID", cpid, 1);
 
 	    if (Close(xfd->fd) < 0) {

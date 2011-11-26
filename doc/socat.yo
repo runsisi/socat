@@ -333,7 +333,7 @@ label(ADDRESS_GOPEN)dit(bf(tt(GOPEN:<filename>)))
    link(UNIX-CONNECT)(ADDRESS_UNIX_CONNECT)
 
 label(ADDRESS_IP_SENDTO)dit(bf(tt(IP-SENDTO:<host>:<protocol>)))
-   Opens a raw IP socket. Depending on host specification or option link(pf)(OPTION_PROTOCOL_FAMILY), IP procotol version
+   Opens a raw IP socket. Depending on host specification or option link(pf)(OPTION_PROTOCOL_FAMILY), IP protocol version
    4 or 6 is used. It uses link(<protocol>)(TYPE_PROTOCOL) to send packets
    to <host> [link(IP address)(TYPE_IP_ADDRESS)] and receives packets from
    host, ignores packets from other hosts. 
@@ -404,7 +404,7 @@ label(ADDRESS_IP6_DATAGRAM)dit(bf(tt(IP6-DATAGRAM:<host>:<protocol>)))
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP6)(GROUP_IP6),link(RANGE)(GROUP_RANGE) nl()
 
 label(ADDRESS_IP_RECVFROM)dit(bf(tt(IP-RECVFROM:<protocol>)))
-   Opens a raw IP socket of link(<protocol>)(TYPE_PROTOCOL). Depending on option link(pf)(OPTION_PROTOCOL_FAMILY), IP procotol version
+   Opens a raw IP socket of link(<protocol>)(TYPE_PROTOCOL). Depending on option link(pf)(OPTION_PROTOCOL_FAMILY), IP protocol version
    4 or 6 is used. It receives one packet from an unspecified peer and may send one or more answer packets to that peer.
    This mode is particularly useful with fork option where each arriving packet - from arbitrary peers - is handled by its own sub process.
    This allows a behaviour similar to typical UDP based servers like ntpd or
@@ -437,7 +437,7 @@ label(ADDRESS_IP6_RECVFROM)dit(bf(tt(IP6-RECVFROM:<protocol>)))
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP6)(GROUP_IP6),link(CHILD)(GROUP_CHILD),link(RANGE)(GROUP_RANGE) nl()
 
 label(ADDRESS_IP_RECV)dit(bf(tt(IP-RECV:<protocol>)))
-   Opens a raw IP socket of link(<protocol>)(TYPE_PROTOCOL). Depending on option link(pf)(OPTION_PROTOCOL_FAMILY), IP procotol version
+   Opens a raw IP socket of link(<protocol>)(TYPE_PROTOCOL). Depending on option link(pf)(OPTION_PROTOCOL_FAMILY), IP protocol version
    4 or 6 is used. It receives packets from multiple unspecified peers and merges the data.
    No replies are possible.
    It can be, e.g., addressed by socat IP-SENDTO address peers.
@@ -3250,12 +3250,10 @@ label(EXAMPLE_ADDRESS_TUN)
 dit(bf(tt(socat TCP:host2:4443 TUN:192.168.255.1/24,up)))
 
 establishes one side of a virtual (but not private!) network with host2 where a
-similar process might run, with TCP-L and tun address 192.168.255.2. They
-can reach each other using the addresses 192.168.255.1 and
-192.168.255.2. Substitute the TCP link with an SSL connection protected by
-client and server authentication (see OpenSSL
-link(client)(EXAMPLE_ADDRESS_OPENSSL_CONNECT) and 
-link(server)(EXAMPLE_ADDRESS_OPENSSL_LISTEN)).
+similar process might run, with UDP-L and tun address 192.168.255.2. They can
+reach each other using the addresses 192.168.255.1 and 192.168.255.2. Note that
+streaming eg. via TCP or SSL does not guarantee to retain packet boundaries and
+may thus cause packet loss.
 
 
 label(EXAMPLE_INTERFACE)

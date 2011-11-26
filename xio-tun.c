@@ -44,7 +44,7 @@ const struct optdesc opt_iff_automedia   = { "iff-automedia",   "automedia",   O
 const struct optdesc opt_route           = { "route",           NULL,          OPT_ROUTE,           GROUP_INTERFACE, PH_INIT, TYPE_STRING,   OFUNC_SPEC };
 #endif
 
-const struct addrdesc xioaddr_tun    = { "tun",    3, xioopen_tun, GROUP_FD|GROUP_CHR|GROUP_NAMED|GROUP_OPEN|GROUP_TUN, 0, 0, 0 HELP(":<ip-addr>/<bits>") };
+const struct addrdesc xioaddr_tun    = { "tun",    3, xioopen_tun, GROUP_FD|GROUP_CHR|GROUP_NAMED|GROUP_OPEN|GROUP_TUN, 0, 0, 0 HELP("[:<ip-addr>/<bits>]") };
 /* "if-name"=tun3
 // "route"=address/netmask
 // "ip6-route"=address/netmask

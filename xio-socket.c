@@ -1090,7 +1090,7 @@ int _xioopen_dgram_sendto(/* them is already in xfd->peersa */
    packet in the IP stacks input queue and forks a sub process. The sub process
    then reads this packet for processing its data.
    There is a problem because the parent process would find the same packet
-   again if it calls select()/poll() before the client process reads the
+   again if it calls select()/poll() before the child process reads the
    packet.
    To solve this problem we implement the following mechanism:
    The sub process sends a SIGUSR1 when it has read the packet (or a SIGCHLD if

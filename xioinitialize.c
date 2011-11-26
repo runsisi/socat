@@ -222,7 +222,7 @@ pid_t xio_fork(bool subchild, int level) {
    if (pid == 0) {	/* child process */
       pid_t cpid = Getpid();
 
-      Info1("just born: client process "F_pid, cpid);
+      Info1("just born: child process "F_pid, cpid);
       if (!subchild) {
 	 /* set SOCAT_PID to new value */
 	 xiosetenvulong("PID", pid, 1);
