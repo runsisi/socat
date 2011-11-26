@@ -9188,6 +9188,9 @@ case "$opts" in
 *-d*)          LEVELS="[EW]" ;;
 *)             LEVELS="[E]" ;;
 esac
+if [ "$SCM_VALUE" = "timestamp" ]; then
+    SCM_VALUE="$(date '+%a %b %e %H:%M:.. %Y')"
+fi
 if [ "$rc1" -ne 0 ]; then
     $PRINTF "$NO_RESULT: $SOCAT:\n"
     echo "$CMD0 &"
@@ -9195,12 +9198,22 @@ if [ "$rc1" -ne 0 ]; then
     grep " $LEVELS " "${te}0"
     grep " $LEVELS " "${te}1"
     numCANT=$((numCANT+1))
+elif ! grep "ancillary message: $SCM_TYPE: $SCM_NAME=" ${te}0 >/dev/null; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    grep " $LEVELS " "${te}0"
+    grep " $LEVELS " "${te}1"
+    echo "variable $SCM_TYPE: $SCM_NAME not set"
+    numFAIL=$((numFAIL+1))
 elif ! grep "ancillary message: $SCM_TYPE: $SCM_NAME=$SCM_VALUE" ${te}0 >/dev/null; then
     $PRINTF "$FAILED\n"
     echo "$CMD0 &"
     echo "$CMD1"
     grep " $LEVELS " "${te}0"
     grep " $LEVELS " "${te}1"
+    badval="$(grep "ancillary message: $SCM_TYPE: $SCM_NAME" ${te}0 |sed 's/.*=//g')"
+    echo "variable $SCM_TYPE: $SCM_NAME has value \"$badval\" instead of \"$SCM_VALUE\""
     numFAIL=$((numFAIL+1))
 else
     $PRINTF "$OK\n"
@@ -9221,7 +9234,7 @@ N=$((N+1))
 #
 done <<<"
 IP4  UDP4 127.0.0.1 PORT  ip-options=x01000000 ip-recvopts       IP_OPTIONS     options   user x01000000
-IP4  UDP4 127.0.0.1 PORT  ,                    so-timestamp      SCM_TIMESTAMP  timestamp user $(date '+%a %b %e %H:%M:.. %Y')
+IP4  UDP4 127.0.0.1 PORT  ,                    so-timestamp      SCM_TIMESTAMP  timestamp user timestamp
 IP4  UDP4 127.0.0.1 PORT  ip-ttl=53            ip-recvttl        IP_TTL         ttl       user 53
 IP4  UDP4 127.0.0.1 PORT  ip-tos=7             ip-recvtos        IP_TOS         tos       user 7
 IP4  UDP4 127.0.0.1 PORT  ,                    ip-pktinfo        IP_PKTINFO     locaddr   user 127.0.0.1
@@ -9230,7 +9243,7 @@ IP4  UDP4 127.0.0.1 PORT  ,                    ip-pktinfo        IP_PKTINFO     
 IP4  UDP4 127.0.0.1 PORT  ,                    ip-recvif         IP_RECVIF      if        user lo0
 IP4  UDP4 127.0.0.1 PORT  ,                    ip-recvdstaddr    IP_RECVDSTADDR dstaddr   user 127.0.0.1
 IP4  IP4  127.0.0.1 PROTO ip-options=x01000000 ip-recvopts       IP_OPTIONS     options   root x01000000
-IP4  IP4  127.0.0.1 PROTO ,                    so-timestamp      SCM_TIMESTAMP  timestamp root $(date '+%a %b %e %H:%M:.. %Y')
+IP4  IP4  127.0.0.1 PROTO ,                    so-timestamp      SCM_TIMESTAMP  timestamp root timestamp
 IP4  IP4  127.0.0.1 PROTO ip-ttl=53            ip-recvttl        IP_TTL         ttl       root 53
 IP4  IP4  127.0.0.1 PROTO ip-tos=7             ip-recvtos        IP_TOS         tos       root 7
 IP4  IP4  127.0.0.1 PROTO ,                    ip-pktinfo        IP_PKTINFO     locaddr   root 127.0.0.1
@@ -9238,7 +9251,7 @@ IP4  IP4  127.0.0.1 PROTO ,                    ip-pktinfo        IP_PKTINFO     
 IP4  IP4  127.0.0.1 PROTO ,                    ip-pktinfo        IP_PKTINFO     if        root lo
 IP4  IP4  127.0.0.1 PROTO ,                    ip-recvif         IP_RECVIF      if        root lo0
 IP4  IP4  127.0.0.1 PROTO ,                    ip-recvdstaddr    IP_RECVDSTADDR dstaddr   root 127.0.0.1
-IP6  UDP6 [::1]     PORT  ,                    so-timestamp      SCM_TIMESTAMP  timestamp user $(date '+%a %b %e %H:%M:.. %Y')
+IP6  UDP6 [::1]     PORT  ,                    so-timestamp      SCM_TIMESTAMP  timestamp user timestamp
 IP6  UDP6 [::1]     PORT  ,                    ipv6-recvpktinfo  IPV6_PKTINFO   dstaddr   user [[]0000:0000:0000:0000:0000:0000:0000:0001[]]
 IP6  UDP6 [::1]     PORT  ipv6-unicast-hops=35 ipv6-recvhoplimit IPV6_HOPLIMIT  hoplimit  user 35
 IP6  UDP6 [::1]     PORT  ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    tclass    user xaa000000
@@ -9246,7 +9259,7 @@ IP6  IP6  [::1]     PROTO ,                    so-timestamp      SCM_TIMESTAMP  
 IP6  IP6  [::1]     PROTO ,                    ipv6-recvpktinfo  IPV6_PKTINFO   dstaddr   root [[]0000:0000:0000:0000:0000:0000:0000:0001[]]
 IP6  IP6  [::1]     PROTO ipv6-unicast-hops=35 ipv6-recvhoplimit IPV6_HOPLIMIT  hoplimit  root 35
 IP6  IP6  [::1]     PROTO ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    tclass    root xaa000000
-#UNIX UNIX $td/test\$N.server - ,               so-timestamp      SCM_TIMESTAMP  timestamp user $(date '+%a %b %e %H:%M:.. %Y')
+#UNIX UNIX $td/test\$N.server - ,               so-timestamp      SCM_TIMESTAMP  timestamp user timestamp
 "
 # this one fails, appearently due to a Linux weakness:
 # UNIX so-timestamp
@@ -9410,6 +9423,9 @@ waitfile "$tf" 2
 kill "$pid0" 2>/dev/null; wait
 # do not show more messages than requested
 #set -vx
+if [ "$SCM_VALUE" = "timestamp" ]; then
+    SCM_VALUE="$(date '+%a %b %e %H:%M:.. %Y'), ...... usecs"
+fi
 if [ "$rc1" -ne 0 ]; then
     $PRINTF "$NO_RESULT: $SOCAT:\n"
     echo "$CMD0 &"
@@ -9444,7 +9460,7 @@ N=$((N+1))
 #
 done <<<"
 IP4  UDP4 127.0.0.1 PORT  ip-options=x01000000 ip-recvopts       IP_OPTIONS     user x01000000
-IP4  UDP4 127.0.0.1 PORT  ,                    so-timestamp      TIMESTAMP      user $(date '+%a %b %e %H:%M:.. %Y'), ...... usecs
+IP4  UDP4 127.0.0.1 PORT  ,                    so-timestamp      TIMESTAMP      user timestamp
 IP4  UDP4 127.0.0.1 PORT  ip-ttl=53            ip-recvttl        IP_TTL         user 53
 IP4  UDP4 127.0.0.1 PORT  ip-tos=7             ip-recvtos        IP_TOS         user 7
 IP4  UDP4 127.0.0.1 PORT  ,                    ip-pktinfo        IP_LOCADDR     user 127.0.0.1
@@ -9453,7 +9469,7 @@ IP4  UDP4 127.0.0.1 PORT  ,                    ip-pktinfo        IP_IF          
 IP4  UDP4 127.0.0.1 PORT  ,                    ip-recvif         IP_IF          user lo0
 IP4  UDP4 127.0.0.1 PORT  ,                    ip-recvdstaddr    IP_DSTADDR     user 127.0.0.1
 IP4  IP4  127.0.0.1 PROTO ip-options=x01000000 ip-recvopts       IP_OPTIONS     root x01000000
-IP4  IP4  127.0.0.1 PROTO ,                    so-timestamp      TIMESTAMP      root $(date '+%a %b %e %H:%M:.. %Y'), ...... usecs
+IP4  IP4  127.0.0.1 PROTO ,                    so-timestamp      TIMESTAMP      root timestamp
 IP4  IP4  127.0.0.1 PROTO ip-ttl=53            ip-recvttl        IP_TTL         root 53
 IP4  IP4  127.0.0.1 PROTO ip-tos=7             ip-recvtos        IP_TOS         root 7
 IP4  IP4  127.0.0.1 PROTO ,                    ip-pktinfo        IP_LOCADDR     root 127.0.0.1
@@ -9467,7 +9483,7 @@ IP6  UDP6 [::1]     PORT  ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    
 IP6  IP6  [::1]     PROTO ,                    ipv6-recvpktinfo  IPV6_DSTADDR   root [[]0000:0000:0000:0000:0000:0000:0000:0001[]]
 IP6  IP6  [::1]     PROTO ipv6-unicast-hops=35 ipv6-recvhoplimit IPV6_HOPLIMIT  root 35
 IP6  IP6  [::1]     PROTO ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    root xaa000000
-#UNIX UNIX $td/test\$N.server - ,               so-timestamp      TIMESTAMP      user $(date '+%a %b %e %H:%M:.. %Y')
+#UNIX UNIX $td/test\$N.server - ,               so-timestamp      TIMESTAMP      user timestamp
 "
 
 
