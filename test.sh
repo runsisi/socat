@@ -10553,6 +10553,54 @@ PORT=$((PORT+1))
 N=$((N+1))
 
 
+# test the max-children option
+NAME=MAXCHILDREN
+case "$TESTS" in
+*%functions%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: max-children option"
+# start a listen process with max-children=1; connect with a client, let it
+# sleep some time before sending data; connect with second client that sends
+# data immediately. If max-children is working correctly the first data should
+# arrive first because the second process has to wait.
+if ! eval $NUMCOND; then :; else
+ts="$td/test$N.sock"
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$SOCAT $opts -U FILE:$tf,o-trunc,o-creat,o-append UNIX-L:$ts,fork,max-children=1"
+CMD1="$SOCAT $opts -u - UNIX-CONNECT:$ts"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+waitunixport $ts 1
+(sleep 2; echo "$da 1") |$CMD1 >"${tf}1" 2>"${te}1" &
+pid1=$!
+sleep 1
+echo "$da 2" |$CMD1 >"${tf}2" 2>"${te}2"
+rc2=$?
+sleep 2
+kill $pid0 $pid1 2>/dev/null; wait
+if echo -e "$da 1\n$da 2" |diff $tf - >$tdiff; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "(sleep 2; echo \"$da 1\") |$CMD1"
+    echo "echo \"$da 2\" |$CMD1"
+    cat "${te}0"
+    cat "${te}1"
+    cat "${te}2"
+    cat "$tdiff"
+    numFAIL=$((numFAIL+1))
+fi
+fi # NUMCOND
+ ;;
+esac
+N=$((N+1))
+
+
 ###############################################################################
 # here come tests that might affect your systems integrity. Put normal tests
 # before this paragraph.

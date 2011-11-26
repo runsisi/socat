@@ -378,6 +378,8 @@ struct opt {
 extern const char *PIPESEP;
 extern xiofile_t *sock[XIO_MAXSOCK];
 
+extern int num_child;
+
 /* return values of xioopensingle */
 #define STAT_OK		0
 #define STAT_WARNING	1

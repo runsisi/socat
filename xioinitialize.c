@@ -15,7 +15,7 @@ static int xioinitialized;
 xiofile_t *sock[XIO_MAXSOCK];
 int (*xiohook_newchild)(void);	/* xio calls this function from a new child
 				   process */
-
+int num_child = 0;
 
 /* returns 0 on success or != if an error occurred */
 int xioinitialize(void) {
@@ -181,6 +181,7 @@ int xio_forked_inchild(void) {
    for (i=0; i<NUMUNKNOWN; ++i) {
       diedunknown[i] = 0;
    }
+   num_child = 0;
    xiodroplocks();
 #if WITH_FIPS
    if (xio_reset_fips_mode() != 0) {
@@ -237,6 +238,7 @@ pid_t xio_fork(bool subchild, int level) {
       return 0;
    }
 
+   num_child++;
    /* parent process */
    Notice1("forked off child process "F_pid, pid);
    /* gdb recommends to have env controlled sleep after fork */

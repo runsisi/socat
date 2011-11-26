@@ -1,5 +1,5 @@
 /* source: xio-listen.h */
-/* Copyright Gerhard Rieger 2001-2006 */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_listen_h_included
@@ -7,6 +7,7 @@
 
 extern const struct optdesc opt_backlog;
 extern const struct optdesc opt_fork;
+extern const struct optdesc opt_max_children;
 extern const struct optdesc opt_range;
 
 int

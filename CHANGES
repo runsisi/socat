@@ -87,6 +87,10 @@ porting:
 	minor corrections to docu and test.sh resulting from local compilation
 	on Openmoko SHR
 
+new features: 
+	added option max-children that limits the number of concurrent child
+	processes. Thanks to Sam Liddicott for providing the patch.
+
 ####################### V 1.7.1.3:
 
 security:

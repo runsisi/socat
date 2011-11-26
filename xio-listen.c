@@ -19,6 +19,7 @@
 /***** LISTEN options *****/
 const struct optdesc opt_backlog = { "backlog",   NULL, OPT_BACKLOG,     GROUP_LISTEN, PH_LISTEN, TYPE_INT,    OFUNC_SPEC };
 const struct optdesc opt_fork    = { "fork",      NULL, OPT_FORK,        GROUP_CHILD,   PH_PASTACCEPT, TYPE_BOOL,  OFUNC_SPEC };
+const struct optdesc opt_max_children = { "max-children",      NULL, OPT_MAX_CHILDREN,        GROUP_CHILD,   PH_PASTACCEPT, TYPE_INT,  OFUNC_SPEC };
 /**/
 #if (WITH_UDP || WITH_TCP)
 const struct optdesc opt_range   = { "range",     NULL, OPT_RANGE,       GROUP_RANGE,  PH_ACCEPT, TYPE_STRING, OFUNC_SPEC };
@@ -114,6 +115,7 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
    int backlog = 5;	/* why? 1 seems to cause problems under some load */
    char *rangename;
    bool dofork = false;
+   int maxchildren = 0;
    char infobuff[256];
    char lisname[256];
    union sockaddr_union _peername;
@@ -132,6 +134,13 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
 	 return STAT_NORETRY;
       }
       xfd->flags |= XIO_DOESFORK;
+   }
+
+   retropt_int(opts, OPT_MAX_CHILDREN, &maxchildren);
+
+   if (! dofork && maxchildren) {
+       Error("option max-children not allowed without option fork");
+       return STAT_NORETRY;
    }
 
    if (applyopts_single(xfd, opts, PH_INIT) < 0)  return -1;
@@ -278,12 +287,25 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
 
       if (dofork) {
 	 pid_t pid;	/* mostly int; only used with fork */
+         sigset_t mask_sigchld;
+
+         /* we must prevent that the current packet triggers another fork;
+            therefore we wait for a signal from the recent child: USR1
+            indicates that is has consumed the last packet; CHLD means it has
+            terminated */
+         /* block SIGCHLD and SIGUSR1 until parent is ready to react */
+         sigemptyset(&mask_sigchld);
+         sigaddset(&mask_sigchld, SIGCHLD);
+         Sigprocmask(SIG_BLOCK, &mask_sigchld, NULL);
+
 	 if ((pid = xio_fork(false, level==E_ERROR?level:E_WARN)) < 0) {
 	    Close(xfd->fd);
+	    Sigprocmask(SIG_UNBLOCK, &mask_sigchld, NULL);
 	    return STAT_RETRYLATER;
 	 }
 	 if (pid == 0) {	/* child */
 	    pid_t cpid = Getpid();
+	    Sigprocmask(SIG_UNBLOCK, &mask_sigchld, NULL);
 
 	    Info1("just born: client process "F_pid, cpid);
 	    xiosetenvulong("PID", cpid, 1);
@@ -307,6 +329,15 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
 	    close() does what we want */
 	 if (Close(ps) < 0) {
 	    Info2("close(%d): %s", ps, strerror(errno));
+	 }
+
+         /* now we are ready to handle signals */
+         Sigprocmask(SIG_UNBLOCK, &mask_sigchld, NULL);
+
+	 while (maxchildren) {
+	    if (num_child < maxchildren) break;
+	    Notice("maxchildren are active, waiting");
+	    while (!Sleep(UINT_MAX)) ;	/* any signal lets us continue */
 	 }
 	 Info("still listening");
       } else {

@@ -854,6 +854,8 @@ const struct optname optionnames[] = {
 	IF_ANY    ("lseek64-set",	&opt_lseek64_set)
 #endif
 	IF_TUN    ("master",	&opt_iff_master)
+	IF_LISTEN ("max-children",	&opt_max_children)
+	IF_LISTEN ("maxchildren",	&opt_max_children)
 #ifdef TCP_MAXSEG
 	IF_TCP    ("maxseg",	&opt_tcp_maxseg)
 	IF_TCP    ("maxseg-late",	&opt_tcp_maxseg_late)

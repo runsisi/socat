@@ -432,6 +432,7 @@ enum e_optcode {
    OPT_IXON,		/* termios.c_iflag */
    OPT_LOCKFILE,
    OPT_LOWPORT,
+   OPT_MAX_CHILDREN,
 #ifdef NLDLY
 #  ifdef NL0
    OPT_NL0,		/* termios.c_oflag */
