@@ -957,12 +957,13 @@ label(ADDRESS_TCP6_LISTEN)dit(bf(tt(TCP6-LISTEN:<port>)))
    Additional useful option:
    link(ipv6only)(OPTION_IPV6_V6ONLY)nl()
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(LISTEN)(GROUP_LISTEN),link(CHILD)(GROUP_CHILD),link(RANGE)(GROUP_RANGE),link(IP6)(GROUP_IP6),link(TCP)(GROUP_TCP),link(RETRY)(GROUP_RETRY) nl()
-label(ADDRESS_TUN)dit(bf(tt(TUN:<if-addr>/<bits>)))
-   Creates a Linux TUN/TAP device and assignes to it the address and netmask
-   defined by the parameters. The resulting network interface is ready for use
-   by other processes; socat serves its "wire side". This address requires read
-   and write access to the tunnel cloning device, usually code(/dev/net/tun).
-   nl() 
+label(ADDRESS_TUN)dit(bf(tt(TUN[:<if-addr>/<bits>])))
+   Creates a Linux TUN/TAP device and optionally assignes it the address and
+   netmask given by the parameters. The resulting network interface is almost
+   ready for use by other processes; socat serves its "wire side". This address
+   requires read and write access to the tunnel cloning device, usually
+   code(/dev/net/tun), as well as permission to set some tt(ioctl()s).
+   bf(Option iff-up is required to immediately activate the interface!)nl() 
    Option groups: link(FD)(GROUP_FD),link(NAMED)(GROUP_NAMED),link(OPEN)(GROUP_OPEN),link(TUN)(GROUP_TUN) nl()
    Useful options:
    link(iff-up)(OPTION_IFF_UP),

@@ -91,6 +91,8 @@ new features:
 	added option max-children that limits the number of concurrent child
 	processes. Thanks to Sam Liddicott for providing the patch.
 
+	Till Maas added support for tun/tap addresses without IP address
+ 
 ####################### V 1.7.1.3:
 
 security:

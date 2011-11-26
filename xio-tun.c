@@ -1,5 +1,5 @@
 /* source: xio-tun.c */
-/* Copyright Gerhard Rieger 2007-2009 */
+/* Copyright Gerhard Rieger 2007-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening addresses of tun/tap type */
@@ -78,8 +78,8 @@ static int xioopen_tun(int argc, const char *argv[], struct opt *opts, int xiofl
    char *ifaddr;
    int result;
 
-   if (argc != 2) {
-      Error2("%s: wrong number of parameters (%d instead of 1)",
+   if (argc > 2 || argc < 0) {
+      Error2("%s: wrong number of parameters (%d instead of 0 or 1)",
 	     argv[0], argc-1);
    }
 
@@ -146,30 +146,31 @@ static int xioopen_tun(int argc, const char *argv[], struct opt *opts, int xiofl
    }
 
    /*--------------------- setting interface address and netmask ------------*/
-   if ((ifaddr = strdup(argv[1])) == NULL) {
-      Error1("strdup(\"%s\"): out of memory", argv[1]);
-      return STAT_RETRYLATER;
+   if (argc == 2) {
+       if ((ifaddr = strdup(argv[1])) == NULL) {
+          Error1("strdup(\"%s\"): out of memory", argv[1]);
+          return STAT_RETRYLATER;
+       }
+       if ((result = xioparsenetwork(ifaddr, pf, &network)) != STAT_OK) {
+          /*! recover */
+          return result;
+       }
+       socket_init(pf, (union sockaddr_union *)&ifr.ifr_addr);
+       ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr =
+          network.netaddr.ip4.sin_addr;
+       if (Ioctl(sockfd, SIOCSIFADDR, &ifr) < 0) {
+          Error4("ioctl(%d, SIOCSIFADDR, {\"%s\", \"%s\"}: %s",
+             sockfd, ifr.ifr_name, ifaddr, strerror(errno));
+       }
+       ((struct sockaddr_in *)&ifr.ifr_netmask)->sin_addr =
+          network.netmask.ip4.sin_addr;
+       if (Ioctl(sockfd, SIOCSIFNETMASK, &ifr) < 0) {
+          Error4("ioctl(%d, SIOCSIFNETMASK, {\"0x%08u\", \"%s\"}, %s",
+             sockfd, ((struct sockaddr_in *)&ifr.ifr_netmask)->sin_addr.s_addr,
+             ifaddr, strerror(errno));
+       }
+       free(ifaddr);
    }
-   if ((result = xioparsenetwork(ifaddr, pf, &network)) != STAT_OK) {
-      /*! recover */
-      return result;
-   }
-   socket_init(pf, (union sockaddr_union *)&ifr.ifr_addr);
-   ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr =
-      network.netaddr.ip4.sin_addr;
-   if (Ioctl(sockfd, SIOCSIFADDR, &ifr) < 0) {
-      Error4("ioctl(%d, SIOCSIFADDR, {\"%s\", \"%s\"}: %s",
-	     sockfd, ifr.ifr_name, ifaddr, strerror(errno));
-   }
-   ((struct sockaddr_in *)&ifr.ifr_netmask)->sin_addr =
-      network.netmask.ip4.sin_addr;
-   if (Ioctl(sockfd, SIOCSIFNETMASK, &ifr) < 0) {
-      Error4("ioctl(%d, SIOCSIFNETMASK, {\"0x%08u\", \"%s\"}, %s",
-	     sockfd, ((struct sockaddr_in *)&ifr.ifr_netmask)->sin_addr.s_addr,
-	     ifaddr, strerror(errno));
-   }
-   free(ifaddr);
-
    /*--------------------- setting interface flags --------------------------*/
    applyopts_single(&xfd->stream, opts, PH_FD);
 
