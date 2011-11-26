@@ -1,5 +1,5 @@
 /* source: xio-udp.c */
-/* Copyright Gerhard Rieger 2001-2010 */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for handling UDP addresses */
@@ -257,7 +257,6 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
 	 if (Close(fd->stream.fd) < 0) {
 	    Info2("close(%d): %s", fd->stream.fd, strerror(errno));
 	 }
-	 Sleep(1);	/*! give child a chance to consume the old packet */
 
 	 continue;
       }
