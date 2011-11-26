@@ -87,6 +87,9 @@ porting:
 	minor corrections to docu and test.sh resulting from local compilation
 	on Openmoko SHR
 
+	fixed sa_family_t compile error on DragonFly. Thanks to Tony Young for
+	reporting this issue and sending a patch.
+
 new features: 
 	added option max-children that limits the number of concurrent child
 	processes. Thanks to Sam Liddicott for providing the patch.

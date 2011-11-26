@@ -1,10 +1,13 @@
 /* source: sysincludes.h */
-/* Copyright Gerhard Rieger 2001-2009 */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __sysincludes_h_included
 #define __sysincludes_h_included 1
 
+#if HAVE_INTTYPES_H
+#include <inttypes.h>	/* uint16_t */
+#endif
 #if HAVE_LIMITS_H
 #include <limits.h>	/* USHRT_MAX */
 #endif

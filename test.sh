@@ -130,7 +130,8 @@ OpenBSD)IFCONFIG=/sbin/ifconfig ;;
 OSF1)  IFCONFIG=/sbin/ifconfig ;;
 SunOS) IFCONFIG=/sbin/ifconfig ;;
 Darwin)IFCONFIG=/sbin/ifconfig ;;
-#*)     IFCONFIG=/sbin/ifconfig ;;
+DragonFly) IFCONFIG=/sbin/ifconfig ;;
+*)     IFCONFIG=/sbin/ifconfig ;;
 esac
 
 # for some tests we need a second local IPv4 address
@@ -161,6 +162,12 @@ SunOS)
     #BCIFADDR="$SECONDADDR"
     #BCADDR=$($IFCONFIG $BROADCASTIF |grep 'broadcast ' |sed 's/.*broadcast/broadcast/' |awk '{print($2);}')
     ;;
+DragonFly)
+    MAINIF=$($IFCONFIG -a |grep -v ^lp |grep '^[a-z]' |grep -v '^lo0: ' |head -1 |cut -d: -f1)
+    BROADCASTIF="$MAINIF"
+    SECONDADDR=$($IFCONFIG $BROADCASTIF |grep 'inet ' |awk '{print($2);}')
+    BCIFADDR="$SECONDADDR"
+    BCADDR=$($IFCONFIG $BROADCASTIF |grep 'broadcast ' |sed 's/.*broadcast/broadcast/' |awk '{print($2);}') ;;
 #AIX|FreeBSD|Solaris)
 *)
     SECONDADDR=$(expr "$($IFCONFIG -a |grep 'inet ' |fgrep -v ' 127.0.0.1 ' |head -n 1)" : '.*inet \([0-9.]*\) .*') 
@@ -1610,6 +1617,7 @@ ifprocess () {
     NetBSD)  l="$(ps -aj   |grep "^[^ ][^ ]*[ ][ ]*$(printf %5u $1) ")" ;;
     OpenBSD) l="$(ps -kaj  |grep "^........ $(printf %5u $1)")" ;;
     SunOS)   l="$(ps -fade |grep "^........ $(printf %5u $1)")" ;;
+    DragonFly)l="$(ps -faje |grep "^[^ ][^ ]*[ ][ ]*$(printf %5u $1)")" ;;
     *)       l="$(ps -fade |grep "^[^ ][^ ]*[ ][ ]*$(printf %5u $1) ")" ;;
     esac
     if [ -z "$l" ]; then
@@ -1633,6 +1641,7 @@ childprocess () {
     NetBSD)  l="$(ps -aj   |grep "^[^ ][^ ]*[ ][ ]*..... $(printf %5u $1)")" ;;
     OpenBSD) l="$(ps -aj   |grep "^........ ..... $(printf %5u $1)")" ;;
     SunOS)   l="$(ps -fade |grep "^........ ..... $(printf %5u $1)")" ;;
+    DragonFly)l="$(ps -faje |grep "^[^ ][^ ]*[ ][ ]*..... $(printf %5u $1)")" ;;
     *)       l="$(ps -fade |grep "^[^ ][^ ]*[ ][ ]*[0-9][0-9]**[ ][ ]*$(printf %5u $1) ")" ;;    esac
     if [ -z "$l" ]; then
 	return 1;
@@ -1652,6 +1661,7 @@ isdefunct () {
     HP-UX)   l="$(echo "$1" |grep ' <defunct>$')" ;;
     Linux)   l="$(echo "$1" |grep ' <defunct>$')" ;;
     SunOS)   l="$(echo "$1" |grep ' <defunct>$')" ;;
+    DragonFly)l="$(echo "$1" |grep ' <defunct>$')" ;;
     *)       l="$(echo "$1" |grep ' <defunct>$')" ;;
     esac
     [ -n "$l" ];
@@ -1672,7 +1682,8 @@ runsip4 () {
     OSF1)  l=$($IFCONFIG -a |grep ' inet ') ;;
     SunOS) l=$($IFCONFIG -a |grep 'inet ') ;;
     Darwin)l=$($IFCONFIG lo0 |fgrep 'inet 127.0.0.1 ') ;;
-#    *)     l=$($IFCONFIG -a |grep ' ::1[^:0-9A-Fa-f]') ;;
+    DragonFly)l=$($IFCONFIG -a |fgrep 'inet 127.0.0.1 ');;
+    *)     l=$($IFCONFIG -a |grep ' ::1[^:0-9A-Fa-f]') ;;
     esac
     [ -z "$l" ] && return 1    
     # existence of interface might not suffice, check for routeability:
@@ -1831,6 +1842,7 @@ checktcp4port () {
     HP-UX)   l=$(netstat -an |grep '^tcp        0      0  .*[0-9*]\.'$port' .* LISTEN$') ;;
     OSF1)    l=$(/usr/sbin/netstat -an |grep '^tcp        0      0  .*[0-9*]\.'$port' [ ]*\*\.\* [ ]*LISTEN') ;;
     CYGWIN*) l=$(netstat -an -p TCP |grep '^  TCP    [0-9.]*:'$port' .* LISTENING') ;;
+    DragonFly)l=$(netstat -ant |grep '^tcp4 .* .*[0-9*]\.'$port' [ ]* \*\.\* [ ]* LISTEN.*') ;;
     *)       l=$(netstat -an |grep -i 'tcp .*[0-9*][:.]'$port' .* listen') ;;
     esac
     [ -z "$l" ] && return 0
@@ -1859,6 +1871,7 @@ waittcp4port () {
 	HP-UX)   l=$(netstat -an |grep '^tcp        0      0  .*[0-9*]\.'$port' .* LISTEN$') ;;
 	OSF1)    l=$(/usr/sbin/netstat -an |grep '^tcp        0      0  .*[0-9*]\.'$port' [ ]*\*\.\* [ ]*LISTEN') ;;
 	CYGWIN*) l=$(netstat -an -p TCP |grep '^  TCP    [0-9.]*:'$port' .* LISTENING') ;;
+	DragonFly)  l=$(netstat -ant |grep '^tcp4 .* .*[0-9*]\.'$port' [ ]* \*\.\* [ ]* LISTEN.*') ;;
  	*)       l=$(netstat -an |grep -i 'tcp .*[0-9*][:.]'$port' .* listen') ;;
 	esac
 	[ \( \( $logic -ne 0 \) -a -n "$l" \) -o \
@@ -1893,6 +1906,7 @@ waitudp4port () {
 	SunOS)   l=$(netstat -an -f inet -P udp |grep '.*[1-9*]\.'$port' [ ]*Idle') ;;
 	HP-UX)   l=$(netstat -an |grep '^udp        0      0  .*[0-9*]\.'$port' .* \*\.\* ') ;;
 	OSF1)    l=$(/usr/sbin/netstat -an |grep '^udp        0      0  .*[0-9*]\.'$port' [ ]*\*\.\*') ;;
+	DragonFly) l=$(netstat -an |grep '^udp4 .* .*[0-9*]\.'$port' [ ]* \*\.\* [ ]*') ;;
  	*)       l=$(netstat -an |grep -i 'udp .*[0-9*][:.]'$port' ') ;;
 	esac
 	[ \( \( $logic -ne 0 \) -a -n "$l" \) -o \
@@ -1957,6 +1971,7 @@ waittcp6port () {
 	AIX)	 l=$(netstat -an |grep '^tcp[6 ]       0      0 .*[*0-9]\.'$port' .* LISTEN$') ;;
 	SunOS)   l=$(netstat -an -f inet6 -P tcp |grep '.*[1-9*]\.'$port' .*\* [ ]* 0 .* LISTEN') ;;
 	#OSF1)    l=$(/usr/sbin/netstat -an |grep '^tcp6       0      0  .*[0-9*]\.'$port' [ ]*\*\.\* [ ]*LISTEN') /*?*/;;
+	DragonFly)  l=$(netstat -ant |grep '^tcp6 .* .*[0-9*]\.'$port' [ ]* \*\.\* [ ]* LISTEN.*') ;;
  	*)       l=$(netstat -an |grep -i 'tcp6 .*:'$port' .* listen') ;;
 	esac
 	[ \( \( $logic -ne 0 \) -a -n "$l" \) -o \
@@ -1988,6 +2003,7 @@ waitudp6port () {
 	SunOS)   l=$(netstat -an -f inet6 -P udp |grep '.*[1-9*]\.'$port' [ ]*Idle') ;;
 	#HP-UX)   l=$(netstat -an |grep '^udp        0      0  .*[0-9*]\.'$port' ') ;;
 	#OSF1)    l=$(/usr/sbin/netstat -an |grep '^udp6       0      0  .*[0-9*]\.'$port' [ ]*\*\.\*') ;;
+	DragonFly) l=$(netstat -ant |grep '^udp6 .* .*[0-9*]\.'$port' [ ]* \*\.\* [ ]*') ;;
  	*)       l=$(netstat -an |grep -i 'udp .*[0-9*][:.]'$port' ') ;;
 	esac
 	[ \( \( $logic -ne 0 \) -a -n "$l" \) -o \
