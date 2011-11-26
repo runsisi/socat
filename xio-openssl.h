@@ -1,5 +1,5 @@
 /* source: xio-openssl.h */
-/* Copyright Gerhard Rieger 2002-2007 */
+/* Copyright Gerhard Rieger 2002-2010 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_openssl_included
@@ -23,6 +23,9 @@ extern const struct optdesc opt_openssl_cafile;
 extern const struct optdesc opt_openssl_capath;
 extern const struct optdesc opt_openssl_egd;
 extern const struct optdesc opt_openssl_pseudo;
+#if OPENSSL_VERSION_NUMBER >= 0x00908000L
+extern const struct optdesc opt_openssl_compress;
+#endif
 #if WITH_FIPS
 extern const struct optdesc opt_openssl_fips;
 #endif

@@ -93,6 +93,10 @@ new features:
 
 	Till Maas added support for tun/tap addresses without IP address
  
+	added an option openssl-compress that allows to disable the compression
+	feature of newer OpenSSL versions. Thanks to Michael Hanselmann for
+	providing this contribution (sponsored by Google Inc.)
+
 ####################### V 1.7.1.3:
 
 security:

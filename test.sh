@@ -476,6 +476,9 @@ filloptionvalues() {
     case "$OPTS" in
     *,egd,*) OPTS=$(echo "$OPTS" |sed "s/,egd,/,egd=/tmp/hugo,/g");;
     esac
+    case "$OPTS" in
+    *,compress,*) OPTS=$(echo "$OPTS" |sed "s/,compress,/,compress=none,/g");;
+    esac
     # PROXY
     case "$OPTS" in
     *,proxyauth,*) OPTS=$(echo "$OPTS" |sed "s/,proxyauth,/,proxyauth=user:pass,/g");;
@@ -3975,6 +3978,62 @@ else
 fi
 kill $pid 2>/dev/null
 wait
+fi ;; # NUMCOND, feats
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
+NAME=OPENSSL_COMPRESS
+case "$TESTS" in
+*%functions%*|*%openssl%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
+TEST="$NAME: OpenSSL compression"
+if ! eval $NUMCOND; then :;
+elif ! testaddrs openssl >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+elif ! testaddrs listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+elif ! testoptions openssl-compress >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL compression option not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+    gentestcert testsrv
+    printf "test $F_n $TEST... " $N
+    tf="$td/test$N.stdout"
+    te="$td/test$N.stderr"
+    tdiff="$td/test$N.diff"
+    da="test$N $(date) $RANDOM"
+    success=yes
+    for srccompr in '' compress=auto compress=none; do
+        for dstcompr in '' compress=auto compress=none; do
+            CMD2="$SOCAT $opts OPENSSL-LISTEN:$PORT,pf=ip4,reuseaddr,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0,$dstcompr pipe"
+            CMD="$SOCAT $opts - openssl:$LOCALHOST:$PORT,pf=ip4,verify=0,$SOCAT_EGD,$srccompr"
+            eval "$CMD2 2>\"${te}1\" &"
+            pid=$! # background process id
+            waittcp4port $PORT
+            echo "$da" | $CMD >$tf 2>"${te}2"
+            kill $pid 2>/dev/null
+            if ! echo "$da" |diff - "$tf" >"$tdiff"; then
+                success=
+                break
+            fi
+        done
+    done
+    if test -z "$success"; then
+        $PRINTF "$FAILED: $SOCAT:\n"
+        echo "$CMD2 &"
+        echo "$CMD"
+        cat "${te}1"
+        cat "${te}2"
+        cat "$tdiff"
+        numFAIL=$((numFAIL+1))
+    else
+        $PRINTF "$OK\n"
+        if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
+        numOK=$((numOK+1))
+    fi
 fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))

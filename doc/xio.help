@@ -1,5 +1,5 @@
 # source: xio.help
-# Copyright Gerhard Rieger 2001-2007
+# Copyright Gerhard Rieger 2001-2010
 
 Operating systems:
 
@@ -4608,6 +4608,23 @@ implementation standard see http://oss-institute.org/fips-faq.html.
 This mode might require that the involved certificates are generated with a
 FIPS enabled version of openssl. Setting or clearing this option on one
 socat address affects all OpenSSL addresses of this process.
+
+
+Option: openssl-compress
+Aliases: compress
+
+Type: STRING
+Option group: OPENSSL
+Phase: SPEC
+Platforms: (depends on openssl installation)
+
+Enable or disable the use of compression for a connection. Setting this to
+"none" disables compression, setting it to "auto" lets OpenSSL choose the best
+available algorithm supported by both parties. The default is to not touch any
+compression-related settings.
+NOTE: Requires OpenSSL 0.9.8 or higher.
+NOTE: Disabling compression with OpenSSL 0.9.8 affects all new connections in
+the same process.
 
 
 ===============================================================================

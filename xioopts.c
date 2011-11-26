@@ -293,6 +293,9 @@ const struct optname optionnames[] = {
 #if WITH_EXT2 && defined(EXT2_COMPR_FL)
 	IF_ANY    ("compr",	&opt_ext2_compr)
 #endif
+#if OPENSSL_VERSION_NUMBER >= 0x00908000L
+	IF_OPENSSL("compress",	&opt_openssl_compress)
+#endif
 #ifdef TCP_CONN_ABORT_THRESHOLD  /* HP_UX */
 	IF_TCP    ("conn-abort-threshold",	&opt_tcp_conn_abort_threshold)
 #endif
@@ -1085,6 +1088,9 @@ const struct optname optionnames[] = {
 	IF_OPENSSL("openssl-capath",	&opt_openssl_capath)
 	IF_OPENSSL("openssl-certificate",	&opt_openssl_certificate)
 	IF_OPENSSL("openssl-cipherlist",	&opt_openssl_cipherlist)
+#if OPENSSL_VERSION_NUMBER >= 0x00908000L
+	IF_OPENSSL("openssl-compress",	&opt_openssl_compress)
+#endif
 	IF_OPENSSL("openssl-dhparam",	&opt_openssl_dhparam)
 	IF_OPENSSL("openssl-egd",	&opt_openssl_egd)
 #if WITH_FIPS

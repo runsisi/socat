@@ -1,5 +1,5 @@
 /* source: sslcls.h */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2010 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __sslcls_h_included
@@ -49,6 +49,12 @@ BIO *sycBIO_new_file(const char *filename, const char *mode);
 
 int sycFIPS_mode_set(int onoff);
 
+#if OPENSSL_VERSION_NUMBER >= 0x00908000L
+const COMP_METHOD *sycSSL_get_current_compression(SSL *ssl);
+const COMP_METHOD *sycSSL_get_current_expansion(SSL *ssl);
+const char *sycSSL_COMP_get_name(const COMP_METHOD *comp);
+#endif
+
 #endif /* WITH_OPENSSL */
 
 #else /* !WITH_SYCLS */
@@ -91,6 +97,10 @@ int sycFIPS_mode_set(int onoff);
 #define sycPEM_read_bio_DHparams(b,x,p,u) PEM_read_bio_DHparams(b,x,p,u)
 
 #define sycBIO_new_file(f,m) BIO_new_file(f,m)
+
+#define sycSSL_get_current_compression(s) SSL_get_current_compression(s)
+#define sycSSL_get_current_expansion(s) SSL_get_current_expansion(s)
+#define sycSSL_COMP_get_name(c) SSL_COMP_get_name(c)
 
 #endif /* WITH_OPENSSL */
 

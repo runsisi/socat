@@ -1,5 +1,5 @@
 /* source: sslcls.c */
-/* Copyright Gerhard Rieger 2001-2007 */
+/* Copyright Gerhard Rieger 2001-2010 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* explicit system call and C library trace function, for those who miss strace
@@ -314,5 +314,43 @@ int sycFIPS_mode_set(int onoff) {
    return result;
 }
 #endif /* WITH_FIPS */
+
+#if OPENSSL_VERSION_NUMBER >= 0x00908000L
+const COMP_METHOD *sycSSL_get_current_compression(SSL *ssl) {
+   const COMP_METHOD *result;
+   Debug1("SSL_get_current_compression(%p)", ssl);
+   result = SSL_get_current_compression(ssl);
+   if (result) {
+      Debug1("SSL_get_current_compression() -> %p", result);
+   } else {
+      Debug("SSL_get_current_compression() -> NULL");
+   }
+   return result;
+}
+
+const COMP_METHOD *sycSSL_get_current_expansion(SSL *ssl) {
+   const COMP_METHOD *result;
+   Debug1("SSL_get_current_expansion(%p)", ssl);
+   result = SSL_get_current_expansion(ssl);
+   if (result) {
+      Debug1("SSL_get_current_expansion() -> %p", result);
+   } else {
+      Debug("SSL_get_current_expansion() -> NULL");
+   }
+   return result;
+}
+
+const char *sycSSL_COMP_get_name(const COMP_METHOD *comp) {
+   const char *result;
+   Debug1("SSL_COMP_get_name(%p)", comp);
+   result = SSL_COMP_get_name(comp);
+   if (result) {
+      Debug1("SSL_COMP_get_name() -> \"%s\"", result);
+   } else {
+      Debug("SSL_COMP_get_name() -> NULL");
+   }
+   return result;
+}
+#endif
 
 #endif /* WITH_SYCLS && WITH_OPENSSL */

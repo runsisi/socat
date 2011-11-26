@@ -10,7 +10,7 @@ def(Filan)(0)(bf(Filan))
 def(procan)(0)(bf(procan))
 def(Procan)(0)(bf(Procan))
 
-manpage(socat)(1)(Jan 2010)()()
+manpage(socat)(1)(Oct 2010)()()
 
 whenhtml(
 label(CONTENTS)
@@ -2665,6 +2665,13 @@ label(OPTION_OPENSSL_FIPS)dit(bf(tt(fips)))
    This mode might require that the involved certificates are generated with a
    FIPS enabled version of openssl. Setting or clearing this option on one
    socat address affects all OpenSSL addresses of this process.
+label(OPTION_OPENSSL_COMPRESS)dit(bf(tt(compress)))
+   Enable or disable the use of compression for a connection. Setting this to
+   "none" disables compression, setting it to "auto" lets OpenSSL choose the best
+   available algorithm supported by both parties. The default is to not touch any
+   compression-related settings.
+   NOTE: Requires OpenSSL 0.9.8 or higher and disabling compression with
+   OpenSSL 0.9.8 affects all new connections in the process.
 enddit()
 
 startdit()enddit()nl()

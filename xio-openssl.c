@@ -104,6 +104,9 @@ const struct optdesc opt_openssl_cafile      = { "openssl-cafile",     "cafile",
 const struct optdesc opt_openssl_capath      = { "openssl-capath",     "capath", OPT_OPENSSL_CAPATH,      GROUP_OPENSSL, PH_SPEC, TYPE_FILENAME, OFUNC_SPEC };
 const struct optdesc opt_openssl_egd         = { "openssl-egd",        "egd",    OPT_OPENSSL_EGD,         GROUP_OPENSSL, PH_SPEC, TYPE_FILENAME, OFUNC_SPEC };
 const struct optdesc opt_openssl_pseudo      = { "openssl-pseudo",     "pseudo", OPT_OPENSSL_PSEUDO,      GROUP_OPENSSL, PH_SPEC, TYPE_BOOL,     OFUNC_SPEC };
+#if OPENSSL_VERSION_NUMBER >= 0x00908000L
+const struct optdesc opt_openssl_compress    = { "openssl-compress",   "compress", OPT_OPENSSL_COMPRESS,  GROUP_OPENSSL, PH_SPEC, TYPE_STRING,   OFUNC_SPEC };
+#endif
 #if WITH_FIPS
 const struct optdesc opt_openssl_fips        = { "openssl-fips",       "fips",   OPT_OPENSSL_FIPS,        GROUP_OPENSSL, PH_SPEC, TYPE_BOOL,     OFUNC_SPEC };
 #endif
@@ -133,6 +136,24 @@ int xio_reset_fips_mode(void) {
 #else
 #define xio_reset_fips_mode() 0
 #endif
+
+static void openssl_conn_loginfo(SSL *ssl) {
+   Notice1("SSL connection using %s", SSL_get_cipher(ssl));
+
+#if OPENSSL_VERSION_NUMBER >= 0x00908000L
+   {
+      const COMP_METHOD *comp, *expansion;
+
+      comp = sycSSL_get_current_compression(ssl);
+      expansion = sycSSL_get_current_expansion(ssl);
+
+      Notice1("SSL connection compression \"%s\"",
+              comp?sycSSL_COMP_get_name(comp):"none");
+      Notice1("SSL connection expansion \"%s\"",
+              expansion?sycSSL_COMP_get_name(expansion):"none");
+   }
+#endif
+}
 
 /* the open function for OpenSSL client */
 static int
@@ -304,7 +325,7 @@ static int
       break;
    } while (true);	/* drop out on success */
 
-   Notice1("SSL connection using %s", SSL_get_cipher(xfd->para.openssl.ssl));
+   openssl_conn_loginfo(xfd->para.openssl.ssl);
 
    /* fill in the fd structure */
    return STAT_OK;
@@ -501,8 +522,7 @@ static int
 	 return result;
       }
 
-      Notice1("SSL connection using %s",
-	      SSL_get_cipher(xfd->para.openssl.ssl));
+      openssl_conn_loginfo(xfd->para.openssl.ssl);
       break;
 
    }	/* drop out on success */
@@ -606,6 +626,59 @@ int _xioopen_openssl_listen(struct single *xfd,
 #endif /* WITH_LISTEN */
 
 
+#if OPENSSL_VERSION_NUMBER >= 0x00908000L
+/* In OpenSSL 0.9.7 compression methods could be added using
+ * SSL_COMP_add_compression_method(3), but the implemntation is not compatible
+ * with the standard (RFC3749).
+ */
+static int openssl_setup_compression(SSL_CTX *ctx, char *method)
+{
+   STACK_OF(SSL_COMP)* comp_methods;
+
+   assert(method);
+
+   /* Getting the stack of compression methods has the intended side-effect of
+    * initializing the SSL library's compression part.
+    */
+   comp_methods = SSL_COMP_get_compression_methods();
+   if (!comp_methods) {
+      Info("OpenSSL built without compression support");
+      return STAT_OK;
+   }
+
+   if (strcasecmp(method, "auto") == 0) {
+      Info("Using default OpenSSL compression");
+      return STAT_OK;
+   }
+
+   if (strcasecmp(method, "none") == 0) {
+      /* Disable compression */
+#ifdef SSL_OP_NO_COMPRESSION
+      Info("Disabling OpenSSL compression");
+      SSL_CTX_set_options(ctx, SSL_OP_NO_COMPRESSION);
+#else
+      /* SSL_OP_NO_COMPRESSION was only introduced in OpenSSL 0.9.9 (released
+       * as 1.0.0). Removing all compression methods is a work-around for
+       * earlier versions of OpenSSL, but it affects all SSL connections.
+       */
+      Info("Disabling OpenSSL compression globally");
+      sk_SSL_COMP_zero(comp_methods);
+#endif
+      return STAT_OK;
+   }
+
+   /* zlib compression in OpenSSL before version 0.9.8e-beta1 uses the libc's
+    * default malloc/free instead of the ones passed to OpenSSL. Should socat
+    * ever use custom malloc/free functions for OpenSSL, this must be taken
+    * into consideration. See OpenSSL bug #1468.
+    */
+
+   Error1("openssl-compress=\"%s\": unknown compression method", method);
+   return STAT_NORETRY;
+}
+#endif
+
+
 int
    _xioopen_openssl_prepare(struct opt *opts,
 			    struct single *xfd,/* a xio file descriptor
@@ -625,6 +698,9 @@ int
    char *opt_cafile = NULL;	/* certificate authority file */
    char *opt_capath = NULL;	/* certificate authority directory */
    char *opt_egd = NULL;	/* entropy gathering daemon socket path */
+#if OPENSSL_VERSION_NUMBER >= 0x00908000L
+   char *opt_compress = NULL;	/* compression method */
+#endif
    bool opt_pseudo = false;	/* use pseudo entropy if nothing else */
    unsigned long err;
    int result;
@@ -642,6 +718,9 @@ int
    retropt_string(opts, OPT_OPENSSL_DHPARAM, &opt_dhparam);
    retropt_string(opts, OPT_OPENSSL_EGD, &opt_egd);
    retropt_bool(opts,OPT_OPENSSL_PSEUDO, &opt_pseudo);
+#if OPENSSL_VERSION_NUMBER >= 0x00908000L
+   retropt_string(opts, OPT_OPENSSL_COMPRESS, &opt_compress);
+#endif
 
 #if WITH_FIPS
    if (opt_fips) {
@@ -782,6 +861,16 @@ int
 	 DH_free(dh);
       }
    }
+
+#if OPENSSL_VERSION_NUMBER >= 0x00908000L
+   if (opt_compress) {
+      int result;
+      result = openssl_setup_compression(*ctx, opt_compress);
+      if (result != STAT_OK) {
+	return result;
+      }
+   }
+#endif
 
    if (opt_cafile != NULL || opt_capath != NULL) {
       if (sycSSL_CTX_load_verify_locations(*ctx, opt_cafile, opt_capath) != 1) {
