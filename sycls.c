@@ -333,7 +333,7 @@ int Gettimeofday(struct timeval *tv, struct timezone *tz) {
 
 int Mknod(const char *pathname, mode_t mode, dev_t dev) {
    int result, _errno;
-   Debug3("mknod(\"%s\", 0%o, %d)", pathname, mode, dev);
+   Debug3("mknod(\"%s\", 0%o, "F_dev")", pathname, mode, dev);
    result = mknod(pathname, mode, dev);
    _errno = errno;
    Debug1("mknod() -> %d", result);
@@ -354,11 +354,11 @@ int Mkfifo(const char *pathname, mode_t mode) {
 static void prtstat(const char *func, struct stat *buf, int result) {
    char txt[256], *t = txt;
 
-   t += sprintf(t, "%s(, {"F_st_dev","F_st_ino","F_mode","F_st_nlink","F_uid","F_gid,
+   t += sprintf(t, "%s(, {"F_dev","F_st_ino","F_mode","F_st_nlink","F_uid","F_gid,
 		func, buf->st_dev, buf->st_ino,
 		buf->st_mode, buf->st_nlink, buf->st_uid, buf->st_gid);
 #if HAVE_ST_RDEV
-   t += sprintf(t, ","F_st_dev, buf->st_rdev);
+   t += sprintf(t, ","F_dev, buf->st_rdev);
 #endif
    t += sprintf(t, ","F_st_size, buf->st_size);
 #if HAVE_ST_BLKSIZE
@@ -378,11 +378,11 @@ static void prtstat64(const char *func, struct stat64 *buf, int result) {
    if (result < 0) {
       sprintf(t, "%s(, {}) -> %d", func, result);
    } else {
-   t += sprintf(t, "%s(, {"F_st_dev","F_st64_ino","F_mode","F_st_nlink","F_uid","F_gid,
+   t += sprintf(t, "%s(, {"F_dev","F_st64_ino","F_mode","F_st_nlink","F_uid","F_gid,
 		func, buf->st_dev, buf->st_ino,
 		buf->st_mode, buf->st_nlink, buf->st_uid, buf->st_gid);
 #if HAVE_ST_RDEV
-   t += sprintf(t, ","F_st_dev, buf->st_rdev);
+   t += sprintf(t, ","F_dev, buf->st_rdev);
 #endif
    t += sprintf(t, ","F_st64_size, buf->st_size);
 #if HAVE_ST_BLKSIZE

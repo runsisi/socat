@@ -1,5 +1,5 @@
 /* source: compat.h */
-/* Copyright Gerhard Rieger 2001-2009 */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __compat_h_included
@@ -306,29 +306,29 @@
 
 
 /* all unsigned; default: unsigned long */
-#if !defined(HAVE_TYPEOF_ST_DEV) || !HAVE_TYPEOF_ST_DEV
-#  undef HAVE_TYPEOF_ST_DEV
-#  define HAVE_TYPEOF_ST_DEV 6
+#if !defined(HAVE_BASIC_DEV_T) || !HAVE_BASIC_DEV_T
+#  undef HAVE_BASIC_DEV_T
+#  define HAVE_BASIC_DEV_T 6
 #endif
-#ifndef F_st_dev
-#  if HAVE_TYPEOF_ST_DEV==1
-#define F_st_dev "%hd"
-#  elif HAVE_TYPEOF_ST_DEV==2
-#define F_st_dev "%hu"
-#  elif HAVE_TYPEOF_ST_DEV==3
-#define F_st_dev "%d"
-#  elif HAVE_TYPEOF_ST_DEV==4
-#define F_st_dev "%u"
-#  elif HAVE_TYPEOF_ST_DEV==5
-#define F_st_dev "%ld"
-#  elif HAVE_TYPEOF_ST_DEV==6
-#define F_st_dev "%lu"
-#  elif HAVE_TYPEOF_ST_DEV==7
-#define F_st_dev "%Ld"
-#  elif HAVE_TYPEOF_ST_DEV==8
-#define F_st_dev "%Lu"
+#ifndef F_dev
+#  if HAVE_BASIC_DEV_T==1
+#define F_dev "%hd"
+#  elif HAVE_BASIC_DEV_T==2
+#define F_dev "%hu"
+#  elif HAVE_BASIC_DEV_T==3
+#define F_dev "%d"
+#  elif HAVE_BASIC_DEV_T==4
+#define F_dev "%u"
+#  elif HAVE_BASIC_DEV_T==5
+#define F_dev "%ld"
+#  elif HAVE_BASIC_DEV_T==6
+#define F_dev "%lu"
+#  elif HAVE_BASIC_DEV_T==7
+#define F_dev "%Ld"
+#  elif HAVE_BASIC_DEV_T==8
+#define F_dev "%Lu"
 #  else
-#error "HAVE_TYPEOF_ST_DEV is out of range:" HAVE_TYPEOF_ST_DEV
+#error "HAVE_BASIC_DEV_T is out of range:" HAVE_BASIC_DEV_T
 #  endif
 #endif
 

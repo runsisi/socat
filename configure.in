@@ -1432,7 +1432,8 @@ AC_BASIC_TYPE([#include <sys/types.h>
 #include <unistd.h>], off64_t, HAVE_BASIC_OFF64_T, sc_cv_type_off64_basic)
 
 # oh god, __dev_t in Linux 2.4 is struct{int[2];}, not handled here yet.
-AC_TYPEOF_COMPONENT([#include <sys/stat.h>], struct stat, st_dev, HAVE_TYPEOF_ST_DEV, sc_cv_type_stat_stdev_basic)
+AC_BASIC_TYPE([#include <sys/stat.h>], dev_t, HAVE_BASIC_DEV_T, sc_cv_type_dev_basic)
+
 AC_TYPEOF_COMPONENT([#include <sys/stat.h>], struct stat, st_ino, HAVE_TYPEOF_ST_INO, sc_cv_type_stat_stino_basic)
 AC_TYPEOF_COMPONENT([#include <sys/stat.h>], struct stat, st_nlink, HAVE_TYPEOF_ST_NLINK, sc_cv_type_stat_stnlink_basic)
 AC_TYPEOF_COMPONENT([#include <sys/stat.h>], struct stat, st_size, HAVE_TYPEOF_ST_SIZE, sc_cv_type_stat_stsize_basic)

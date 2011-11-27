@@ -62,6 +62,8 @@ corrections:
 	fixed configure.in bug on net/if.h check that caused IF_NAMESIZE to be
 	undefined
 
+	improved dev_t print format definition
+
 porting:
 	Cedril Priscal ported socat to Android (using Googles cross compiler).
 	The port includes the socat_buildscript_for_android.sh script

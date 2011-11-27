@@ -263,7 +263,7 @@ int filan_stat(
       headprinted = 1;
    }
    if (filan_rawoutput) {
-      snprintf(stdevstr, 8, F_st_dev, buf->st_dev);
+      snprintf(stdevstr, 8, F_dev, buf->st_dev);
    } else {
       snprintf(stdevstr, 8, "%hu,%hu", (unsigned short)buf->st_dev>>8, (unsigned short)buf->st_dev&0xff);
    }
