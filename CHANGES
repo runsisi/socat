@@ -56,6 +56,9 @@ corrections:
 	UDP-LISTEN slept 1s after accepting a connection. This is not required.
 	Thanks to Peter Valdemar Morch for reporting this issue
 
+	fixed a bug that could lead to error or socat crash after a client
+	connection with option retry had been established
+
 porting:
 	Cedril Priscal ported socat to Android (using Googles cross compiler).
 	The port includes the socat_buildscript_for_android.sh script

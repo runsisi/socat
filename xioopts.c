@@ -4173,9 +4173,8 @@ int _xio_openlate(struct single *fd, struct opt *opts) {
 int dropopts(struct opt *opts, unsigned int phase) {
    struct opt *opt;
 
-   /*!*/
    if (phase == PH_ALL) {
-      free(opts);
+      opts[0].desc = ODESC_END;
       return 0;
    }
    opt = opts; while (opt && opt->desc != ODESC_END) {
