@@ -59,6 +59,9 @@ corrections:
 	fixed a bug that could lead to error or socat crash after a client
 	connection with option retry had been established
 
+	fixed configure.in bug on net/if.h check that caused IF_NAMESIZE to be
+	undefined
+
 porting:
 	Cedril Priscal ported socat to Android (using Googles cross compiler).
 	The port includes the socat_buildscript_for_android.sh script

@@ -65,7 +65,7 @@ AC_CHECK_HEADERS(netinet/ip.h, [], [], [AC_INCLUDES_DEFAULT
 	#include <netinet/in_systm.h>
 	#endif])	# Solaris prerequisites for netinet/ip.h
 AC_CHECK_HEADERS(netinet/tcp.h)
-AC_CHECK_HEADER(net/if.h, [], [], [AC_INCLUDES_DEFAULT
+AC_CHECK_HEADER(net/if.h, AC_DEFINE(HAVE_NET_IF_H), [], [AC_INCLUDES_DEFAULT
 	#if HAVE_SYS_SOCKET_H
 	#include <sys/socket.h>
 	#endif])	# Mac OS X requires including sys/socket.h
