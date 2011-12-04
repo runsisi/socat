@@ -215,7 +215,6 @@ int filan_stat(
 #endif /* !HAVE_STAT64 */
 	       , int statfd, int dynfd, FILE *outfile) {
    char stdevstr[8];
-   int result;
 
    /* print header */
    if (!headprinted) {
@@ -374,7 +373,7 @@ int filan_stat(
    case (S_IFIFO):	/* 1, FIFO */
       break;
    case (S_IFCHR):	/* 2, character device */
-      result = cdevan(statfd, outfile);
+      cdevan(statfd, outfile);
       break;
    case (S_IFDIR):	/* 4, directory */
       break;
@@ -387,7 +386,7 @@ int filan_stat(
 #ifdef S_IFSOCK
    case (S_IFSOCK): /* 12, socket */
 #if _WITH_SOCKET
-      result = sockan(statfd, outfile);
+      sockan(statfd, outfile);
 #else
       Warn("SOCKET support not compiled in");
       return -1;

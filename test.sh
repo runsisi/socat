@@ -1744,6 +1744,8 @@ runstcp4 () {
     pid=$!
     usleep $MICROS
     kill "$pid" 2>/dev/null
+    wait
+    usleep $MICROS
     test ! -s "$td/tcp4.stderr"
 }
 
@@ -1753,8 +1755,9 @@ runstcp6 () {
 #    PORT="$1"
     $SOCAT /dev/null TCP6-LISTEN:$PORT 2>"$td/tcp6.stderr" &
     pid=$!
-    usleep $MICROS
     kill "$pid" 2>/dev/null
+    wait
+    usleep $MICROS
     test ! -s "$td/tcp6.stderr"
 }
 
@@ -1766,6 +1769,8 @@ runsudp4 () {
     pid=$!
     usleep $MICROS
     kill "$pid" 2>/dev/null
+    wait
+    usleep $MICROS
     test ! -s "$td/udp4.stderr"
 }
 
@@ -1777,6 +1782,8 @@ runsudp6 () {
     pid=$!
     usleep $MICROS
     kill "$pid" 2>/dev/null
+    wait
+    usleep $MICROS
     test ! -s "$td/udp6.stderr"
 }
 
@@ -1787,6 +1794,8 @@ runssctp4 () {
     pid=$!
     usleep $MICROS
     kill "$pid" 2>/dev/null
+    wait
+    usleep $MICROS
     test ! -s "$td/sctp4.stderr"
 }
 
@@ -1797,6 +1806,8 @@ runssctp6 () {
     pid=$!
     usleep $MICROS
     kill "$pid" 2>/dev/null
+    wait
+    usleep $MICROS
     test ! -s "$td/sctp6.stderr"
 }
 
@@ -3867,7 +3878,7 @@ TEST="$NAME: $TESTKEYW half close"
 # have a "peer" socat "peer" that executes "$OD_C" and see if EOF on the
 # connecting socat  brings the result of od
 if ! eval $NUMCOND; then :;
-elif [ "$FEAT" != ';' -a ! testaddrs "$FEAT" >/dev/null; then
+elif [ "$FEAT" != ',' ] && ! testaddrs "$FEAT" >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$FEAT not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 elif ! runs$RUNS; then

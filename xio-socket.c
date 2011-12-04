@@ -736,7 +736,6 @@ int _xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
       union sockaddr_union sin, *sinp;
       unsigned short *port, i, N;
       div_t dv;
-      bool problem;
 
       /* prepare sockaddr for bind probing */
       if (us) {
@@ -784,7 +783,6 @@ int _xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
       }
       dv = div(random(), IPPORT_RESERVED-XIO_IPPORT_LOWER);
       i = N = XIO_IPPORT_LOWER + dv.rem;
-      problem = false;
       do {	/* loop over lowport bind() attempts */
 	 *port = htons(i);
 	 if (Bind(xfd->fd, (struct sockaddr *)sinp, sizeof(*sinp)) < 0) {
@@ -1187,7 +1185,6 @@ int _xioopen_dgram_recvfrom(struct single *xfd, int xioflags,
 			  struct opt *opts,
 			  int pf, int socktype, int proto, int level) {
    char *rangename;
-   socklen_t salen;
    bool dofork = false;
    pid_t pid;	/* mostly int; only used with fork */
    char infobuff[256];
@@ -1312,7 +1309,6 @@ int _xioopen_dgram_recvfrom(struct single *xfd, int xioflags,
       struct msghdr msgh = {0};
 
       socket_init(pf, pa);
-      salen = sizeof(struct sockaddr);
 
       if (drop) {
 	 char *dummy[2];

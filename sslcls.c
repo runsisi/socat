@@ -1,5 +1,5 @@
 /* source: sslcls.c */
-/* Copyright Gerhard Rieger 2001-2010 */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* explicit system call and C library trace function, for those who miss strace
@@ -35,71 +35,75 @@ int sycSSL_library_init(void) {
    return result;
 }
 
-SSL_METHOD *sycSSLv2_client_method(void) {
-   SSL_METHOD *result;
+#if HAVE_SSLv2_client_method
+const SSL_METHOD *sycSSLv2_client_method(void) {
+   const SSL_METHOD *result;
    Debug("SSLv2_client_method()");
    result = SSLv2_client_method();
    Debug1("SSLv2_client_method() -> %p", result);
    return result;
 }
+#endif
 
-SSL_METHOD *sycSSLv2_server_method(void) {
-   SSL_METHOD *result;
+#if HAVE_SSLv2_server_method
+const SSL_METHOD *sycSSLv2_server_method(void) {
+   const SSL_METHOD *result;
    Debug("SSLv2_server_method()");
    result = SSLv2_server_method();
    Debug1("SSLv2_server_method() -> %p", result);
    return result;
 }
+#endif
 
-SSL_METHOD *sycSSLv3_client_method(void) {
-   SSL_METHOD *result;
+const SSL_METHOD *sycSSLv3_client_method(void) {
+   const SSL_METHOD *result;
    Debug("SSLv3_client_method()");
    result = SSLv3_client_method();
    Debug1("SSLv3_client_method() -> %p", result);
    return result;
 }
 
-SSL_METHOD *sycSSLv3_server_method(void) {
-   SSL_METHOD *result;
+const SSL_METHOD *sycSSLv3_server_method(void) {
+   const SSL_METHOD *result;
    Debug("SSLv3_server_method()");
    result = SSLv3_server_method();
    Debug1("SSLv3_server_method() -> %p", result);
    return result;
 }
 
-SSL_METHOD *sycSSLv23_client_method(void) {
-   SSL_METHOD *result;
+const SSL_METHOD *sycSSLv23_client_method(void) {
+   const SSL_METHOD *result;
    Debug("SSLv23_client_method()");
    result = SSLv23_client_method();
    Debug1("SSLv23_client_method() -> %p", result);
    return result;
 }
 
-SSL_METHOD *sycSSLv23_server_method(void) {
-   SSL_METHOD *result;
+const SSL_METHOD *sycSSLv23_server_method(void) {
+   const SSL_METHOD *result;
    Debug("SSLv23_server_method()");
    result = SSLv23_server_method();
    Debug1("SSLv23_server_method() -> %p", result);
    return result;
 }
 
-SSL_METHOD *sycTLSv1_client_method(void) {
-   SSL_METHOD *result;
+const SSL_METHOD *sycTLSv1_client_method(void) {
+   const SSL_METHOD *result;
    Debug("TLSv1_client_method()");
    result = TLSv1_client_method();
    Debug1("TLSv1_client_method() -> %p", result);
    return result;
 }
 
-SSL_METHOD *sycTLSv1_server_method(void) {
-   SSL_METHOD *result;
+const SSL_METHOD *sycTLSv1_server_method(void) {
+   const SSL_METHOD *result;
    Debug("TLSv1_server_method()");
    result = TLSv1_server_method();
    Debug1("TLSv1_server_method() -> %p", result);
    return result;
 }
 
-SSL_CTX *sycSSL_CTX_new(SSL_METHOD *method) {
+SSL_CTX *sycSSL_CTX_new(const SSL_METHOD *method) {
    SSL_CTX *result;
    Debug1("SSL_CTX_new(%p)", method);
    result = SSL_CTX_new(method);

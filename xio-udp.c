@@ -462,7 +462,6 @@ int xioopen_udp_recvfrom(int argc, const char *argv[], struct opt *opts,
 		     int pf, int socktype, int ipproto) {
    union sockaddr_union us;
    socklen_t uslen = sizeof(us);
-   bool needbind = false;
    int result;
 
    if (argc != 2) {
@@ -510,7 +509,6 @@ int xioopen_udp_recvfrom(int argc, const char *argv[], struct opt *opts,
 	 case PF_INET6: us.ip6.sin6_addr = la.ip6.sin6_addr; break;
 #endif
 	 }
-	 needbind = true;
       }
    }
 

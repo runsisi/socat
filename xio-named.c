@@ -1,5 +1,5 @@
 /* source: xio-named.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for filesystem entry functions */
@@ -96,7 +96,6 @@ int _xioopen_named_early(int argc, const char *argv[], xiofile_t *xfd,
 			 int groups,
 		      bool *exists, struct opt *opts) {
    const char *path = argv[1];
-   unsigned int iogroups = 0;
 #if HAVE_STAT64
    struct stat64 statbuf;
 #else
@@ -120,10 +119,8 @@ int _xioopen_named_early(int argc, const char *argv[], xiofile_t *xfd,
 	 Error2("stat(\"%s\"): %s", path, strerror(errno));
 	    return STAT_RETRYLATER;
       }
-      iogroups = GROUP_REG;
       *exists = false;
    } else {
-      iogroups = _groupbits(statbuf.st_mode);
       *exists = true;
    }
 
@@ -135,7 +132,6 @@ int _xioopen_named_early(int argc, const char *argv[], xiofile_t *xfd,
       Info1("\"%s\" already exists; removing it", path);
       if (Unlink(path) < 0) {
 	 Error2("unlink(\"%s\"): %s", path, strerror(errno));
-	 *exists = true;
       } else {
 	 *exists = false;
       }

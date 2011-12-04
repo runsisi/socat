@@ -263,6 +263,9 @@
 /* Define if you have the <util.h> header file. (NetBSD, OpenBSD: openpty()) */
 #undef HAVE_UTIL_H
 
+/* Define if you have the <bsd/libutil.h> header file. */
+#undef HAVE_BSD_LIBUTIL_H
+
 /* Define if you have the <libutil.h> header file. (FreeBSD: openpty()) */
 #undef HAVE_LIBUTIL_H
 
@@ -381,6 +384,12 @@
 
 /* Define if you have the unsetenv function. not on HP-UX */
 #undef HAVE_UNSETENV
+
+/* Define if you have the SSLv2_client_method function. not in new openssl */
+#undef HAVE_SSLv2_client_method
+
+/* Define if you have the SSLv2_server_method function. not in new openssl */
+#undef HAVE_SSLv2_server_method
 
 /* Define if you have the flock function */
 #undef HAVE_FLOCK

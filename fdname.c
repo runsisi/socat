@@ -1,5 +1,5 @@
 /* source: fdname.c */
-/* Copyright Gerhard Rieger 2003-2008 */
+/* Copyright Gerhard Rieger 2003-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* the subroutine sockname prints the basic info about the address of a socket
@@ -103,7 +103,6 @@ static int procgetfdname(int fd, char *filepath, size_t pathsize) {
    
 int statname(const char *file, int fd, int filetype, FILE *outfile) {
    char filepath[PATH_MAX];
-   int result;
 
    filepath[0] = '\0';
 #if HAVE_PROC_DIR_FD
@@ -144,7 +143,7 @@ int statname(const char *file, int fd, int filetype, FILE *outfile) {
    case (S_IFSOCK>>12): /* 12, socket */
 #if _WITH_SOCKET
       if (fd >= 0) {
-	 result = sockname(fd, outfile);
+	 sockname(fd, outfile);
       } else if (file) {
 	 fprintf(outfile, "socket %s", file);
       } else {

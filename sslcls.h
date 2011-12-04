@@ -1,5 +1,5 @@
 /* source: sslcls.h */
-/* Copyright Gerhard Rieger 2001-2010 */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __sslcls_h_included
@@ -10,15 +10,15 @@
 
 void sycSSL_load_error_strings(void);
 int sycSSL_library_init(void);
-SSL_METHOD *sycSSLv2_client_method(void);
-SSL_METHOD *sycSSLv2_server_method(void);
-SSL_METHOD *sycSSLv3_client_method(void);
-SSL_METHOD *sycSSLv3_server_method(void);
-SSL_METHOD *sycSSLv23_client_method(void);
-SSL_METHOD *sycSSLv23_server_method(void);
-SSL_METHOD *sycTLSv1_client_method(void);
-SSL_METHOD *sycTLSv1_server_method(void);
-SSL_CTX *sycSSL_CTX_new(SSL_METHOD *method);
+const SSL_METHOD *sycSSLv2_client_method(void);
+const SSL_METHOD *sycSSLv2_server_method(void);
+const SSL_METHOD *sycSSLv3_client_method(void);
+const SSL_METHOD *sycSSLv3_server_method(void);
+const SSL_METHOD *sycSSLv23_client_method(void);
+const SSL_METHOD *sycSSLv23_server_method(void);
+const SSL_METHOD *sycTLSv1_client_method(void);
+const SSL_METHOD *sycTLSv1_server_method(void);
+SSL_CTX *sycSSL_CTX_new(const SSL_METHOD *method);
 SSL *sycSSL_new(SSL_CTX *ctx);
 int sycSSL_CTX_load_verify_locations(SSL_CTX *ctx, const char *CAfile,
 				     const char *CApath);

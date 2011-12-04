@@ -98,6 +98,9 @@ porting:
 	fixed sa_family_t compile error on DragonFly. Thanks to Tony Young for
 	reporting this issue and sending a patch.
 
+	Ubuntu Oneiric: OpenSSL no longer provides SSLv2 functions; libutil.sh
+	is now bsd/libutil.h; compiler warns on vars that is only written to
+
 new features: 
 	added option max-children that limits the number of concurrent child
 	processes. Thanks to Sam Liddicott for providing the patch.

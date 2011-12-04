@@ -149,7 +149,9 @@
 #if HAVE_UTIL_H
 #include <util.h>		/* NetBSD, OpenBSD openpty() */
 #endif
-#if HAVE_LIBUTIL_H
+#if HAVE_BSD_LIBUTIL_H
+#include <bsd/libutil.h>	/* FreeBSD openpty() */
+#elif HAVE_LIBUTIL_H
 #include <libutil.h>		/* FreeBSD openpty() */
 #endif
 #if HAVE_SYS_STROPTS_H

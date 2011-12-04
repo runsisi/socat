@@ -1,5 +1,5 @@
 /* source: xio-exec.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening addresses of exec type */
@@ -54,7 +54,7 @@ static int xioopen_exec(int argc, const char *argv[], struct opt *opts,
 	 NULL
       } ;
       char **pargv = NULL;
-      int pargc, i;
+      int pargc;
       size_t len;
       const char *strp;
       char *token; /*! */
@@ -62,14 +62,12 @@ static int xioopen_exec(int argc, const char *argv[], struct opt *opts,
       char *path = NULL;
       char *tmp;
       int numleft;
-      int result;
 
       /*! Close(something) */
       /* parse command line */
       Debug1("child: args = \"%s\"", argv[1]);
       pargv = Malloc(8*sizeof(char *));
       if (pargv == NULL)  return STAT_RETRYLATER;
-      i = 0;
       len = strlen(argv[1])+1;
       strp = argv[1];
       token = Malloc(len); /*! */
@@ -125,7 +123,7 @@ static int xioopen_exec(int argc, const char *argv[], struct opt *opts,
 	 Dup2(duptostderr, 2);
       }
       Notice1("execvp'ing \"%s\"", token);
-      result = Execvp(token, pargv);
+      Execvp(token, pargv);
       /* here we come only if execvp() failed */
       switch (pargc) {
       case 1: Error3("execvp(\"%s\", \"%s\"): %s", token, pargv[0], strerror(errno)); break; 

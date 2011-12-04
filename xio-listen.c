@@ -54,13 +54,7 @@ int
 	 successful establishment of tcp connection */
       result = _xioopen_listen(xfd, xioflags,
 			       (struct sockaddr *)us, uslen,
-			       opts, pf, socktype, proto,
-#if WITH_RETRY
-			       (xfd->retry||xfd->forever)?E_INFO:E_ERROR
-#else
-			       E_ERROR
-#endif /* WITH_RETRY */
-			       );
+			       opts, pf, socktype, proto, level);
 	 /*! not sure if we should try again on retry/forever */
       switch (result) {
       case STAT_OK: break;
