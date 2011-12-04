@@ -67,7 +67,7 @@ static int iffan(FILE *outfile) {
       strcpy(ifr.ifr_name, ifp->ifr_name);
       if (Ioctl(s, SIOCGIFINDEX, &ifr) < 0) {
 	 Error3("ioctl(%d, SIOCGIFINDEX, {\"%s\"}): %s",
-		s, &ifr.ifr_name, strerror(errno));
+		s, ifr.ifr_name, strerror(errno));
 	 return 1;
       }
 #if HAVE_STRUCT_IFREQ_IFR_INDEX

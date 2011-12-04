@@ -863,7 +863,7 @@ int
 	 } else {
 	    if (SSL_CTX_set_tmp_dh(*ctx, dh) <= 0) {
 	       while (err = ERR_get_error()) {
-		  Warn1("SSL_CTX_set_tmp_dh(%p, %p): %s",
+		  Warn3("SSL_CTX_set_tmp_dh(%p, %p): %s", *ctx, dh,
 			ERR_error_string(err, NULL));
 	       }
 	       Error2("SSL_CTX_set_tmp_dh(%p, %p) failed", *ctx, dh);
