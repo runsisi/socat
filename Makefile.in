@@ -74,7 +74,8 @@ HFILES = sycls.h sslcls.h error.h dalan.h procan.h filan.h hostan.h sysincludes.
 
 
 DOCFILES = README README.FIPS CHANGES FILES EXAMPLES PORTING SECURITY DEVELOPMENT doc/socat.yo doc/socat.1 doc/socat.html doc/xio.help FAQ BUGREPORTS COPYING COPYING.OpenSSL doc/dest-unreach.css doc/socat-openssltunnel.html doc/socat-multicast.html doc/socat-tun.html doc/socat-genericsocket.html
-SHFILES = daemon.sh mail.sh ftp.sh readline.sh
+SHFILES = daemon.sh mail.sh ftp.sh readline.sh \
+	socat_buildscript_for_android.sh
 TESTFILES = test.sh socks4echo.sh proxyecho.sh gatherinfo.sh readline-test.sh \
 	proxy.sh socks4a-echo.sh testcert.conf
 OSFILES = Config/Makefile.Linux-2-6-24 Config/config.Linux-2-6-24.h \
@@ -84,7 +85,8 @@ OSFILES = Config/Makefile.Linux-2-6-24 Config/config.Linux-2-6-24.h \
 	Config/Makefile.OpenBSD-4-3 Config/config.OpenBSD-4-3.h \
 	Config/Makefile.AIX-5-3 Config/config.AIX-5-3.h \
 	Config/Makefile.Cygwin-1-5-25 Config/config.Cygwin-1-5-25.h \
-	Config/Makefile.MacOSX-10-5 Config/config.MacOSX-10-5.h
+	Config/Makefile.MacOSX-10-5 Config/config.MacOSX-10-5.h \
+	Config/Makefile.DragonFly-2-8-2 Config/config.DragonFly-2-8-2.h
 
 all: progs doc
 

@@ -10,7 +10,7 @@ def(Filan)(0)(bf(Filan))
 def(procan)(0)(bf(procan))
 def(Procan)(0)(bf(Procan))
 
-manpage(socat)(1)(Oct 2010)()()
+manpage(socat)(1)(Dec 2011)()()
 
 whenhtml(
 label(CONTENTS)
@@ -500,6 +500,7 @@ label(ADDRESS_OPENSSL_CONNECT)dit(bf(tt(OPENSSL:<host>:<port>)))
    link(capath)(OPTION_OPENSSL_CAPATH),
    link(certificate)(OPTION_OPENSSL_CERTIFICATE),
    link(key)(OPTION_OPENSSL_KEY),
+   link(compress)(OPTION_OPENSSL_COMPRESS),
    link(bind)(OPTION_BIND),
    link(pf)(OPTION_PROTOCOL_FAMILY),
    link(connect-timeout)(OPTION_CONNECT_TIMEOUT),
@@ -527,6 +528,7 @@ label(ADDRESS_OPENSSL_LISTEN)dit(bf(tt(OPENSSL-LISTEN:<port>)))
    link(capath)(OPTION_OPENSSL_CAPATH),
    link(certificate)(OPTION_OPENSSL_CERTIFICATE),
    link(key)(OPTION_OPENSSL_KEY),
+   link(compress)(OPTION_OPENSSL_COMPRESS),
    link(fork)(OPTION_FORK),
    link(bind)(OPTION_BIND),
    link(range)(OPTION_RANGE),
@@ -536,7 +538,7 @@ label(ADDRESS_OPENSSL_LISTEN)dit(bf(tt(OPENSSL-LISTEN:<port>)))
    link(retry)(OPTION_RETRY)nl()
    See also:
    link(OPENSSL)(ADDRESS_OPENSSL_CONNECT),
-   link(TCP)(ADDRESS_TCP_CONNECT)
+   link(TCP-LISTEN)(ADDRESS_TCP_LISTEN)
 label(ADDRESS_NAMED_PIPE)dit(bf(tt(PIPE:<filename>)))
    If link(<filename>)(TYPE_FILENAME) already exists, it is opened.
    If it does not exist, a named pipe is created and opened. Beginning with
@@ -2659,12 +2661,6 @@ label(OPTION_OPENSSL_PSEUDO)dit(bf(tt(pseudo)))
    microseconds for feeding the libc pseudo random number generator with an
    initial value. openssl is then feeded with output from random\() calls.nl()
    NOTE:This mechanism is not sufficient for generation of secure keys!
-label(OPTION_OPENSSL_FIPS)dit(bf(tt(fips)))
-   Enables FIPS mode if compiled in. For info about the FIPS encryption
-   implementation standard see lurl(http://oss-institute.org/fips-faq.html). 
-   This mode might require that the involved certificates are generated with a
-   FIPS enabled version of openssl. Setting or clearing this option on one
-   socat address affects all OpenSSL addresses of this process.
 label(OPTION_OPENSSL_COMPRESS)dit(bf(tt(compress)))
    Enable or disable the use of compression for a connection. Setting this to
    "none" disables compression, setting it to "auto" lets OpenSSL choose the best
@@ -2672,6 +2668,12 @@ label(OPTION_OPENSSL_COMPRESS)dit(bf(tt(compress)))
    compression-related settings.
    NOTE: Requires OpenSSL 0.9.8 or higher and disabling compression with
    OpenSSL 0.9.8 affects all new connections in the process.
+label(OPTION_OPENSSL_FIPS)dit(bf(tt(fips)))
+   Enables FIPS mode if compiled in. For info about the FIPS encryption
+   implementation standard see lurl(http://oss-institute.org/fips-faq.html). 
+   This mode might require that the involved certificates are generated with a
+   FIPS enabled version of openssl. Setting or clearing this option on one
+   socat address affects all OpenSSL addresses of this process.
 enddit()
 
 startdit()enddit()nl()
@@ -3480,7 +3482,7 @@ standard specifications available on the Internet for free.
 label(VERSION)
 manpagesection(VERSION)
 
-This man page describes version 1.7.1 of socat().
+This man page describes version 1.7.2 of socat().
 
 
 label(BUGS)
