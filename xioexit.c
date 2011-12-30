@@ -1,10 +1,11 @@
 /* source: xioexit.c */
-/* Copyright Gerhard Rieger 2001-2005 */
+/* Copyright Gerhard Rieger 2001-2012 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for the extended exit function */
 
 #include "xiosysincludes.h"
+#include "compat.h"
 #include "xio.h"
 
 
