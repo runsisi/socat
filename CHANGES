@@ -1,4 +1,17 @@
 
+####################### V 1.7.2.1:
+
+security:
+	fixed a possible heap buffer overflow in the readline address. This bug
+	could be exploited when all of the following conditions were met:
+	1) one of the addresses is READLINE without the noprompt and without the
+	prompt options.
+	2) the other (almost arbitrary address) reads malicious data (which is
+	then transferred by socat to READLINE).
+	Workaround: when using the READLINE address apply option prompt or
+	noprompt.
+	Full credits to Johan Thillemann for finding and reporting this issue.
+
 ####################### V 1.7.2.0:
 
 corrections:

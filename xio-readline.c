@@ -1,5 +1,5 @@
 /* source: xio-readline.c */
-/* Copyright Gerhard Rieger 2002-2011 */
+/* Copyright Gerhard Rieger 2002-2012 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening the readline address */
@@ -214,25 +214,26 @@ void xioscan_readline(struct single *pipe, const void *buff, size_t bytes) {
    if (pipe->dtype == XIODATA_READLINE && pipe->para.readline.dynprompt) {
       /* we save the last part of the output as possible prompt */
       const void *ptr = buff;
-      const void *pcr = memrchr(buff, '\r', bytes);
-      const void *plf = memrchr(buff, '\n', bytes);
+      const void *pcr;
+      const void *plf;
       size_t len;
+
       if (bytes > pipe->para.readline.dynbytes) {
 	 ptr = (const char *)buff + bytes - pipe->para.readline.dynbytes;
+	 len = pipe->para.readline.dynbytes;
+      } else {
+	 len = bytes;
       }
-      if (pcr) {
+      pcr = memrchr(ptr, '\r', len);
+      plf = memrchr(ptr, '\n', len);
+      if (pcr != NULL || plf != NULL) {
+	 const void *peol = Max(pcr, plf);
 	 /* forget old prompt */
 	 pipe->para.readline.dynend = pipe->para.readline.dynprompt;
+	 len -= (peol+1 - ptr);
 	 /* new prompt starts here */
-	 ptr = (const char *)pcr+1;
+	 ptr = (const char *)peol+1;
       }
-      if (plf && plf >= ptr) {
-	 /* forget old prompt */
-	 pipe->para.readline.dynend = pipe->para.readline.dynprompt;
-	 /* new prompt starts here */
-	 ptr = (const char *)plf+1;
-      }
-      len = (const char *)buff-(const char *)ptr+bytes;
       if (pipe->para.readline.dynend - pipe->para.readline.dynprompt + len >
 	  pipe->para.readline.dynbytes) {
 	 memmove(pipe->para.readline.dynprompt,
@@ -243,7 +244,6 @@ void xioscan_readline(struct single *pipe, const void *buff, size_t bytes) {
 	    pipe->para.readline.dynprompt + pipe->para.readline.dynbytes - len;
       }
       memcpy(pipe->para.readline.dynend, ptr, len);
-      /*pipe->para.readline.dynend = pipe->para.readline.dynprompt + len;*/
       pipe->para.readline.dynend = pipe->para.readline.dynend + len;
    }
    return;

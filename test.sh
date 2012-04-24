@@ -1,6 +1,6 @@
 #! /bin/bash
 # source: test.sh
-# Copyright Gerhard Rieger 2001-2011
+# Copyright Gerhard Rieger 2001-2012
 # Published under the GNU General Public License V.2, see file COPYING
 
 # perform lots of tests on socat
@@ -10465,7 +10465,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
 # prepare long data - perl might not be installed
-rm -f "$td/terst$N.dat"
+rm -f "$td/test$N.dat"
 i=0; while [ $i -lt 64 ]; do  echo -n "AAAAAAAAAAAAAAAA" >>"$td/test$N.dat"; i=$((i+1)); done
 CMD0="$SOCAT $opts TCP-CONNECT:$(cat "$td/test$N.dat"):$PORT STDIO"
 printf "test $F_n $TEST... " $N
@@ -10773,6 +10773,47 @@ fi
 fi # NUMCOND
  ;;
 esac
+N=$((N+1))
+
+
+# socat up to 1.7.2.0 had a bug in xioscan_readline() that could be exploited
+# to overflow a heap based buffer (socat security advisory 3)
+# problem reported by Johan Thillemann
+NAME=READLINE_OVFL
+case "$TESTS" in
+*%functions%*|*%bugs%*|*%security%*|*%$NAME%*)
+TEST="$NAME: test for buffer overflow in readline prompt handling"
+# address 1 is the readline where write data was handled erroneous
+# address 2 provides data to trigger the buffer overflow
+# when no SIGSEGV or so occurs the test succeeded (bug fixed)
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+ti="$td/test$N.data"
+CMD0="$SOCAT $opts READLINE $ti"
+printf "test $F_n $TEST... " $N
+# prepare long data - perl might not be installed
+#perl -e 'print "\r","Z"x513' >"$ti"
+echo $E -n "\rA" >"$ti"
+i=0; while [ $i -lt 32 ]; do echo -n "AAAAAAAAAAAAAAAA" >>"$ti"; let i=i+1; done
+$SOCAT - system:"$CMD0; echo rc=\$? >&2",pty >/dev/null 2>"${te}0"
+rc=$?
+rc0="$(grep ^rc= "${te}0" |sed 's/.*=//')"
+if [ $rc -ne 0 ]; then
+    $PRINTF "${YELLOW}framework failed${NORMAL}\n"
+elif [ $rc0 -eq 0 ]; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0"
+    grep -v ^rc= "${te}0"
+    numFAIL=$((numFAIL+1))
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
 N=$((N+1))
 
 
