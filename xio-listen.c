@@ -147,8 +147,6 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
       return STAT_RETRYLATER;
    }
 
-   applyopts(xfd->fd, opts, PH_PASTSOCKET);
-
    applyopts_cloexec(xfd->fd, opts);
 
    applyopts(xfd->fd, opts, PH_PREBIND);
@@ -206,6 +204,7 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
    retropt_bool(opts, OPT_LOWPORT, &xfd->para.socket.ip.lowport);
 #endif /* WITH_TCP || WITH_UDP */
 
+   applyopts(xfd->fd, opts, PH_PRELISTEN);
    retropt_int(opts, OPT_BACKLOG, &backlog);
    if (Listen(xfd->fd, backlog) < 0) {
       Error3("listen(%d, %d): %s", xfd->fd, backlog, strerror(errno));
@@ -277,9 +276,6 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
 	       sockaddr_info((struct sockaddr *)pa, pas,
 			     infobuff, sizeof(infobuff)));
 
-      applyopts(xfd->fd, opts, PH_FD);
-      applyopts(xfd->fd, opts, PH_CONNECTED);
-
       if (dofork) {
 	 pid_t pid;	/* mostly int; only used with fork */
          sigset_t mask_sigchld;
@@ -343,6 +339,10 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
 	break;
       }
    }
+
+   applyopts(xfd->fd, opts, PH_FD);
+   applyopts(xfd->fd, opts, PH_PASTSOCKET);
+   applyopts(xfd->fd, opts, PH_CONNECTED);
    if ((result = _xio_openlate(xfd, opts)) < 0)
       return result;
 

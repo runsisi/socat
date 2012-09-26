@@ -131,13 +131,12 @@ PH_LATE		FD is ready, before start of data loop
 PH_LATE2	FD is ready, dropping privileges
 
 
-SOCKET with LISTEN and FORK:
+SOCKET with LISTEN and ACCEPT:
 
 PH_INIT		retrieving info from original state
 PH_EARLY	before any other processing
 PH_PRESOCKET	before socket call
 PH_SOCKET	for socket call
-PH_PASTSOCKET	after socket call
 PH_PREBIND	before socket bind()
 PH_BIND		during socket bind()
 PH_PASTBIND	past socket bind()
@@ -147,7 +146,9 @@ PH_PASTLISTEN	after listen()
 PH_PREACCEPT	before accept()
 PH_ACCEPT	during accept()
 PH_PASTACCEPT	after accept()
+# and the following on the new FD:
 PH_FD		soon after FD creation or identification
+PH_PASTSOCKET	after socket call
 PH_CONNECTED	phase common with connect
 PH_PREFORK	before forking
 PH_FORK		during fork()

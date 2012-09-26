@@ -2807,10 +2807,13 @@ esac
 PORT=$((PORT+1))
 N=$((N+1))
 
+# TCP6-LISTEN may also listen for IPv4 connections. Test if option
+# ipv6-v6only=0 shows this behaviour.
 NAME=IPV6ONLY0
 case "$TESTS" in
 *%$N%*|*%functions%*|*%ip6%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
 TEST="$NAME: option ipv6-v6only=0 listens on IPv4"
+# create a listening TCP6 socket and try to connect to the port using TCP4
 if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP4 not available${NORMAL}\n" $N
@@ -2828,8 +2831,8 @@ tdiff="$td/test$N.diff"
 tsl=$PORT
 ts="127.0.0.1:$tsl"
 da="test$N $(date) $RANDOM"
-CMD1="$SOCAT $opts TCP6-listen:$tsl,ipv6-v6only=0,reuseaddr PIPE"
-CMD2="$SOCAT $opts stdin!!stdout TCP4:$ts"
+CMD1="$SOCAT $opts TCP6-LISTEN:$tsl,ipv6-v6only=0,reuseaddr PIPE"
+CMD2="$SOCAT $opts STDIN!!STDOUT TCP4:$ts"
 printf "test $F_n $TEST... " $N
 $CMD1 >"$tf" 2>"${te}1" &
 pid=$!	# background process id
@@ -2858,6 +2861,8 @@ esac
 PORT=$((PORT+1))
 N=$((N+1))
 
+# TCP6-LISTEN may also listen for IPv4 connections. Test if option
+# ipv6-v6only=1 turns off this behaviour.
 NAME=IPV6ONLY1
 case "$TESTS" in
 *%$N%*|*%functions%*|*%ip6%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
@@ -10365,6 +10370,8 @@ SOL_SOCKET="$($PROCAN -c |grep "^#define[[:space:]]*SOL_SOCKET[[:space:]]" |cut 
 SO_REUSEADDR="$($PROCAN -c |grep "^#define[[:space:]]*SO_REUSEADDR[[:space:]]" |cut -d' ' -f3)"
 
 # test the generic setsockopt-int option
+if false; then
+# this test no longer works due to fix for options on listening sockets
 NAME=SETSOCKOPT_INT
 case "$TESTS" in
 *%$N%*|*%functions%*|*%ip4%*|*%tcp%*|*%generic%*|*%$NAME%*)
@@ -10434,6 +10441,8 @@ fi # NUMCOND, SO_REUSEADDR
 esac
 PORT=$((PORT+1))
 N=$((N+1))
+#
+fi
 
 
 NAME=SCTP4STREAM
@@ -11137,6 +11146,56 @@ esac
 PORT=$((PORT+1))
 N=$((N+1))
 fi	# false
+
+
+# LISTEN addresses in socat up to 1.7.2.1 applied many file descriptor, socket,
+# and TCP options only to the listening socket instead of the connection socket.
+NAME=LISTEN_KEEPALIVE
+case "$TESTS" in
+*%functions%*|*%bugs%*|*%listen%*|*%keepalive%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: keepalive option is applied to connection socket"
+# instance 0 has TCP-LISTEN with option so-keepalive and invokes filan after 
+# accept(). filan writes its output to the socket. instance 1 connects to 
+# instance 0. The value of the sockets so-keepalive option is checked, it must
+# be 1
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+#tdiff="$td/test$N.diff"
+#da="test$N $(date) $RANDOM"
+CMD0="$SOCAT $opts TCP4-LISTEN:$PORT,reuseaddr,so-keepalive EXEC:\"$FILAN -i 1\",nofork"
+CMD1="$SOCAT $opts - TCP4:$LOCALHOST:$PORT"
+printf "test $F_n $TEST... " $N
+eval $CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+waittcp4port $PORT 1
+$CMD1 >"${tf}1" 2>"${te}1"
+KEEPALIVE="$(cat "${tf}1" |tail -n +2 |sed -e "s/.*KEEPALIVE=//" -e "s/[[:space:]].*//")"
+rc1=$?
+kill $pid0 2>/dev/null; wait
+if [ -z "$KEEPALIVE" ]; then
+    $PRINTF "$NO_RESULT\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "${te}0"
+    cat "${te}1"
+    numWARN=$((numWARN+1))
+elif [ "$KEEPALIVE" = "1" ]; then
+    $PRINTF "$OK\n";
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "${te}0"
+    cat "${te}1"
+    numFAIL=$((numFAIL+1))
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
 
 
 ###############################################################################

@@ -1,5 +1,5 @@
 /* source: xio-ip6.c */
-/* Copyright Gerhard Rieger 2001-2011 */
+/* Copyright Gerhard Rieger 2001-2012 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for IP6 related functions */
@@ -20,7 +20,7 @@ static char *inet6addr_info(const struct in6_addr *sa, char *buff, size_t blen);
 
 
 #ifdef IPV6_V6ONLY
-const struct optdesc opt_ipv6_v6only = { "ipv6-v6only", "ipv6only", OPT_IPV6_V6ONLY, GROUP_SOCK_IP6, PH_PASTSOCKET, TYPE_BOOL, OFUNC_SOCKOPT, SOL_IPV6, IPV6_V6ONLY };
+const struct optdesc opt_ipv6_v6only = { "ipv6-v6only", "ipv6only", OPT_IPV6_V6ONLY, GROUP_SOCK_IP6, PH_PREBIND, TYPE_BOOL, OFUNC_SOCKOPT, SOL_IPV6, IPV6_V6ONLY };
 #endif
 #ifdef IPV6_JOIN_GROUP
 const struct optdesc opt_ipv6_join_group = { "ipv6-join-group", "join-group", OPT_IPV6_JOIN_GROUP, GROUP_SOCK_IP6, PH_PASTBIND, TYPE_IP_MREQN, OFUNC_SOCKOPT, SOL_IPV6, IPV6_JOIN_GROUP };

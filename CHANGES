@@ -1,5 +1,10 @@
 
 corrections:
+	LISTEN based addresses applied some address options, e.g. so-keepalive,
+	to the listening file descriptor instead of the connected file
+	descriptor
+	Thanks to Ulises Alonso for reporting this bug
+
 	make failed after configure with non gcc compiler due to missing
 	include. Thanks to Horacio Mijail for reporting this problem
 
