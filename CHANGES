@@ -1,4 +1,14 @@
 
+####################### V 1.7.2.2:
+
+security:
+	after refusing a client connection due to bad source address or source
+	port socat shutdown() the socket but did not close() it, resulting in
+	a file descriptor leak in the listening process, visible with lsof and
+	possibly resulting in EMFILE Too many open files. This issue could be
+	misused for a denial of service attack.
+	Full credits to Catalin Mitrofan for finding and reporting this issue.
+
 ####################### V 1.7.2.1:
 
 security:

@@ -1,6 +1,6 @@
 #! /bin/bash
 # source: test.sh
-# Copyright Gerhard Rieger 2001-2012
+# Copyright Gerhard Rieger
 # Published under the GNU General Public License V.2, see file COPYING
 
 # perform lots of tests on socat
@@ -10816,6 +10816,65 @@ esac
 PORT=$((PORT+1))
 N=$((N+1))
 
+
+# socat up to 1.7.2.1 did only shutdown() but not close() an accept() socket 
+# that was rejected due to range, tcpwrap, lowport, or sourceport option.
+# This file descriptor leak could be used for a denial of service attack.
+NAME=FDLEAK
+case "$TESTS" in
+*%functions%*|*%bugs%*|*%security%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: file descriptor leak with range option"
+# have a TCP-LISTEN with range option; connect with wrong source address until
+# "open files" limit would exceed. When server continues operation the bug is
+# not present.
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+RLIMIT_NOFILE="$(ulimit -n)"
+if ! [[ "$RLIMIT_NOFILE" =~ ^[0-9][0-9]*$ ]]; then
+    $PRINTF "${YELLOW}cannot determine ulimit -n"
+else
+CMD0="$SOCAT $opts TCP-LISTEN:$PORT,reuseaddr,range=$LOCALHOST:255.255.255.255 PIPE"
+CMD1="$SOCAT $opts -t 0 /dev/null TCP:$SECONDADDR:$PORT"
+CMD2="$SOCAT $opts - TCP:$LOCALHOST:$PORT"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+waittcp4port $PORT 1
+while [ $RLIMIT_NOFILE -gt 0 ]; do
+    $CMD1 >/dev/null 2>>"${te}1"
+    let RLIMIT_NOFILE=RLIMIT_NOFILE-1
+done
+echo "$da" |$CMD2 >"${tf}2" 2>"${te}2"
+rc2=$?
+kill $pid0 2>/dev/null; wait
+echo -e "$da" |diff "${tf}2" - >$tdiff
+if [ $rc2 -ne 0 ]; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD2 &"
+    cat "${te}2"
+    numFAIL=$((numFAIL+1))
+elif [ -f "$tdiff" -a ! -s "$tdiff" ]; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    echo "$CMD2"
+    cat "${te}0"
+    cat "${te}1"
+    cat "${te}2"
+    numFAIL=$((numFAIL+1))
+fi
+fi # ulimit -n
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
 
 ###############################################################################
 # here come tests that might affect your systems integrity. Put normal tests
