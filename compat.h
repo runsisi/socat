@@ -232,6 +232,10 @@
 #define F_time "%ld"
 #  elif HAVE_BASIC_TIME_T==6
 #define F_time "%lu"
+#  elif HAVE_BASIC_TIME_T==7
+#define F_time "%Ld"
+#  elif HAVE_BASIC_TIME_T==8
+#define F_time "%Lu"
 #  else
 #error "HAVE_BASIC_TIME_T is out of range:" HAVE_BASIC_TIME_T
 #  endif
@@ -256,6 +260,10 @@
 #define F_socklen "%ld"
 #  elif HAVE_BASIC_SOCKLEN_T==6
 #define F_socklen "%lu"
+#  elif HAVE_BASIC_SOCKLEN_T==7
+#define F_socklen "%Ld"
+#  elif HAVE_BASIC_SOCKLEN_T==8
+#define F_socklen "%Lu"
 #  else
 #error "HAVE_BASIC_SOCKLEN_T is out of range:" HAVE_BASIC_SOCKLEN_T
 #  endif
@@ -404,6 +412,10 @@
 #define F_st_nlink "%ld"
 #  elif HAVE_TYPEOF_ST_NLINK==6
 #define F_st_nlink "%lu"
+#  elif HAVE_TYPEOF_ST_NLINK==7
+#define F_st_nlink "%Ld"
+#  elif HAVE_TYPEOF_ST_NLINK==8
+#define F_st_nlink "%Lu"
 #  else
 #error "HAVE_TYPEOF_ST_NLINK is out of range:" HAVE_TYPEOF_ST_NLINK
 #  endif
@@ -481,6 +493,10 @@
 #define F_st_blksize "%ld"
 #  elif HAVE_TYPEOF_ST_BLKSIZE==6
 #define F_st_blksize "%lu"
+#  elif HAVE_TYPEOF_ST_BLKSIZE==7
+#define F_st_blksize "%Ld"
+#  elif HAVE_TYPEOF_ST_BLKSIZE==8
+#define F_st_blksize "%Lu"
 #  else
 #error "HAVE_TYPEOF_ST_BLKSIZE is out of range:" HAVE_TYPEOF_ST_BLKSIZE
 #  endif

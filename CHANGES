@@ -70,6 +70,9 @@ porting:
 	behaviour on old glibc systems, and adapted all affected calls
 	appropriately
 
+	Mike Frysinger provided a patch that supports long long for time_t,
+	socklen_t and a few other libc types.
+
 docu:
 	libwrap always logs to syslog
 
