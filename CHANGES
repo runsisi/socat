@@ -4,6 +4,8 @@ testing:
 
 	test.sh: stderr; option -v (verbose); FDOUT_ERROR description
 
+	improved proxy.sh - it now also takes hostnames
+
 ####################### V 1.7.3.1:
 
 security:

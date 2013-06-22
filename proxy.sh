@@ -10,6 +10,8 @@
 # for TCP, use this script as:
 # socat tcp-l:8080,reuseaddr,fork exec:"proxy.sh",nofork
 
+# 20130622  GR allow hostnames, not only IP addresses
+
 if [ -z "$SOCAT" ]; then
     if type socat >/dev/null 2>&1; then
 	SOCAT=socat
@@ -48,19 +50,30 @@ while [ -n "$1" ]; do
     shift
 done
 
-# read and parse HTTP request
-read l
-if echo "$l" |egrep '^CONNECT +[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+ +HTTP/1.[01]' >/dev/null
-then
-    : go on below
-else
+badrequest () {
     $ECHO "HTTP/1.0${SPACES}500 Bad Request$CR"
     $ECHO "$CR"
-    exit
+}
+
+# read and parse HTTP request
+read m a h
+#echo "\"$m\" \"$a\" \"$h\"" >&2
+if [ "$m" != 'CONNECT' ]; then
+    badrequest; exit 1
+fi
+if [[ "$a" == [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+ ]]; then
+    : go on below
+elif [[ "$a" == [0-9a-zA-Z-.][0-9a-zA-Z-.]*:[0-9][0-9]* ]]; then
+    : go on below
+else
+    badrequest; exit 1
 fi
 
-# extract target server name/address
-s=`echo $l |awk '{print($2);}'`
+if [[ "$h" == HTTP/1.[01][[:space:]]* ]]; then
+    : go on below
+else
+    badrequest; exit 1
+fi
 
 # read more headers until empty line
 while [ "$l" != "$CR" ]; do
@@ -73,4 +86,8 @@ $ECHO "HTTP/1.0${SPACES}200 OK$CR"
 $ECHO "$CR"
 
 # perform proxy (relay) function
-exec $SOCAT $SOCAT_OPTS - tcp:$s
+$SOCAT $SOCAT_OPTS - tcp:$a || {
+    $ECHO "HTTP/1.0${SPACES}500 Failed to connect to $a$CR"
+    $ECHO $CR
+}
+
