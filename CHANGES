@@ -4,6 +4,11 @@ porting:
 
 	Adapted, improved test.sh script
 
+docu:
+	libwrap always logs to syslog
+
+	added actual text version of GPLv2
+
 ####################### V 1.7.2.3:
 
 security:

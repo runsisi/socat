@@ -119,12 +119,16 @@ dit(bf(tt(-D)))
 dit(bf(tt(-ly[<facility>])))
    Writes messages to syslog instead of stderr; severity as defined with -d
    option. With optional link(<facility>)(TYPE_FACILITY), the syslog type can
-   be selected, default is "daemon". 
+   be selected, default is "daemon". Third party libraries might not obey this
+   option.
 dit(bf(tt(-lf))tt( <logfile>))
    Writes messages to <logfile> [link(filename)(TYPE_FILENAME)] instead of
-   stderr. 
+   stderr. Some third party libraries, in particular libwrap, might not obey
+   this option.
 dit(bf(tt(-ls)))
-   Writes messages to stderr (this is the default).
+   Writes messages to stderr (this is the default). Some third party libraries 
+   might not obey this option, in particular libwrap appears to only log to
+   syslog. 
 label(option_lp)dit(bf(tt(-lp))tt(<progname>))
    Overrides the program name printed in error messages and used for
    constructing environment variable names.
@@ -2306,6 +2310,8 @@ label(OPTION_FORK)dit(bf(tt(fork)))
 SSL-LISTEN forks em(before) the SSL handshake, while SSL-CONNECT forks
 em(afterwards).
    RETRY and FOREVER options are not inherited by the child process.nl()
+   On some operating systems (e.g. FreeBSD) this option does not work for
+   UDP-LISTEN addresses.nl()
 enddit()
 
 startdit()enddit()nl()
