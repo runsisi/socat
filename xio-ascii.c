@@ -1,5 +1,5 @@
 /* source: xio-ascii.c */
-/* Copyright Gerhard Rieger 2002-2008 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains functions for text encoding, decoding, and conversions */
@@ -111,6 +111,7 @@ char *
    coding specifies how the data is to be presented. Not much to select now.
    returns a pointer to the first char in codbuff that has not been overwritten;
    it might also point to the first char after the buffer!
+   this function does not write a terminating \0
 */
 static char *
 _xiodump(const unsigned char *data, size_t bytes, char *codbuff, size_t codlen,
@@ -118,16 +119,17 @@ _xiodump(const unsigned char *data, size_t bytes, char *codbuff, size_t codlen,
    int start = 1;
    int space = coding & 0xff;
 
-   if (bytes <= 0)  { codbuff[0] = '\0'; return codbuff; }
+   if (bytes <= 0)  { return codbuff; }
+   if (codlen < 1)  { return codbuff; }
    if (space == 0) space = -1;
    if (0) {
       ;	/* for canonical reasons */
    } else if (1) {
       /* simple hexadecimal output */
-      if (bytes > 2*codlen+1) {
-	 bytes = (codlen-1)/2;
+      if (3*bytes+1 > codlen) {
+	 bytes = (codlen-1)/3;	/* "truncate" data so generated text fits */
       }
-      *codbuff++ = 'x'; --codlen;
+      *codbuff++ = 'x';
       while (bytes-- > 0) {
 	 if (start == 0 && space == 0) {
 	    *codbuff++ = ' ';
