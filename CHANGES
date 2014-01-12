@@ -33,6 +33,9 @@ corrections:
 	Red Hat issue 1021958: fixed a bug with faulty buffer/data length
 	calculation in xio-ascii.c:_xiodump()
 
+	Red Hat issue 1021972: fixed a missing NUL termination in return string
+	of sysutils.c:sockaddr_info() for the AF_UNIX case
+
 porting:
 	Performed changes for Fedora release 19
 

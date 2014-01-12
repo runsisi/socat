@@ -1,5 +1,5 @@
 /* source: sysutils.c */
-/* Copyright Gerhard Rieger 2001-2011 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* translate socket addresses into human readable form */
@@ -189,7 +189,7 @@ char *sockaddr_info(const struct sockaddr *sa, socklen_t salen, char *buff, size
    case 0:
    case AF_UNIX: sockaddr_unix_info(&sau->un, salen, cp+1, blen-1);
       cp[0] = '"';
-      *strchr(cp+1, '\0') = '"';
+      strncat(cp+1, "\"", 1);
       break;
 #endif
 #if WITH_IP4
