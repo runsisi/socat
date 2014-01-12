@@ -141,7 +141,8 @@ esac
 # for some tests we need a second local IPv4 address
 case "$UNAME" in
 Linux)
-    BROADCASTIF=eth0
+    BROADCASTIF=$(ip r get 8.8.8.8 |grep ' dev ' |sed 's/.*\<dev[[:space:]][[:space:]]*\([a-z0-9][a-z0-9]*\).*/\1/')
+    [ -z "$BROADCASTIF" ] && BROADCASTIF=eth0
     SECONDADDR=127.1.0.1
     SECONDMASK=255.255.0.0
     BCADDR=127.255.255.255
@@ -1608,31 +1609,6 @@ testoptions () {
     return 0
 }
 
-# check if a process with given pid exists; print its ps line
-# if yes: prints line to stdout, returns 0
-# if not: prints ev.message to stderr, returns 1
-ifprocess () {
-    local l
-    case "$UNAME" in
-    AIX)     l="$(ps -fade |grep "^........ $(printf %6u $1)")" ;;
-    FreeBSD) l="$(ps -faje |grep "^........ $(printf %5u $1)")" ;;
-    HP-UX)   l="$(ps -fade |grep "^........ $(printf %5u $1)")" ;;
-    Linux)   l="$(ps -fade |grep "^........ $(printf %5u $1)")" ;;
-#    NetBSD)  l="$(ps -aj   |grep "^........ $(printf %4u $1)")" ;;
-    NetBSD)  l="$(ps -aj   |grep "^[^ ][^ ]*[ ][ ]*$(printf %5u $1) ")" ;;
-    OpenBSD) l="$(ps -kaj  |grep "^........ $(printf %5u $1)")" ;;
-    SunOS)   l="$(ps -fade |grep "^........ $(printf %5u $1)")" ;;
-    DragonFly)l="$(ps -faje |grep "^[^ ][^ ]*[ ][ ]*$(printf %5u $1)")" ;;
-    CYGWIN*)  l="$(ps -pafe |grep "^[^ ]*[ ][ ]*$1[ ]")" ;;
-    *)       l="$(ps -fade |grep "^[^ ][^ ]*[ ][ ]*$(printf %5u $1) ")" ;;
-    esac
-    if [ -z "$l" ]; then
-	return 1;
-    fi
-    echo "$l"
-    return 0
-}
-
 # check if the given pid exists and has child processes
 # if yes: prints child process lines to stdout, returns 0
 # if not: prints ev.message to stderr, returns 1
@@ -1693,7 +1669,7 @@ runsip4 () {
     AIX)   l=$($IFCONFIG lo0 |fgrep 'inet 127.0.0.1 ') ;;
     FreeBSD) l=$($IFCONFIG lo0 |fgrep 'inet 127.0.0.1 ') ;;
     HP-UX) l=$($IFCONFIG lo0 |fgrep 'inet 127.0.0.1 ') ;;
-    Linux) l=$($IFCONFIG |fgrep 'inet addr:127.0.0.1 ') ;;
+    Linux) l=$($IFCONFIG |egrep 'inet (addr:)?127\.0\.0\.1 ') ;;
     NetBSD)l=$($IFCONFIG -a |fgrep 'inet 127.0.0.1 ');;
     OpenBSD)l=$($IFCONFIG -a |fgrep 'inet 127.0.0.1 ');;
     OSF1)  l=$($IFCONFIG -a |grep ' inet ') ;;
@@ -1719,14 +1695,14 @@ runsip6 () {
     [ -n "$HAVENOT_IP6" ] && return $HAVENOT_IP6
     local l
     case "$UNAME" in
-    AIX)   l=$(/usr/sbin/ifconfig lo0 |grep 'inet6 ::1/0') ;;
-    HP-UX) l=$(/usr/sbin/ifconfig lo0 |grep ' inet6 ') ;;
-    Linux) l=$(/sbin/ifconfig |grep 'inet6 addr: ::1/') ;;
-    NetBSD)l=$(/sbin/ifconfig -a |grep 'inet6 ::1 ');;
-    OSF1)  l=$(/sbin/ifconfig -a |grep ' inet6 ') ;;
-    SunOS) l=$(/sbin/ifconfig -a |grep 'inet6 ') ;;
-    Darwin)l=$(/sbin/ifconfig lo0 |grep 'inet6 ::1 ') ;;
-    *)     l=$(/sbin/ifconfig -a |grep ' ::1[^:0-9A-Fa-f]') ;;
+    AIX)   l=$($IFCONFIG lo0 |grep 'inet6 ::1/0') ;;
+    HP-UX) l=$($IFCONFIG lo0 |grep ' inet6 ') ;;
+    Linux) l=$($IFCONFIG |egrep 'inet6 (addr: )?::1/?') ;;
+    NetBSD)l=$($IFCONFIG -a |grep 'inet6 ::1 ');;
+    OSF1)  l=$($IFCONFIG -a |grep ' inet6 ') ;;
+    SunOS) l=$($IFCONFIG -a |grep 'inet6 ') ;;
+    Darwin)l=$($IFCONFIG lo0 |grep 'inet6 ::1 ') ;;
+    *)     l=$($IFCONFIG -a |grep ' ::1[^:0-9A-Fa-f]') ;;
     esac
     [ -z "$l" ] && return 1    
     # existence of interface might not suffice, check for routeability:
@@ -1902,7 +1878,7 @@ checktcp4port () {
     local port="$1"
     local l
     case "$UNAME" in
-    Linux)   l=$(netstat -n -t |grep '^tcp .* .*[0-9*]:'$port' .* LISTEN') ;;
+    Linux)   l=$(netstat -a -n -t |grep '^tcp .* .*[0-9*]:'$port' .* LISTEN') ;;
     FreeBSD) l=$(netstat -an |grep '^tcp4.* .*[0-9*]\.'$port' .* \*\.\* .* LISTEN') ;;
     NetBSD)  l=$(netstat -an |grep '^tcp .* .*[0-9*]\.'$port' [ ]* \*\.\* [ ]* LISTEN.*') ;;
     Darwin) case "$(uname -r)" in
@@ -1931,7 +1907,7 @@ waittcp4port () {
     [ "$timeout" ] || timeout=5
     while [ $timeout -gt 0 ]; do
 	case "$UNAME" in
-	Linux)   l=$(netstat -n -t -l |grep '^tcp .* .*[0-9*]:'$port' .* LISTEN') ;;
+	Linux)   l=$(netstat -a -n -t -l |grep '^tcp .* .*[0-9*]:'$port' .* LISTEN') ;;
 	FreeBSD) l=$(netstat -an |grep '^tcp4.* .*[0-9*]\.'$port' .* \*\.\* .* LISTEN') ;;
 	NetBSD)  l=$(netstat -an |grep '^tcp .* .*[0-9*]\.'$port' [ ]* \*\.\* [ ]* LISTEN.*') ;;
 	Darwin) case "$(uname -r)" in
@@ -1966,7 +1942,7 @@ waitudp4port () {
     [ "$timeout" ] || timeout=5
     while [ $timeout -gt 0 ]; do
 	case "$UNAME" in
-	Linux)   l=$(netstat -n -u -l |grep '^udp .* .*[0-9*]:'$port' [ ]*0\.0\.0\.0:\*') ;;
+	Linux)   l=$(netstat -a -n -u -l |grep '^udp .* .*[0-9*]:'$port' [ ]*0\.0\.0\.0:\*') ;;
 	FreeBSD) l=$(netstat -an |egrep '^udp46? .*[0-9*]\.'$port' .* \*\.\*') ;;
 	NetBSD)  l=$(netstat -an |grep '^udp .*[0-9*]\.'$port' [ ]* \*\.\*') ;;
 	OpenBSD) l=$(netstat -an |grep '^udp .*[0-9*]\.'$port' [ ]* \*\.\*') ;;
@@ -10840,7 +10816,7 @@ if ! [[ "$RLIMIT_NOFILE" =~ ^[0-9][0-9]*$ ]]; then
     $PRINTF "${YELLOW}cannot determine ulimit -n"
 else
 CMD0="$SOCAT $opts TCP-LISTEN:$PORT,reuseaddr,range=$LOCALHOST:255.255.255.255 PIPE"
-CMD1="$SOCAT $opts -t 0 /dev/null TCP:$SECONDADDR:$PORT"
+CMD1="$SOCAT $opts -t 0 /dev/null TCP:$SECONDADDR:$PORT,bind=$SECONDADDR"
 CMD2="$SOCAT $opts - TCP:$LOCALHOST:$PORT"
 printf "test $F_n $TEST... " $N
 $CMD0 >/dev/null 2>"${te}0" &

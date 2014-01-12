@@ -1,5 +1,5 @@
 /* source: procan-cdefs.c */
-/* Copyright Gerhard Rieger 2008 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* a function that prints compile time parameters */
@@ -20,7 +20,7 @@ int procan_cdefs(FILE *outfile) {
    fprintf(outfile, "#define FD_SETSIZE %u\n", FD_SETSIZE);
 #endif
 #ifdef NFDBITS
-   fprintf(outfile, "#define NFDBITS "F_Zu"\n", NFDBITS);
+   fprintf(outfile, "#define NFDBITS %u\n", (unsigned int)NFDBITS);
 #endif
 #ifdef O_RDONLY
    fprintf(outfile, "#define O_RDONLY %u\n", O_RDONLY);
