@@ -30,6 +30,9 @@ corrections:
 	On big endian platforms with type long >32bit the range option applied a
 	bad base address. Thanks to hejia hejia for reporting and fixing this bug.
 
+	Red Hat issue 1022048: strncpy hardening: corrected suspicious strncpy()
+	uses
+
 	Red Hat issue 1021958: fixed a bug with faulty buffer/data length
 	calculation in xio-ascii.c:_xiodump()
 

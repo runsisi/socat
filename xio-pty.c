@@ -1,5 +1,5 @@
 /* source: xio-pty.c */
-/* Copyright Gerhard Rieger 2002-2011 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for creating pty addresses */
@@ -132,7 +132,7 @@ static int xioopen_pty(int argc, const char *argv[], struct opt *opts, int xiofl
 	       Warn2("ttyname(%d): %s", ptyfd, strerror(errno));
 	    }
 	 }
-	 strncpy(ptyname, tn, MAXPTYNAMELEN);
+	 ptyname[0] = '\0'; strncat(ptyname, tn, MAXPTYNAMELEN-1);
       }
    }
 #endif /* HAVE_DEV_PTMX || HAVE_DEV_PTC */

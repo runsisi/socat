@@ -1,5 +1,5 @@
 /* source: xio-socket.c */
-/* Copyright Gerhard Rieger 2001-2012 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for socket related functions, and the
@@ -1791,7 +1791,7 @@ int xiocheckpeer(xiosingle_t *xfd,
 #if HAVE_STRUCT_CMSGHDR
 /* converts the ancillary message in *cmsg into a form useable for further
    processing. knows the specifics of common message types.
-   returns the number of resulting syntax elements is *num
+   returns the number of resulting syntax elements in *num
    returns a sequence of \0 terminated type strings in *typbuff
    returns a sequence of \0 terminated name strings in *nambuff
    returns a sequence of \0 terminated value strings in *valbuff
@@ -1807,6 +1807,7 @@ xiolog_ancillary_socket(struct cmsghdr *cmsg, int *num,
    const char *cmsgtype, *cmsgname, *cmsgenvn;
    size_t msglen;
    struct timeval *tv;
+   int rc = STAT_OK;
 
 #if defined(CMSG_DATA)
 
@@ -1822,7 +1823,7 @@ xiolog_ancillary_socket(struct cmsghdr *cmsg, int *num,
 #endif
    default:	/* binary data */
       snprintf(typbuff, typlen, "SOCKET.%u", cmsg->cmsg_type);
-      strncpy(nambuff, "data", namlen);
+      nambuff[0] = '\0'; strncat(nambuff, "data", namlen-1);
       xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0);
       return STAT_OK;
 #ifdef SO_TIMESTAMP
@@ -1851,13 +1852,13 @@ xiolog_ancillary_socket(struct cmsghdr *cmsg, int *num,
       with type in cmsgtype, name in cmsgname,
       and value already in valbuff */
    *num = 1;
-   if (strlen(cmsgtype) >= typlen)  Fatal("buff too short");
-   strncpy(typbuff, cmsgtype, typlen);
-   if (strlen(cmsgname) >= namlen)  Fatal("buff too short");
-   strncpy(nambuff, cmsgname, namlen);
-   if (strlen(cmsgenvn) >= envlen)  Fatal("buff too short");
-   strncpy(envbuff, cmsgenvn, envlen);
-   return STAT_OK;
+   if (strlen(cmsgtype) >= typlen)  rc = STAT_WARNING;
+   typbuff[0] = '\0'; strncat(typbuff, cmsgtype, typlen-1);
+   if (strlen(cmsgname) >= namlen)  rc = STAT_WARNING;
+   nambuff[0] = '\0'; strncat(nambuff, cmsgname, namlen-1);
+   if (strlen(cmsgenvn) >= envlen)  rc = STAT_WARNING;
+   envbuff[0] = '\0'; strncat(envbuff, cmsgenvn, envlen-1);
+   return rc;
 
 #else /* !defined(CMSG_DATA) */
 
@@ -1942,7 +1943,7 @@ int xioparsenetwork(const char *rangename, int pf, struct xiorange *range) {
      if ((addrname = Malloc(maskname-rangename)) == NULL) {
 	return STAT_NORETRY;
      }
-     strncpy(addrname, rangename, maskname-rangename-1);
+     strncpy(addrname, rangename, maskname-rangename-1);	/* ok */
      addrname[maskname-rangename-1] = '\0';
      result =
 	dalan(addrname, (char *)&range->netaddr.soa.sa_data, &addrlen,

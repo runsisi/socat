@@ -1,5 +1,5 @@
 /* source: xio-ip.c */
-/* Copyright Gerhard Rieger 2001-2011 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for IP related functions */
@@ -199,7 +199,7 @@ int xiogetaddrinfo(const char *node, const char *service,
 #endif
 	 return STAT_NORETRY;
       }
-      strncpy(numnode, node+1, nodelen-2);
+      strncpy(numnode, node+1, nodelen-2);	/* ok */
       numnode[nodelen-2] = '\0';
       node = numnode;
 #if HAVE_GETADDRINFO
@@ -445,7 +445,17 @@ int xiogetaddrinfo(const char *node, const char *service,
 
 
 #if defined(HAVE_STRUCT_CMSGHDR) && defined(CMSG_DATA)
-/* these are valid for IPv4 and IPv6 */
+/* converts the ancillary message in *cmsg into a form useable for further
+   processing. knows the specifics of common message types.
+   these are valid for IPv4 and IPv6
+   returns the number of resulting syntax elements in *num
+   returns a sequence of \0 terminated type strings in *typbuff
+   returns a sequence of \0 terminated name strings in *nambuff
+   returns a sequence of \0 terminated value strings in *valbuff
+   the respective len parameters specify the available space in the buffers
+   returns STAT_OK on success
+   returns STAT_WARNING if a buffer was too short and data truncated.
+ */
 int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
 			char *typbuff, int typlen,
 			char *nambuff, int namlen,
@@ -458,13 +468,14 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
    char scratch2[16];
    char scratch3[16];
 #endif
+   int rc = 0;
 
    msglen = cmsg->cmsg_len-((char *)CMSG_DATA(cmsg)-(char *)cmsg);
    envbuff[0] = '\0';
    switch (cmsg->cmsg_type) {
    default:
       *num = 1;
-      strncpy(typbuff, "IP", typlen);
+      typbuff[0] = '\0'; strncat(typbuff, "IP", typlen-1);
       snprintf(nambuff, namlen, "type_%u", cmsg->cmsg_type);
       xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0);
       return STAT_OK;
@@ -473,7 +484,7 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
    case IP_PKTINFO: {
       struct in_pktinfo *pktinfo = (struct in_pktinfo *)CMSG_DATA(cmsg);
       *num = 3;
-      strncpy(typbuff, "IP_PKTINFO", typlen);
+      typbuff[0] = '\0'; strncat(typbuff, "IP_PKTINFO", typlen-1);
       snprintf(nambuff, namlen, "%s%c%s%c%s", "if", '\0', "locaddr", '\0', "dstaddr");
       snprintf(envbuff, envlen, "%s%c%s%c%s", "IP_IF", '\0', 
 	       "IP_LOCADDR", '\0', "IP_DSTADDR");
@@ -497,7 +508,7 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
       struct sock_extended_err *err =
 	 (struct sock_extended_err *)CMSG_DATA(cmsg);
       *num = 6;
-      strncpy(typbuff, "IP_RECVERR", typlen);
+      typbuff[0] = '\0'; strncat(typbuff, "IP_RECVERR", typlen-1);
       snprintf(nambuff, namlen, "%s%c%s%c%s%c%s%c%s%c%s",
 	       "errno", '\0', "origin", '\0', "type", '\0',
 	       "code", '\0', "info", '\0', "data");
@@ -516,11 +527,12 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
       /* spec in FreeBSD: /usr/include/net/if_dl.h */
       struct sockaddr_dl *sadl = (struct sockaddr_dl *)CMSG_DATA(cmsg);
       *num = 1;
-      strncpy(typbuff, "IP_RECVIF", typlen);
-      strncpy(nambuff, "if", namlen);
-      strncpy(envbuff, "IP_IF", envlen);
-      strncpy(valbuff,
-	      xiosubstr(scratch1, sadl->sdl_data, 0, sadl->sdl_nlen), vallen);
+      typbuff[0] = '\0'; strncat(typbuff, "IP_RECVIF", typlen-1);
+      nambuff[0] = '\0'; strncat(nambuff, "if", namlen-1);
+      envbuff[0] = '\0'; strncat(envbuff, "IP_IF", envlen-1);
+      valbuff[0] = '\0';
+      strncat(valbuff,
+	      xiosubstr(scratch1, sadl->sdl_data, 0, sadl->sdl_nlen), vallen-1);
       return STAT_OK;
    }
 #endif /* defined(IP_RECVIF) */
@@ -528,9 +540,9 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
 #ifdef IP_RECVDSTADDR
    case IP_RECVDSTADDR:
       *num = 1;
-      strncpy(typbuff, "IP_RECVDSTADDR", typlen);
-      strncpy(nambuff, "dstaddr", namlen);
-      strncpy(envbuff, "IP_DSTADDR", envlen);
+      typbuff[0] = '\0'; strncat(typbuff, "IP_RECVDSTADDR", typlen-1);
+      nambuff[0] = '\0'; strncat(nambuff, "dstaddr", namlen-1);
+      envbuff[0] = '\0'; strncat(envbuff, "IP_DSTADDR", envlen-1);
       inet4addr_info(ntohl(*(uint32_t *)CMSG_DATA(cmsg)), valbuff, vallen);
       return STAT_OK;
 #endif
@@ -551,13 +563,13 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
    /* when we come here we provide a single parameter
       with type in cmsgtype, name in cmsgname, printf format in cmsgfmt */
    *num = 1;
-   if (strlen(cmsgtype) >= typlen)  Fatal("buff too short");
-   strncpy(typbuff, cmsgtype, typlen);
-   if (strlen(cmsgname) >= namlen)  Fatal("buff too short");
-   strncpy(nambuff, cmsgname, namlen);
+   if (strlen(cmsgtype) >= typlen)  rc = STAT_WARNING;
+   typbuff[0] = '\0'; strncat(typbuff, cmsgtype, typlen-1);
+   if (strlen(cmsgname) >= namlen)  rc = STAT_WARNING;
+   nambuff[0] = '\0'; strncat(nambuff, cmsgname, namlen-1);
    if (cmsgenvn) {
-      if (strlen(cmsgenvn) >= envlen)  Fatal("buff too short");
-      strncpy(envbuff, cmsgenvn, envlen);
+      if (strlen(cmsgenvn) >= envlen)  rc = STAT_WARNING;
+      envbuff[0] = '\0'; strncat(envbuff, cmsgenvn, envlen-1);
    } else {
       envbuff[0] = '\0';
    }
@@ -566,7 +578,7 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
    } else {
       xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0);
    }
-   return STAT_OK;
+   return rc;
 }
 #endif /* defined(HAVE_STRUCT_CMSGHDR) && defined(CMSG_DATA) */
 

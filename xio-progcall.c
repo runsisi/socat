@@ -1,5 +1,5 @@
 /* source: xio-progcall.c */
-/* Copyright Gerhard Rieger 2001-2009 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains common code dealing with program calls (exec, system) */
@@ -239,7 +239,7 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 		  Warn2("ttyname(%d): %s", ptyfd, strerror(errno));
 	       }
 	    }
-	    strncpy(ptyname, tn, MAXPTYNAMELEN);
+	    ptyname[0] = '\0'; strncat(ptyname, tn, MAXPTYNAMELEN-1);
 	    if ((ttyfd = Open(tn, O_RDWR|O_NOCTTY, 0620)) < 0) {
 	       Warn2("open(\"%s\", O_RDWR|O_NOCTTY, 0620): %s", tn, strerror(errno));
 	    } else {

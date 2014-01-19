@@ -1,5 +1,5 @@
 /* source: xioparam.c */
-/* Copyright Gerhard Rieger 2001-2006 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for xio options handling */
@@ -54,7 +54,8 @@ int xiosetopt(char what, const char *arg) {
 int xioinqopt(char what, char *arg, size_t n) {
    switch (what) {
    case 's': return xioopts.strictopts;
-   case 'p': strncpy(arg, xioopts.pipesep, n);
+   case 'p':
+      arg[0] = '\0'; strncat(arg, xioopts.pipesep, n-1);
       return 0;
    case 'o': return xioopts.ip4portsep;
    case 'l': return xioopts.logopt;

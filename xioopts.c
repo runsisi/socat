@@ -1,5 +1,5 @@
 /* source: xioopts.c */
-/* Copyright Gerhard Rieger 2001-2011 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for address options handling */
@@ -2354,7 +2354,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 
 #if HAVE_STRUCT_IP_MREQN	    
 	    if (*tokp++ == ':') {
-	       strncpy((*opts)[i].value.u_ip_mreq.ifindex, tokp, IF_NAMESIZE);
+	       strncpy((*opts)[i].value.u_ip_mreq.ifindex, tokp, IF_NAMESIZE);	/* ok */
 	       Info4("setting option \"%s\" to {\"%s\",\"%s\",\"%s\"}",
 		     ent->desc->defname,
 		     (*opts)[i].value.u_ip_mreq.multiaddr,

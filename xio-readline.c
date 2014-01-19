@@ -1,5 +1,5 @@
 /* source: xio-readline.c */
-/* Copyright Gerhard Rieger 2002-2012 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening the readline address */
@@ -202,7 +202,7 @@ ssize_t xioread_readline(struct single *pipe, void *buff, size_t bufsiz) {
 #endif /* _WITH_TERMIOS */
       Add_history(line);
       bytes = strlen(line);
-      strncpy(buff, line, bufsiz);
+      ((char *)buff)[0] = '\0'; strncat(buff, line, bufsiz-1);
       free(line);
       if ((size_t)bytes < bufsiz) {
 	 strcat(buff, "\n");  ++bytes;

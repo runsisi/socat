@@ -163,6 +163,9 @@ socklen_t socket_init(int af, union sockaddr_union *sa) {
 #endif
 
 #if _WITH_SOCKET
+/* writes a textual human readable representation of the sockaddr contents to buff and returns a pointer to buff
+   writes at most blen bytes to buff including the terminating \0 byte
+ */
 char *sockaddr_info(const struct sockaddr *sa, socklen_t salen, char *buff, size_t blen) {
    union sockaddr_union *sau = (union sockaddr_union *)sa;
    char *lbuff = buff;
@@ -244,8 +247,6 @@ char *sockaddr_unix_info(const struct sockaddr_un *sa, socklen_t salen, char *bu
       nextc =
 	 sanitize_string(sa->sun_path, salen-XIOUNIXSOCKOVERHEAD,
 			 ubuff, XIOSAN_DEFAULT_BACKSLASH_OCT_3);
-      *nextc = '\0';
-      strncpy(buff, ubuff, blen);
    } else
 #endif /* WITH_ABSTRACT_UNIXSOCKET */
    {
@@ -257,9 +258,9 @@ char *sockaddr_unix_info(const struct sockaddr_un *sa, socklen_t salen, char *bu
 				 MIN(UNIX_PATH_MAX, strlen(sa->sun_path)),
 				 ubuff, XIOSAN_DEFAULT_BACKSLASH_OCT_3);
       }
-      *nextc = '\0';
-      strncpy(buff, ubuff, blen);
    }
+   *nextc = '\0';
+   buff[0] = '\0'; strncat(buff, ubuff, blen-1);
    return buff;
 }
 #endif /* WITH_UNIX */
@@ -575,7 +576,7 @@ int ifindexbyname(const char *ifname, int anysock) {
       return -1;
    }
 
-   strncpy(ifr.ifr_name, ifname, IFNAMSIZ);
+   strncpy(ifr.ifr_name, ifname, IFNAMSIZ);	/* ok */
    if (Ioctl(s, SIOCGIFINDEX, &ifr) < 0) {
       Info3("ioctl(%d, SIOCGIFINDEX, {\"%s\"}): %s",
 	     s, ifr.ifr_name, strerror(errno));
@@ -638,11 +639,12 @@ int xiosetenv(const char *varname, const char *value, int overwrite) {
    size_t i, l;
 
    progname = diag_get_string('p');
-   strncpy(envname, progname, XIO_ENVNAMELEN-1);
+   envname[0] = '\0'; strncat(envname, progname, XIO_ENVNAMELEN-1);
    l = strlen(progname);
-   strncpy(envname+l, "_", XIO_ENVNAMELEN-1-l);
    for (i = 0; i < l; ++i)  envname[i] = toupper(envname[i]);
-   strncpy(envname+l+1, varname, XIO_ENVNAMELEN-1-l);
+   strncat(envname+l, "_", XIO_ENVNAMELEN-l-1);
+   l += 1;
+   strncat(envname+l, varname, XIO_ENVNAMELEN-l-1);
    if (Setenv(envname, value, overwrite) < 0) {
       Warn3("setenv(\"%s\", \"%s\", 1): %s",
 	    envname, value, strerror(errno));
@@ -663,16 +665,16 @@ int xiosetenv2(const char *varname, const char *varname2, const char *value,
    size_t i, l;
 
    progname = diag_get_string('p');
-   strncpy(envname, progname, XIO_ENVNAMELEN-1);
+   envname[0] = '\0'; strncat(envname, progname, XIO_ENVNAMELEN-1);
    l = strlen(progname);
-   strncpy(envname+l, "_", XIO_ENVNAMELEN-1-l);
+   strncat(envname+l, "_", XIO_ENVNAMELEN-l-1);
    l += 1;
-   strncpy(envname+l, varname, XIO_ENVNAMELEN-1-l);
-   l += strlen(varname);
-   strncpy(envname+l, "_", XIO_ENVNAMELEN-1-l);
+   strncat(envname+l, varname, XIO_ENVNAMELEN-l-1);
+   l += strlen(envname+l);
+   strncat(envname+l, "_", XIO_ENVNAMELEN-l-1);
    l += 1;
-   strncpy(envname+l, varname2, XIO_ENVNAMELEN-1-l);
-   l += strlen(varname2);
+   strncat(envname+l, varname2, XIO_ENVNAMELEN-l-1);
+   l += strlen(envname+l);
    for (i = 0; i < l; ++i)  envname[i] = toupper(envname[i]);
    if (Setenv(envname, value, overwrite) < 0) {
       Warn3("setenv(\"%s\", \"%s\", 1): %s",

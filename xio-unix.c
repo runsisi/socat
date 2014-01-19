@@ -1,5 +1,5 @@
 /* source: xio-unix.c */
-/* Copyright Gerhard Rieger 2001-2010 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening addresses of UNIX socket type */
@@ -83,7 +83,7 @@ xiosetunix(int pf,
 	       pathlen+1, sizeof(saun->sun_path));
       }
       saun->sun_path[0] = '\0';	/* so it's abstract */
-      strncpy(saun->sun_path+1, path, sizeof(saun->sun_path)-1);
+      strncpy(saun->sun_path+1, path, sizeof(saun->sun_path)-1);	/* ok */
       if (tight) {
 	 len = sizeof(struct sockaddr_un)-sizeof(saun->sun_path)+
 	    MIN(pathlen+1, sizeof(saun->sun_path));
@@ -101,7 +101,7 @@ xiosetunix(int pf,
       Warn2("unix socket address "F_Zu" characters long, truncating to "F_Zu"",
 	    pathlen, sizeof(saun->sun_path));
    }
-   strncpy(saun->sun_path, path, sizeof(saun->sun_path));
+   strncpy(saun->sun_path, path, sizeof(saun->sun_path));	/* ok */
    if (tight) {
       len = sizeof(struct sockaddr_un)-sizeof(saun->sun_path)+
 	 MIN(pathlen, sizeof(saun->sun_path));

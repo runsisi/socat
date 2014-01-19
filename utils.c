@@ -90,9 +90,9 @@ int setenv(const char *name, const char *value, int overwrite) {
 
 
 
-/* sanitize an "untrusted" character. output buffer must provide at least 5
+/* sanitizes an "untrusted" character. output buffer must provide at least 4
    characters space.
-   Does not append null. returns length out output (currently: max 4) */
+   Does not append \0. returns length of output (currently: max 4) */
 static size_t sanitize_char(char c, char *o, int style) {
    int hn;	/* high nibble */
    int ln;	/* low nibble */
@@ -126,10 +126,12 @@ static size_t sanitize_char(char c, char *o, int style) {
    return n;
 }
 
-/* sanitize "untrusted" text, replacing special control characters with the C
-   string version ("\x"), and replacing unprintable chars with ".".
+/* sanitizes "untrusted" text, replacing special control characters with the C
+   string version (eg."\n"), and replacing unprintable chars with hex
+   representation ("\xAB").
    text can grow to four times of input, so keep output buffer long enough!
    returns a pointer to the first untouched byte of the output buffer.
+   Output is not \0 terminated.
 */
 char *sanitize_string(const char *data,	/* input data */
 		   size_t bytes,	/* length of input data, >=0 */

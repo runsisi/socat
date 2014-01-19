@@ -1,5 +1,5 @@
 /* source: xio-tun.c */
-/* Copyright Gerhard Rieger 2007-2011 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening addresses of tun/tap type */
@@ -106,7 +106,7 @@ static int xioopen_tun(int argc, const char *argv[], struct opt *opts, int xiofl
    memset(&ifr, 0,sizeof(ifr));
 
    if (retropt_string(opts, OPT_TUN_NAME, &tunname) == 0) {
-      strncpy(ifr.ifr_name, tunname, IFNAMSIZ);
+      strncpy(ifr.ifr_name, tunname, IFNAMSIZ);	/* ok */
       free(tunname);
    } else {
       ifr.ifr_name[0] = '\0';

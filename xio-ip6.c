@@ -199,7 +199,16 @@ int xiocheckrange_ip6(struct sockaddr_in6 *pa, struct xiorange *range) {
 
 
 #if defined(HAVE_STRUCT_CMSGHDR) && defined(CMSG_DATA)
-/* provides info about the ancillary message */
+/* provides info about the ancillary message:
+   converts the ancillary message in *cmsg into a form useable for further
+   processing. knows the specifics of common message types.
+   returns the number of resulting syntax elements in *num
+   returns a sequence of \0 terminated type strings in *typbuff
+   returns a sequence of \0 terminated name strings in *nambuff
+   returns a sequence of \0 terminated value strings in *valbuff
+   the respective len parameters specify the available space in the buffers
+   returns STAT_OK on success
+ */
 int xiolog_ancillary_ip6(struct cmsghdr *cmsg, int *num,
 			 char *typbuff, int typlen,
 			 char *nambuff, int namlen,
@@ -217,7 +226,7 @@ int xiolog_ancillary_ip6(struct cmsghdr *cmsg, int *num,
    case IPV6_PKTINFO: {
       struct in6_pktinfo *pktinfo = (struct in6_pktinfo *)CMSG_DATA(cmsg);
       *num = 2;
-      strncpy(typbuff, "IPV6_PKTINFO", typlen);
+      typbuff[0] = '\0'; strncat(typbuff, "IPV6_PKTINFO", typlen-1);
       snprintf(nambuff, namlen, "%s%c%s", "dstaddr", '\0', "if");
       snprintf(envbuff, envlen, "%s%c%s", "IPV6_DSTADDR", '\0', "IPV6_IF");
       snprintf(valbuff, vallen, "%s%c%s",
@@ -228,8 +237,8 @@ int xiolog_ancillary_ip6(struct cmsghdr *cmsg, int *num,
 #endif /* defined(IPV6_PKTINFO) */
 #ifdef IPV6_HOPLIMIT
    case IPV6_HOPLIMIT:
-      strncpy(typbuff, "IPV6_HOPLIMIT", typlen);
-      strncpy(nambuff, "hoplimit", namlen);
+      typbuff[0] = '\0'; strncat(typbuff, "IPV6_HOPLIMIT", typlen-1);
+      nambuff[0] = '\0'; strncat(nambuff, "hoplimit", namlen-1);
       {
 	 int *intp = (int *)CMSG_DATA(cmsg);
 	 snprintf(valbuff, vallen, "%d", *intp);
@@ -238,49 +247,49 @@ int xiolog_ancillary_ip6(struct cmsghdr *cmsg, int *num,
 #endif /* defined(IPV6_HOPLIMIT) */
 #ifdef IPV6_RTHDR
    case IPV6_RTHDR:
-      strncpy(typbuff, "IPV6_RTHDR", typlen);
-      strncpy(nambuff, "rthdr", namlen);
+      typbuff[0] = '\0'; strncat(typbuff, "IPV6_RTHDR", typlen-1);
+      nambuff[0] = '\0'; strncat(nambuff, "rthdr", namlen-1);
       xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0);
       return STAT_OK;
 #endif /* defined(IPV6_RTHDR) */
 #ifdef IPV6_AUTHHDR
    case IPV6_AUTHHDR:
-      strncpy(typbuff, "IPV6_AUTHHDR", typlen);
-      strncpy(nambuff, "authhdr", namlen);
+      typbuff[0] = '\0'; strncat(typbuff, "IPV6_AUTHHDR", typlen-1);
+      nambuff[0] = '\0'; strncat(nambuff, "authhdr", namlen-1);
       xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0);
       return STAT_OK;
 #endif
 #ifdef IPV6_DSTOPTS
    case IPV6_DSTOPTS:
-      strncpy(typbuff, "IPV6_DSTOPTS", typlen);
-      strncpy(nambuff, "dstopts", namlen);
+      typbuff[0] = '\0'; strncat(typbuff, "IPV6_DSTOPTS", typlen-1);
+      nambuff[0] = '\0'; strncat(nambuff, "dstopts", namlen-1);
       xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0);
       return STAT_OK;
 #endif /* defined(IPV6_DSTOPTS) */
 #ifdef IPV6_HOPOPTS
    case IPV6_HOPOPTS:
-      strncpy(typbuff, "IPV6_HOPOPTS", typlen);
-      strncpy(nambuff, "hopopts", namlen);
+      typbuff[0] = '\0'; strncat(typbuff, "IPV6_HOPOPTS", typlen-1);
+      nambuff[0] = '\0'; strncat(nambuff, "hopopts", namlen-1);
       xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0);
       return STAT_OK;
 #endif /* defined(IPV6_HOPOPTS) */
 #ifdef IPV6_FLOWINFO
    case IPV6_FLOWINFO:
-      strncpy(typbuff, "IPV6_FLOWINFO", typlen);
-      strncpy(nambuff, "flowinfo", namlen);
+      typbuff[0] = '\0'; strncat(typbuff, "IPV6_FLOWINFO", typlen-1);
+      nambuff[0] = '\0'; strncat(nambuff, "flowinfo", namlen-1);
       xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0);
       return STAT_OK;
 #endif
 #ifdef IPV6_TCLASS
    case IPV6_TCLASS:
-      strncpy(typbuff, "IPV6_TCLASS", typlen);
-      strncpy(nambuff, "tclass", namlen);
+      typbuff[0] = '\0'; strncat(typbuff, "IPV6_TCLASS", typlen-1);
+      nambuff[0] = '\0'; strncat(nambuff, "tclass", namlen-1);
       xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0);
       return STAT_OK;
 #endif
    default:
       snprintf(typbuff, typlen, "IPV6.%u", cmsg->cmsg_type);
-      strncpy(nambuff, "data", namlen);
+      nambuff[0] = '\0'; strncat(nambuff, "data", namlen-1);
       xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0);
       return STAT_OK;
    }

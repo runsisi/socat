@@ -1,5 +1,5 @@
 /* source: xio-socks.c */
-/* Copyright Gerhard Rieger 2001-2011 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening addresses of socks4 type */
@@ -236,7 +236,8 @@ int _xioopen_socks4_prepare(const char *targetport, struct opt *opts, char **soc
 	 }
       }
    }
-   strncpy(sockhead->userid, userid, *headlen-SIZEOF_STRUCT_SOCKS4);
+   /*strncpy(sockhead->userid, userid, *headlen-SIZEOF_STRUCT_SOCKS4);*/
+   sockhead->userid[0] = '\0'; strncat(sockhead->userid, userid, *headlen-SIZEOF_STRUCT_SOCKS4-1);
    *headlen = SIZEOF_STRUCT_SOCKS4+strlen(userid)+1;
    return STAT_OK;
 }
@@ -279,7 +280,7 @@ int
          after the user name's trailing 0 byte.  */
       char* insert_position = (char*) sockhead + *headlen;
 
-      strncpy(insert_position, hostname, BUFF_LEN-*headlen);
+      insert_position[0] = '\0'; strncat(insert_position, hostname, BUFF_LEN-*headlen-1);
       ((char *)sockhead)[BUFF_LEN-1] = 0;
       *headlen += strlen(hostname) + 1;
       if (*headlen > BUFF_LEN) {
