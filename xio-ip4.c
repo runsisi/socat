@@ -108,8 +108,7 @@ xiosetsockaddrenv_ip4(int idx, char *namebuff, size_t namelen,
    switch (idx) {
    case 0:
       strcpy(namebuff, "ADDR");
-      strcpy(valuebuff,
-	     inet4addr_info(ntohl(sa->sin_addr.s_addr), valuebuff, valuelen));
+      inet4addr_info(ntohl(sa->sin_addr.s_addr), valuebuff, valuelen);
       switch (ipproto) {
       case IPPROTO_TCP:
       case IPPROTO_UDP:
