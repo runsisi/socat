@@ -20,7 +20,7 @@ int xioparsenetwork_ip4(const char *rangename, struct xiorange *range) {
    struct in_addr *netmask_in = &range->netmask.ip4.sin_addr;
    char *rangename1;	/* a copy of rangename with writing allowed */
    char *delimpos;	/* absolute address of delimiter */
-   int bits;
+   unsigned int bits;	/* netmask bits */
 
    if ((rangename1 = strdup(rangename)) == NULL) {
       Error1("strdup(\"%s\"): out of memory", rangename);
@@ -28,8 +28,20 @@ int xioparsenetwork_ip4(const char *rangename, struct xiorange *range) {
    }
 
    if (delimpos = strchr(rangename1, '/')) {
-      bits = strtoul(delimpos+1, NULL, 10);
-      netmask_in->s_addr = htonl((0xffffffff << (32-bits)));
+      char *endptr;
+      bits = strtoul(delimpos+1, &endptr, 10);
+      if (! ((*(delimpos+1) != '\0') && (*endptr == '\0'))) {
+	 Error1("not a valid netmask in \"%s\"", rangename);
+	 bits = 32;	/* most secure selection */
+      } else if (bits > 32) {
+	 Error1("netmask \"%s\" is too large", rangename);
+	 bits = 32;
+      }
+      if (bits <= 0) {
+	 netmask_in->s_addr = 0;
+      } else {
+	 netmask_in->s_addr = htonl((0xffffffff << (32-bits)));
+      }
    } else if (delimpos = strchr(rangename1, ':')) {
       if ((maskaddr = Gethostbyname(delimpos+1)) == NULL) {
 	 /* note: cast is req on AIX: */

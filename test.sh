@@ -11249,6 +11249,55 @@ PORT=$((PORT+1))
 N=$((N+1))
 
 
+# socat up to version 1.7.2.3
+# had a bug that converted a bit mask of 0 internally to 0xffffffff
+NAME=TCP4RANGE_0BITS
+case "$TESTS" in
+*%functions%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%range%*|*%$NAME%*)
+TEST="$NAME: correct evaluation of range mask 0"
+if ! eval $NUMCOND; then :;
+elif [ -z "$SECONDADDR" ]; then
+    # we need access to a second addresses
+    $PRINTF "test $F_n $TEST... ${YELLOW}need a second IPv4 address${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+tf="$td/test$N.stdout"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+#testserversec "$N" "$TEST" "$opts -s" "tcp4-l:$PORT,reuseaddr,fork,retry=1" "" "range=$SECONDADDR/32" "tcp4:127.0.0.1:$PORT" 4 tcp $PORT 0
+CMD0="$SOCAT $opts TCP4-LISTEN:$PORT,reuseaddr,range=127.0.0.1/0 CREATE:$tf"
+CMD1="$SOCAT $opts - TCP4-CONNECT:$SECONDADDR:$PORT,bind=$SECONDADDR"
+printf "test $F_n $TEST... " $N
+$CMD0 2>"${te}0" &
+pid0=$!
+waittcp4port $PORT 1
+echo "$da" |$CMD1 >"${tf}1" 2>"${te}1"
+rc1=$?
+kill $pid0 2>/dev/null; wait
+if [ $rc1 != 0 ]; then
+    $PRINTF "${YELLOW}invocation failed${NORMAL}\n"
+    numCANT=$((numCANT+1))
+elif ! [ -f "$tf" ]; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "${te}0"
+    cat "${te}1"
+    numFAIL=$((numFAIL+1))
+elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
+    $PRINTF "${YELLOW}diff failed${NORMAL}\n"
+    numCANT=$((numCANT+1))
+else
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+fi
+
+fi ;; # $SECONDADDR, NUMCOND
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
 ###############################################################################
 # here come tests that might affect your systems integrity. Put normal tests
 # before this paragraph.

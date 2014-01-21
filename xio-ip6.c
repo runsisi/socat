@@ -78,7 +78,8 @@ const struct optdesc opt_ipv6_recvpathmtu = { "ipv6-recvpathmtu", "recvpathmtu",
 int xioparsenetwork_ip6(const char *rangename, struct xiorange *range) {
    char *delimpos;	/* absolute address of delimiter */
    size_t delimind;	/* index of delimiter in string */
-   int bits;
+   unsigned int bits;	/* netmask bits */
+   char *endptr;
    char *baseaddr;
    union sockaddr_union sockaddr;
    socklen_t sockaddrlen = sizeof(sockaddr);
@@ -112,22 +113,32 @@ int xioparsenetwork_ip6(const char *rangename, struct xiorange *range) {
    rangeaddr->u6_addr32[1] = nameaddr->u6_addr32[1];
    rangeaddr->u6_addr32[2] = nameaddr->u6_addr32[2];
    rangeaddr->u6_addr32[3] = nameaddr->u6_addr32[3];
-   bits = strtoul(delimpos+1, NULL, 10);
-   if (bits > 128) {
-      Error1("invalid number of mask bits %u", bits);
-      return STAT_NORETRY;
+   bits = strtoul(delimpos+1, &endptr, 10);
+   if (! ((*(delimpos+1) != '\0') && (*endptr == '\0'))) {
+      Error1("not a valid netmask in \"%s\"", rangename);
+      bits = 128;	/* most secure selection */
+   } else if (bits > 128) {
+      Error1("netmask \"%s\" is too large", rangename);
+      bits = 128;
    }
-   if (bits < 32) {
+
+   /* I am starting to dislike C...uint32_t << 32 is undefined... */
+   if (bits == 0) {
+      rangemask->u6_addr32[0] = 0;
+      rangemask->u6_addr32[1] = 0;
+      rangemask->u6_addr32[2] = 0;
+      rangemask->u6_addr32[3] = 0;
+   } else if (bits <= 32) {
       rangemask->u6_addr32[0] = htonl(0xffffffff << (32-bits));
       rangemask->u6_addr32[1] = 0;
       rangemask->u6_addr32[2] = 0;
       rangemask->u6_addr32[3] = 0;
-   } else if (bits < 64) {
+   } else if (bits <= 64) {
       rangemask->u6_addr32[0] = 0xffffffff;
       rangemask->u6_addr32[1] = htonl(0xffffffff << (64-bits));
       rangemask->u6_addr32[2] = 0;
       rangemask->u6_addr32[3] = 0;
-   } else if (bits < 96) {
+   } else if (bits <= 96) {
       rangemask->u6_addr32[0] = 0xffffffff;
       rangemask->u6_addr32[1] = 0xffffffff;
       rangemask->u6_addr32[2] = htonl(0xffffffff << (96-bits));
