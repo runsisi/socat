@@ -49,6 +49,9 @@ withroot=0	# perform privileged tests even if not run by root
 #SOCAT_EGD="egd=/dev/egd-pool"
 MISCDELAY=1
 [ -z "$SOCAT" ] && SOCAT="./socat"
+if [ ! -x "$SOCAT" ]; then
+    echo "$SOCAT does not exist" >&2; exit 1;
+fi
 [ -z "$PROCAN" ] && PROCAN="./procan"
 [ -z "$FILAN" ] && FILAN="./filan"
 opts="$opt_t $OPTS"
@@ -10875,6 +10878,56 @@ fi # NUMCOND
 esac
 PORT=$((PORT+1))
 N=$((N+1))
+
+
+if false; then	# this overflow is not reliably reproducable
+# socat up to 2.0.0-b6 did not check the length of the PROXY-CONNECT command line paramters when copying them into the HTTP request buffer. This could lead to a buffer overflow.
+NAME=PROXY_ADDR_OVFL
+case "$TESTS" in
+*%functions%*|*%bugs%*|*%security%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: proxy address parameters overflow"
+# invoke socat PROXY-CONNECT with long proxy server and target server names. If it terminates with exit code >= 128 it is vulnerable
+# However, even if vulnerable it often does not crash. Therefore we try to use a boundary check program like ElectricFence; only with its help we can tell that clean run proofs absence of vulnerability
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+EF=; for p in ef; do
+    if type ef >/dev/null 2>&1; then
+	EF="ef "; break
+    fi
+done
+CMD0="$SOCAT $opts TCP-LISTEN:$PORT,reuseaddr FILE:/dev/null"
+#CMD1="$EF $SOCAT $opts FILE:/dev/null PROXY-CONNECT:$(perl -e "print 'A' x 256"):$(perl -e "print 'A' x 256"):80"
+CMD1="$EF $SOCAT $opts FILE:/dev/null PROXY-CONNECT:localhost:$(perl -e "print 'A' x 384"):80,proxyport=$PORT"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+waittcp4port $PORT 1
+$CMD1 >/dev/null 2>"${te}1"
+rc1=$?
+if [ $rc1 -lt 128 ]; then
+    if [ "$EF" ]; then
+	$PRINTF "$OK\n"
+	numOK=$((numOK+1))
+    else
+	$PRINTF "$UNKNOWN $RED(install ElectricFEnce!)$NORMAL\n"
+	numCANT=$((num+1))
+    fi
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD1"
+    cat "${te}"
+    numFAIL=$((numFAIL+1))
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+fi	# false
+
 
 ###############################################################################
 # here come tests that might affect your systems integrity. Put normal tests

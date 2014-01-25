@@ -1,5 +1,5 @@
 /* source: xio-proxy.c */
-/* Copyright Gerhard Rieger 2002-2011 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening addresses of HTTP proxy CONNECT
@@ -275,8 +275,9 @@ int _xioopen_proxy_connect(struct single *xfd,
 			   struct proxyvars *proxyvars,
 			   int level) {
    size_t offset;
-   char request[CONNLEN];
-   char buff[BUFLEN+1];
+   char request[CONNLEN];	/* HTTP connection request line */
+   int rv;
+   char buff[BUFLEN+1];		/* for receiving HTTP reply headers */
 #if CONNLEN > BUFLEN
 #error not enough buffer space 
 #endif
@@ -286,8 +287,12 @@ int _xioopen_proxy_connect(struct single *xfd,
    ssize_t sresult;
 
    /* generate proxy request header - points to final target */
-   sprintf(request, "CONNECT %s:%u HTTP/1.0\r\n",
-	   proxyvars->targetaddr, proxyvars->targetport);
+   rv = snprintf(request, CONNLEN, "CONNECT %s:%u HTTP/1.0\r\n",
+		 proxyvars->targetaddr, proxyvars->targetport);
+   if (rv >= CONNLEN || rv < 0) {
+      Error("_xioopen_proxy_connect(): PROXY CONNECT buffer too small");
+      return -1;
+   }
 
    /* send proxy CONNECT request (target addr+port) */
    * xiosanitize(request, strlen(request), textbuff) = '\0';
