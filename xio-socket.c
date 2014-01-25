@@ -1796,7 +1796,7 @@ int xiocheckpeer(xiosingle_t *xfd,
    returns a sequence of \0 terminated name strings in *nambuff
    returns a sequence of \0 terminated value strings in *valbuff
    the respective len parameters specify the available space in the buffers
-   returns STAT_OK
+   returns STAT_OK or other STAT_*
  */
 static int
 xiolog_ancillary_socket(struct cmsghdr *cmsg, int *num,
@@ -1843,7 +1843,8 @@ xiolog_ancillary_socket(struct cmsghdr *cmsg, int *num,
       cmsgname = "timestamp";
       cmsgenvn = "TIMESTAMP";
       { time_t t = tv->tv_sec; ctime_r(&t, valbuff); }
-      sprintf(strchr(valbuff, '\0')-1/*del \n*/, ", %06ld usecs", (long)tv->tv_usec);
+     //sprintf(strchr(valbuff, '\0')-1/*del \n*/, ", %06ld usecs", (long)tv->tv_usec);
+      snprintf(strchr(valbuff, '\0')-1/*del \n*/, vallen-strlen(valbuff)+1, ", %06ld usecs", (long)tv->tv_usec);
       break;
 #endif /* defined(SO_TIMESTAMP) */
       ;
