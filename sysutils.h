@@ -1,5 +1,5 @@
 /* source: sysutils.h */
-/* Copyright Gerhard Rieger 2001-2011 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __sysutils_h_included
@@ -74,7 +74,7 @@ extern const char *inet_ntop(int pf, const void *binaddr,
 #endif
 
 #if defined(HAVE_SETGRENT) && defined(HAVE_GETGRENT) && defined(HAVE_ENDGRENT)
-extern int getusergroups(const char *user, gid_t *list, size_t *ngroups);
+extern int getusergroups(const char *user, gid_t *list, int *ngroups);
 #endif
 
 #if !HAVE_HSTRERROR

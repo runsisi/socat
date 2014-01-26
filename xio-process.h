@@ -1,5 +1,5 @@
 /* source: xio-process.h */
-/* Copyright Gerhard Rieger 2001-2009 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_process_h_included
@@ -24,7 +24,7 @@ extern bool delayeduser;
 extern uid_t delayeduser_uid;	/* numeric user id to switch to */
 extern gid_t delayeduser_gid;	/* numeric group id to switch to */
 extern gid_t delayeduser_gids[NGROUPS];	/* num.supplementary group ids */
-extern size_t delayeduser_ngids;	/* number of suppl. gids */
+extern int   delayeduser_ngids;	/* number of suppl. gids */
 extern char *delayeduser_name;	/* name of user to switch to */
 extern char *delayeduser_dir;	/* home directory of user to switch to */
 extern char *delayeduser_shell;	/* login shell of user to switch to */

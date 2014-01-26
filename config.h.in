@@ -1,5 +1,5 @@
 /* source: config.h.in */
-/* Copyright Gerhard Rieger 2001-2011 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __config_h_included
@@ -498,6 +498,7 @@
 #undef HAVE_SETGRENT
 #undef HAVE_GETGRENT
 #undef HAVE_ENDGRENT
+#undef HAVE_GETGROUPLIST
 
 #undef WITH_HELP
 #undef WITH_STDIO

@@ -132,6 +132,11 @@ the file PORTING.
 platform specifics - redhat
 ---------------------------
 
+Install the following packages before building socat:
+  tcp_wrappers-devel
+  readline-devel
+  openssl-devel
+
 On RedHat Linux 9.0, including openssl/ssl.h might fail due to problems with
 the krb5-devel package. configure reacts with disabling openssl integration. 
 To solve this issue, help cpp to find the krb5.h include file:

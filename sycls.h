@@ -1,5 +1,5 @@
 /* source: sycls.h */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __sycls_h_included
@@ -37,6 +37,7 @@ int Setgid(gid_t gid);
 int Initgroups(const char *user, gid_t group);
 int Getgroups(int size, gid_t list[]);
 int Setgroups(size_t size, const gid_t *list);
+int Getgrouplist(const char *user, gid_t group, gid_t *groups, int *ngroups);
 int Chdir(const char *path);
 int Chroot(const char *path);
 int Gettimeofday(struct timeval *tv, struct timezone *tz);
@@ -175,6 +176,7 @@ void Add_history(const char *string);
 #define Initgroups(u,g) initgroups(u,g)
 #define Getgroups(s,l) getgroups(s,l)
 #define Setgroups(s,l) setgroups(s,l)
+#define Getgrouplist(u,g,gs,n) getgrouplist(u,g,gs,n)
 #define Chdir(p) chdir(p)
 #define Chroot(p) chroot(p)
 #define Gettimeofday(tv,tz) gettimeofday(tv,tz)

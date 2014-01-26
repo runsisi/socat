@@ -1,5 +1,5 @@
 /* source: xio-process.c */
-/* Copyright Gerhard Rieger 2001-2009 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file handles process related addresses options */
@@ -30,7 +30,7 @@ bool delayeduser = false;
 uid_t delayeduser_uid;	/* numeric user id to switch to */
 gid_t delayeduser_gid;	/* numeric group id to switch to */
 gid_t delayeduser_gids[NGROUPS];	/* num.supplementary group ids */
-size_t delayeduser_ngids;	/* number of suppl. gids */
+int   delayeduser_ngids;	/* number of suppl. gids */
 char *delayeduser_name;	/* name of user to switch to */
 char *delayeduser_dir;	/* home directory of user to switch to */
 char *delayeduser_shell;	/* login shell of user to switch to */

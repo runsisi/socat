@@ -413,15 +413,49 @@ char *sockaddr_inet6_info(const struct sockaddr_in6 *sa, char *buff, size_t blen
 }
 #endif /* WITH_IP6 */
 
-#if defined(HAVE_SETGRENT) && defined(HAVE_GETGRENT) && defined(HAVE_ENDGRENT)
-/* fill the list with the supplementary group ids of user.
+#if HAVE_GETGROUPLIST || (defined(HAVE_SETGRENT) && defined(HAVE_GETGRENT) && defined(HAVE_ENDGRENT))
+/* fills the list with the supplementary group ids of user.
    caller passes size of list in ngroups, function returns number of groups in
    ngroups.
    function returns 0 if 0 or more groups were found, or 1 if the list is too
    short. */
-int getusergroups(const char *user, gid_t *list, size_t *ngroups) {
+int getusergroups(const char *user, gid_t *list, int *ngroups) {
+#if HAVE_GETGROUPLIST
+   /* we prefer getgrouplist because it may be much faster with many groups, but it is not standard */
+   gid_t grp, twogrps[2];
+   int two = 2;
+   /* getgrouplist requires to pass an extra group id, typically the users primary group, that is then added to the supplementary group list. We don't want such an additional group in the result, but there is not "unspecified" gid value available. Thus we try to find an abitrary supplementary group id that we then pass in a second call to getgrouplist. */
+   grp = 0;
+   Getgrouplist(user, grp, twogrps, &two);
+   if (two == 1) {
+      /* either user has just this supp group, or none; we try another id */
+      grp = 1; two = 2;
+      Getgrouplist(user, grp, twogrps, &two);
+      if (two == 1) {
+	 /* user has no supp group */
+	 *ngroups = 0;
+	 return 0;
+      }
+      /* user has just the first tried group */
+      *ngroups = 1; list[0] = grp;
+      return 0;
+   }
+   /* find the first supp group that is not our grp, and use its id */
+   if (twogrps[0] == grp) {
+      grp = twogrps[1];
+   } else {
+      grp = twogrps[0];
+   }
+   if (Getgrouplist(user, grp, list, ngroups) < 0) {
+      return 1;
+   }
+   return 0;
+
+#elif defined(HAVE_SETGRENT) && defined(HAVE_GETGRENT) && defined(HAVE_ENDGRENT)
+   /* this is standard (POSIX) but may be slow */
+
    struct group *grp;
-   size_t i = 0;
+   int i = 0;
 
    setgrent();
    while (grp = getgrent()) {
@@ -439,6 +473,7 @@ int getusergroups(const char *user, gid_t *list, size_t *ngroups) {
    endgrent();
    *ngroups = i;
    return 0;
+#endif /* HAVE_SETGRENT... */
 }
 #endif
 

@@ -82,6 +82,8 @@ AC_CHECK_HEADERS(linux/fs.h linux/ext2_fs.h)
 
 dnl Checks for setgrent, getgrent and endgrent.
 AC_CHECK_FUNCS(setgrent getgrent endgrent)
+dnl Checks for getgrouplist() /* BSD */
+AC_CHECK_FUNCS(getgrouplist)
 
 dnl Link libresolv if necessary (for Mac OS X)
 AC_SEARCH_LIBS([res_9_init], [resolv])

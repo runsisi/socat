@@ -1,5 +1,5 @@
 /* source: sycls.c */
-/* Copyright Gerhard Rieger 2001-2009 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* explicit system call and C library trace function, for those who miss strace
@@ -276,11 +276,31 @@ int Getgroups(int size, gid_t list[]) {
 #if HAVE_SETGROUPS
 int Setgroups(size_t size, const gid_t *list) {
    int result, _errno;
-   Debug2("setgroups("F_Zu", "F_gid",...)", size, list[0]);
+   switch (size) {
+   case 0: Debug1("setgroups("F_Zu", [])", size); break;;
+   case 1: Debug2("setgroups("F_Zu", ["F_gid"])", size, list[0]); break;;
+   case 2: Debug3("setgroups("F_Zu", ["F_gid","F_gid"])", size, list[0], list[1]); break;;
+   default: Debug3("setgroups("F_Zu", ["F_gid","F_gid",...])", size, list[0], list[1]); break;;
+   }
    result = setgroups(size, list);
    _errno = errno;
    Debug1("setgroups() -> %d", result);
    errno = _errno;
+   return result;
+}
+#endif
+
+#if HAVE_GETGROUPLIST
+int Getgrouplist(const char *user, gid_t group, gid_t *groups, int *ngroups) {
+   int n = *ngroups, result;
+   Debug4("getgrouplist(\"%s\", "F_gid", %p, [%d])", user, group, groups, n);
+   result = getgrouplist(user, group, groups, ngroups);
+   switch (Min(n,*ngroups)) {
+   case 0:  Debug2("getgrouplist(,, [], [%d]) -> %d", *ngroups, result); break;
+   case 1:  Debug3("getgrouplist(,, ["F_gid"], [%d]) -> %d", groups[0], *ngroups, result); break;
+   case 2:  Debug4("getgrouplist(,, ["F_gid","F_gid"], [%d]) -> %d", groups[0], groups[1], *ngroups, result); break;
+   default: Debug4("getgrouplist(,, ["F_gid","F_gid",...], [%d]) -> %d", groups[0], groups[1], *ngroups, result); break;
+   }
    return result;
 }
 #endif

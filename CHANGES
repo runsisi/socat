@@ -58,6 +58,10 @@ porting:
 
 	Adapted, improved test.sh script
 
+	Red Hat issue 1021429: getgroupent fails with large number of groups;
+	use getgrouplist() when available instead of sequence of calls to
+	getgrent()
+
 docu:
 	libwrap always logs to syslog
 
