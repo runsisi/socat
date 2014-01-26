@@ -66,4 +66,7 @@ char *sanitize_string(const char *data,	/* input data */
 extern
 char *xiosubstr(char *scratch, const char *str, size_t from, size_t len);
 
+extern
+int xio_snprintf(char *str, size_t size, const char *format, ...);
+
 #endif /* !defined(__utils_h_included) */

@@ -312,7 +312,7 @@ int xiolog_ancillary_ip6(struct cmsghdr *cmsg, int *num,
 /* convert the IP6 socket address to human readable form. buff should be at
    least 50 chars long. output includes the port number */
 static char *inet6addr_info(const struct in6_addr *sa, char *buff, size_t blen) {
-   if (snprintf(buff, blen, "[%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x]",
+   if (xio_snprintf(buff, blen, "[%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x]",
 #if HAVE_IP6_SOCKADDR==0
 		(sa->s6_addr[0]<<8)+sa->s6_addr[1],
 		(sa->s6_addr[2]<<8)+sa->s6_addr[3],
@@ -368,7 +368,7 @@ static char *inet6addr_info(const struct in6_addr *sa, char *buff, size_t blen) 
 		ntohs(((unsigned short *)&sa->__u6_addr.__u6_addr16)[6]),
 		ntohs(((unsigned short *)&sa->__u6_addr.__u6_addr16)[7])
 #endif
-		) < 0) {
+		) >= blen) {
       Warn("sockaddr_inet6_info(): buffer too short");
       buff[blen-1] = '\0';
    }

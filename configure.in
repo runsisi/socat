@@ -1284,11 +1284,29 @@ AC_CHECK_FUNC(SSLv2_server_method, AC_DEFINE(HAVE_SSLv2_server_method), AC_CHECK
 dnl Run time checks
 
 
+AC_MSG_CHECKING(if snprintf conforms to C99)
+AC_CACHE_VAL(ac_cv_have_c99_snprintf,
+[AC_TRY_RUN([
+#include <stdio.h>
+#include <stdlib.h>
+int main(void){
+char s[2];
+exit(snprintf(s,2,"ab")!=2);
+}],
+[ac_cv_have_c99_snprintf=yes],
+[ac_cv_have_c99_snprintf=no],
+[ac_cv_have_c99_snprintf=no])])
+if test $ac_cv_have_c99_snprintf = yes; then
+   AC_DEFINE(HAVE_C99_SNPRINTF)
+fi
+AC_MSG_RESULT($ac_cv_have_c99_snprintf)
+
+
 AC_MSG_CHECKING(if printf has Z modifier)
 AC_CACHE_VAL(ac_cv_have_z_modifier,
 [AC_TRY_RUN([
 #include <stdio.h>
-main(){
+int main(void){
 char s[16];
 sprintf(s,"%Zu",1);
 exit(strcmp(s,"1"));

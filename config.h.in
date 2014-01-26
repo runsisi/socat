@@ -439,6 +439,9 @@
 /* is uint64_t already defined? */
 #undef HAVE_TYPE_UINT64
 
+/* Define if snprintf() returns required len on truncation (C-99 conform) */
+#undef HAVE_C99_SNPRINTF
+
 /* Define if you have the printf "Z" modifier */
 #undef HAVE_FORMAT_Z
 

@@ -1,5 +1,5 @@
 /* source: utils.c */
-/* Copyright Gerhard Rieger 2001-2009 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* useful additions to C library */
@@ -161,3 +161,22 @@ char *xiosubstr(char *scratch, const char *str, size_t from, size_t len) {
    return scratch0;
 }
       
+
+/* since version 1.7.2.4 socat supports C-99 behaviour of snprintf but still
+   can handle the old glibc case with -1 return on truncation.
+   Do not rely on exact return value in case of truncation
+ */
+int xio_snprintf(char *str, size_t size, const char *format, ...) {
+   va_list ap;
+   int result;
+
+   va_start(ap, format);
+   result = vsnprintf(str, size, format, ap);
+#if ! HAVE_C99_SNPRINTF
+   if (result < 0) {
+      result = size+63;	/* indicate truncation with just some guess */
+   }
+#endif /* !HAVE_C99_SNPRINTF */
+   va_end(ap);
+   return result;
+}

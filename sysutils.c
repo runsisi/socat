@@ -173,14 +173,16 @@ char *sockaddr_info(const struct sockaddr *sa, socklen_t salen, char *buff, size
    int n;
 
 #if HAVE_STRUCT_SOCKADDR_SALEN
-   if ((n = snprintf(cp, blen, "LEN=%d ", sau->soa.sa_len)) < 0) {
+   n = xio_snprintf(cp, blen, "LEN=%d ", sau->soa.sa_len);
+   if (n < 0 || n >= blen) {
       Warn1("sockaddr_info(): buffer too short ("F_Zu")", blen);
       *buff = '\0';
       return buff;
    }
    cp += n,  blen -= n;
 #endif
-   if ((n = snprintf(cp, blen, "AF=%d ", sau->soa.sa_family)) < 0) {
+   n = xio_snprintf(cp, blen, "AF=%d ", sau->soa.sa_family);
+   if (n < 0 || n >= blen) {
       Warn1("sockaddr_info(): buffer too short ("F_Zu")", blen);
       *buff = '\0';
       return buff;
@@ -204,13 +206,14 @@ char *sockaddr_info(const struct sockaddr *sa, socklen_t salen, char *buff, size
       break;
 #endif
    default:
-      if ((n = snprintf(cp, blen, "AF=%d ", sa->sa_family)) < 0) {
+      n = xio_snprintf(cp, blen, "AF=%d ", sa->sa_family);
+      if (n < 0 || n >= blen) {
 	 Warn1("sockaddr_info(): buffer too short ("F_Zu")", blen);
 	 *buff = '\0';
 	 return buff;
       }
       cp += n,  blen -= n;
-      if ((snprintf(cp, blen,
+      n = xio_snprintf(cp, blen,
 		    "0x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
 		    ((unsigned char *)sau->soa.sa_data)[0],
 		    ((unsigned char *)sau->soa.sa_data)[1],
@@ -225,7 +228,8 @@ char *sockaddr_info(const struct sockaddr *sa, socklen_t salen, char *buff, size
 		    ((unsigned char *)sau->soa.sa_data)[10],
 		    ((unsigned char *)sau->soa.sa_data)[11],
 		    ((unsigned char *)sau->soa.sa_data)[12],
-		    ((unsigned char *)sau->soa.sa_data)[13])) < 0) {
+		   ((unsigned char *)sau->soa.sa_data)[13]);
+      if (n < 0 || n >= blen) {
 	 Warn("sockaddr_info(): buffer too short");
 	 *buff = '\0';
 	 return buff;
@@ -268,9 +272,9 @@ char *sockaddr_unix_info(const struct sockaddr_un *sa, socklen_t salen, char *bu
 #if WITH_IP4
 /* addr in host byte order! */
 char *inet4addr_info(uint32_t addr, char *buff, size_t blen) {
-   if (snprintf(buff, blen, "%u.%u.%u.%u",
+   if (xio_snprintf(buff, blen, "%u.%u.%u.%u",
 		(unsigned int)(addr >> 24), (unsigned int)((addr >> 16) & 0xff),
-		(unsigned int)((addr >> 8) & 0xff), (unsigned int)(addr & 0xff)) < 0) {
+		(unsigned int)((addr >> 8) & 0xff), (unsigned int)(addr & 0xff)) >= blen) {
       Warn("inet4addr_info(): buffer too short");
       buff[blen-1] = '\0';
    }
@@ -280,12 +284,12 @@ char *inet4addr_info(uint32_t addr, char *buff, size_t blen) {
 
 #if WITH_IP4
 char *sockaddr_inet4_info(const struct sockaddr_in *sa, char *buff, size_t blen) {
-   if (snprintf(buff, blen, "%u.%u.%u.%u:%hu",
+   if (xio_snprintf(buff, blen, "%u.%u.%u.%u:%hu",
 		((unsigned char *)&sa->sin_addr.s_addr)[0],
 		((unsigned char *)&sa->sin_addr.s_addr)[1],
 		((unsigned char *)&sa->sin_addr.s_addr)[2],
 		((unsigned char *)&sa->sin_addr.s_addr)[3],
-		htons(sa->sin_port)) < 0) {
+		htons(sa->sin_port)) >= blen) {
       Warn("sockaddr_inet4_info(): buffer too short");
       buff[blen-1] = '\0';
    }
@@ -301,19 +305,19 @@ const char *inet_ntop(int pf, const void *binaddr,
    switch (pf) {
    case PF_INET:
       if ((retlen =
-	   snprintf(addrtext, textlen, "%u.%u.%u.%u",
+	   xio_snprintf(addrtext, textlen, "%u.%u.%u.%u",
 		    ((unsigned char *)binaddr)[0],
 		    ((unsigned char *)binaddr)[1],
 		    ((unsigned char *)binaddr)[2],
 		    ((unsigned char *)binaddr)[3]))
-	  < 0) {
-	 return NULL;	/* errno is valid */
+	  >= textlen) {
+	 errno = ENOSPC; return NULL;
       }
       break;
 #if WITH_IP6
    case PF_INET6:
       if ((retlen =
-	   snprintf(addrtext, textlen, "%x:%x:%x:%x:%x:%x:%x:%x",
+	   xio_snprintf(addrtext, textlen, "%x:%x:%x:%x:%x:%x:%x:%x",
 		    ntohs(((uint16_t *)binaddr)[0]),
 		    ntohs(((uint16_t *)binaddr)[1]),
 		    ntohs(((uint16_t *)binaddr)[2]),
@@ -323,8 +327,8 @@ const char *inet_ntop(int pf, const void *binaddr,
 		    ntohs(((uint16_t *)binaddr)[6]),
 		    ntohs(((uint16_t *)binaddr)[7])
 		    ))
-	  < 0) {
-	 return NULL;	/* errno is valid */
+	  >= textlen) {
+	 errno = ENOSPC; return NULL;
       }
       break;
 #endif /* WITH_IP6 */
@@ -341,7 +345,7 @@ const char *inet_ntop(int pf, const void *binaddr,
 /* convert the IP6 socket address to human readable form. buff should be at
    least 50 chars long. output includes the port number */
 char *sockaddr_inet6_info(const struct sockaddr_in6 *sa, char *buff, size_t blen) {
-   if (snprintf(buff, blen, "[%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x]:%hu",
+   if (xio_snprintf(buff, blen, "[%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x]:%hu",
 #if HAVE_IP6_SOCKADDR==0
 		(sa->sin6_addr.s6_addr[0]<<8)+
 		sa->sin6_addr.s6_addr[1],
@@ -405,9 +409,8 @@ char *sockaddr_inet6_info(const struct sockaddr_in6 *sa, char *buff, size_t blen
 		ntohs(((unsigned short *)&sa->sin6_addr.__u6_addr.__u6_addr16)[6]),
 		ntohs(((unsigned short *)&sa->sin6_addr.__u6_addr.__u6_addr16)[7]),
 #endif
-		ntohs(sa->sin6_port)) < 0) {
+		ntohs(sa->sin6_port)) >= blen) {
       Warn("sockaddr_inet6_info(): buffer too short");
-      buff[blen-1] = '\0';
    }
    return buff;
 }

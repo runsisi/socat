@@ -1,5 +1,5 @@
 /* source: compat.h */
-/* Copyright Gerhard Rieger 2001-2011 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __compat_h_included
@@ -621,35 +621,5 @@
 /* with MacOSX this is  char *  */
 extern const char *hstrerror(int);
 #endif
-
-/*****************************************************************************/
-/* here are the declarations of compat.c */
-
-#if !HAVE_SIGACTION
-struct sigaction {
-   void (*sa_handler)(int);
-   void (*sa_sigaction)(int, siginfo_t *, void *);
-   sigset_t sa_mask;
-   int sa_flags;
-} ;
-struct siginfo {
-   int si_signo;
-   int si_errno;
-   int si_code;
-   pid_t si_pid;
-   uid_t si_uid;
-   int   si_status;
-   /*clock_t si_utime;*/
-   /*clock_t si_stime;*/
-   sigval_t si_value;
-   int      si_int;
-   void    *si_ptr;
-   void    *si_addr;
-   /*int      si_band;*/
-   /*int      si_fd;*/
-} ;
-extern int sigaction(int signum, const struct sigaction *act,
-		     struct sigaction *oldact);
-#endif /* !HAVE_SIGACTION */
 
 #endif /* !defined(__compat_h_included) */

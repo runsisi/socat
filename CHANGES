@@ -62,6 +62,11 @@ porting:
 	use getgrouplist() when available instead of sequence of calls to
 	getgrent()
 
+	Red Hat issue 1021948: snprintf API change;
+	Implemented xio_snprintf() function as wrapper that tries to emulate C99
+	behaviour on old glibc systems, and adapted all affected calls
+	appropriately
+
 docu:
 	libwrap always logs to syslog
 
