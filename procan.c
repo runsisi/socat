@@ -1,5 +1,5 @@
 /* source: procan.c */
-/* Copyright Gerhard Rieger 2001-2006 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* the subroutine procan makes a "PROCess ANalysis". It gathers information
@@ -78,40 +78,40 @@ int procan(FILE *outfile) {
       struct rlimit rlim;
 
       fprintf(outfile, "\nRESOURCE LIMITS\n");
-      fprintf(outfile, "resource                         current         maximum\n");
+      fprintf(outfile, "resource                                 current                 maximum\n");
       if (getrlimit(RLIMIT_CPU, &rlim) < 0) {
 	 Warn2("getrlimit(RLIMIT_CPU, %p): %s", &rlim, strerror(errno));
       } else {
 	 fprintf(outfile,
-		 "cpu time (seconds)      %16"F_rlim_max"%16"F_rlim_max"\n",
+		 "cpu time (seconds)      %24"F_rlim_max"%24"F_rlim_max"\n",
 		 rlim.rlim_cur, rlim.rlim_max);
       }
       if (getrlimit(RLIMIT_FSIZE, &rlim) < 0) {
 	 Warn2("getrlimit(RLIMIT_FSIZE, %p): %s", &rlim, strerror(errno));
       } else {
 	 fprintf(outfile,
-		 "file size (blocks)      %16"F_rlim_max"%16"F_rlim_max"\n",
+		 "file size (blocks)      %24"F_rlim_max"%24"F_rlim_max"\n",
 		 rlim.rlim_cur, rlim.rlim_max);
       }
       if (getrlimit(RLIMIT_DATA, &rlim) < 0) {
 	 Warn2("getrlimit(RLIMIT_DATA, %p): %s", &rlim, strerror(errno));
       } else {
 	 fprintf(outfile,
-		 "data seg size (kbytes)  %16"F_rlim_max"%16"F_rlim_max"\n",
+		 "data seg size (kbytes)  %24"F_rlim_max"%24"F_rlim_max"\n",
 		 rlim.rlim_cur, rlim.rlim_max);
       }
       if (getrlimit(RLIMIT_STACK, &rlim) < 0) {
 	 Warn2("getrlimit(RLIMIT_STACK, %p): %s", &rlim, strerror(errno));
       } else {
 	 fprintf(outfile,
-		 "stack size (blocks)     %16"F_rlim_max"%16"F_rlim_max"\n",
+		 "stack size (blocks)     %24"F_rlim_max"%24"F_rlim_max"\n",
 		 rlim.rlim_cur, rlim.rlim_max);
       }
       if (getrlimit(RLIMIT_CORE, &rlim) < 0) {
 	 Warn2("getrlimit(RLIMIT_CORE, %p): %s", &rlim, strerror(errno));
       } else {
 	 fprintf(outfile,
-		 "core file size (blocks) %16"F_rlim_max"%16"F_rlim_max"\n",
+		 "core file size (blocks) %24"F_rlim_max"%24"F_rlim_max"\n",
 		 rlim.rlim_cur, rlim.rlim_max);
       }
 #ifdef RLIMIT_RSS	/* Linux, AIX; not Cygwin */
@@ -119,7 +119,7 @@ int procan(FILE *outfile) {
 	 Warn2("getrlimit(RLIMIT_RSS, %p): %s", &rlim, strerror(errno));
       } else {
 	 fprintf(outfile,
-		 "max resident set size   %16"F_rlim_max"%16"F_rlim_max"\n",
+		 "max resident set size   %24"F_rlim_max"%24"F_rlim_max"\n",
 		 rlim.rlim_cur, rlim.rlim_max);
       }
 #endif
@@ -128,7 +128,7 @@ int procan(FILE *outfile) {
 	 Warn2("getrlimit(RLIMIT_NPROC, %p): %s", &rlim, strerror(errno));
       } else {
 	 fprintf(outfile,
-		 "max user processes      %16"F_rlim_max"%16"F_rlim_max"\n",
+		 "max user processes      %24"F_rlim_max"%24"F_rlim_max"\n",
 		 rlim.rlim_cur, rlim.rlim_max);
       }
 #endif
@@ -137,7 +137,7 @@ int procan(FILE *outfile) {
 	 Warn2("getrlimit(RLIMIT_NOFILE, %p): %s", &rlim, strerror(errno));
       } else {
 	 fprintf(outfile,
-		 "open files              %16"F_rlim_max"%16"F_rlim_max"\n",
+		 "open files              %24"F_rlim_max"%24"F_rlim_max"\n",
 		 rlim.rlim_cur, rlim.rlim_max);
       }
 #endif
@@ -146,7 +146,7 @@ int procan(FILE *outfile) {
 	 Warn2("getrlimit(RLIMIT_MEMLOCK, %p): %s", &rlim, strerror(errno));
       } else {
 	 fprintf(outfile,
-		 "max locked-in-memory address space %16"F_rlim_max"%16"F_rlim_max"\n",
+		 "max locked-in-memory\n  address space         %24"F_rlim_max"%24"F_rlim_max"\n",
 		 rlim.rlim_cur, rlim.rlim_max);
       }
 #endif
@@ -155,7 +155,7 @@ int procan(FILE *outfile) {
 	 Warn2("getrlimit(RLIMIT_AS, %p): %s", &rlim, strerror(errno));
       } else {
 	 fprintf(outfile,
-		 "virtual memory (kbytes) %16"F_rlim_max"%16"F_rlim_max"\n",
+		 "virtual memory (kbytes) %24"F_rlim_max"%24"F_rlim_max"\n",
 		 rlim.rlim_cur, rlim.rlim_max);
       }
 #endif

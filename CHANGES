@@ -16,6 +16,10 @@ corrections:
 	Probably no impact.
 	Thanks to David Binderman for reproting this issue.
 
+	procan could not cleanly format ulimit values longer than 16 decimal
+	digits. Thanks to Frank Dana for providing a patch that increases field
+	width to 24 digits.
+
 porting:
 	Performed changes for Fedora release 19
 
