@@ -20,6 +20,10 @@ corrections:
 	digits. Thanks to Frank Dana for providing a patch that increases field
 	width to 24 digits.
 
+	OPENSSL-CONNECT with bind option failed on some systems, eg.FreeBSD, with
+	"Invalid argument"
+	Thanks to Emile den Tex for reporting this bug.
+
 porting:
 	Performed changes for Fedora release 19
 

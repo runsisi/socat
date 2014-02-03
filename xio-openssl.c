@@ -1,5 +1,5 @@
 /* source: xio-openssl.c */
-/* Copyright Gerhard Rieger 2002-2011 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the implementation of the openssl addresses */
@@ -243,7 +243,7 @@ static int
       /* this cannot fork because we retrieved fork option above */
       result =
 	 _xioopen_connect(xfd,
-			  needbind?(struct sockaddr *)us:NULL, sizeof(*us),
+			  needbind?(struct sockaddr *)us:NULL, uslen,
 			  (struct sockaddr *)them, themlen,
 			  opts, pf, socktype, ipproto, lowport, level);
       switch (result) {

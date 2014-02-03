@@ -11198,6 +11198,57 @@ PORT=$((PORT+1))
 N=$((N+1))
 
 
+# OPENSSL-CONNECT with bind option failed on some systems (eg.FreeBSD, but not
+# Linux) with "Invalid argument".
+NAME=OPENSSL_CONNECT_BIND
+case "$TESTS" in
+*%functions%*|*%bugs%*|*%socket%*|*%ssl%*|*%$NAME%*)
+TEST="$NAME: test OPENSSL-CONNECT with bind option"
+# have a simple SSL server that just echoes data.
+# connect with socat using OPENSSL-CONNECT with bind, send data and check if the
+# reply is identical.
+if ! eval $NUMCOND; then :; else
+tf0="$td/test$N.0.stdout"
+te0="$td/test$N.0.stderr"
+tf1="$td/test$N.1.stdout"
+te1="$td/test$N.1.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,ciphers=aNULL,verify=0, PIPE"
+CMD1="$SOCAT $opts - OPENSSL-CONNECT:$LOCALHOST:$PORT,bind=$LOCALHOST,ciphers=aNULL,verify=0"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"$te0" &
+pid0=$!
+waittcp4port $PORT 1
+echo "$da" |$CMD1 >"$tf1" 2>"$te1"
+rc1=$?
+kill $pid0 2>/dev/null; wait
+if [ "$rc1" -ne 0 ]; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "$te0"
+    cat "$te1"
+    numFAIL=$((numFAIL+1))
+elif ! echo "$da" |diff - $tf1 >"$tdiff"; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "${te}0"
+    cat "${te}1"
+    cat "$tdiff"
+    numFAIL=$((numFAIL+1))
+else
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
 ###############################################################################
 # here come tests that might affect your systems integrity. Put normal tests
 # before this paragraph.
