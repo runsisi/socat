@@ -12,6 +12,10 @@ corrections:
 	--disable-genericsocket in the help text. Thanks to Ben Gardiner for
 	reporting and patching this bug
 
+	In xioshutdown() a wrong branch was chosen after RECVFROM type addresses.
+	Probably no impact.
+	Thanks to David Binderman for reproting this issue.
+
 porting:
 	Performed changes for Fedora release 19
 

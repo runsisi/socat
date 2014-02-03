@@ -1,5 +1,5 @@
 /* source: xioshutdown.c */
-/* Copyright Gerhard Rieger 2001-2009 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this is the source of the extended shutdown function */
@@ -127,7 +127,8 @@ int xioshutdown(xiofile_t *sock, int how) {
 	 }
 	 Alarm(0);
       }
-   } else if ((sock->stream.dtype & XIODATA_MASK) == XIODATA_RECVFROM) {
+   } else if ((sock->stream.dtype & XIODATA_MASK) ==
+	      (XIODATA_RECVFROM & XIODATA_MASK)) {
       if (how >= 1) {
 	 if (Close(sock->stream.fd) < 0) {
 	    Info2("close(%d): %s",
