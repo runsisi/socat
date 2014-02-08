@@ -599,7 +599,10 @@ int sockan(int fd, FILE *outfile) {
       {SO_DETACH_FILTER, "DETACH_FILTER"},
 #endif
       {0, NULL} } ;
-   char optval[FILAN_OPTLEN];
+   union {
+      char c[FILAN_OPTLEN];
+      int  i[FILAN_OPTLEN/sizeof(int)];
+   } optval;
    const struct sockopt *optname;
    union sockaddr_union sockname, peername;	/* the longest I know of */
    socklen_t namelen;
@@ -609,33 +612,33 @@ int sockan(int fd, FILE *outfile) {
 #endif
 
    optlen = FILAN_OPTLEN;
-   result = Getsockopt(fd, SOL_SOCKET, SO_TYPE, optval, &optlen);
+   result = Getsockopt(fd, SOL_SOCKET, SO_TYPE, optval.c, &optlen);
    if (result < 0) {
       Debug4("getsockopt(%d, SOL_SOCKET, SO_TYPE, %p, {"F_socklen"}): %s",
-	     fd, optval, optlen, strerror(errno));
+	     fd, optval.c, optlen, strerror(errno));
    } else {
-      Debug3("fd %d: socket of type %d (\"%s\")", fd, *(int *)optval,
-	  socktypes[*(int *)optval]);
+      Debug3("fd %d: socket of type %d (\"%s\")", fd, *optval.i,
+	  socktypes[*optval.i]);
    }
 
    optname = sockopts; while (optname->so) {
       optlen = FILAN_OPTLEN;
       result =
-	 Getsockopt(fd, SOL_SOCKET, optname->so, (void *)optval, &optlen);
+	 Getsockopt(fd, SOL_SOCKET, optname->so, (void *)optval.c, &optlen);
       if (result < 0) {
 	 Debug5("getsockopt(%d, SOL_SOCKET, %d, %p, {"F_socklen"}): %s",
-		fd, optname->so, optval, optlen, strerror(errno));
+		fd, optname->so, optval.c, optlen, strerror(errno));
 	 fputc('\t', outfile);
       } else if (optlen == sizeof(int)) {
 	 Debug2("getsockopt(,,, {%d}, %d)",
-	     *(int *)optval, optlen);
-	 /*Info2("%s: %d", optname->name, *(int *)optval);*/
-	 fprintf(outfile, "%s=%d\t", optname->name, *(int *)optval);
+	     *optval.i, optlen);
+	 /*Info2("%s: %d", optname->name, optval.i);*/
+	 fprintf(outfile, "%s=%d\t", optname->name, *optval.i);
       } else {
 	 Debug3("getsockopt(,,, {%d,%d}, %d)",
-	     ((int *)optval)[0], ((int *)optval)[1], optlen);
+	     optval.i[0], optval.i[1], optlen);
 	 fprintf(outfile, "%s={%d,%d}\t", optname->name,
-		 ((int *)optval)[0], ((int *)optval)[1]);
+		 optval.i[0], optval.i[1]);
       }
       ++optname;
    }
@@ -890,16 +893,19 @@ int tcpan(int fd, FILE *outfile) {
 #if _WITH_SOCKET
 int sockoptan(int fd, const struct sockopt *optname, int socklay, FILE *outfile) {
 #define FILAN_OPTLEN 256
-   char optval[FILAN_OPTLEN];
+   union {
+      char c[FILAN_OPTLEN];
+      int  i[FILAN_OPTLEN/sizeof(int)];
+   } optval;
    socklen_t optlen;
    int result;
 
    optlen = FILAN_OPTLEN;
    result =
-      Getsockopt(fd, socklay, optname->so, (void *)optval, &optlen);
+      Getsockopt(fd, socklay, optname->so, (void *)optval.c, &optlen);
    if (result < 0) {
       Debug6("getsockopt(%d, %d, %d, %p, {"F_socklen"}): %s",
-	     fd, socklay, optname->so, optval, optlen, strerror(errno));
+	     fd, socklay, optname->so, optval.c, optlen, strerror(errno));
       fputc('\t', outfile);
       return -1;
    } else if (optlen == 0) {
@@ -907,13 +913,13 @@ int sockoptan(int fd, const struct sockopt *optname, int socklay, FILE *outfile)
       fprintf(outfile, "%s=\"\"\t", optname->name);
    } else if (optlen == sizeof(int)) {
       Debug2("getsockopt(,,, {%d}, %d)",
-	     *(int *)optval, optlen);
-      fprintf(outfile, "%s=%d\t", optname->name, *(int *)optval);
+	     *optval.i, optlen);
+      fprintf(outfile, "%s=%d\t", optname->name, *optval.i);
    } else {
       char outbuf[FILAN_OPTLEN*9+128], *cp = outbuf;
       int i;
       for (i = 0; i < optlen/sizeof(unsigned int); ++i) {
-	 cp += sprintf(cp, "%08x ", ((unsigned int *)optval)[i]);
+	 cp += sprintf(cp, "%08x ", (unsigned int)optval.i[i]);
       }
       *--cp = '\0';	/* delete trailing space */
       Debug2("getsockopt(,,, {%s}, %d)", outbuf, optlen);

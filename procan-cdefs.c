@@ -20,7 +20,7 @@ int procan_cdefs(FILE *outfile) {
    fprintf(outfile, "#define FD_SETSIZE %u\n", FD_SETSIZE);
 #endif
 #ifdef NFDBITS
-   fprintf(outfile, "#define NFDBITS %u\n", (unsigned int)NFDBITS);
+   fprintf(outfile, "#define NFDBITS %d\n", NFDBITS);
 #endif
 #ifdef O_RDONLY
    fprintf(outfile, "#define O_RDONLY %u\n", O_RDONLY);

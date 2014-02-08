@@ -24,6 +24,9 @@ corrections:
 	"Invalid argument"
 	Thanks to Emile den Tex for reporting this bug.
 
+	Changed some variable definitions to make gcc -O2 aliasing checker happy
+	Thanks to Ilya Gordeev for reporting these warnings
+
 porting:
 	Performed changes for Fedora release 19
 
