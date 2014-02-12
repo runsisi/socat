@@ -152,6 +152,7 @@ static int xioopen_unix_listen(int argc, const char *argv[], struct opt *opts, i
 
    if (applyopts_single(xfd, opts, PH_INIT) < 0) return STAT_NORETRY;
    applyopts(-1, opts, PH_INIT);
+   applyopts_named(name, opts, PH_EARLY);	/* umask! */
    applyopts(-1, opts, PH_EARLY);
 
    if (!(ABSTRACT && abstract)) {
@@ -163,15 +164,27 @@ static int xioopen_unix_listen(int argc, const char *argv[], struct opt *opts, i
 	       Error2("unlink(\"%s\"): %s", name, strerror(errno));
 	    }
 	 }
+      } else {
+	 struct stat buf;
+	 if (Lstat(name, &buf) == 0) {
+	    Error1("\"%s\" exists", name);
+	    return STAT_RETRYLATER;
+	 }
+      }
+      if (opt_unlink_close) {
+	 if ((xfd->unlink_close = strdup(name)) == NULL) {
+	    Error1("strdup(\"%s\"): out of memory", name);
+	 }
+	 xfd->opt_unlink_close = true;
       }
 
       /* trying to set user-early, perm-early etc. here is useless because
 	 file system entry is available only past bind() call. */
-      applyopts_named(name, opts, PH_EARLY);	/* umask! */
    }
 
    opts0 = copyopts(opts, GROUP_ALL);
 
+   /* this may fork() */
    if ((result =
 	xioopen_listen(xfd, xioflags,
 		       (struct sockaddr *)&us, uslen,
@@ -179,18 +192,15 @@ static int xioopen_unix_listen(int argc, const char *argv[], struct opt *opts, i
        != 0)
       return result;
 
-   /* we set this option as late as now because we should not remove an
-      existing entry when bind() failed */
    if (!(ABSTRACT && abstract)) {
       if (opt_unlink_close) {
-	 if (pid == Getpid()) {
-	    if ((xfd->unlink_close = strdup(name)) == NULL) {
-	       Error1("strdup(\"%s\"): out of memory", name);
-	    }
-	    xfd->opt_unlink_close = true;
+	 if (pid != Getpid()) {
+	    /* in a child process - do not unlink-close here! */
+	    xfd->opt_unlink_close = false;
 	 }
       }
    }
+
    return 0;
 }
 #endif /* WITH_LISTEN */
@@ -347,13 +357,9 @@ int xioopen_unix_recvfrom(int argc, const char *argv[], struct opt *opts,
       /* only for non abstract because abstract do not work in file system */
       retropt_bool(opts, OPT_UNLINK_EARLY, &opt_unlink_early);
       retropt_bool(opts, OPT_UNLINK_CLOSE, &opt_unlink_close);
-      if (opt_unlink_close) {
-	 if ((xfd->unlink_close = strdup(name)) == NULL) {
-	    Error1("strdup(\"%s\"): out of memory", name);
-	 }
-	 xfd->opt_unlink_close = true;
-      }
+   }
 
+   if (!(ABSTRACT && abstract)) {
       if (opt_unlink_early) {
 	 if (Unlink(name) < 0) {
 	    if (errno == ENOENT) {
@@ -362,12 +368,30 @@ int xioopen_unix_recvfrom(int argc, const char *argv[], struct opt *opts,
 	       Error2("unlink(\"%s\"): %s", name, strerror(errno));
 	    }
 	 }
+      } else {
+	 struct stat buf;
+	 if (Lstat(name, &buf) == 0) {
+	    Error1("\"%s\" exists", name);
+	    return STAT_RETRYLATER;
+	 }
       }
+      if (opt_unlink_close) {
+	 if ((xfd->unlink_close = strdup(name)) == NULL) {
+	    Error1("strdup(\"%s\"): out of memory", name);
+	 }
+	 xfd->opt_unlink_close = true;
+      }
+
+      /* trying to set user-early, perm-early etc. here is useless because
+	 file system entry is available only past bind() call. */
    }
+   applyopts_named(name, opts, PH_EARLY);	/* umask! */
 
    xfd->para.socket.la.soa.sa_family = pf;
 
    xfd->dtype = XIODATA_RECVFROM_ONE;
+
+   /* this may fork */
    return
       _xioopen_dgram_recvfrom(xfd, xioflags,
 			      needbind?(struct sockaddr *)&us:NULL, uslen,
@@ -410,6 +434,8 @@ int xioopen_unix_recv(int argc, const char *argv[], struct opt *opts,
    if (!(ABSTRACT && abstract)) {
       /* only for non abstract because abstract do not work in file system */
       retropt_bool(opts, OPT_UNLINK_EARLY, &opt_unlink_early);
+      retropt_bool(opts, OPT_UNLINK_CLOSE, &opt_unlink_close);
+
       if (opt_unlink_early) {
 	 if (Unlink(name) < 0) {
 	    if (errno == ENOENT) {
@@ -418,10 +444,13 @@ int xioopen_unix_recv(int argc, const char *argv[], struct opt *opts,
 	       Error2("unlink(\"%s\"): %s", name, strerror(errno));
 	    }
 	 }
+      } else {
+	 struct stat buf;
+	 if (Lstat(name, &buf) == 0) {
+	    Error1("\"%s\" exists", name);
+	    return STAT_RETRYLATER;
+	 }
       }
-
-      retropt_bool(opts, OPT_UNLINK_CLOSE, &opt_unlink_close);
-
       if (opt_unlink_close) {
 	 if ((xfd->unlink_close = strdup(name)) == NULL) {
 	    Error1("strdup(\"%s\"): out of memory", name);
@@ -429,6 +458,7 @@ int xioopen_unix_recv(int argc, const char *argv[], struct opt *opts,
 	 xfd->opt_unlink_close = true;
       }
    }
+   applyopts_named(name, opts, PH_EARLY);	/* umask! */
 
    xfd->para.socket.la.soa.sa_family = pf;
 

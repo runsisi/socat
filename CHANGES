@@ -48,6 +48,11 @@ corrections:
 	fixed some typos and minor issues, including:
 	Red Hat issue 1021967: formatting error in manual page
 
+	UNIX-LISTEN with fork option did not remove the socket file system entry
+	when exiting. Other file system based passive address types had similar
+	issues or failed to apply options umask, user e.a.
+	Thanks to Lorenzo Monti for pointing me to this issue
+
 porting:
 	Performed changes for Fedora release 19
 

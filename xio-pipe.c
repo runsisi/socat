@@ -1,5 +1,5 @@
 /* source: xio-pipe.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening addresses of pipe type */
@@ -100,6 +100,7 @@ static int xioopen_fifo(int argc, const char *argv[], struct opt *opts, int xiof
    applyopts(-1, opts, PH_INIT);
 
    retropt_bool(opts, OPT_UNLINK_EARLY, &opt_unlink_early);
+   applyopts_named(pipename, opts, PH_EARLY);	/* umask! */
    applyopts(-1, opts, PH_EARLY);
 
    if (opt_unlink_early) {
@@ -146,6 +147,8 @@ static int xioopen_fifo(int argc, const char *argv[], struct opt *opts, int xiof
 	 }
 #endif
 	 Notice2("created named pipe \"%s\" for %s", pipename, ddirection[rw]);
+	 applyopts_named(pipename, opts, PH_ALL);
+
       }
       if (opt_unlink_close) {
 	 if ((fd->stream.unlink_close = strdup(pipename)) == NULL) {

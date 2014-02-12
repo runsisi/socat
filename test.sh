@@ -52,7 +52,7 @@ esac
 #SOCAT_EGD="egd=/dev/egd-pool"
 MISCDELAY=1
 [ -z "$SOCAT" ] && SOCAT="./socat"
-if [ ! -x "$SOCAT" ]; then
+if ! [ -x "$SOCAT" ] && ! type $SOCAT >/dev/null 2>&1; then
     echo "$SOCAT does not exist" >&2; exit 1;
 fi
 [ -z "$PROCAN" ] && PROCAN="./procan"
@@ -11302,6 +11302,355 @@ N=$((N+1))
 
 
 ###############################################################################
+# tests: option umask with "passive" NAMED group addresses
+while read addr fileopt addropts proto diropt ADDR2; do
+if [ -z "$addr" ] || [[ "$addr" == \#* ]]; then continue; fi
+# some passive (listening...) filesystem based addresses did not implement the
+# umask option
+ADDR=${addr^^*}
+ADDR_=${ADDR/-/_}
+PROTO=${proto^^*}
+if [ "$diropt" = "." ]; then diropt=; fi
+if [ "$fileopt" = "." ]; then fileopt=; fi
+if [ "$addropts" = "." ]; then addropts=; fi
+NAME=${ADDR_}_UMASK
+case "$TESTS" in
+*%functions%*|*%bugs%*|*%proto%*|*%socket%*|*%$proto%*|*%$NAME%*)
+TEST="$NAME: $ADDR applies option umask"
+# start a socat process with passive/listening file system entry. Check the
+# permissions of the FS entry, then terminate the process.
+# Test succeeds when FS entry exists and has expected permissions.
+if ! eval $NUMCOND; then :; else
+                            if [ $ADDR = PTY ]; then  set -xv; fi
+tlog="$td/test$N.log"
+te0="$td/test$N.0.stderr"
+tsock="$td/test$N.sock"
+if [ -z "$fileopt" ]; then
+    CMD0="$SOCAT $opts $diropt $ADDR:$tsock,$addropts,unlink-close=0,umask=177 $ADDR2"
+else
+    CMD0="$SOCAT $opts $diropt $ADDR,$fileopt=$tsock,$addropts,unlink-close=0,umask=177 $ADDR2"
+fi
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"$te0" &
+pid0=$!
+wait${proto} $tsock 1 2>"$tlog"
+ERRNOENT=; if ! [ -e "$tsock" ]; then  ERRNOENT=1;  fi
+perms=$(stat -L --print "%a\n" "$tsock" 2>/dev/null)
+kill $pid0 2>>"$tlog"
+wait
+if [ "$ERRNOENT" ]; then
+    $PRINTF "${RED}no entry${NORMAL}\n"
+    echo "$CMD0 &"
+    cat "$te0"
+    cat "$tlog"
+    let numFAIL=numFAIL+1
+elif [ "$perms" != "600" ]; then
+    $PRINTF "${RED}perms \"$perms\", expected \"600\" ${NORMAL}\n"
+    echo "$CMD0 &"
+    cat "$te0"
+    let numFAIL=numFAIL+1
+else
+    $PRINTF "$OK\n"
+    let numOK=numOK+1
+fi
+                               set +xv
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+#
+done <<<"
+# address     fileopt addropts waitfor direction ADDR2
+create        .       .        file     -U       FILE:/dev/null
+open          .       creat    file     .        FILE:/dev/null
+gopen         .       creat    file     .        FILE:/dev/null
+unix-listen   .       .        unixport .        FILE:/dev/null
+unix-recvfrom .       .        unixport .        FILE:/dev/null
+unix-recv     .       .        unixport -u       FILE:/dev/null
+pipe          .       .        file     -u       FILE:/dev/null
+# pty does not seem to honor umask:
+#pty           link    .        file     .        PIPE
+"
+
+
+# tests: option perm with "passive" NAMED group addresses
+while read addr fileopt addropts proto diropt; do
+if [ -z "$addr" ] || [[ "$addr" == \#* ]]; then continue; fi
+# test if passive (listening...) filesystem based addresses implement option perm
+ADDR=${addr^^*}
+ADDR_=${ADDR/-/_}
+PROTO=${proto^^*}
+if [ "$diropt" = "." ]; then diropt=; fi
+if [ "$fileopt" = "." ]; then fileopt=; fi
+if [ "$addropts" = "." ]; then addropts=; fi
+NAME=${ADDR_}_PERM
+case "$TESTS" in
+*%functions%*|*%bugs%*|*%proto%*|*%socket%*|*%$proto%*|*%$NAME%*)
+TEST="$NAME: $ADDR applies option perm"
+# start a socat process with passive/listening file system entry. Check the
+# permissions of the FS entry, then terminate the process.
+# Test succeeds when FS entry exists and has expected permissions.
+if ! eval $NUMCOND; then :; else
+tlog="$td/test$N.log"
+te0="$td/test$N.0.stderr"
+tsock="$td/test$N.sock"
+#                                      set -vx
+if [ -z "$fileopt" ]; then
+    CMD0="$SOCAT $opts $diropt $ADDR:$tsock,$addropts,perm=511 FILE:/dev/null,ignoreeof"
+else
+    CMD0="$SOCAT $opts $diropt $ADDR,$fileopt=$tsock,$addropts,perm=511 FILE:/dev/null,ignoreeof"
+fi
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"$te0" &
+pid0=$!
+wait${proto} $tsock 1 2>"$tlog"
+ERRNOENT=; if ! [ -e "$tsock" ]; then  ERRNOENT=1;  fi
+perms=$(stat -L --print "%a\n" "$tsock" 2>/dev/null)
+kill $pid0 2>>"$tlog"
+wait
+if [ "$ERRNOENT" ]; then
+    $PRINTF "${RED}no entry${NORMAL}\n"
+    echo "$CMD0 &"
+    cat "$te0"
+    cat "$tlog"
+    let numFAIL=numFAIL+1
+elif [ "$perms" != "511" ]; then
+    $PRINTF "${RED}perms \"$perms\", expected \"511\" ${NORMAL}\n"
+    echo "$CMD0 &"
+    cat "$te0"
+    let numFAIL=numFAIL+1
+else
+    $PRINTF "$OK\n"
+    let numOK=numOK+1
+fi
+                                      set +vx
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+#
+done <<<"
+# address     fileopt addropts waitfor direction
+create        .       .        file     -U
+open          .       creat    file     .
+gopen         .       creat    file     .
+unix-listen   .       .        unixport .
+unix-recvfrom .       .        unixport .
+unix-recv     .       .        unixport -u
+pipe          .       .        file     -u
+pty           link    .        file     .
+"
+
+
+# tests: option user with "passive" NAMED group addresses
+while read addr fileopt addropts proto diropt; do
+if [ -z "$addr" ] || [[ "$addr" == \#* ]]; then continue; fi
+# test if passive (listening...) filesystem based addresses implement option user
+ADDR=${addr^^*}
+ADDR_=${ADDR/-/_}
+PROTO=${proto^^*}
+if [ "$diropt" = "." ]; then diropt=; fi
+if [ "$fileopt" = "." ]; then fileopt=; fi
+if [ "$addropts" = "." ]; then addropts=; fi
+NAME=${ADDR_}_USER
+case "$TESTS" in
+*%functions%*|*%bugs%*|*%proto%*|*%socket%*|*%$proto%*|*%root%*|*%$NAME%*)
+TEST="$NAME: $ADDR applies option user"
+# start a socat process with passive/listening file system entry with user option.
+# Check the owner of the FS entry, then terminate the process.
+# Test succeeds when FS entry exists and has expected owner.
+if ! eval $NUMCOND; then :;
+elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+tlog="$td/test$N.log"
+te0="$td/test$N.0.stderr"
+tsock="$td/test$N.sock"
+#                                      set -vx
+if [ -z "$fileopt" ]; then
+    CMD0="$SOCAT $opts $diropt $ADDR:$tsock,$addropts,user=$SUBSTUSER FILE:/dev/null,ignoreeof"
+else
+    CMD0="$SOCAT $opts $diropt $ADDR,$fileopt=$tsock,$addropts,user=$SUBSTUSER FILE:/dev/null,ignoreeof"
+fi
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"$te0" &
+pid0=$!
+wait${proto} $tsock 1 2>"$tlog"
+ERRNOENT=; if ! [ -e "$tsock" ]; then  ERRNOENT=1;  fi
+user=$(stat -L --print "%U\n" "$tsock" 2>/dev/null)
+kill $pid0 2>>"$tlog"
+wait
+if [ "$ERRNOENT" ]; then
+    $PRINTF "${RED}no entry${NORMAL}\n"
+    echo "$CMD0 &"
+    cat "$te0"
+    cat "$tlog"
+    let numFAIL=numFAIL+1
+elif [ "$user" != "$SUBSTUSER" ]; then
+    $PRINTF "${RED}user \"$user\", expected \"$SUBSTUSER\" ${NORMAL}\n"
+    echo "$CMD0 &"
+    cat "$te0"
+    let numFAIL=numFAIL+1
+else
+    $PRINTF "$OK\n"
+    let numOK=numOK+1
+fi
+                                      set +vx
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+#
+done <<<"
+# address     fileopt addropts waitfor direction
+create        .       .        file     -U
+open          .       creat    file     .
+gopen         .       creat    file     .
+unix-listen   .       .        unixport .
+unix-recvfrom .       .        unixport .
+unix-recv     .       .        unixport -u
+pipe          .       .        file     -u
+pty           link    .        file     .
+"
+
+
+# tests: is "passive" filesystem entry removed at the end? (without fork)
+while read addr fileopt addropts proto diropt crit ADDR2; do
+if [ -z "$addr" ] || [[ "$addr" == \#* ]]; then continue; fi
+# some passive (listening...) filesystem based addresses did not remove the file
+# system entry at the end
+ADDR=${addr^^*}
+ADDR_=${ADDR/-/_}
+PROTO=${proto^^*}
+if [ "$diropt" = "." ]; then diropt=; fi
+if [ "$fileopt" = "." ]; then fileopt=; fi
+if [ "$addropts" = "." ]; then addropts=; fi
+# $ADDR removes the file system entry when the process is terminated
+NAME=${ADDR_}_REMOVE
+case "$TESTS" in
+*%functions%*|*%bugs%*|*%unix%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: $ADDR removes socket entry when terminated during accept"
+# start a socat process with listening unix domain socket etc. Terminate the
+# process and check if the file system socket entry still exists.
+# Test succeeds when entry does not exist.
+if ! eval $NUMCOND; then :; else
+tlog="$td/test$N.log"
+te0="$td/test$N.0.stderr"
+tsock="$td/test$N.sock"
+if [ -z "$fileopt" ]; then
+    CMD0="$SOCAT $opts $diropt $ADDR:$tsock,$addropts $ADDR2"
+else
+    CMD0="$SOCAT $opts $diropt $ADDR,$fileopt=$tsock,$addropts $ADDR2"
+fi
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"$te0" &
+pid0=$!
+wait${proto} "$crit" $tsock 1 2>"$tlog"
+kill $pid0 2>>"$tlog"
+rc1=$?
+wait >>"$tlog"
+if [ $rc1 != 0 ]; then
+    $PRINTF "${YELLOW}setup failed${NORMAL}\n"
+    echo "$CMD0 &"
+    cat "$te0"
+    cat "$tlog"
+    let numCANT=numCANT+1
+elif ! [ $crit $tsock ]; then
+    $PRINTF "$OK\n"
+    let numOK=numOK+1
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    cat "$te0"
+    cat "$tlog"
+    let numFAIL=numFAIL+1
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+#
+done <<<"
+# address     fileopt addropts waitfor direction crit ADDR2
+unix-listen   .       .        unixport .        -e   FILE:/dev/null
+unix-recvfrom .       .        unixport .        -e   FILE:/dev/null
+unix-recv     .       .        unixport -u       -e   FILE:/dev/null
+pipe          .       .        file     -u       -e   FILE:/dev/null
+pty           link    .        file     .        -L   PIPE
+"
+
+
+# tests: is "passive" filesystem entry removed at the end? (with fork)
+while read addr fileopt addropts proto diropt crit ADDR2; do
+if [ -z "$addr" ] || [[ "$addr" == \#* ]]; then continue; fi
+# some passive (listening...) filesystem based addresses with fork did not remove
+# the file system entry at the end
+ADDR=${addr^^*}
+ADDR_=${ADDR/-/_}
+PROTO=${proto^^*}
+if [ "$diropt" = "." ]; then diropt=; fi
+if [ "$fileopt" = "." ]; then fileopt=; fi
+if [ "$addropts" = "." ]; then addropts=; fi
+# $ADDR with fork removes the file system entry when the process is terminated
+NAME=${ADDR_}_REMOVE_FORK
+case "$TESTS" in
+*%functions%*|*%bugs%*|*%unix%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: $ADDR with fork removes socket entry when terminated during accept"
+# start a socat process with listening unix domain socket etc and option fork.
+# Terminate the process and check if the file system socket entry still exists.
+# Test succeeds when entry does not exist.
+if ! eval $NUMCOND; then :; else
+tlog="$td/test$N.log"
+te0="$td/test$N.0.stderr"
+tsock="$td/test$N.sock"
+if [ -z "$fileopt" ]; then
+    CMD0="$SOCAT $opts $diropt $ADDR:$tsock,fork,$addropts $ADDR2"
+else
+    CMD0="$SOCAT $opts $diropt $ADDR,fork,$fileopt=$tsock,$addropts $ADDR2"
+fi
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"$te0" &
+pid0=$!
+wait${proto} "$crit" $tsock 1 2>"$tlog"
+kill $pid0 2>>"$tlog"
+rc1=$?
+wait
+if [ $rc1 != 0 ]; then
+    $PRINTF "${YELLOW}setup failed${NORMAL}\n"
+    echo "$CMD0 &"
+    cat "$te0"
+    cat "$tlog"
+    let numCANT=numCANT+1
+elif ! [ $crit $tsock ]; then
+    $PRINTF "$OK\n"
+    let numOK=numOK+1
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    cat "$te0"
+    cat "$tlog"
+    let numFAIL=numFAIL+1
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+#
+done <<<"
+# address     fileopt addropts waitfor direction crit ADDR2
+unix-listen   .       .        unixport .        -e   FILE:/dev/null
+unix-recvfrom .       .        unixport .        -e   FILE:/dev/null
+"
+
+
+##################################################################################
+#=================================================================================
 # here come tests that might affect your systems integrity. Put normal tests
 # before this paragraph.
 # tests must be explicitely selected by roottough or name (not number)
