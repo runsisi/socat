@@ -27,6 +27,9 @@ corrections:
 	Changed some variable definitions to make gcc -O2 aliasing checker happy
 	Thanks to Ilya Gordeev for reporting these warnings
 
+	On big endian platforms with type long >32bit the range option applied a
+	bad base address. Thanks to hejia hejia for reporting and fixing this bug.
+
 porting:
 	Performed changes for Fedora release 19
 

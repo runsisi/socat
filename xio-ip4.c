@@ -1,5 +1,5 @@
 /* source: xio-ip4.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for IP4 related functions */
@@ -55,7 +55,7 @@ int xioparsenetwork_ip4(const char *rangename, struct xiorange *range) {
 	    free(rangename1);
 	 return STAT_NORETRY;
       }
-      netaddr_in->s_addr = *(unsigned long *)nameaddr->h_addr_list[0];
+      netaddr_in->s_addr = *(uint32_t *)nameaddr->h_addr_list[0];
    }
    free(rangename1);
    return STAT_OK;
