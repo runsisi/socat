@@ -2,6 +2,8 @@
 porting:
 	Performed changes for Fedora release 19
 
+	Adapted, improved test.sh script
+
 ####################### V 1.7.2.3:
 
 security:

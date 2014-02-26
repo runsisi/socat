@@ -18,9 +18,9 @@ while [ "$1" ]; do
     case "X$1" in
 	X-t?*) val_t="${1#-t}" ;;
 	X-t)   shift; val_t="$1" ;;
-	X-n?*) NUMCOND="test \$N -eq ${1#-t}" ;;
+	X-n?*) NUMCOND="test \$N -eq ${1#-n}" ;;
 	X-n)   shift; NUMCOND="test \$N -eq $1" ;;
-	X-N?*) NUMCOND="test \$N -gt ${1#-t}" ;;
+	X-N?*) NUMCOND="test \$N -gt ${1#-N}" ;;
 	X-N)   shift; NUMCOND="test \$N -ge $1" ;;
 	*) break;
     esac
@@ -59,7 +59,12 @@ export SOCAT_OPTS="$opts"
 #debug="1"
 debug=
 TESTS="$@"; export TESTS
-INTERFACE=eth0;	# not used for function tests
+# for some tests we need a network interface
+if type ip >/dev/null 2>&1; then
+    INTERFACE=$(ip r get 8.8.8.8 |grep ' dev ' |head -n 1 |sed "s/.*dev[[:space:]][[:space:]]*\([^[:space:]][^[:space:]]*\).*/\1/")
+else
+    INTERFACE=eth0
+fi
 MCINTERFACE=lo	# !!! Linux only
 #LOCALHOST=192.168.58.1
 #LOCALHOST=localhost
@@ -122,6 +127,13 @@ case "$UNAME" in
     PTYOPTS2="raw,echo=0"
     ;;
 esac
+
+# for some tests we need an unprivileged user id to su to
+if [ "$SUDO_USER" ]; then
+    SUBSTUSER="$SUDO_USER"
+else
+    SUBSTUSER="$(grep -v '^[^:]*:^[^:]*:0:' /etc/passwd |tail -n 1 |cut -d: -f1)"
+fi
 
 # non-root users might miss ifconfig in their path
 case "$UNAME" in
@@ -1492,6 +1504,7 @@ N=1
 numOK=0
 numFAIL=0
 numCANT=0
+listFAIL=
 
 #==============================================================================
 # test if selected socat features work ("FUNCTIONS")
@@ -1523,6 +1536,7 @@ testecho () {
 	echo "$SOCAT $opts $arg1 $arg2"
 	cat "$te"
 	numFAIL=$((numFAIL+1))
+	listFAIL="$listFAIL $N"
     elif echo "$da" |diff - "$tf" >"$tdiff" 2>&1; then
 	$PRINTF "$OK\n"
 	if [ -n "$debug" ]; then cat $te; fi
@@ -1534,8 +1548,10 @@ testecho () {
 	echo diff:
 	cat "$tdiff"
 	numFAIL=$((numFAIL+1))
+	listFAIL="$listFAIL $N"
     fi
     fi # NUMCOND
+set +vx
 }
 
 # test if call to od and throughput of data works - with graceful shutdown and
@@ -1562,6 +1578,7 @@ testod () {
 	echo "$SOCAT $opts $arg1 $arg2"
 	cat "$te"
 	numFAIL=$((numFAIL+1))
+	listFAIL="$listFAIL $num"
 #    elif echo "$daout" |diff - "$tf" >"$tdiff" 2>&1; then
     elif diff "$tr" "$tf" >"$tdiff" 2>&1; then
 	$PRINTF "$OK\n"
@@ -1573,6 +1590,7 @@ testod () {
 	cat "$te"
 	cat "$tdiff"
 	numFAIL=$((numFAIL+1))
+	listFAIL="$listFAIL $num"
     fi
     fi # NUMCOND
 }
@@ -2145,7 +2163,7 @@ gentestdsacert () {
 
 NAME=UNISTDIO
 case "$TESTS " in
-*%functions%*|*%stdio%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%stdio%*|*%$NAME%*)
 TEST="$NAME: unidirectional throughput from stdin to stdout"
 testecho "$N" "$TEST" "stdin" "stdout" "$opts -u"
 esac
@@ -2154,7 +2172,7 @@ N=$((N+1))
 
 NAME=UNPIPESTDIO
 case "$TESTS" in
-*%functions%*|*%stdio%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%stdio%*|*%$NAME%*)
 TEST="$NAME: stdio with simple echo via internal pipe"
 testecho "$N" "$TEST" "stdio" "pipe" "$opts"
 esac
@@ -2163,7 +2181,7 @@ N=$((N+1))
 
 NAME=UNPIPESHORT
 case "$TESTS" in
-*%functions%*|*%stdio%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%stdio%*|*%$NAME%*)
 TEST="$NAME: short form of stdio ('-') with simple echo via internal pipe"
 testecho "$N" "$TEST" "-" "pipe" "$opts"
 esac
@@ -2172,7 +2190,7 @@ N=$((N+1))
 
 NAME=DUALSTDIO
 case "$TESTS" in
-*%functions%*|*%stdio%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%stdio%*|*%$NAME%*)
 TEST="$NAME: splitted form of stdio ('stdin!!stdout') with simple echo via internal pipe"
 testecho "$N" "$TEST" "stdin!!stdout" "pipe" "$opts"
 esac
@@ -2181,7 +2199,7 @@ N=$((N+1))
 
 NAME=DUALSHORTSTDIO
 case "$TESTS" in
-*%functions%*|*%stdio%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%stdio%*|*%$NAME%*)
 TEST="$NAME: short splitted form of stdio ('-!!-') with simple echo via internal pipe"
 testecho "$N" "$TEST" "-!!-" "pipe" "$opts"
 esac
@@ -2190,7 +2208,7 @@ N=$((N+1))
 
 NAME=DUALFDS
 case "$TESTS" in
-*%functions%*|*%fd%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%fd%*|*%$NAME%*)
 TEST="$NAME: file descriptors with simple echo via internal pipe"
 testecho "$N" "$TEST" "0!!1" "pipe" "$opts"
 esac
@@ -2199,7 +2217,7 @@ N=$((N+1))
 
 NAME=NAMEDPIPE
 case "$TESTS" in
-*%functions%*|*%pipe%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%pipe%*|*%$NAME%*)
 TEST="$NAME: simple echo via named pipe"
 # with MacOS, this test hangs if nonblock is not used. Is an OS bug.
 tp="$td/pipe$N"
@@ -2211,7 +2229,7 @@ N=$((N+1))
 
 NAME=DUALPIPE
 case "$TESTS" in
-*%functions%*|*%pipe%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%pipe%*|*%$NAME%*)
 TEST="$NAME: simple echo via named pipe, specified twice"
 tp="$td/pipe$N"
 testecho "$N" "$TEST" "" "pipe:$tp,nonblock!!pipe:$tp" "$opts"
@@ -2221,7 +2239,7 @@ N=$((N+1))
 
 NAME=FILE
 case "$TESTS" in
-*%functions%*|*%engine%*|*%file%*|*%ignoreeof%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%engine%*|*%file%*|*%ignoreeof%*|*%$NAME%*)
 TEST="$NAME: simple echo via file"
 tf="$td/file$N"
 testecho "$N" "$TEST" "" "$tf,ignoreeof!!$tf" "$opts"
@@ -2231,7 +2249,7 @@ N=$((N+1))
 
 NAME=EXECSOCKET
 case "$TESTS" in
-*%functions%*|*%exec%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%exec%*|*%$NAME%*)
 TEST="$NAME: simple echo via exec of cat with socketpair"
 testecho "$N" "$TEST" "" "exec:$CAT" "$opts"
 esac
@@ -2240,7 +2258,7 @@ N=$((N+1))
 
 NAME=SYSTEMSOCKET
 case "$TESTS" in
-*%functions%*|*%system%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%system%*|*%$NAME%*)
 TEST="$NAME: simple echo via system() of cat with socketpair"
 testecho "$N" "$TEST" "" "system:$CAT" "$opts" "$val_t"
 esac
@@ -2249,7 +2267,7 @@ N=$((N+1))
 
 NAME=EXECPIPES
 case "$TESTS" in
-*%functions%*|*%pipe%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%pipe%*|*%$NAME%*)
 TEST="$NAME: simple echo via exec of cat with pipes"
 testecho "$N" "$TEST" "" "exec:$CAT,pipes" "$opts"
 esac
@@ -2258,7 +2276,7 @@ N=$((N+1))
 
 NAME=SYSTEMPIPES
 case "$TESTS" in
-*%functions%*|*%pipes%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%pipes%*|*%$NAME%*)
 TEST="$NAME: simple echo via system() of cat with pipes"
 testecho "$N" "$TEST" "" "system:$CAT,pipes" "$opts"
 esac
@@ -2267,7 +2285,7 @@ N=$((N+1))
 
 NAME=EXECPTY
 case "$TESTS" in
-*%functions%*|*%exec%*|*%pty%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%exec%*|*%pty%*|*%$NAME%*)
 TEST="$NAME: simple echo via exec of cat with pseudo terminal"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs pty >/dev/null; then
@@ -2282,7 +2300,7 @@ N=$((N+1))
 
 NAME=SYSTEMPTY
 case "$TESTS" in
-*%functions%*|*%system%*|*%pty%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%system%*|*%pty%*|*%$NAME%*)
 TEST="$NAME: simple echo via system() of cat with pseudo terminal"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs pty >/dev/null; then
@@ -2297,7 +2315,7 @@ N=$((N+1))
 
 NAME=SYSTEMPIPESFDS
 case "$TESTS" in
-*%functions%*|*%system%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%system%*|*%$NAME%*)
 TEST="$NAME: simple echo via system() of cat with pipes, non stdio"
 testecho "$N" "$TEST" "" "system:$CAT>&9 <&8,pipes,fdin=8,fdout=9" "$opts"
 esac
@@ -2306,7 +2324,7 @@ N=$((N+1))
 
 NAME=DUALSYSTEMFDS
 case "$TESTS" in
-*%functions%*|*%system%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%system%*|*%$NAME%*)
 TEST="$NAME: echo via dual system() of cat"
 testecho "$N" "$TEST" "system:$CAT>&6,fdout=6!!system:$CAT<&7,fdin=7" "" "$opts" "$val_t"
 esac
@@ -2319,7 +2337,7 @@ NAME=EXECSOCKETFLUSH
 # idea: have socat exec'ing od; send data and EOF, and check if the od'ed data
 # arrives.
 case "$TESTS" in
-*%functions%*|*%exec%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%exec%*|*%$NAME%*)
 TEST="$NAME: call to od via exec with socketpair"
 testod "$N" "$TEST" "" "exec:$OD_C" "$opts"
 esac
@@ -2328,7 +2346,7 @@ N=$((N+1))
 
 NAME=SYSTEMSOCKETFLUSH
 case "$TESTS" in
-*%functions%*|*%system%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%system%*|*%$NAME%*)
 TEST="$NAME: call to od via system() with socketpair"
 testod "$N" "$TEST" "" "system:$OD_C" "$opts" $val_t
 esac
@@ -2337,7 +2355,7 @@ N=$((N+1))
 
 NAME=EXECPIPESFLUSH
 case "$TESTS" in
-*%functions%*|*%exec%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%exec%*|*%$NAME%*)
 TEST="$NAME: call to od via exec with pipes"
 testod "$N" "$TEST" "" "exec:$OD_C,pipes" "$opts"
 esac
@@ -2346,7 +2364,7 @@ N=$((N+1))
 
 NAME=SYSTEMPIPESFLUSH
 case "$TESTS" in
-*%functions%*|*%system%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%system%*|*%$NAME%*)
 TEST="$NAME: call to od via system() with pipes"
 testod "$N" "$TEST" "" "system:$OD_C,pipes" "$opts" "$val_t"
 esac
@@ -2356,7 +2374,7 @@ N=$((N+1))
 ## LATER:
 #NAME=EXECPTYFLUSH
 #case "$TESTS" in
-#*%functions%*|*%exec%*|*%pty%*|*%$NAME%*)
+#*%$N%*|*%functions%*|*%exec%*|*%pty%*|*%$NAME%*)
 #TEST="$NAME: call to od via exec with pseudo terminal"
 #if ! testaddrs pty >/dev/null; then
 #    $PRINTF "test $F_n $TEST... ${YELLOW}PTY not available${NORMAL}\n" $N
@@ -2371,7 +2389,7 @@ N=$((N+1))
 ## LATER:
 #NAME=SYSTEMPTYFLUSH
 #case "$TESTS" in
-#*%functions%*|*%system%*|*%pty%*|*%$NAME%*)
+#*%$N%*|*%functions%*|*%system%*|*%pty%*|*%$NAME%*)
 #TEST="$NAME: call to od via system() with pseudo terminal"
 #if ! testaddrs pty >/dev/null; then
 #    $PRINTF "test $F_n $TEST... ${YELLOW}PTY not available${NORMAL}\n" $N
@@ -2385,7 +2403,7 @@ N=$((N+1))
 
 NAME=SYSTEMPIPESFDSFLUSH
 case "$TESTS" in
-*%functions%*|*%system%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%system%*|*%$NAME%*)
 TEST="$NAME: call to od via system() with pipes, non stdio"
 testod "$N" "$TEST" "" "system:$OD_C>&9 <&8,pipes,fdin=8,fdout=9" "$opts" "$val_t"
 esac
@@ -2394,7 +2412,7 @@ N=$((N+1))
 
 NAME=DUALSYSTEMFDSFLUSH
 case "$TESTS" in
-*%functions%*|*%system%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%system%*|*%$NAME%*)
 TEST="$NAME: call to od via dual system()"
 testod "$N" "$TEST" "system:$OD_C>&6,fdout=6!!system:$CAT<&7,fdin=7" "pipe" "$opts" "$val_t"
 esac
@@ -2409,7 +2427,7 @@ esac
 
 NAME=RAWIP4SELF
 case "$TESTS" in
-*%functions%*|*%ip4%*|*%rawip%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip4%*|*%rawip%*|*%root%*|*%$NAME%*)
 TEST="$NAME: simple echo via self receiving raw IPv4 protocol"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4) || ! runsip4 >/dev/null; then
@@ -2429,7 +2447,7 @@ N=$((N+1))
 
 NAME=RAWIPX4SELF
 case "$TESTS" in
-*%functions%*|*%ip4%*|*%rawip%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip4%*|*%rawip%*|*%root%*|*%$NAME%*)
 TEST="$NAME: simple echo via self receiving raw IP protocol, v4 by target"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4) || ! runsip4 >/dev/null; then
@@ -2449,7 +2467,7 @@ N=$((N+1))
 
 NAME=RAWIP6SELF
 case "$TESTS" in
-*%functions%*|*%ip6%*|*%rawip%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip6%*|*%rawip%*|*%root%*|*%$NAME%*)
 TEST="$NAME: simple echo via self receiving raw IPv6 protocol"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip6) || ! runsip6 >/dev/null; then
@@ -2469,7 +2487,7 @@ N=$((N+1))
 
 NAME=RAWIPX6SELF
 case "$TESTS" in
-*%functions%*|*%ip%*|*%ip6%*|*%rawip%*|*%rawip6%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip%*|*%ip6%*|*%rawip%*|*%rawip6%*|*%root%*|*%$NAME%*)
 TEST="$NAME: simple echo via self receiving raw IP protocol, v6 by target"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip6) || ! runsip6 >/dev/null; then
@@ -2490,7 +2508,7 @@ N=$((N+1))
 
 NAME=TCPSELF
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: echo via self connection of TCP IPv4 socket"
 if ! eval $NUMCOND; then :;
 elif [ "$UNAME" != Linux ]; then
@@ -2508,7 +2526,7 @@ N=$((N+1))
 NAME=UDPSELF
 if ! eval $NUMCOND; then :; else
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: echo via self connection of UDP IPv4 socket"
 if [ "$UNAME" != Linux ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}only on Linux$NORMAL\n" $N
@@ -2517,14 +2535,14 @@ else
     testecho "$N" "$TEST" "" "udp:$SECONDADDR:$PORT,sp=$PORT,bind=$SECONDADDR" "$opts"
 fi
 esac
-    fi # NUMCOND
+fi # NUMCOND
 PORT=$((PORT+1))
 N=$((N+1))
 
 
 NAME=UDP6SELF
 case "$TESTS" in
-*%functions%*|*%udp%*|*%udp6%*|*%ip6%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%udp%*|*%udp6%*|*%ip6%*|*%$NAME%*)
 TEST="$NAME: echo via self connection of UDP IPv6 socket"
 if ! eval $NUMCOND; then :;
 elif [ "$UNAME" != Linux ]; then
@@ -2545,7 +2563,7 @@ N=$((N+1))
 NAME=DUALUDPSELF
 if ! eval $NUMCOND; then :; else
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: echo via two unidirectional UDP IPv4 sockets"
 tf="$td/file$N"
 p1=$PORT
@@ -2565,7 +2583,7 @@ N=$((N+1))
 NAME=UNIXSTREAM
 if ! eval $NUMCOND; then :; else
 case "$TESTS" in
-*%functions%*|*%unix%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%unix%*|*%$NAME%*)
 TEST="$NAME: echo via connection to UNIX domain socket"
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -2585,10 +2603,12 @@ if [ $? -ne 0 ]; then
    echo "$CMD2"
    cat "$te"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED: diff:\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -2603,7 +2623,7 @@ N=$((N+1))
 NAME=TCP4
 if ! eval $NUMCOND; then :; else
 case "$TESTS" in
-*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
 TEST="$NAME: echo via connection to TCP V4 socket"
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -2625,10 +2645,12 @@ if [ $? -ne 0 ]; then
    echo "$CMD2"
    cat "${te}2"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -2644,7 +2666,7 @@ N=$((N+1))
 
 NAME=TCP6
 case "$TESTS" in
-*%functions%*|*%ip6%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip6%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
 TEST="$NAME: echo via connection to TCP V6 socket"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip6 >/dev/null || ! runsip6 >/dev/null; then
@@ -2670,10 +2692,12 @@ if [ $? -ne 0 ]; then
    echo "$CMD2"
    cat "$te"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED: diff:\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -2688,7 +2712,7 @@ N=$((N+1))
 
 NAME=TCPX4
 case "$TESTS" in
-*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
 TEST="$NAME: echo via connection to TCP socket, v4 by target"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
@@ -2717,10 +2741,12 @@ if [ $? -ne 0 ]; then
    echo "$CMD2"
    cat "$te"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED: diff:\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -2735,7 +2761,7 @@ N=$((N+1))
 
 NAME=TCPX6
 case "$TESTS" in
-*%functions%*|*%ip6%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip6%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
 TEST="$NAME: echo via connection to TCP socket, v6 by target"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
@@ -2764,10 +2790,12 @@ if [ $? -ne 0 ]; then
    echo "$CMD2"
    cat "$te"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED: diff:\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -2781,7 +2809,7 @@ N=$((N+1))
 
 NAME=IPV6ONLY0
 case "$TESTS" in
-*%functions%*|*%ip6%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip6%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
 TEST="$NAME: option ipv6-v6only=0 listens on IPv4"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
@@ -2813,10 +2841,12 @@ if [ $? -ne 0 ]; then
    echo "$CMD2"
    cat "${te}1" "${te}2"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED: diff:\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -2830,7 +2860,7 @@ N=$((N+1))
 
 NAME=IPV6ONLY1
 case "$TESTS" in
-*%functions%*|*%ip6%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip6%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
 TEST="$NAME: option ipv6-v6only=1 does not listen on IPv4"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
@@ -2860,10 +2890,12 @@ if [ $? -eq 0 ]; then
    $PRINTF "$FAILED:\n"
    cat "${te}1" "${te}2"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 elif echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED:\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    numOK=$((numOK+1))
@@ -2876,7 +2908,7 @@ N=$((N+1))
 
 NAME=ENV_LISTEN_4
 case "$TESTS" in
-*%functions%*|*%ip6%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip6%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
 TEST="$NAME: env SOCAT_DEFAULT_LISTEN_IP for IPv4 preference on listen"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
@@ -2908,10 +2940,12 @@ if [ $? -ne 0 ]; then
    echo "$CMD2"
    cat "${te}1" "${te}2"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED: diff:\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -2925,7 +2959,7 @@ N=$((N+1))
 
 NAME=ENV_LISTEN_6
 case "$TESTS" in
-*%functions%*|*%ip6%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip6%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
 TEST="$NAME: env SOCAT_DEFAULT_LISTEN_IP for IPv6 preference on listen"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
@@ -2954,10 +2988,12 @@ if [ $? -ne 0 ]; then
    echo "$CMD2"
    cat "${te}1" "${te}2"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED: diff:\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -2971,7 +3007,7 @@ N=$((N+1))
 
 NAME=LISTEN_OPTION_4
 case "$TESTS" in
-*%functions%*|*%ip6%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip6%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
 TEST="$NAME: option -4 for IPv4 preference on listen"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
@@ -3003,10 +3039,12 @@ if [ $? -ne 0 ]; then
    echo "$CMD2"
    cat "${te}1" "${te}2"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED: diff:\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -3020,7 +3058,7 @@ N=$((N+1))
 
 NAME=LISTEN_OPTION_6
 case "$TESTS" in
-*%functions%*|*%ip6%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip6%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
 TEST="$NAME: option -6 for IPv6 preference on listen"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
@@ -3049,10 +3087,12 @@ if [ $? -ne 0 ]; then
    echo "$CMD2"
    cat "${te}1" "${te}2"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED: diff:\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -3067,7 +3107,7 @@ N=$((N+1))
 
 NAME=LISTEN_PF_IP4
 case "$TESTS" in
-*%functions%*|*%ip6%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip6%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
 TEST="$NAME: pf=4 overrides option -6 on listen"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
@@ -3099,10 +3139,12 @@ if [ $? -ne 0 ]; then
    echo "$CMD2"
    cat "${te}1" "${te}2"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED: diff:\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -3116,7 +3158,7 @@ N=$((N+1))
 
 NAME=LISTEN_PF_IP6
 case "$TESTS" in
-*%functions%*|*%ip6%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip6%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
 TEST="$NAME: pf=6 overrides option -4 on listen"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
@@ -3145,10 +3187,12 @@ if [ $? -ne 0 ]; then
    echo "$CMD2"
    cat "${te}1" "${te}2"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED: diff:\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -3163,7 +3207,7 @@ N=$((N+1))
 
 NAME=UDP4STREAM
 case "$TESTS" in
-*%functions%*|*%ip4%*|*%ipapp%*|*%udp%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip4%*|*%ipapp%*|*%udp%*|*%$NAME%*)
 TEST="$NAME: echo via connection to UDP V4 socket"
 if ! eval $NUMCOND; then :; else
 tf="$td/test$N.stdout"
@@ -3187,6 +3231,7 @@ if [ $rc2 -ne 0 ]; then
    echo "$CMD2"
    cat "${te}1" "${te}2"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    echo "$CMD1 &"
@@ -3195,6 +3240,7 @@ elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    cat "${te}2"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -3208,7 +3254,7 @@ N=$((N+1))
 
 NAME=UDP6STREAM
 case "$TESTS" in
-*%functions%*|*%ip6%*|*%ipapp%*|*%udp%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip6%*|*%ipapp%*|*%udp%*|*%$NAME%*)
 TEST="$NAME: echo via connection to UDP V6 socket"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
@@ -3236,10 +3282,12 @@ if [ $rc2 -ne 0 ]; then
    echo "$CMD2"
    cat "${te}1" "${te}2"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -3253,7 +3301,7 @@ N=$((N+1))
 
 NAME=GOPENFILE
 case "$TESTS" in
-*%functions%*|*%engine%*|*%gopen%*|*%file%*|*%ignoreeof%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%engine%*|*%gopen%*|*%file%*|*%ignoreeof%*|*%$NAME%*)
 TEST="$NAME: file opening with gopen"
 if ! eval $NUMCOND; then :; else
 tf1="$td/test$N.1.stdout"
@@ -3270,10 +3318,12 @@ if [ $? -ne 0 ]; then
     echo "$CMD"
     cat "$te"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 elif ! diff "$tf1" "$tf2" >"$tdiff"; then
     $PRINTF "$FAILED: diff:\n"
     cat "$tdiff"
    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -3286,7 +3336,7 @@ N=$((N+1))
 
 NAME=GOPENPIPE
 case "$TESTS" in
-*%functions%*|*%gopen%*|*%pipe%*|*%ignoreeof%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%gopen%*|*%pipe%*|*%ignoreeof%*|*%$NAME%*)
 TEST="$NAME: pipe opening with gopen for reading"
 if ! eval $NUMCOND; then :; else
 tp="$td/pipe$N"
@@ -3307,6 +3357,7 @@ if [ ! -p "$tp" ]; then
     echo "$CMD"
     cat "$te"
     numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 else
 #echo "$da" >"$tp"	# might hang forever
 echo "$da" >"$tp" & export pid=$!; (sleep 1; kill $pid 2>/dev/null) &
@@ -3323,6 +3374,7 @@ if ! echo "$da" |diff - "$tf" >"$tdiff"; then
 	cat "$tdiff"
     fi
     numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -3337,7 +3389,7 @@ N=$((N+1))
 
 NAME=GOPENUNIXSTREAM
 case "$TESTS" in
-*%functions%*|*%gopen%*|*%unix%*|*%listen%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%gopen%*|*%unix%*|*%listen%*|*%$NAME%*)
 TEST="$NAME: GOPEN on UNIX stream socket"
 if ! eval $NUMCOND; then :; else
 ts="$td/test$N.socket"
@@ -3362,6 +3414,7 @@ if [ $? -ne 0 ]; then
     echo "$CMD"
     cat "${te}1"
     numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 elif ! echo "$da1" |diff - "${tf}1" >"$tdiff"; then
     kill "$pids" 2>/dev/null
     $PRINTF "$FAILED:\n"
@@ -3371,6 +3424,7 @@ elif ! echo "$da1" |diff - "${tf}1" >"$tdiff"; then
     cat "${te}1"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -3384,7 +3438,7 @@ N=$((N+1))
 
 NAME=GOPENUNIXDGRAM
 case "$TESTS" in
-*%functions%*|*%gopen%*|*%unix%*|*%dgram%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%gopen%*|*%unix%*|*%dgram%*|*%$NAME%*)
 TEST="$NAME: GOPEN on UNIX datagram socket"
 if ! eval $NUMCOND; then :; else
 ts="$td/test$N.socket"
@@ -3409,6 +3463,7 @@ if [ $? -ne 0 ]; then
     echo "$CMD"
     cat "${te}1"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da1" |diff - "${tf}" >"$tdiff"; then
     $PRINTF "$FAILED:\n"
     echo "$SRV &"
@@ -3417,6 +3472,7 @@ elif ! echo "$da1" |diff - "${tf}" >"$tdiff"; then
     cat "${te}1"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -3432,7 +3488,7 @@ N=$((N+1))
 #set -vx
 NAME=IGNOREEOF
 case "$TESTS" in
-*%functions%*|*%engine%*|*%ignoreeof%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%engine%*|*%ignoreeof%*|*%$NAME%*)
 TEST="$NAME: ignoreeof on file"
 if ! eval $NUMCOND; then :; else
 ti="$td/test$N.file"
@@ -3452,6 +3508,7 @@ kill $bg 2>/dev/null
 if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     $PRINTF "$FAILED: diff:\n"
     cat "$tdiff"
+    listFAIL="$listFAIL $N"
     numFAIL=$((numFAIL+1))
 else
    $PRINTF "$OK\n"
@@ -3467,7 +3524,7 @@ N=$((N+1))
 
 NAME=EXECIGNOREEOF
 case "$TESTS" in
-*%functions%*|*%engine%*|*%ignoreeof%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%engine%*|*%ignoreeof%*|*%$NAME%*)
 TEST="$NAME: exec against address with ignoreeof"
 if ! eval $NUMCOND; then :; else
 tf="$td/test$N.stdout"
@@ -3480,6 +3537,7 @@ if [ -s "$te" ]; then
     echo "$CMD"
     cat "$te"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -3492,7 +3550,7 @@ N=$((N+1))
 
 NAME=FAKEPTY
 case "$TESTS" in
-*%functions%*|*%pty%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%pty%*|*%$NAME%*)
 TEST="$NAME: generation of pty for other processes"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs pty >/dev/null; then
@@ -3524,6 +3582,7 @@ if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     cat "${te}2"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -3538,7 +3597,7 @@ N=$((N+1))
 
 NAME=O_TRUNC
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: option o-trunc"
 if ! eval $NUMCOND; then :; else
 ff="$td/test$N.file"
@@ -3556,6 +3615,7 @@ if ! echo "$da" |$CMD >$tf 2>"$te" ||
     cat "$te"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -3568,7 +3628,7 @@ N=$((N+1))
 
 NAME=FTRUNCATE
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: option ftruncate"
 if ! eval $NUMCOND; then :; else
 ff="$td/test$N.file"
@@ -3586,6 +3646,7 @@ if ! echo "$da" |$CMD >$tf 2>"$te" ||
     cat "$te"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -3598,7 +3659,7 @@ N=$((N+1))
 
 NAME=RIGHTTOLEFT
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: unidirectional throughput from stdin to stdout, right to left"
 testecho "$N" "$TEST" "stdout" "stdin" "$opts -U"
 esac
@@ -3607,7 +3668,7 @@ N=$((N+1))
 
 NAME=CHILDDEFAULT
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 if ! eval $NUMCOND; then :; else
 TEST="$NAME: child process default properties"
 tf="$td/test$N.stdout"
@@ -3627,6 +3688,7 @@ then
     echo "$CMD"
     cat "$te"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
    numOK=$((numOK+1))
@@ -3638,7 +3700,7 @@ N=$((N+1))
 
 NAME=CHILDSETSID
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: child process with setsid"
 if ! eval $NUMCOND; then :; else
 tf="$td/test$N.stdout"
@@ -3659,6 +3721,7 @@ then
     echo "$CMD"
     cat "$te"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     numOK=$((numOK+1))
@@ -3670,7 +3733,7 @@ N=$((N+1))
 
 NAME=MAINSETSID
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: main process with setsid"
 if ! eval $NUMCOND; then :; else
 tf="$td/test$N.stdout"
@@ -3691,6 +3754,7 @@ then
     echo "$CMD"
     cat "$te"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     numOK=$((numOK+1))
@@ -3702,7 +3766,7 @@ N=$((N+1))
 
 NAME=OPENSSL_TCP4
 case "$TESTS" in
-*%functions%*|*%openssl%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%openssl%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
 TEST="$NAME: openssl connect"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
@@ -3737,6 +3801,7 @@ if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     cat "${te}2"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -3752,7 +3817,7 @@ N=$((N+1))
 
 NAME=OPENSSLLISTEN_TCP4
 case "$TESTS" in
-*%functions%*|*%openssl%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%openssl%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
 TEST="$NAME: openssl listen"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
@@ -3782,6 +3847,7 @@ if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     cat "${te}2"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -3796,7 +3862,7 @@ N=$((N+1))
 
 NAME=OPENSSLLISTEN_TCP6
 case "$TESTS" in
-*%functions%*|*%openssl%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%openssl%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%$NAME%*)
 TEST="$NAME: openssl listen"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
@@ -3826,6 +3892,7 @@ if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     cat "${te}2"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -3852,7 +3919,7 @@ TESTKEYW=${TESTADDR%%:*}
 # does our address implementation support halfclose?
 NAME=${NAMEKEYW}_HALFCLOSE
 case "$TESTS" in
-*%functions%*|*%socket%*|*%halfclose%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%socket%*|*%halfclose%*|*%$NAME%*)
 TEST="$NAME: $TESTKEYW half close"
 # have a "peer" socat "peer" that executes "$OD_C" and see if EOF on the
 # connecting socat  brings the result of od
@@ -3883,6 +3950,7 @@ if ! echo "$da" |$OD_C |diff - "$tf" >"$tdiff"; then
     cat "${te}2"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -3913,7 +3981,7 @@ OPENSSL6SERVER   OPENSSL tcp6 OPENSSL-LISTEN:\$PORT,pf=ip6,$SOCAT_EGD,cert=tests
 
 NAME=OPENSSL_SERVERAUTH
 case "$TESTS" in
-*%functions%*|*%openssl%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%openssl%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
 TEST="$NAME: openssl server authentication"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
@@ -3944,6 +4012,7 @@ if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     cat "${te}2"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -3958,7 +4027,7 @@ N=$((N+1))
 
 NAME=OPENSSL_CLIENTAUTH
 case "$TESTS" in
-*%functions%*|*%openssl%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%openssl%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
 TEST="$NAME: openssl client authentication"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
@@ -3989,6 +4058,7 @@ if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     cat "${te}2"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -4003,7 +4073,7 @@ N=$((N+1))
 
 NAME=OPENSSL_FIPS_BOTHAUTH
 case "$TESTS" in
-*%functions%*|*%openssl%*|*%fips%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%openssl%*|*%fips%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
 TEST="$NAME: OpenSSL+FIPS client and server authentication"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
@@ -4037,6 +4107,7 @@ if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     cat "${te}2"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -4052,7 +4123,7 @@ N=$((N+1))
 
 NAME=OPENSSL_COMPRESS
 case "$TESTS" in
-*%functions%*|*%openssl%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%openssl%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
 TEST="$NAME: OpenSSL compression"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
@@ -4095,6 +4166,7 @@ else
         cat "${te}2"
         cat "$tdiff"
         numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
     else
         $PRINTF "$OK\n"
         if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -4108,7 +4180,7 @@ N=$((N+1))
 
 NAME=SOCKS4CONNECT_TCP4
 case "$TESTS" in
-*%functions%*|*%socks%*|*%socks4%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%socks%*|*%socks4%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
 TEST="$NAME: socks4 connect over TCP/IPv4"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs socks4 >/dev/null; then
@@ -4138,6 +4210,7 @@ if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     cat "${te}2"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -4152,7 +4225,7 @@ N=$((N+1))
 
 NAME=SOCKS4CONNECT_TCP6
 case "$TESTS" in
-*%functions%*|*%socks%*|*%socks4%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%socks%*|*%socks4%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%$NAME%*)
 TEST="$NAME: socks4 connect over TCP/IPv6"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs socks4 >/dev/null; then
@@ -4182,6 +4255,7 @@ if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     cat "${te}2"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -4197,7 +4271,7 @@ N=$((N+1))
 
 NAME=SOCKS4ACONNECT_TCP4
 case "$TESTS" in
-*%functions%*|*%socks%*|*%socks4a%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%socks%*|*%socks4a%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
 TEST="$NAME: socks4a connect over TCP/IPv4"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs socks4a >/dev/null; then
@@ -4227,6 +4301,7 @@ if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     cat "${te}2"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -4241,7 +4316,7 @@ N=$((N+1))
 
 NAME=SOCKS4ACONNECT_TCP6
 case "$TESTS" in
-*%functions%*|*%socks%*|*%socks4a%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%socks%*|*%socks4a%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%$NAME%*)
 TEST="$NAME: socks4a connect over TCP/IPv6"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs socks4a >/dev/null; then
@@ -4271,6 +4346,7 @@ if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     cat "${te}2"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -4286,7 +4362,7 @@ N=$((N+1))
 
 NAME=PROXYCONNECT_TCP4
 case "$TESTS" in
-*%functions%*|*%proxyconnect%*|*%proxy%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%proxyconnect%*|*%proxy%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
 TEST="$NAME: proxy connect over TCP/IPv4"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs proxy >/dev/null; then
@@ -4317,6 +4393,7 @@ if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     cat "${te}2"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -4331,7 +4408,7 @@ N=$((N+1))
 
 NAME=PROXYCONNECT_TCP6
 case "$TESTS" in
-*%functions%*|*%proxyconnect%*|*%proxy%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%proxyconnect%*|*%proxy%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%$NAME%*)
 TEST="$NAME: proxy connect over TCP/IPv6"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs proxy >/dev/null; then
@@ -4362,6 +4439,7 @@ if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     cat "${te}2"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -4377,7 +4455,7 @@ N=$((N+1))
 
 NAME=TCP4NOFORK
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: echo via connection to TCP V4 socket with nofork'ed exec"
 if ! eval $NUMCOND; then :; else
 tf="$td/test$N.stdout"
@@ -4401,10 +4479,12 @@ if [ $? -ne 0 ]; then
    cat "${te}1"
    cat "${te}2"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -4418,7 +4498,7 @@ N=$((N+1))
 
 NAME=EXECCATNOFORK
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: simple echo via exec of cat with nofork"
 testecho "$N" "$TEST" "" "exec:$CAT,nofork" "$opts"
 esac
@@ -4427,7 +4507,7 @@ N=$((N+1))
 
 NAME=SYSTEMCATNOFORK
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: simple echo via system() of cat with nofork"
 testecho "$N" "$TEST" "" "system:$CAT,nofork" "$opts"
 esac
@@ -4436,7 +4516,7 @@ N=$((N+1))
 
 NAME=NOFORKSETSID
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: simple echo via exec() of cat with nofork and setsid"
 testecho "$N" "$TEST" "" "system:$CAT,nofork,setsid" "$opts"
 esac
@@ -4458,6 +4538,7 @@ N=$((N+1))
 #else
 #   $ECHO "*** test $N $FAILED"
 #    numFAIL=$((numFAIL+1))
+#    listFAIL="$listFAIL $N"
 #fi
 #fi ;; # NUMCOND
 #N=$((N+1))
@@ -4476,6 +4557,7 @@ N=$((N+1))
 #else
 #   $ECHO "*** test $N $FAILED"
 #   numFAIL=$((numFAIL+1))
+#    listFAIL="$listFAIL $N"
 #fi
 #fi ;; # NUMCOND
 
@@ -4483,7 +4565,7 @@ N=$((N+1))
 
 NAME=TOTALTIMEOUT
 case "$TESTS" in
-*%functions%*|*%engine%*|*%timeout%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%engine%*|*%timeout%*|*%$NAME%*)
 TEST="$NAME: socat inactivity timeout"
 if ! eval $NUMCOND; then :; else
 #set -vx
@@ -4506,6 +4588,7 @@ if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     cat "${te}2"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -4522,7 +4605,7 @@ N=$((N+1))
 
 NAME=IGNOREEOF+TOTALTIMEOUT
 case "$TESTS" in
-*%functions%*|*%engine%*|*%timeout%*|*%ignoreeof%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%engine%*|*%timeout%*|*%ignoreeof%*|*%$NAME%*)
 TEST="$NAME: ignoreeof and inactivity timeout"
 if ! eval $NUMCOND; then :; else
 #set -vx
@@ -4548,6 +4631,7 @@ if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     cat "$te"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "$te"; fi
@@ -4561,7 +4645,7 @@ N=$((N+1))
 
 NAME=PROXY2SPACES
 case "$TESTS" in
-*%functions%*|*%proxy%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%proxy%*|*%$NAME%*)
 TEST="$NAME: proxy connect accepts status with multiple spaces"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs proxy >/dev/null; then
@@ -4589,6 +4673,7 @@ if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     cat "${te}2"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -4604,7 +4689,7 @@ N=$((N+1))
 
 NAME=BUG-UNISTDIO
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: for bug with address options on both stdin/out in unidirectional mode"
 if ! eval $NUMCOND; then :; else
 tf="$td/test$N.stdout"
@@ -4624,6 +4709,7 @@ else
 	echo "$CMD"
 	cat "$te"
 	numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
     else
 	$PRINTF "${YELLOW}failed (don't care)${NORMAL}\n"
 	numCANT=$((numCANT+1))
@@ -4636,7 +4722,7 @@ N=$((N+1))
 
 NAME=SINGLEEXECOUTSOCKETPAIR
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: inheritance of stdout to single exec with socketpair"
 testecho "$N" "$TEST" "-!!exec:cat" "" "$opts" 1
 esac
@@ -4644,7 +4730,7 @@ N=$((N+1))
 
 NAME=SINGLEEXECOUTPIPE
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: inheritance of stdout to single exec with pipe"
 testecho "$N" "$TEST" "-!!exec:cat,pipes" "" "$opts" 1
 esac
@@ -4652,7 +4738,7 @@ N=$((N+1))
 
 NAME=SINGLEEXECOUTPTY
 case "$TESTS" in
-*%functions%*|*%pty%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%pty%*|*%$NAME%*)
 TEST="$NAME: inheritance of stdout to single exec with pty"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs pty >/dev/null; then
@@ -4666,7 +4752,7 @@ N=$((N+1))
 
 NAME=SINGLEEXECINSOCKETPAIR
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: inheritance of stdin to single exec with socketpair"
 testecho "$N" "$TEST" "exec:cat!!-" "" "$opts"
 esac
@@ -4674,7 +4760,7 @@ N=$((N+1))
 
 NAME=SINGLEEXECINPIPE
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: inheritance of stdin to single exec with pipe"
 testecho "$N" "$TEST" "exec:cat,pipes!!-" "" "$opts"
 esac
@@ -4682,7 +4768,7 @@ N=$((N+1))
 
 NAME=SINGLEEXECINPTYDELAY
 case "$TESTS" in
-*%functions%*|*%pty%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%pty%*|*%$NAME%*)
 TEST="$NAME: inheritance of stdin to single exec with pty, with delay"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs pty >/dev/null; then
@@ -4696,7 +4782,7 @@ N=$((N+1))
 
 NAME=SINGLEEXECINPTY
 case "$TESTS" in
-*%functions%*|*%pty%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%pty%*|*%$NAME%*)
 TEST="$NAME: inheritance of stdin to single exec with pty"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs pty >/dev/null; then
@@ -4712,7 +4798,7 @@ N=$((N+1))
 NAME=READLINE
 #set -vx
 case "$TESTS" in
-*%functions%*|*%pty%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%pty%*|*%$NAME%*)
 TEST="$NAME: readline with password and sigint"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs readline pty); then
@@ -4786,6 +4872,7 @@ if ! tr "$($ECHO '\r \c')" "% " <$tpo |sed 's/%$//g' |sed 's/.*%//g' |diff "$tr"
     cat "$te"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -4803,7 +4890,7 @@ N=$((N+1))
 
 NAME=GENDERCHANGER
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: TCP4 \"gender changer\""
 if ! eval $NUMCOND; then :; else
 tf="$td/test$N.stdout"
@@ -4838,6 +4925,7 @@ if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     cat "${te}1" "${te}2" "${te}3" "${te}4"
     echo "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     if [ -n "$debug" ]; then cat "${te}1" "${te}2" "${te}3" "${te}4"; fi
@@ -4856,7 +4944,7 @@ N=$((N+1))
 #!
 NAME=OUTBOUNDIN
 case "$TESTS" in
-*%functions%*|*%proxy%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%proxy%*|*%$NAME%*)
 TEST="$NAME: gender changer via SSL through HTTP proxy, oneshot"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs openssl proxy); then
@@ -4917,6 +5005,7 @@ if ! (echo "$da"; sleep 2) |diff - "$tf" >"$tdiff"; then
     cat "${te}4"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     if [ -n "$debug" ]; then cat "${te}1" "${te}2" "${te}3" "${te}4" "${te}5" "${te}6"; fi
@@ -4941,7 +5030,7 @@ PORT=$((RANDOM+16184))
 #!
 NAME=INTRANETRIPPER
 case "$TESTS" in
-*%functions%*|*%proxy%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%proxy%*|*%$NAME%*)
 TEST="$NAME: gender changer via SSL through HTTP proxy, daemons"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs openssl proxy); then
@@ -5024,6 +5113,7 @@ if test -s "${tdiff}1" -o -s "${tdiff}2" -o -s "${tdiff}3"; then
     cat "${te}6_3"
     cat "${tdiff}3"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
   else
     $PRINTF "$OK ${YELLOW}(partial failure)${NORMAL}\n"
     if [ -n "$debug" ]; then cat "${te}1" "${te}2" "${te}3" "${te}4" "${te}5" ${te}6*; fi
@@ -5171,14 +5261,16 @@ testserversec () {
 	    echo "$SOCAT $opts - $arg2"
 	    cat "${te}4"
 	    cat "$tdiff2"
-	    numFAIL=$((numFAIL+1)) ;;
+	    numFAIL=$((numFAIL+1))
+	    listFAIL="$listFAIL $N" ;;
 	X2) $PRINTF "$FAILED: diff:\n"
 	    echo "$SOCAT $opts $arg echo"
 	    cat "${te}3"
 	    echo "$SOCAT $opts - $arg2"
 	    cat "${te}4"
 	    cat "$tdiff2"
-	    numFAIL=$((numFAIL+1)) ;;
+	    numFAIL=$((numFAIL+1))
+	    listFAIL="$listFAIL $N" ;;
 	esac
     else
 	$PRINTF "$OK\n"
@@ -5192,7 +5284,7 @@ testserversec () {
 
 NAME=TCP4RANGEBITS
 case "$TESTS" in
-*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%range%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%range%*|*%$NAME%*)
 TEST="$NAME: security of TCP4-L with RANGE option"
 if ! eval $NUMCOND; then :;
 elif [ -z "$SECONDADDR" ]; then
@@ -5208,7 +5300,7 @@ N=$((N+1))
 
 NAME=TCP4RANGEMASK
 case "$TESTS" in
-*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%range%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%range%*|*%$NAME%*)
 TEST="$NAME: security of TCP4-L with RANGE option"
 if ! eval $NUMCOND; then :;
 elif [ -z "$SECONDADDR" ]; then
@@ -5225,7 +5317,7 @@ N=$((N+1))
 # like TCP4RANGEMASK, but the "bad" address is within the same class A network
 NAME=TCP4RANGEMASKHAIRY
 case "$TESTS" in
-*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%range%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%range%*|*%$NAME%*)
 TEST="$NAME: security of TCP4-L with RANGE option"
 if ! eval $NUMCOND; then :; else
 testserversec "$N" "$TEST" "$opts -s" "tcp4-l:$PORT,reuseaddr,fork,retry=1" "" "range=127.0.0.0:255.255.0.0" "tcp4:$SECONDADDR:$PORT,bind=$SECONDADDR" 4 tcp $PORT 0
@@ -5237,7 +5329,7 @@ N=$((N+1))
 
 NAME=TCP4SOURCEPORT
 case "$TESTS" in
-*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%sourceport%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%sourceport%*|*%$NAME%*)
 TEST="$NAME: security of TCP4-L with SOURCEPORT option"
 if ! eval $NUMCOND; then :; else
 testserversec "$N" "$TEST" "$opts -s" "tcp4-l:$PORT,reuseaddr,fork,retry=1" "" "sp=$PORT" "tcp4:127.0.0.1:$PORT" 4 tcp $PORT 0
@@ -5248,7 +5340,7 @@ N=$((N+1))
 
 NAME=TCP4LOWPORT
 case "$TESTS" in
-*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%lowport%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%lowport%*|*%$NAME%*)
 TEST="$NAME: security of TCP4-L with LOWPORT option"
 if ! eval $NUMCOND; then :; else
 testserversec "$N" "$TEST" "$opts -s" "tcp4-l:$PORT,reuseaddr,fork,retry=1" "" "lowport" "tcp4:127.0.0.1:$PORT" 4 tcp $PORT 0
@@ -5259,7 +5351,7 @@ N=$((N+1))
 
 NAME=TCP4WRAPPERS_ADDR
 case "$TESTS" in
-*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%tcpwrap%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%tcpwrap%*|*%$NAME%*)
 TEST="$NAME: security of TCP4-L with TCPWRAP option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip4 libwrap) || ! runsip4 >/dev/null; then
@@ -5278,7 +5370,7 @@ N=$((N+1))
 
 NAME=TCP4WRAPPERS_NAME
 case "$TESTS" in
-*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%tcpwrap%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%tcpwrap%*|*%$NAME%*)
 TEST="$NAME: security of TCP4-L with TCPWRAP option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip4 libwrap) || ! runsip4 >/dev/null; then
@@ -5298,7 +5390,7 @@ N=$((N+1))
 
 NAME=TCP6RANGE
 case "$TESTS" in
-*%functions%*|*%security%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%range%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%range%*|*%$NAME%*)
 TEST="$NAME: security of TCP6-L with RANGE option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
@@ -5313,7 +5405,7 @@ N=$((N+1))
 
 NAME=TCP6SOURCEPORT
 case "$TESTS" in
-*%functions%*|*%security%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%sourceport%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%sourceport%*|*%$NAME%*)
 TEST="$NAME: security of TCP6-L with SOURCEPORT option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
@@ -5328,7 +5420,7 @@ N=$((N+1))
 
 NAME=TCP6LOWPORT
 case "$TESTS" in
-*%functions%*|*%security%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%lowport%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%lowport%*|*%$NAME%*)
 TEST="$NAME: security of TCP6-L with LOWPORT option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
@@ -5343,7 +5435,7 @@ N=$((N+1))
 
 NAME=TCP6TCPWRAP
 case "$TESTS" in
-*%functions%*|*%security%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%tcpwrap%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%tcpwrap%*|*%$NAME%*)
 TEST="$NAME: security of TCP6-L with TCPWRAP option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip6 libwrap) || ! runsip6 >/dev/null; then
@@ -5363,7 +5455,7 @@ N=$((N+1))
 
 NAME=UDP4RANGE
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%range%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%range%*|*%$NAME%*)
 TEST="$NAME: security of UDP4-L with RANGE option"
 if ! eval $NUMCOND; then :; else
 #testserversec "$N" "$TEST" "$opts -s" "udp4-l:$PORT,reuseaddr,fork" "" "range=$SECONDADDR/32" "udp4:127.0.0.1:$PORT" 4 udp $PORT 0
@@ -5375,7 +5467,7 @@ N=$((N+1))
 
 NAME=UDP4SOURCEPORT
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%sourceport%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%sourceport%*|*%$NAME%*)
 TEST="$NAME: security of UDP4-L with SOURCEPORT option"
 if ! eval $NUMCOND; then :; else
 testserversec "$N" "$TEST" "$opts -s" "udp4-l:$PORT,reuseaddr" "" "sp=$PORT" "udp4:127.0.0.1:$PORT" 4 udp $PORT 0
@@ -5386,7 +5478,7 @@ N=$((N+1))
 
 NAME=UDP4LOWPORT
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%lowport%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%lowport%*|*%$NAME%*)
 TEST="$NAME: security of UDP4-L with LOWPORT option"
 if ! eval $NUMCOND; then :; else
 testserversec "$N" "$TEST" "$opts -s" "udp4-l:$PORT,reuseaddr" "" "lowport" "udp4:127.0.0.1:$PORT" 4 udp $PORT 0
@@ -5397,7 +5489,7 @@ N=$((N+1))
 
 NAME=UDP4TCPWRAP
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%tcpwrap%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%tcpwrap%*|*%$NAME%*)
 TEST="$NAME: security of UDP4-L with TCPWRAP option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip4 libwrap) || ! runsip4 >/dev/null; then
@@ -5417,7 +5509,7 @@ N=$((N+1))
 
 NAME=UDP6RANGE
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%range%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%range%*|*%$NAME%*)
 TEST="$NAME: security of UDP6-L with RANGE option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
@@ -5433,7 +5525,7 @@ N=$((N+1))
 
 NAME=UDP6SOURCEPORT
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%sourceport%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%sourceport%*|*%$NAME%*)
 TEST="$NAME: security of UDP6-L with SOURCEPORT option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
@@ -5448,7 +5540,7 @@ N=$((N+1))
 
 NAME=UDP6LOWPORT
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%lowport%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%lowport%*|*%$NAME%*)
 TEST="$NAME: security of UDP6-L with LOWPORT option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
@@ -5463,7 +5555,7 @@ N=$((N+1))
 
 NAME=UDP6TCPWRAP
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%tcpwrap%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%tcpwrap%*|*%$NAME%*)
 TEST="$NAME: security of UDP6-L with TCPWRAP option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip6 libwrap) || ! runsip6 >/dev/null; then
@@ -5483,7 +5575,7 @@ N=$((N+1))
 
 NAME=OPENSSLTCP4_RANGE
 case "$TESTS" in
-*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%openssl%*|*%range%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%openssl%*|*%range%*|*%$NAME%*)
 TEST="$NAME: security of SSL-L over TCP/IPv4 with RANGE option"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
@@ -5499,7 +5591,7 @@ N=$((N+1))
 
 NAME=OPENSSLTCP4_SOURCEPORT
 case "$TESTS" in
-*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%openssl%*|*%sourceport%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%openssl%*|*%sourceport%*|*%$NAME%*)
 TEST="$NAME: security of SSL-L with SOURCEPORT option"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
@@ -5515,7 +5607,7 @@ N=$((N+1))
 
 NAME=OPENSSLTCP4_LOWPORT
 case "$TESTS" in
-*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%openssl%*|*%lowport%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%openssl%*|*%lowport%*|*%$NAME%*)
 TEST="$NAME: security of SSL-L with LOWPORT option"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
@@ -5531,7 +5623,7 @@ N=$((N+1))
 
 NAME=OPENSSLTCP4_TCPWRAP
 case "$TESTS" in
-*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%openssl%*|*%tcpwrap%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%openssl%*|*%tcpwrap%*|*%$NAME%*)
 TEST="$NAME: security of SSL-L with TCPWRAP option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4 tcp libwrap openssl); then
@@ -5551,7 +5643,7 @@ N=$((N+1))
 
 NAME=OPENSSLCERTSERVER
 case "$TESTS" in
-*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%openssl%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%openssl%*|*%$NAME%*)
 TEST="$NAME: security of SSL-L with client certificate"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
@@ -5568,7 +5660,7 @@ N=$((N+1))
 
 NAME=OPENSSLCERTCLIENT
 case "$TESTS" in
-*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%openssl%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%openssl%*|*%$NAME%*)
 TEST="$NAME: security of SSL with server certificate"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
@@ -5586,7 +5678,7 @@ N=$((N+1))
 
 NAME=OPENSSLTCP6_RANGE
 case "$TESTS" in
-*%functions%*|*%security%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%openssl%*|*%range%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%openssl%*|*%range%*|*%$NAME%*)
 TEST="$NAME: security of SSL-L over TCP/IPv6 with RANGE option"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
@@ -5605,7 +5697,7 @@ N=$((N+1))
 
 NAME=OPENSSLTCP6_SOURCEPORT
 case "$TESTS" in
-*%functions%*|*%security%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%openssl%*|*%sourceport%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%openssl%*|*%sourceport%*|*%$NAME%*)
 TEST="$NAME: security of SSL-L over TCP/IPv6 with SOURCEPORT option"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
@@ -5624,7 +5716,7 @@ N=$((N+1))
 
 NAME=OPENSSLTCP6_LOWPORT
 case "$TESTS" in
-*%functions%*|*%security%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%openssl%*|*%lowport%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%openssl%*|*%lowport%*|*%$NAME%*)
 TEST="$NAME: security of SSL-L over TCP/IPv6 with LOWPORT option"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
@@ -5643,7 +5735,7 @@ N=$((N+1))
 
 NAME=OPENSSLTCP6_TCPWRAP
 case "$TESTS" in
-*%functions%*|*%security%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%openssl%*|*%tcpwrap%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%openssl%*|*%tcpwrap%*|*%$NAME%*)
 TEST="$NAME: security of SSL-L over TCP/IPv6 with TCPWRAP option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip6 tcp libwrap openssl) || ! runsip6 >/dev/null; then
@@ -5664,7 +5756,7 @@ N=$((N+1))
 
 NAME=OPENSSL_FIPS_SECURITY
 case "$TESTS" in
-*%functions%*|*%security%*|*%openssl%*|*%fips%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%openssl%*|*%fips%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
 TEST="$NAME: OpenSSL restrictions by FIPS"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
@@ -5689,7 +5781,7 @@ N=$((N+1))
 
 NAME=UNIEXECEOF
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: give exec'd write-only process a chance to flush (-u)"
 testod "$N" "$TEST" "" exec:"$OD_C" "$opts -u"
 esac
@@ -5698,7 +5790,7 @@ N=$((N+1))
 
 NAME=REVEXECEOF
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: give exec'd write-only process a chance to flush (-U)"
 testod "$N" "$TEST" exec:"$OD_C" "-" "$opts -U"
 esac
@@ -5707,7 +5799,7 @@ N=$((N+1))
 
 NAME=FILANDIR
 case "$TESTS" in
-*%filan%*|*%$NAME%*)
+*%$N%*|*%filan%*|*%$NAME%*)
 TEST="$NAME: check type printed for directories"
 if ! eval $NUMCOND; then :; else
 te="$td/test$N.stderr"
@@ -5720,6 +5812,7 @@ else
     $PRINTF "$FAILED\n"
     cat "$te"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 fi
 fi ;; # NUMCOND
 esac
@@ -5728,7 +5821,7 @@ N=$((N+1))
 
 NAME=FILANSOCKET
 case "$TESTS" in
-*%filan%*|*%$NAME%*)
+*%$N%*|*%filan%*|*%$NAME%*)
 TEST="$NAME: capability to analyze named unix socket"
 if ! eval $NUMCOND; then :; else
 ts="$td/test$N.socket"
@@ -5747,6 +5840,7 @@ else
     cat "$te1"
     cat "$te2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 fi
 kill $spid 2>/dev/null
 wait
@@ -5804,7 +5898,7 @@ fi
 NAME=PTMXWAITSLAVE
 PTYTYPE=ptmx
 case "$TESTS" in
-*%functions%*|*%pty%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%pty%*|*%$NAME%*)
 TEST="$NAME: test if master pty ($PTYTYPE) waits for slave connection"
 if ! eval $NUMCOND; then :; else
 if ! feat=$(testaddrs pty); then
@@ -5823,7 +5917,7 @@ N=$((N+1))
 NAME=OPENPTYWAITSLAVE
 PTYTYPE=openpty
 case "$TESTS" in
-*%functions%*|*%pty%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%pty%*|*%$NAME%*)
 TEST="$NAME: test if master pty ($PTYTYPE) waits for slave connection"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs pty); then
@@ -5841,7 +5935,7 @@ N=$((N+1))
 
 NAME=CONNECTTIMEOUT
 case "$TESTS" in
-*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%timeout%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%timeout%*|*%$NAME%*)
 TEST="$NAME: test the connect-timeout option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp); then
@@ -5881,6 +5975,7 @@ if kill $pid2 2>"$tk2"; then
     cat "$te1"
     cat "$te2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
    numOK=$((numOK+1))
@@ -5898,7 +5993,7 @@ N=$((N+1))
 NAME=CONNECTTIMEOUT_CONN
 if ! eval $NUMCOND; then :; else
 case "$TESTS" in
-*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%timeout%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%timeout%*|*%$NAME%*)
 TEST="$NAME: TCP4 connect-timeout option when server replies"
 # just try a connection that is expected to succeed with the usual data
 # transfer; with the bug it will fail
@@ -5922,10 +6017,12 @@ if [ $? -ne 0 ]; then
    echo "$CMD2"
    cat "${te}2"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -5941,7 +6038,7 @@ N=$((N+1))
 
 NAME=OPENSSLLISTENDSA
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: openssl listen with DSA certificate"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
@@ -5969,6 +6066,7 @@ if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     cat "${te}2"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat ${te}1 ${te}2; fi
@@ -6003,7 +6101,7 @@ signum () {
 for signam in TERM ILL; do
 NAME=EXITCODESIG$signam
 case "$TESTS" in
-*%functions%*|*%pty%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%pty%*|*%$NAME%*)
 TEST="$NAME: exit status when dying on SIG$signam"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs pty); then
@@ -6036,6 +6134,7 @@ else
     $PRINTF "$FAILED\n"
     cat "$te"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 fi
 wait
 fi ;; # NUMCOND, feats
@@ -6047,7 +6146,7 @@ done
 NAME=READBYTES
 #set -vx
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: restrict reading from file with bytes option"
 if ! eval $NUMCOND; then :;
 elif false; then
@@ -6077,6 +6176,7 @@ if ! diff "$tr" "$to" >"$tdiff" 2>&1; then
     cat "$te"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -6089,7 +6189,7 @@ N=$((N+1))
 
 NAME=UDPLISTENFORK
 case "$TESTS" in
-*%functions%*|*%ip4%*|*%udp%*|*%listen%*|*%fork%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip4%*|*%udp%*|*%listen%*|*%fork%*|*%$NAME%*)
 TEST="$NAME: UDP socket rebinds after first connection"
 if ! eval $NUMCOND; then :; else
 tf="$td/test$N.stdout"
@@ -6129,10 +6229,12 @@ if [ $rc -ne 0 ]; then
     echo "$CLI"
     cat "${te}s" "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da2" |diff - "${tf}2" >"$tdiff"; then
     $PRINTF "$FAILED: diff\n"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     numOK=$((numOK+1))
@@ -6153,7 +6255,7 @@ protov="$(echo "$PROTOV" |tr A-Z a-z)"
 proto="${protov%%[0-9]}"
 NAME=${PROTOV}LISTENFORK
 case "$TESTS" in
-*%functions%*|*%$protov%*|*%$proto%*|*%listen%*|*%fork%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$protov%*|*%$proto%*|*%listen%*|*%fork%*|*%$NAME%*)
 TEST="$NAME: $PROTOV listen handles 2 concurrent connections"
 # have a listening address with fork option. connect with client1, send a piece
 # of data, wait 1s, connect with client2, send another piece of data, wait 1s,
@@ -6213,6 +6315,7 @@ if ! diff "$tref" "$tf" >"$tdiff"; then
     cat "${te}0" "${te}1" "${te}2"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     numOK=$((numOK+1))
@@ -6236,7 +6339,7 @@ set +vx
 
 NAME=UNIXTOSTREAM
 case "$TESTS" in
-*%functions%*|*%unix%*|*%listen%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%unix%*|*%listen%*|*%$NAME%*)
 TEST="$NAME: generic UNIX client connects to stream socket"
 if ! eval $NUMCOND; then :; else
 ts="$td/test$N.socket"
@@ -6260,11 +6363,13 @@ if [ $? -ne 0 ]; then
     echo "$CLI"
     cat "${te}s" "${te}1"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da1" |diff - "${tf}1" >"$tdiff"; then
     kill "$pids" 2>/dev/null
     $PRINTF "$FAILED; diff:\n"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     numOK=$((numOK+1))
@@ -6277,7 +6382,7 @@ N=$((N+1))
 
 NAME=UNIXTODGRAM
 case "$TESTS" in
-*%functions%*|*%engine%*|*%unix%*|*%recv%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%engine%*|*%unix%*|*%recv%*|*%$NAME%*)
 TEST="$NAME: generic UNIX client connects to datagram socket"
 if ! eval $NUMCOND; then :; else
 ts1="$td/test$N.socket1"
@@ -6306,6 +6411,7 @@ if [ $rc -ne 0 ]; then
     echo "$CLI"
     cat "${te}1" "${te}1"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da1" |diff - "${tf}1" >"$tdiff"; then
     kill "$pids" 2>/dev/null
     $PRINTF "$FAILED:\n"
@@ -6315,6 +6421,7 @@ elif ! echo "$da1" |diff - "${tf}1" >"$tdiff"; then
     cat "${te}1"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     numOK=$((numOK+1))
@@ -6327,7 +6434,7 @@ N=$((N+1))
 # there was an error in address EXEC with options pipes,stderr
 NAME=EXECPIPESSTDERR
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: simple echo via exec of cat with pipes,stderr"
 # this test is known to fail when logging is enabled with OPTS/opts env var.
 SAVE_opts="$opts"
@@ -6340,7 +6447,7 @@ N=$((N+1))
 # EXEC and SYSTEM with stderr injected socat messages into the data stream. 
 NAME=EXECSTDERRLOG
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: simple echo via exec of cat with pipes,stderr"
 SAVE_opts="$opts"
 # make sure at least two -d are there
@@ -6357,7 +6464,7 @@ N=$((N+1))
 
 NAME=SIMPLEPARSE
 case "$TESTS" in
-*%functions%*|*%PARSE%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%PARSE%*|*%$NAME%*)
 TEST="$NAME: invoke socat from socat"
 testecho "$N" "$TEST" "" exec:"$SOCAT - exec\:$CAT,pipes" "$opts"
 esac
@@ -6366,7 +6473,7 @@ N=$((N+1))
 
 NAME=FULLPARSE
 case "$TESTS" in
-*%functions%*|*%parse%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%parse%*|*%$NAME%*)
 TEST="$NAME: correctly parse special chars"
 if ! eval $NUMCOND; then :; else
 $PRINTF "test $F_n $TEST... " $N
@@ -6385,12 +6492,14 @@ if [ "$rc" -ne 0 ]; then
     echo "$SOCAT" -u "exec:echo $da" -
     cat "$te"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif [ -s "$tdiff" ]; then
     $PRINTF "$FAILED: $SOCAT:\n"
     echo diff:
     cat "$tdiff"
     if [ -n "$debug" ]; then cat $te; fi
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     if [ -n "$debug" ]; then cat $te; fi
@@ -6402,7 +6511,7 @@ N=$((N+1))
 
 NAME=NESTEDSOCATEXEC
 case "$TESTS" in
-*%parse%*|*%functions%*|*%$NAME%*)
+*%parse%*|*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: does lexical analysis work sensibly (exec)"
 testecho "$N" "$TEST" "" "exec:'$SOCAT - exec:$CAT,pipes'" "$opts" 1
 esac
@@ -6410,7 +6519,7 @@ N=$((N+1))
 
 NAME=NESTEDSOCATSYSTEM
 case "$TESTS" in
-*%parse%*|*%functions%*|*%$NAME%*)
+*%parse%*|*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: does lexical analysis work sensibly (system)"
 testecho "$N" "$TEST" "" "system:\"$SOCAT - exec:$CAT,pipes\"" "$opts" 1
 esac
@@ -6419,7 +6528,7 @@ N=$((N+1))
 
 NAME=TCP6BYTCP4
 case "$TESTS" in
-*%functions%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%$NAME%*)
 TEST="$NAME: TCP4 mapped into TCP6 address space"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip6 >/dev/null || ! runsip6 >/dev/null; then
@@ -6446,10 +6555,12 @@ if [ $? -ne 0 ]; then
    cat "${te}1"
    cat "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED: diff:\n"
    cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -6465,7 +6576,7 @@ N=$((N+1))
 # test the UDP4-SENDTO and UDP4-RECVFROM addresses together
 NAME=UDP4DGRAM
 case "$TESTS" in
-*%functions%*|*%udp%*|*%udp4%*|*%ip4%*|*%dgram%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%udp%*|*%udp4%*|*%ip4%*|*%dgram%*|*%$NAME%*)
 TEST="$NAME: UDP/IPv4 sendto and recvfrom"
 # start a UDP4-RECVFROM process that echoes data, and send test data using
 # UDP4-SENDTO. The sent data should be returned.
@@ -6495,6 +6606,7 @@ if [ "$rc2" -ne 0 ]; then
    echo "$CMD2"
    cat "${te}2"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
@@ -6503,6 +6615,7 @@ elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    echo "$CMD2"
    cat "${te}2"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -6517,7 +6630,7 @@ N=$((N+1))
 
 NAME=UDP6DGRAM
 case "$TESTS" in
-*%functions%*|*%udp%*|*%udp6%*|*%ip6%*|*%dgram%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%udp%*|*%udp6%*|*%ip6%*|*%dgram%*|*%$NAME%*)
 TEST="$NAME: UDP/IPv6 datagram"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
@@ -6546,10 +6659,12 @@ if [ $? -ne 0 ]; then
    cat "${te}1"
    cat "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat ${te}1 ${te}2; fi
@@ -6563,7 +6678,7 @@ N=$((N+1))
 
 NAME=RAWIP4RECVFROM
 case "$TESTS" in
-*%functions%*|*%ip%*|*%ip4%*|*%rawip%*|*%rawip4%*|*%dgram%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip%*|*%ip4%*|*%rawip%*|*%rawip4%*|*%dgram%*|*%root%*|*%$NAME%*)
 TEST="$NAME: raw IPv4 datagram"
 if ! eval $NUMCOND; then :;
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
@@ -6595,10 +6710,12 @@ if [ $rc2 -ne 0 ]; then
    cat "${te}1"
    cat "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -6612,7 +6729,7 @@ N=$((N+1))
 if false; then
 NAME=RAWIP6RECVFROM
 case "$TESTS" in
-*%functions%*|*%ip%*|*%ip6%*|*%rawip%*|*%rawip6%*|*%dgram%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip%*|*%ip6%*|*%rawip%*|*%rawip6%*|*%dgram%*|*%root%*|*%$NAME%*)
 TEST="$NAME: raw IPv6 datagram by self addressing"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip6 rawip) || ! runsip6 >/dev/null; then
@@ -6643,10 +6760,12 @@ if [ $? -ne 0 ]; then
    echo "$CMD2"
    cat "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "$te"; fi
@@ -6660,7 +6779,7 @@ fi #false
 
 NAME=UNIXDGRAM
 case "$TESTS" in
-*%functions%*|*%engine%*|*%unix%*|*%dgram%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%engine%*|*%unix%*|*%dgram%*|*%$NAME%*)
 TEST="$NAME: UNIX datagram"
 if ! eval $NUMCOND; then :; else
 tf="$td/test$N.stdout"
@@ -6685,10 +6804,12 @@ if [ $rc2 -ne 0 ]; then
    echo "$CMD2"
    cat "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -6702,7 +6823,7 @@ N=$((N+1))
 
 NAME=UDP4RECV
 case "$TESTS" in
-*%functions%*|*%engine%*|*%ip4%*|*%dgram%*|*%udp%*|*%udp4%*|*%recv%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%engine%*|*%ip4%*|*%dgram%*|*%udp%*|*%udp4%*|*%recv%*|*%$NAME%*)
 TEST="$NAME: UDP/IPv4 receive"
 if ! eval $NUMCOND; then :; else
 tf="$td/test$N.stdout"
@@ -6730,6 +6851,7 @@ if [ "$rc2" -ne 0 ]; then
    cat "${te}1"
    cat "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
@@ -6738,6 +6860,7 @@ elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    cat "${te}1"
    cat "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -6751,7 +6874,7 @@ N=$((N+1))
 
 NAME=UDP6RECV
 case "$TESTS" in
-*%functions%*|*%ip6%*|*%dgram%*|*%udp%*|*%udp6%*|*%recv%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip6%*|*%dgram%*|*%udp%*|*%udp6%*|*%recv%*|*%$NAME%*)
 TEST="$NAME: UDP/IPv6 receive"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
@@ -6783,10 +6906,12 @@ if [ "$rc2" -ne 0 ]; then
    cat "${te}1"
    cat "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -6799,7 +6924,7 @@ N=$((N+1))
 
 NAME=RAWIP4RECV
 case "$TESTS" in
-*%functions%*|*%ip4%*|*%dgram%*|*%rawip%*|*%rawip4%*|*%recv%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip4%*|*%dgram%*|*%rawip%*|*%rawip4%*|*%recv%*|*%root%*|*%$NAME%*)
 TEST="$NAME: raw IPv4 receive"
 if ! eval $NUMCOND; then :;
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
@@ -6831,10 +6956,12 @@ if [ "$rc2" -ne 0 ]; then
    cat "${te}1"
    cat "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -6847,7 +6974,7 @@ N=$((N+1))
 
 NAME=RAWIP6RECV
 case "$TESTS" in
-*%functions%*|*%ip6%*|*%dgram%*|*%rawip%*|*%rawip6%*|*%recv%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip6%*|*%dgram%*|*%rawip%*|*%rawip6%*|*%recv%*|*%root%*|*%$NAME%*)
 TEST="$NAME: raw IPv6 receive"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip6 rawip) || ! runsip6 >/dev/null; then
@@ -6881,10 +7008,12 @@ if [ "$rc2" -ne 0 ]; then
    cat "${te}1"
    cat "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -6897,7 +7026,7 @@ N=$((N+1))
 
 NAME=UNIXRECV
 case "$TESTS" in
-*%functions%*|*%unix%*|*%dgram%*|*%recv%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%unix%*|*%dgram%*|*%recv%*|*%$NAME%*)
 TEST="$NAME: UNIX receive"
 if ! eval $NUMCOND; then :; else
 ts="$td/test$N.socket"
@@ -6923,10 +7052,12 @@ if [ "$rc2" -ne 0 ]; then
    cat "${te}1"
    cat "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -6940,7 +7071,7 @@ N=$((N+1))
 
 NAME=UDP4RECVFROM_SOURCEPORT
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%sourceport%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%sourceport%*|*%$NAME%*)
 TEST="$NAME: security of UDP4-RECVFROM with SOURCEPORT option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip4) || ! runsip4 >/dev/null; then
@@ -6955,7 +7086,7 @@ N=$((N+1))
 
 NAME=UDP4RECVFROM_LOWPORT
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%lowport%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%lowport%*|*%$NAME%*)
 TEST="$NAME: security of UDP4-RECVFROM with LOWPORT option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip4) || ! runsip4 >/dev/null; then
@@ -6970,7 +7101,7 @@ N=$((N+1))
 
 NAME=UDP4RECVFROM_RANGE
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%range%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%range%*|*%$NAME%*)
 TEST="$NAME: security of UDP4-RECVFROM with RANGE option"
 #testserversec "$N" "$TEST" "$opts -s" "udp4-recvfrom:$PORT,reuseaddr,fork" "" "range=$SECONDADDR/32" "udp4-sendto:127.0.0.1:$PORT" 4 udp $PORT 0
 if ! eval $NUMCOND; then :; else
@@ -6982,7 +7113,7 @@ N=$((N+1))
 
 NAME=UDP4RECVFROM_TCPWRAP
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%tcpwrap%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%tcpwrap%*|*%$NAME%*)
 TEST="$NAME: security of UDP4-RECVFROM with TCPWRAP option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4 udp libwrap) || ! runsip4 >/dev/null; then
@@ -7003,7 +7134,7 @@ N=$((N+1))
 
 NAME=UDP4RECV_SOURCEPORT
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%sourceport%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%sourceport%*|*%$NAME%*)
 TEST="$NAME: security of UDP4-RECV with SOURCEPORT option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip4) || ! runsip4 >/dev/null; then
@@ -7023,7 +7154,7 @@ N=$((N+1))
 
 NAME=UDP4RECV_LOWPORT
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%lowport%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%lowport%*|*%$NAME%*)
 TEST="$NAME: security of UDP4-RECV with LOWPORT option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip4) || ! runsip4 >/dev/null; then
@@ -7042,7 +7173,7 @@ N=$((N+1))
 
 NAME=UDP4RECV_RANGE
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%range%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%range%*|*%$NAME%*)
 TEST="$NAME: security of UDP4-RECV with RANGE option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip4) || ! runsip4 >/dev/null; then
@@ -7061,7 +7192,7 @@ N=$((N+1))
 
 NAME=UDP4RECV_TCPWRAP
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%tcpwrap%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%tcpwrap%*|*%$NAME%*)
 TEST="$NAME: security of UDP4-RECV with TCPWRAP option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip4 libwrap) || ! runsip4 >/dev/null; then
@@ -7085,7 +7216,7 @@ N=$((N+1))
 
 NAME=UDP6RECVFROM_SOURCEPORT
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%sourceport%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%sourceport%*|*%$NAME%*)
 TEST="$NAME: security of UDP6-RECVFROM with SOURCEPORT option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
@@ -7100,7 +7231,7 @@ N=$((N+1))
 
 NAME=UDP6RECVFROM_LOWPORT
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%lowport%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%lowport%*|*%$NAME%*)
 TEST="$NAME: security of UDP6-RECVFROM with LOWPORT option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
@@ -7115,7 +7246,7 @@ N=$((N+1))
 
 NAME=UDP6RECVFROM_RANGE
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%range%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%range%*|*%$NAME%*)
 TEST="$NAME: security of UDP6-RECVFROM with RANGE option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
@@ -7131,7 +7262,7 @@ N=$((N+1))
 
 NAME=UDP6RECVFROM_TCPWRAP
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%tcpwrap%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%tcpwrap%*|*%$NAME%*)
 TEST="$NAME: security of UDP6-RECVFROM with TCPWRAP option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6 libwrap) || ! runsip6 >/dev/null; then
@@ -7151,7 +7282,7 @@ N=$((N+1))
 
 NAME=UDP6RECV_SOURCEPORT
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%sourceport%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%sourceport%*|*%$NAME%*)
 TEST="$NAME: security of UDP6-RECV with SOURCEPORT option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
@@ -7171,7 +7302,7 @@ N=$((N+1))
 
 NAME=UDP6RECV_LOWPORT
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%lowport%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%lowport%*|*%$NAME%*)
 TEST="$NAME: security of UDP6-RECV with LOWPORT option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
@@ -7190,7 +7321,7 @@ N=$((N+1))
 
 NAME=UDP6RECV_RANGE
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%range%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%range%*|*%$NAME%*)
 TEST="$NAME: security of UDP6-RECV with RANGE option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
@@ -7209,7 +7340,7 @@ N=$((N+1))
 
 NAME=UDP6RECV_TCPWRAP
 case "$TESTS" in
-*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%tcpwrap%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%tcpwrap%*|*%$NAME%*)
 TEST="$NAME: security of UDP6-RECV with TCPWRAP option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6 libwrap) || ! runsip6 >/dev/null; then
@@ -7233,7 +7364,7 @@ N=$((N+1))
 
 NAME=IP4RECVFROM_RANGE
 case "$TESTS" in
-*%functions%*|*%security%*|*%ip%*|*%ip4%*|*%range%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%ip%*|*%ip4%*|*%range%*|*%root%*|*%$NAME%*)
 TEST="$NAME: security of IP4-RECVFROM with RANGE option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4 rawip) || ! runsip4 >/dev/null; then
@@ -7253,7 +7384,7 @@ N=$((N+1))
 
 NAME=IP4RECVFROM_TCPWRAP
 case "$TESTS" in
-*%functions%*|*%security%*|*%ip%*|*%ip4%*|*%tcpwrap%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%ip%*|*%ip4%*|*%tcpwrap%*|*%root%*|*%$NAME%*)
 TEST="$NAME: security of IP4-RECVFROM with TCPWRAP option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4 rawip libwrap) || ! runsip4 >/dev/null; then
@@ -7279,7 +7410,7 @@ N=$((N+1))
 
 NAME=IP4RECV_RANGE
 case "$TESTS" in
-*%functions%*|*%security%*|*%ip%*|*%ip4%*|*%range%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%ip%*|*%ip4%*|*%range%*|*%root%*|*%$NAME%*)
 TEST="$NAME: security of IP4-RECV with RANGE option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4 rawip) || ! runsip4 >/dev/null; then
@@ -7303,7 +7434,7 @@ N=$((N+1))
 
 NAME=IP4RECV_TCPWRAP
 case "$TESTS" in
-*%functions%*|*%security%*|*%ip%*|*%ip4%*|*%tcpwrap%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%ip%*|*%ip4%*|*%tcpwrap%*|*%root%*|*%$NAME%*)
 TEST="$NAME: security of IP4-RECV with TCPWRAP option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4 rawip libwrap) || ! runsip4 >/dev/null; then
@@ -7330,7 +7461,7 @@ N=$((N+1))
 
 NAME=IP6RECVFROM_RANGE
 case "$TESTS" in
-*%functions%*|*%security%*|*%ip%*|*%ip6%*|*%range%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%ip%*|*%ip6%*|*%range%*|*%root%*|*%$NAME%*)
 TEST="$NAME: security of IP6-RECVFROM with RANGE option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip6 rawip) || ! runsip6 >/dev/null; then
@@ -7350,7 +7481,7 @@ N=$((N+1))
 
 NAME=IP6RECVFROM_TCPWRAP
 case "$TESTS" in
-*%functions%*|*%security%*|*%ip%*|*%ip6%*|*%tcpwrap%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%ip%*|*%ip6%*|*%tcpwrap%*|*%root%*|*%$NAME%*)
 TEST="$NAME: security of IP6-RECVFROM with TCPWRAP option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip6 rawip libwrap) || ! runsip6 >/dev/null; then
@@ -7375,7 +7506,7 @@ N=$((N+1))
 
 NAME=IP6RECV_RANGE
 case "$TESTS" in
-*%functions%*|*%security%*|*%ip%*|*%ip6%*|*%range%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%ip%*|*%ip6%*|*%range%*|*%root%*|*%$NAME%*)
 TEST="$NAME: security of IP6-RECV with RANGE option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip6 rawip) || ! runsip6 >/dev/null; then
@@ -7397,7 +7528,7 @@ N=$((N+1))
 
 NAME=IP6RECV_TCPWRAP
 case "$TESTS" in
-*%functions%*|*%security%*|*%ip%*|*%ip6%*|*%tcpwrap%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%ip%*|*%ip6%*|*%tcpwrap%*|*%root%*|*%$NAME%*)
 TEST="$NAME: security of IP6-RECV with TCPWRAP option"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip6 rawip libwrap) || ! runsip6 >/dev/null; then
@@ -7424,7 +7555,7 @@ N=$((N+1))
 
 NAME=O_NOATIME_FILE
 case "$TESTS" in
-*%functions%*|*%open%*|*%noatime%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%open%*|*%noatime%*|*%$NAME%*)
 TEST="$NAME: option O_NOATIME on file"
 # idea: create a file with o-noatime option; one second later create a file
 # without this option (using touch); one second later read from the first file.
@@ -7454,6 +7585,7 @@ if [ $? -ne 0 ]; then # command failed
     echo "$CMD"
     cat "$te"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
 # check which file has a later atime stamp
 if [ $(ls -ltu "${tf}1" "${tf}2" |head -1 |sed 's/.* //') != "${tf}2" ];
@@ -7462,6 +7594,7 @@ then
    echo "$CMD"
    cat "$te"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "$te"; fi
@@ -7474,7 +7607,7 @@ N=$((N+1))
 
 NAME=O_NOATIME_FD
 case "$TESTS" in
-*%functions%*|*%noatime%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%noatime%*|*%$NAME%*)
 TEST="$NAME: option O_NOATIME on file descriptor"
 # idea: use a fd of a file with o-noatime option; one second later create a file
 # without this option (using touch); one second later read from the first file.
@@ -7505,6 +7638,7 @@ if [ $? -ne 0 ]; then # command failed
     echo "$CMD"
     cat "$te"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
 # check which file has a later atime stamp
 if [ $(ls -ltu "${tf}1" "${tf}2" |head -1 |sed 's/.* //') != "${tf}2" ];
@@ -7513,6 +7647,7 @@ then
    echo "$CMD"
    cat "$te"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "$te"; fi
@@ -7525,7 +7660,7 @@ N=$((N+1))
 
 NAME=EXT2_NOATIME
 case "$TESTS" in
-*%functions%*|*%ext2%*|*%noatime%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ext2%*|*%noatime%*|*%$NAME%*)
 TEST="$NAME: extended file system options using ext2fs noatime option"
 # idea: create a file with ext2-noatime option; one second later create a file
 # without this option (using touch); one second later read from the first file.
@@ -7573,6 +7708,7 @@ then
    echo "$CMD"
    cat "$te"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "$te"; fi
@@ -7587,7 +7723,7 @@ N=$((N+1))
 
 NAME=COOLWRITE
 case "$TESTS" in
-*%functions%*|*%engine%*|*%timeout%*|*%ignoreeof%*|*%coolwrite%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%engine%*|*%timeout%*|*%ignoreeof%*|*%coolwrite%*|*%$NAME%*)
 TEST="$NAME: option cool-write"
 if ! eval $NUMCOND; then :;
 elif ! testoptions cool-write >/dev/null; then
@@ -7615,6 +7751,7 @@ if [ $rc -ne 0 ]; then
     echo "$CMD &"
     cat "$te"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "$te"; fi
@@ -7629,7 +7766,7 @@ N=$((N+1))
 # this failed up to socat 1.6.0.0
 NAME=COOLSTDIO
 case "$TESTS" in
-*%functions%*|*%engine%*|*%timeout%*|*%ignoreeof%*|*%coolwrite%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%engine%*|*%timeout%*|*%ignoreeof%*|*%coolwrite%*|*%$NAME%*)
 TEST="$NAME: option cool-write on bidirectional stdio"
 # this test starts a socat reader that terminates after receiving one+ 
 # bytes (option readbytes); and a test process that sends two bytes via
@@ -7663,6 +7800,7 @@ if [ $rc -ne 0 ]; then
     echo "$CMD &"
     cat "$te"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "$te"; fi
@@ -7675,7 +7813,7 @@ N=$((N+1))
 
 NAME=TCP4ENDCLOSE
 case "$TESTS" in
-*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
 TEST="$NAME: end-close keeps TCP V4 socket open"
 if ! eval $NUMCOND; then :; else
 tf="$td/test$N.stdout"
@@ -7707,11 +7845,13 @@ if [ $? -ne 0 ]; then
    echo "$CMD2"
    cat "${te}1a" "${te}1b" "${te}2" "${te}3"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! $ECHO "$da1a\n$da1b" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
    cat "${te}1a" "${te}1b" "${te}2" "${te}3"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1a" "${te}1b" "${te}2" "${te}3"; fi
@@ -7725,7 +7865,7 @@ N=$((N+1))
 
 NAME=EXECENDCLOSE
 case "$TESTS" in
-*%functions%*|*%exec%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%exec%*|*%$NAME%*)
 TEST="$NAME: end-close keeps EXEC child running"
 if ! eval $NUMCOND; then :; else
 tf="$td/test$N.stdout"
@@ -7752,11 +7892,13 @@ if [ $? -ne 0 ]; then
    echo "$CMD2"
    cat "${te}1a" "${te}1b" "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! $ECHO "$da1a\n$da1b" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
    cat "${te}1a" "${te}1b" "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1a" "${te}1b" "${te}2"; fi
@@ -7771,7 +7913,7 @@ N=$((N+1))
 # bad internal handling. here we check it for address PTY
 NAME=PTYENDCLOSE
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%pty%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%pty%*|*%$NAME%*)
 TEST="$NAME: PTY handles option end-close"
 # with the bug, socat exits with error. we invoke socat in a no-op mode and
 # check its return status.
@@ -7791,6 +7933,7 @@ else
     echo "$CMD"
     cat "${te}"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 fi
 fi # NUMCOND
  ;;
@@ -7801,7 +7944,7 @@ N=$((N+1))
 # test the shut-null and null-eof options
 NAME=SHUTNULLEOF
 case "$TESTS" in
-*%functions%*|*%socket%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%socket%*|*%$NAME%*)
 TEST="$NAME: options shut-null and null-eof"
 # run a receiving background process with option null-eof. 
 # start a sending process with option shut-null that sends a test record to the
@@ -7832,6 +7975,7 @@ if [ $rc1 != 0 -o $rc2 != 0 ]; then
     cat "${te}1"
     cat "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif echo "$da" |diff - "${tf}" >"$tdiff"; then
     $PRINTF "$OK\n"
     numOK=$((numOK+1))
@@ -7843,6 +7987,7 @@ else
     cat "${te}1"
     cat "${tdiff}"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 fi
 fi # NUMCOND
  ;;
@@ -7854,7 +7999,7 @@ NAME=UDP6LISTENBIND
 # this tests for a bug in (up to) 1.5.0.0:
 #    with udp*-listen, the bind option supported only IPv4
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%ip6%*|*%ipapp%*|*%udp%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%ip6%*|*%ipapp%*|*%udp%*|*%$NAME%*)
 TEST="$NAME: UDP6-LISTEN with bind"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
@@ -7882,10 +8027,12 @@ if [ $rc2 -ne 0 ]; then
    echo "$CMD2"
    cat "${te}1" "${te}2"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -7901,7 +8048,7 @@ NAME=TCPWRAPPERS_MULTIOPTS
 # this tests for a bug in 1.5.0.0 that let socat fail when more than one 
 # tcp-wrappers related option was specified in one address
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%tcpwrap%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%tcpwrap%*|*%$NAME%*)
 TEST="$NAME: use of multiple tcpwrapper enabling options"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip4 libwrap) || ! runsip4 >/dev/null; then
@@ -7927,10 +8074,12 @@ if [ $? -ne 0 ]; then
    cat "${te}1"
    cat "${te}2"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -7946,7 +8095,7 @@ NAME=TCPWRAPPERS_TCP6ADDR
 # this tests for a bug in 1.5.0.0 that brought false results with tcp-wrappers
 # and IPv6 when 
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%tcpwrap%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%tcpwrap%*|*%$NAME%*)
 TEST="$NAME: specification of TCP6 address in hosts.allow"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip6 libwrap) || ! runsip6 >/dev/null; then
@@ -7961,7 +8110,7 @@ ha="$td/hosts.allow"
 hd="$td/hosts.deny"
 $ECHO "socat : [::1] : allow" >"$ha"
 $ECHO "ALL : ALL : deny" >"$hd"
-CMD1="$SOCAT $opts TCP6-LISTEN:$PORT,reuseaddr,tcpwrap-etc=$td pipe"
+CMD1="$SOCAT $opts TCP6-LISTEN:$PORT,reuseaddr,tcpwrap-etc=$td,tcpwrappers=socat pipe"
 CMD2="$SOCAT $opts - TCP6:[::1]:$PORT"
 printf "test $F_n $TEST... " $N
 $CMD1 2>"${te}1" &
@@ -7976,10 +8125,12 @@ if [ $? -ne 0 ]; then
    cat "${te}1"
    cat "${te}2"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -7993,7 +8144,7 @@ N=$((N+1))
 
 NAME=UDP4BROADCAST
 case "$TESTS" in
-*%functions%*|*%udp%*|*%udp4%*|*%ip4%*|*%dgram%*|*%broadcast%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%udp%*|*%udp4%*|*%ip4%*|*%dgram%*|*%broadcast%*|*%$NAME%*)
 TEST="$NAME: UDP/IPv4 broadcast"
 if ! eval $NUMCOND; then :;
 elif [ -z "$BCADDR" ]; then
@@ -8026,10 +8177,12 @@ if [ "$rc2" -ne 0 ]; then
     cat "${te}1"
     cat "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
     $PRINTF "$FAILED\n"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     if [ -n "$tut" ]; then
@@ -8049,7 +8202,7 @@ NAME=IP4BROADCAST
 # because we receive - in addition to the regular reply - our own broadcast,
 # we use a token XXXX that is changed to YYYY in the regular reply packet.
 case "$TESTS" in
-*%functions%*|*%engine%*|*%rawip%*|*%rawip4%*|*%ip4%*|*%dgram%*|*%broadcast%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%engine%*|*%rawip%*|*%rawip4%*|*%ip4%*|*%dgram%*|*%broadcast%*|*%root%*|*%$NAME%*)
 TEST="$NAME: raw IPv4 broadcast"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4 rawip) || ! runsip4 >/dev/null; then
@@ -8090,10 +8243,12 @@ if [ "$rc2" -ne 0 ]; then
     cat "${te}1"
     cat "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" | sed 's/XXXX/YYYY/'|diff - "$tf" >"$tdiff"; then
     $PRINTF "$FAILED\n"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     if [ -n "$debug" ]; then cat $te; fi
@@ -8107,7 +8262,7 @@ N=$((N+1))
 
 #NAME=UDP4BROADCAST_RANGE
 #case "$TESTS" in
-#*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%dgram%*|*%broadcast%*|*%range%*|*%$NAME%*)
+#*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%dgram%*|*%broadcast%*|*%range%*|*%$NAME%*)
 #TEST="$NAME: security of UDP4-BROADCAST with RANGE option"
 #if ! eval $NUMCOND; then :;
 #elif [ -z "$BCADDR" ]; then
@@ -8122,7 +8277,7 @@ N=$((N+1))
 
 NAME=UDP4MULTICAST_UNIDIR
 case "$TESTS" in
-*%functions%*|*%udp%*|*%udp4%*|*%ip4%*|*%dgram%*|*%multicast%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%udp%*|*%udp4%*|*%ip4%*|*%dgram%*|*%multicast%*|*%$NAME%*)
 TEST="$NAME: UDP/IPv4 multicast, send only"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4 udp) || ! runsip4 >/dev/null; then
@@ -8153,10 +8308,12 @@ if [ "$rc2" -ne 0 ]; then
    cat "${te}1"
    cat "${te}2"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -8168,7 +8325,7 @@ N=$((N+1))
 
 NAME=IP4MULTICAST_UNIDIR
 case "$TESTS" in
-*%functions%*|*%rawip%*|*%ip4%*|*%dgram%*|*%multicast%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%rawip%*|*%ip4%*|*%dgram%*|*%multicast%*|*%root%*|*%$NAME%*)
 TEST="$NAME: IPv4 multicast"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4 rawip) || ! runsip4 >/dev/null; then
@@ -8204,10 +8361,12 @@ if [ "$rc2" -ne 0 ]; then
    cat "${te}1"
    cat "${te}2"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -8221,7 +8380,7 @@ N=$((N+1))
 if false; then
 NAME=UDP6MULTICAST_UNIDIR
 case "$TESTS" in
-*%functions%*|*%udp%*|*%udp6%*|*%ip6%*|*%dgram%*|*%multicast%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%udp%*|*%udp6%*|*%ip6%*|*%dgram%*|*%multicast%*|*%$NAME%*)
 TEST="$NAME: UDP/IPv6 multicast"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip6 udp) || ! runsip6 >/dev/null; then
@@ -8252,10 +8411,12 @@ if [ "$rc2" -ne 0 ]; then
    cat "${te}1"
    cat "${te}2"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -8268,7 +8429,7 @@ fi # false
 
 NAME=UDP4MULTICAST_BIDIR
 case "$TESTS" in
-*%functions%*|*%udp%*|*%udp4%*|*%ip4%*|*%dgram%*|*%multicast%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%udp%*|*%udp4%*|*%ip4%*|*%dgram%*|*%multicast%*|*%$NAME%*)
 TEST="$NAME: UDP/IPv4 multicast, with reply"
 if ! eval $NUMCOND; then :; else
 tf="$td/test$N.stdout"
@@ -8297,10 +8458,12 @@ if [ "$rc2" -ne 0 ]; then
     cat "${te}1"
     cat "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
     $PRINTF "$FAILED\n"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     if [ -n "$tut" ]; then
@@ -8316,7 +8479,7 @@ N=$((N+1))
 
 NAME=IP4MULTICAST_BIDIR
 case "$TESTS" in
-*%functions%*|*%rawip%*|*%ip4%*|*%dgram%*|*%multicast%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%rawip%*|*%ip4%*|*%dgram%*|*%multicast%*|*%root%*|*%$NAME%*)
 TEST="$NAME: IPv4 multicast, with reply"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4 rawip) || ! runsip4 >/dev/null; then
@@ -8351,10 +8514,12 @@ if [ "$rc2" -ne 0 ]; then
     cat "${te}1"
     cat "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
     $PRINTF "$FAILED\n"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     if [ -n "$tut" ]; then
@@ -8372,7 +8537,7 @@ N=$((N+1))
 
 NAME=TUNREAD
 case "$TESTS" in
-*%functions%*|*%tun%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%tun%*|*%root%*|*%$NAME%*)
 TEST="$NAME: reading data sent through tun interface"
 #idea: create a TUN interface and send a datagram to one of the addresses of
 # its virtual network. On the tunnel side, read the packet and compare its last
@@ -8408,11 +8573,13 @@ if [ $? -ne 0 ]; then
     echo "$CMD1"
     cat "${te}" "${te}1"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
     $PRINTF "$FAILED\n"
     cat "$tdiff"
     cat "${te}" "${te}1"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     if [ -n "$debug" ]; then cat "${te}" "${te}1"; fi
@@ -8428,7 +8595,7 @@ N=$((N+1))
 # transparent 
 NAME=TUNINTERFACE
 case "$TESTS" in
-*%functions%*|*%tun%*|*%interface%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%tun%*|*%interface%*|*%root%*|*%$NAME%*)
 TEST="$NAME: pass data through tun interface using INTERFACE"
 #idea: create a TUN interface and send a raw packet on the interface side.
 # It should arrive unmodified on the tunnel side.
@@ -8464,11 +8631,13 @@ if [ $? -ne 0 ]; then
     echo "$CMD1"
     cat "${te}" "${te}1"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
     $PRINTF "$FAILED\n"
     cat "$tdiff"
     cat "${te}" "${te}1"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     if [ -n "$debug" ]; then cat "${te}" "${te}1"; fi
@@ -8482,7 +8651,7 @@ N=$((N+1))
 
 NAME=ABSTRACTSTREAM
 case "$TESTS" in
-*%functions%*|*%unix%*|*%abstract%*|*%connect%*|*%listen%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%unix%*|*%abstract%*|*%connect%*|*%listen%*|*%$NAME%*)
 TEST="$NAME: abstract UNIX stream socket, listen and connect"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs abstract-unixsocket); then
@@ -8513,6 +8682,7 @@ if [ $? -ne 0 ]; then
     echo "$CMD"
     cat "${te}1"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da1" |diff - "${tf}1" >"$tdiff"; then
     kill "$pids" 2>/dev/null
     $PRINTF "$FAILED:\n"
@@ -8522,6 +8692,7 @@ elif ! echo "$da1" |diff - "${tf}1" >"$tdiff"; then
     cat "${te}1"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -8535,7 +8706,7 @@ N=$((N+1))
 
 NAME=ABSTRACTDGRAM
 case "$TESTS" in
-*%functions%*|*%unix%*|*%abstract%*|*%dgram%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%unix%*|*%abstract%*|*%dgram%*|*%$NAME%*)
 TEST="$NAME: abstract UNIX datagram"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs abstract-unixsocket); then
@@ -8566,10 +8737,12 @@ if [ $rc2 -ne 0 ]; then
    echo "$CMD2"
    cat "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -8582,7 +8755,7 @@ N=$((N+1))
 
 NAME=ABSTRACTRECV
 case "$TESTS" in
-*%functions%*|*%unix%*|*%abstract%*|*%dgram%*|*%recv%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%unix%*|*%abstract%*|*%dgram%*|*%recv%*|*%$NAME%*)
 TEST="$NAME: abstract UNIX datagram receive"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs abstract-unixsocket); then
@@ -8614,10 +8787,12 @@ if [ "$rc2" -ne 0 ]; then
    cat "${te}1"
    cat "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -8638,7 +8813,7 @@ NAME=OPENSSLREAD
 # keeps there and is not transferred by socat until the socket indicates more
 # data or EOF.
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: socat handles data buffered by openssl"
 #idea: have a socat process (server) that gets an SSL block that is larger than
 # socat transfer block size; keep the socket connection open and kill the
@@ -8672,6 +8847,7 @@ if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     cat "${te}2"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -8691,7 +8867,7 @@ N=$((N+1))
 NAME=READBYTES_EOF
 #set -vx
 case "$TESTS" in
-*%functions%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: trigger EOF after that many bytes, even when socket idle"
 #idea: we deliver that many bytes to socat; the process should terminate then.
 # we try to transfer data in the other direction then; if transfer succeeds,
@@ -8714,6 +8890,7 @@ if test -s "$to"; then
     $PRINTF "$FAILED: $SOCAT:\n"
     echo "$CMD"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -8728,7 +8905,7 @@ N=$((N+1))
 # process under some circumstances.
 NAME=EXECPTYKILL
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%exec%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%exec%*|*%$NAME%*)
 TEST="$NAME: exec:...,pty explicitely kills sub process"
 # we want to check if the exec'd sub process is killed in time
 # for this we have a shell script that generates a file after two seconds;
@@ -8762,10 +8939,12 @@ if [ $? -ne 0 ]; then
     echo "$CMD2"
     cat "${te}1" "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif [ -f "$tda" ]; then
     $PRINTF "$FAILED\n"
     cat "${te}1" "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -8780,7 +8959,7 @@ N=$((N+1))
 # test if service name resolution works; this was buggy in 1.5 and 1.6.0.0
 NAME=TCP4SERVICE
 case "$TESTS" in
-*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%$NAME%*)
 TEST="$NAME: echo via connection to TCP V4 socket"
 # select a tcp entry from /etc/services, have a server listen on the port 
 # number and connect using the service name; with the bug, connection will to a
@@ -8811,10 +8990,12 @@ if [ $? -ne 0 ]; then
    echo "$CMD2"
    cat "${te}2"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -8844,7 +9025,7 @@ N=$((N+1))
 #   SunOS 8:		20			1024
 NAME=EXCEED_FOPEN_MAX
 case "$TESTS" in
-*%functions%*|*%maxfds%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%maxfds%*|*%$NAME%*)
 TEST="$NAME: more than FOPEN_MAX FDs in use"
 # this test opens a number of FDs before socat is invoked. socat will have to
 # allocate higher FD numbers and thus hang if it cannot handle them.
@@ -8876,7 +9057,7 @@ N=$((N+1))
 # zombies because the master process did not catch SIGCHLD
 NAME=UDP4LISTEN_SIGCHLD
 case "$TESTS" in
-*%functions%*|*%ip4%*|*%ipapp%*|*%udp%*|*%zombie%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip4%*|*%ipapp%*|*%udp%*|*%zombie%*|*%$NAME%*)
 TEST="$NAME: test if UDP4-LISTEN child becomes zombie"
 # idea: run a udp-listen process with fork and -T. Connect once, so a sub
 # process is forked off. Make some transfer and wait until the -T timeout is
@@ -8913,6 +9094,7 @@ elif $(isdefunct "$l"); then
     echo "$CMD2"
     cat "${te}1" "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -8928,7 +9110,7 @@ N=$((N+1))
 # zombies because the master process caught SIGCHLD but did not wait()
 NAME=UDP4RECVFROM_SIGCHLD
 case "$TESTS" in
-*%functions%*|*%ip4%*|*%udp%*|*%dgram%*|*%zombie%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip4%*|*%udp%*|*%dgram%*|*%zombie%*|*%$NAME%*)
 TEST="$NAME: test if UDP4-RECVFROM child becomes zombie"
 # idea: run a udp-recvfrom process with fork and -T. Send it one packet, so a
 # sub process is forked off. Make some transfer and wait until the -T timeout
@@ -8965,6 +9147,7 @@ elif $(isdefunct "$l"); then
     echo "$CMD2"
     cat "${te}1" "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -8982,7 +9165,7 @@ N=$((N+1))
 # occurred
 NAME=RAWIP4RECVBIND
 case "$TESTS" in
-*%functions%*|*%ip4%*|*%dgram%*|*%rawip%*|*%rawip4%*|*%recv%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip4%*|*%dgram%*|*%rawip%*|*%rawip4%*|*%recv%*|*%root%*|*%$NAME%*)
 TEST="$NAME: raw IPv4 receive with bind"
 # idea: start a socat process with ip4-recv:...,bind=... and send it a packet
 # if the packet passes the test succeeded
@@ -9016,10 +9199,12 @@ if [ "$rc2" -ne 0 ]; then
    cat "${te}1"
    cat "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -9036,7 +9221,7 @@ N=$((N+1))
 # child process.
 NAME=UDP4RECVFROM_FORK
 case "$TESTS" in
-*%functions%*|*%ip4%*|*%udp%*|*%dgram%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip4%*|*%udp%*|*%dgram%*|*%$NAME%*)
 TEST="$NAME: test if UDP4-RECVFROM handles more than one packet"
 # idea: run a UDP4-RECVFROM process with fork and -T. Send it one packet;
 # send it a second packet and check if this is processed properly. If yes, the
@@ -9070,6 +9255,7 @@ elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
     cat "${te}1" "${te}2" "${te}3"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     if [ -n "$debug" ]; then cat "${te}1" "${te}2" "${te}3"; fi
@@ -9085,7 +9271,7 @@ N=$((N+1))
 # in additional empty arguments
 NAME=EXECSPACES
 case "$TESTS" in
-*%functions%*|*%exec%*|*%parse%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%exec%*|*%parse%*|*%$NAME%*)
 TEST="$NAME: correctly parse exec with consecutive spaces"
 if ! eval $NUMCOND; then :; else
 $PRINTF "test $F_n $TEST... " $N
@@ -9102,12 +9288,14 @@ if [ "$rc" -ne 0 ]; then
     $PRINTF "$FAILED: $SOCAT:\n"
     cat "$te"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif [ -s "$tdiff" ]; then
     $PRINTF "$FAILED: $SOCAT:\n"
     echo diff:
     cat "$tdiff"
     if [ -n "$debug" ]; then cat $te; fi
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     if [ -n "$debug" ]; then cat $te; fi
@@ -9123,7 +9311,7 @@ N=$((N+1))
 # range option, the old listen socket would not be closed but a new one created.
 NAME=UDP4LISTENCONT
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%ip4%*|*%udp%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%ip4%*|*%udp%*|*%$NAME%*)
 TEST="$NAME: let range drop a packet and see if old socket is closed"
 # idea: run a UDP4-LISTEN process with range option. Send it one packet from an
 # address outside range and check if two listening sockets are open then
@@ -9162,6 +9350,7 @@ elif [ $nsocks -ne 1 ]; then
     echo "$CMD1"
     cat "${te}0" "${te}1"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     if [ -n "$debug" ]; then cat "${te}0" "${te}1" "${te}2"; fi
@@ -9177,7 +9366,7 @@ N=$((N+1))
 # the reverse direction
 NAME=IGNOREEOFNOBLOCK
 case "$TESTS" in
-*%functions%*|*%engine%*|*%socket%*|*%ignoreeof%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%engine%*|*%socket%*|*%ignoreeof%*|*%$NAME%*)
 TEST="$NAME: ignoreeof does not block other direction"
 # have socat poll in ignoreeof mode. while it waits one second for next check,
 # we send data in the reverse direction and then the total timeout fires.
@@ -9198,6 +9387,7 @@ if [ $rc0 != 0 ]; then
     cat "${te}0"
     cat "${te}1"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif echo "$da" |diff - "$tf" >/dev/null; then
     $PRINTF "$OK\n"
     numOK=$((numOK+1))
@@ -9207,6 +9397,7 @@ else
     echo "$CMD1"
     cat "${te}0"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 fi
 fi ;; # NUMCOND
 esac
@@ -9216,7 +9407,7 @@ N=$((N+1))
 # test the escape option
 NAME=ESCAPE
 case "$TESTS" in
-*%functions%*|*%engine%*|*%escape%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%engine%*|*%escape%*|*%$NAME%*)
 TEST="$NAME: escape character triggers EOF"
 # idea: start socat just echoing input, but apply escape option. send a string
 # containing the escape character and check if the output is truncated
@@ -9233,10 +9424,12 @@ if [ $? -ne 0 ]; then
     echo "$CMD"
     cat "$te"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
     $PRINTF "$FAILED: diff:\n"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     if [ -n "$debug" ]; then cat $te; fi
@@ -9249,7 +9442,7 @@ N=$((N+1))
 # test the escape option combined with ignoreeof
 NAME=ESCAPE_IGNOREEOF
 case "$TESTS" in
-*%functions%*|*%engine%*|*%ignoreeof%*|*%escape%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%engine%*|*%ignoreeof%*|*%escape%*|*%$NAME%*)
 TEST="$NAME: escape character triggers EOF"
 # idea: start socat just echoing input, but apply escape option. send a string
 # containing the escape character and check if the output is truncated
@@ -9270,6 +9463,7 @@ if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     cat "$tdiff"
     cat "$te"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     if [ -n "$debug" ]; then cat $te; fi
@@ -9289,7 +9483,7 @@ pf="$(echo "$PF" |tr A-Z a-z)"
 proto="$(echo "$KEYW" |tr A-Z a-z)"
 NAME=${KEYW}SCM_$SCM_TYPE
 case "$TESTS" in
-*%functions%*|*%$pf%*|*%dgram%*|*%udp%*|*%$proto%*|*%recv%*|*%ancillary%*|*%$ROOT%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$pf%*|*%dgram%*|*%udp%*|*%$proto%*|*%recv%*|*%ancillary%*|*%$ROOT%*|*%$NAME%*)
 TEST="$NAME: $KEYW log ancillary message $SCM_TYPE $SCM_NAME"
 # idea: start a socat process with *-RECV:..,... , ev. with ancillary message
 # enabling option and send it a packet, ev. with some option. check the info log
@@ -9360,6 +9554,7 @@ elif ! grep "ancillary message: $SCM_TYPE: $SCM_NAME=" ${te}0 >/dev/null; then
     grep " $LEVELS " "${te}1"
     echo "variable $SCM_TYPE: $SCM_NAME not set"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! grep "ancillary message: $SCM_TYPE: $SCM_NAME=$SCM_VALUE" ${te}0 >/dev/null; then
     $PRINTF "$FAILED\n"
     echo "$CMD0 &"
@@ -9369,6 +9564,7 @@ elif ! grep "ancillary message: $SCM_TYPE: $SCM_NAME=$SCM_VALUE" ${te}0 >/dev/nu
     badval="$(grep "ancillary message: $SCM_TYPE: $SCM_NAME" ${te}0 |sed 's/.*=//g')"
     echo "variable $SCM_TYPE: $SCM_NAME has value \"$badval\" instead of \"$SCM_VALUE\""
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     if [ -n "$debug" ]; then
@@ -9428,7 +9624,7 @@ if [ -z "$KEYW" ] || [[ "$KEYW" == \#* ]]; then continue; fi
 test_proto="$(echo "$KEYW" |tr A-Z a-z)"
 NAME=${KEYW}LISTENENV
 case "$TESTS" in
-*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%$test_proto%*|*%envvar%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%$test_proto%*|*%envvar%*|*%$NAME%*)
 TEST="$NAME: $KEYW-LISTEN fills environment variables with socket addresses"
 # have a server accepting a connection and invoking some shell code. The shell
 # code extracts and prints the SOCAT related environment vars.
@@ -9465,7 +9661,7 @@ if [ "$tcp" != ',' ]; then
     tca="$tca:$tcp"
 fi
 #CMD0="$SOCAT $opts -u $KEYW-LISTEN:$tsa1 system:\"export -p\""
-CMD0="$SOCAT $opts -u $KEYW-LISTEN:$tsa1 system:\"echo SOCAT_SOCKADDR=\\\$SOCAT_SOCKADDR; echo SOCAT_PEERADDR=\\\$SOCAT_PEERADDR; echo SOCAT_SOCKPORT=\\\$SOCAT_SOCKPORT; echo SOCAT_PEERPORT=\\\$SOCAT_PEERPORT; sleep 1\""
+CMD0="$SOCAT $opts -u -lpsocat $KEYW-LISTEN:$tsa1 system:\"echo SOCAT_SOCKADDR=\\\$SOCAT_SOCKADDR; echo SOCAT_PEERADDR=\\\$SOCAT_PEERADDR; echo SOCAT_SOCKPORT=\\\$SOCAT_SOCKPORT; echo SOCAT_PEERPORT=\\\$SOCAT_PEERPORT; sleep 1\""
 CMD1="$SOCAT $opts -u - $KEYW-CONNECT:$tsa,bind=$tca"
 printf "test $F_n $TEST... " $N
 eval "$CMD0 2>\"${te}0\" >\"$tf\" &"
@@ -9503,6 +9699,7 @@ else
     echo "$CMD1"
     cat "${te}1"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 fi
 fi # NUMCOND, feats
  ;;
@@ -9531,9 +9728,9 @@ pf="$(echo "$PF" |tr A-Z a-z)"
 proto="$(echo "$KEYW" |tr A-Z a-z)"
 NAME=${KEYW}ENV_$SCM_ENVNAME
 case "$TESTS" in
-*%functions%*|*%$pf%*|*%dgram%*|*%udp%*|*%$proto%*|*%recv%*|*%ancillary%*|*%envvar%*|*%$ROOT%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$pf%*|*%dgram%*|*%udp%*|*%$proto%*|*%recv%*|*%ancillary%*|*%envvar%*|*%$ROOT%*|*%$NAME%*)
 #set -vx
-TEST="$NAME: $KEYW ancillary message brings $SCM_ENVNAME into environment"
+TEST="$NAME: $KEYW ancillary message sets env SOCAT_$SCM_ENVNAME"
 # idea: start a socat process with *-RECVFROM:..,... , ev. with ancillary
 # message  enabling option and send it a packet, ev. with some option. write
 # the resulting environment to a file and check its contents for the
@@ -9562,7 +9759,7 @@ case "X$IPPORT" in
     tsa="$tra"
 esac
 #CMD0="$SOCAT $opts -u $KEYW-RECVFROM:$tra,reuseaddr,$SCM_RECV system:\"export -p\""
-CMD0="$SOCAT $opts -u $KEYW-RECVFROM:$tra,reuseaddr,$SCM_RECV system:\"echo \\\$SOCAT_$SCM_ENVNAME\""
+CMD0="$SOCAT $opts -u -lpsocat $KEYW-RECVFROM:$tra,reuseaddr,$SCM_RECV system:\"echo \\\$SOCAT_$SCM_ENVNAME\""
 CMD1="$SOCAT $opts -u - $KEYW-SENDTO:$tsa,$SCM_ENABLE"
 printf "test $F_n $TEST... " $N
 # is this option supported?
@@ -9576,7 +9773,6 @@ waitfile "$tf" 2
 #i=0; while [ ! -s "${te}0" -a "$i" -lt 10 ]; do  usleep 100000; i=$((i+1));  done
 kill "$pid0" 2>/dev/null; wait
 # do not show more messages than requested
-#set -vx
 if [ "$SCM_VALUE" = "timestamp" ]; then
     SCM_VALUE="$(date '+%a %b %e %H:%M:.. %Y'), ...... usecs"
 fi
@@ -9596,6 +9792,7 @@ elif ! expr "$(cat "$tf")" : "$(eval echo "\$SCM_VALUE")" >/dev/null; then
     cat "${te}0"
     cat "${te}1"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     if [ -n "$debug" ]; then
@@ -9603,7 +9800,6 @@ else
     fi
     numOK=$((numOK+1))
 fi
-#set +vx
 else # option is not supported
     $PRINTF "${YELLOW}$SCM_RECV not available${NORMAL}\n"
     numCANT=$((numCANT+1))
@@ -9644,7 +9840,7 @@ IP6  IP6  [::1]     PROTO ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    
 # test the SOCKET-CONNECT address (against TCP4-LISTEN)
 NAME=SOCKET_CONNECT_TCP4
 case "$TESTS" in
-*%functions%*|*%generic%*|*%socket%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%generic%*|*%socket%*|*%$NAME%*)
 TEST="$NAME: socket connect with TCP/IPv4"
 # start a TCP4-LISTEN process that echoes data, and send test data using
 # SOCKET-CONNECT, selecting TCP/IPv4. The sent data should be returned.
@@ -9675,6 +9871,7 @@ if [ "$rc1" -ne 0 ]; then
    echo "$CMD1"
    cat "${te}1"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
@@ -9683,6 +9880,7 @@ elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    echo "$CMD1"
    cat "${te}1"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -9699,7 +9897,7 @@ PF_INET6="$($PROCAN -c |grep "^#define[[:space:]]*PF_INET6[[:space:]]" |cut -d' 
 # test the SOCKET-CONNECT address (against TCP6-LISTEN)
 NAME=SOCKET_CONNECT_TCP6
 case "$TESTS" in
-*%functions%*|*%generic%*|*%tcp6%*|*%socket%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%generic%*|*%tcp6%*|*%socket%*|*%$NAME%*)
 TEST="$NAME: socket connect with TCP/IPv6"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip6 >/dev/null || ! runsip6 >/dev/null; then
@@ -9734,6 +9932,7 @@ if [ "$rc1" -ne 0 ]; then
    echo "$CMD1"
    cat "${te}1"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
@@ -9742,6 +9941,7 @@ elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    echo "$CMD1"
    cat "${te}1"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -9755,7 +9955,7 @@ N=$((N+1))
 # test the SOCKET-CONNECT address (against UNIX-LISTEN)
 NAME=SOCKET_CONNECT_UNIX
 case "$TESTS" in
-*%functions%*|*%generic%*|*%unix%*|*%socket%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%generic%*|*%unix%*|*%socket%*|*%$NAME%*)
 TEST="$NAME: socket connect with UNIX domain"
 # start a UNIX-LISTEN process that echoes data, and send test data using
 # SOCKET-CONNECT, selecting UNIX socket. The sent data should be returned.
@@ -9782,6 +9982,7 @@ if [ "$rc1" -ne 0 ]; then
    echo "$CMD1"
    cat "${te}1"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
@@ -9790,6 +9991,7 @@ elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    echo "$CMD1"
    cat "${te}1"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -9802,7 +10004,7 @@ N=$((N+1))
 # test the SOCKET-LISTEN address (with TCP4-CONNECT)
 NAME=SOCKET_LISTEN
 case "$TESTS" in
-*%functions%*|*%generic%*|*%socket%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%generic%*|*%socket%*|*%$NAME%*)
 TEST="$NAME: socket recvfrom with TCP/IPv4"
 # start a SOCKET-LISTEN process that uses TCP/IPv4 and echoes data, and
 # send test data using TCP4-CONNECT. The sent data should be returned.
@@ -9835,6 +10037,7 @@ if [ "$rc1" -ne 0 ]; then
    echo "$CMD1"
    cat "${te}1"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
@@ -9843,6 +10046,7 @@ elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    echo "$CMD1"
    cat "${te}1"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -9858,7 +10062,7 @@ SOCK_DGRAM="$($PROCAN -c |grep "^#define[[:space:]]*SOCK_DGRAM[[:space:]]" |cut 
 # test the SOCKET-SENDTO address (against UDP4-RECVFROM)
 NAME=SOCKET_SENDTO
 case "$TESTS" in
-*%functions%*|*%generic%*|*%socket%*|*%ip4%*|*%udp%*|*%dgram%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%generic%*|*%socket%*|*%ip4%*|*%udp%*|*%dgram%*|*%$NAME%*)
 TEST="$NAME: socket sendto with UDP/IPv4"
 # start a UDP4-RECVFROM process that echoes data, and send test data using
 # SOCKET-SENDTO, selecting UDP/IPv4. The sent data should be returned.
@@ -9889,6 +10093,7 @@ if [ "$rc1" -ne 0 ]; then
    echo "$CMD1"
    cat "${te}1"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
@@ -9897,6 +10102,7 @@ elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    echo "$CMD1"
    cat "${te}1"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -9910,7 +10116,7 @@ N=$((N+1))
 # test the SOCKET-RECVFROM address (with UDP4-SENDTO)
 NAME=SOCKET_RECVFROM
 case "$TESTS" in
-*%functions%*|*%generic%*|*%socket%*|*%ip4%*|*%udp%*|*%dgram%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%generic%*|*%socket%*|*%ip4%*|*%udp%*|*%dgram%*|*%$NAME%*)
 TEST="$NAME: socket recvfrom with UDP/IPv4"
 # start a SOCKET-RECVFROM process that uses UDP/IPv4 and echoes data, and
 # send test data using UDP4-SENDTO. The sent data should be returned.
@@ -9942,6 +10148,7 @@ if [ "$rc1" -ne 0 ]; then
    echo "$CMD1"
    cat "${te}1"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
@@ -9950,6 +10157,7 @@ elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    echo "$CMD1"
    cat "${te}1"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -9964,7 +10172,7 @@ N=$((N+1))
 # test the SOCKET-RECV address (with UDP4-SENDTO)
 NAME=SOCKET_RECV
 case "$TESTS" in
-*%functions%*|*%generic%*|*%socket%*|*%ip4%*|*%udp%*|*%dgram%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%generic%*|*%socket%*|*%ip4%*|*%udp%*|*%dgram%*|*%$NAME%*)
 TEST="$NAME: socket recv with UDP/IPv4"
 # start a SOCKET-RECV process that uses UPD/IPv4 and writes received data to file, and
 # send test data using UDP4-SENDTO.
@@ -9997,6 +10205,7 @@ if [ "$rc1" -ne 0 ]; then
    echo "$CMD1"
    cat "${te}1"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
@@ -10005,6 +10214,7 @@ elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    echo "$CMD1"
    cat "${te}1"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -10018,7 +10228,7 @@ N=$((N+1))
 # test SOCKET-DATAGRAM (with UDP4-DATAGRAM)
 NAME=SOCKET_DATAGRAM
 case "$TESTS" in
-*%functions%*|*%generic%*|*%socket%*|*%ip4%*|*%udp%*|*%dgram%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%generic%*|*%socket%*|*%ip4%*|*%udp%*|*%dgram%*|*%$NAME%*)
 TEST="$NAME: socket datagram via UDP/IPv4"
 # start a UDP4-DATAGRAM process that echoes data, and send test data using
 # SOCKET-DATAGRAM, selecting UDP/IPv4. The sent data should be returned.
@@ -10051,6 +10261,7 @@ if [ "$rc1" -ne 0 ]; then
    echo "$CMD1"
    cat "${te}1"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
@@ -10059,6 +10270,7 @@ elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    echo "$CMD1"
    cat "${te}1"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat $te; fi
@@ -10071,7 +10283,7 @@ N=$((N+1))
 
 NAME=SOCKETRANGEMASK
 case "$TESTS" in
-*%functions%*|*%security%*|*%generic%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%socket%*|*%range%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%security%*|*%generic%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%socket%*|*%range%*|*%$NAME%*)
 TEST="$NAME: security of generic socket-listen with RANGE option"
 if ! eval $NUMCOND; then :;
 elif [ -z "$SECONDADDR" ]; then
@@ -10092,7 +10304,7 @@ TIOCEXCL="$($PROCAN -c |grep "^#define[[:space:]]*TIOCEXCL[[:space:]]" |cut -d' 
 # test the generic ioctl-void option
 NAME=IOCTL_VOID
 case "$TESTS" in
-*%functions%*|*%pty%*|*%generic%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%pty%*|*%generic%*|*%$NAME%*)
 TEST="$NAME: test the ioctl-void option"
 # there are not many ioctls that apply to non global resources and do not
 # require root. TIOCEXCL seems to fit:
@@ -10137,6 +10349,7 @@ elif [ $rc2 -eq 0 ]; then
     echo "$CMD2"
     cat "${te}0" "${te}1" "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     if [ -n "$debug" ]; then cat "${te}0" "${te}1" "${te}2"; fi
@@ -10154,7 +10367,7 @@ SO_REUSEADDR="$($PROCAN -c |grep "^#define[[:space:]]*SO_REUSEADDR[[:space:]]" |
 # test the generic setsockopt-int option
 NAME=SETSOCKOPT_INT
 case "$TESTS" in
-*%functions%*|*%ip4%*|*%tcp%*|*%generic%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip4%*|*%tcp%*|*%generic%*|*%$NAME%*)
 TEST="$NAME: test the setsockopt-int option"
 # there are not many socket options that apply to non global resources, do not
 # require root, do not require a network connection, and can easily be
@@ -10204,6 +10417,7 @@ elif [ $rc3 -ne 0 ]; then
     echo "$CMD3"
     cat "${te}2" "${te}3"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "${tf}3"; then
     $PRINTF "$FAILED: $SOCAT:\n"
     echo "$CMD2 &"
@@ -10224,7 +10438,7 @@ N=$((N+1))
 
 NAME=SCTP4STREAM
 case "$TESTS" in
-*%functions%*|*%ip4%*|*%ipapp%*|*%sctp%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip4%*|*%ipapp%*|*%sctp%*|*%$NAME%*)
 TEST="$NAME: echo via connection to SCTP V4 socket"
 PORT="$((PORT+1))"
 if ! eval $NUMCOND; then :;
@@ -10258,10 +10472,12 @@ if [ $? -ne 0 ]; then
    echo "$CMD2"
    cat "${te}2"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -10277,7 +10493,7 @@ N=$((N+1))
 
 NAME=SCTP6STREAM
 case "$TESTS" in
-*%functions%*|*%ip6%*|*%ipapp%*|*%sctp%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip6%*|*%ipapp%*|*%sctp%*|*%$NAME%*)
 TEST="$NAME: echo via connection to SCTP V6 socket"
 PORT="$((PORT+1))"
 if ! eval $NUMCOND; then :;
@@ -10309,10 +10525,12 @@ if [ $? -ne 0 ]; then
    echo "$CMD2"
    cat "${te}2"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED: diff:\n"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -10330,8 +10548,8 @@ N=$((N+1))
 # performed a renegotiation. Test if this is fixed.
 NAME=OPENSSLRENEG1
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%openssl%*|*%socket%*|*%$NAME%*)
-TEST="$NAME: OpenSSL connections survives renogotiation"
+*%$N%*|*%functions%*|*%bugs%*|*%openssl%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: OpenSSL connections survive renogotiation"
 # connect with s_client to socat ssl-l; force a renog, then transfer data. When
 # data is passed the test succeeded
 if ! eval $NUMCOND; then :;
@@ -10369,6 +10587,7 @@ else
 #    cat "${te}1"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 fi
 fi # NUMCOND
  ;;
@@ -10382,7 +10601,7 @@ N=$((N+1))
 # leave socat in a blocking ssl-read state. Test if this has been fixed.
 NAME=OPENSSLRENEG2
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%openssl%*|*%socket%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%openssl%*|*%socket%*|*%$NAME%*)
 TEST="$NAME: OpenSSL connections do not block after renogotiation"
 # connect with s_client to socat ssl-l; force a renog, then transfer data from
 # socat to the peer. When data is passed this means that the former ssl read no
@@ -10422,6 +10641,7 @@ else
 #    cat "${te}1"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 fi
 fi # NUMCOND
  ;;
@@ -10435,7 +10655,7 @@ N=$((N+1))
 # than 512 bytes.
 NAME=HOSTNAMEOVFL
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%security%*|*%socket%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%security%*|*%socket%*|*%$NAME%*)
 TEST="$NAME: stack overflow on overly long host name"
 # provide a long host name to TCP-CONNECT and check socats exit code
 if ! eval $NUMCOND; then :; else
@@ -10458,6 +10678,7 @@ else
     echo "$CMD0"
     cat "${te}0"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 fi
 fi # NUMCOND
  ;;
@@ -10470,7 +10691,7 @@ N=$((N+1))
 # than 512 bytes.
 NAME=FILENAMEOVFL
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%security%*|*%openssl%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%security%*|*%openssl%*|*%$NAME%*)
 TEST="$NAME: stack overflow on overly long file name"
 # provide a 600 bytes long key file option to SSL-CONNECT and check socats exit code
 if ! eval $NUMCOND; then :; else
@@ -10491,6 +10712,7 @@ else
     echo "$CMD0"
     cat "${te}0"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 fi
 fi # NUMCOND
  ;;
@@ -10503,7 +10725,7 @@ N=$((N+1))
 # domain socket with GOPEN
 NAME=GOPEN_UNIX_CRASH
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%gopen%*|*%unix%*|*%socket%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%gopen%*|*%unix%*|*%socket%*|*%$NAME%*)
 TEST="$NAME: check crash when connecting to a unix domain socket using address GOPEN"
 # a unix domain server is started in background. the check process connects to
 # its socket. when this process crashes or issues a warning the bug is present.
@@ -10532,6 +10754,7 @@ if [ $rc1 -ne 0 ]; then
     cat "${te}0"
     cat "${te}1"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif grep -q ' W ' "${te}1"; then
     $PRINTF "$FAILED\n"
     echo "$CMD0 &"
@@ -10539,6 +10762,7 @@ elif grep -q ' W ' "${te}1"; then
     cat "${te}0"
     cat "${te}1"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif  ! echo "$da" |diff - ${tf}1 >"$tdiff"; then
     $PRINTF "$FAILED\n"
     echo "$CMD0 &"
@@ -10547,6 +10771,7 @@ elif  ! echo "$da" |diff - ${tf}1 >"$tdiff"; then
     cat "${te}1"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     numOK=$((numOK+1))
@@ -10560,7 +10785,7 @@ N=$((N+1))
 # test if socat keeps an existing file where it wanted to create a UNIX socket
 NAME=UNIXLISTEN_KEEPFILE
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%unix%*|*%socket%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%unix%*|*%socket%*|*%$NAME%*)
 TEST="$NAME: socat keeps an existing file where it wanted to create a UNIX socket"
 # we create a file and start socat with UNIX-LISTEN on this file. expected
 # behaviour: socat exits immediately with error, but keeps the file
@@ -10581,6 +10806,7 @@ else
     echo "$CMD0"
     cat "${te}0"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 fi
 fi # NUMCOND
  ;;
@@ -10591,7 +10817,7 @@ N=$((N+1))
 # PTY address allowed to sepcify address parameters but ignored them
 NAME=PTY_VOIDARG
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%pty%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%pty%*|*%$NAME%*)
 TEST="$NAME: check if address params of PTY produce error"
 # invoke socat with address PTY and some param; expect an error
 if ! eval $NUMCOND; then :; else
@@ -10611,6 +10837,7 @@ else
     echo "$CMD0"
     cat "${te}0"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 fi
 fi # NUMCOND
  ;;
@@ -10621,7 +10848,7 @@ N=$((N+1))
 # incomplete writes were reported but led to data loss
 NAME=INCOMPLETE_WRITE
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%$NAME%*)
 TEST="$NAME: check if incomplete writes are handled properly"
 # write to a nonblocking fd a block that is too large for atomic write
 # and check if all data arrives
@@ -10656,6 +10883,7 @@ else
     $PRINTF "$FAILED\n"
     echo "transferred only $(cat $tw) of $bytes bytes" >&2
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 fi
 fi # NUMCOND
  ;;
@@ -10665,7 +10893,7 @@ N=$((N+1))
 
 NAME=OPENSSL_ANULL
 case "$TESTS" in
-*%functions%*|*%openssl%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%openssl%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
 TEST="$NAME: OpenSSL server with cipher aNULL "
 if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
@@ -10694,6 +10922,7 @@ if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     cat "${te}2"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
    $PRINTF "$OK\n"
    if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
@@ -10710,7 +10939,7 @@ N=$((N+1))
 # test the max-children option
 NAME=MAXCHILDREN
 case "$TESTS" in
-*%functions%*|*%socket%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%socket%*|*%$NAME%*)
 TEST="$NAME: max-children option"
 # start a listen process with max-children=1; connect with a client, let it
 # sleep some time before sending data; connect with second client that sends
@@ -10748,6 +10977,7 @@ else
     cat "${te}2"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 fi
 fi # NUMCOND
  ;;
@@ -10760,7 +10990,7 @@ N=$((N+1))
 # problem reported by Johan Thillemann
 NAME=READLINE_OVFL
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%security%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%security%*|*%$NAME%*)
 TEST="$NAME: test for buffer overflow in readline prompt handling"
 # address 1 is the readline where write data was handled erroneous
 # address 2 provides data to trigger the buffer overflow
@@ -10788,6 +11018,7 @@ else
     echo "$CMD0"
     grep -v ^rc= "${te}0"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 fi
 fi # NUMCOND
  ;;
@@ -10801,7 +11032,7 @@ N=$((N+1))
 # This file descriptor leak could be used for a denial of service attack.
 NAME=FDLEAK
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%security%*|*%socket%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%security%*|*%socket%*|*%$NAME%*)
 TEST="$NAME: file descriptor leak with range option"
 # have a TCP-LISTEN with range option; connect with wrong source address until
 # "open files" limit would exceed. When server continues operation the bug is
@@ -10835,6 +11066,7 @@ if [ $rc2 -ne 0 ]; then
     echo "$CMD2 &"
     cat "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif [ -f "$tdiff" -a ! -s "$tdiff" ]; then
     $PRINTF "$OK\n"
     numOK=$((numOK+1))
@@ -10847,6 +11079,7 @@ else
     cat "${te}1"
     cat "${te}2"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 fi
 fi # ulimit -n
 fi # NUMCOND
@@ -10860,7 +11093,7 @@ if false; then	# this overflow is not reliably reproducable
 # socat up to 2.0.0-b6 did not check the length of the PROXY-CONNECT command line paramters when copying them into the HTTP request buffer. This could lead to a buffer overflow.
 NAME=PROXY_ADDR_OVFL
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%security%*|*%socket%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%security%*|*%socket%*|*%$NAME%*)
 TEST="$NAME: proxy address parameters overflow"
 # invoke socat PROXY-CONNECT with long proxy server and target server names. If it terminates with exit code >= 128 it is vulnerable
 # However, even if vulnerable it often does not crash. Therefore we try to use a boundary check program like ElectricFence; only with its help we can tell that clean run proofs absence of vulnerability
@@ -10896,6 +11129,7 @@ else
     echo "$CMD1"
     cat "${te}"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 fi
 fi # NUMCOND
  ;;
@@ -10953,6 +11187,7 @@ if [ $rc1 -ne 0 ]; then
     cat "${te}0"
     cat "${te}1"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif echo "$da" |diff - "$tf" >$tdiff; then
     $PRINTF "$OK\n"
     numOK=$((numOK+1))
@@ -10960,6 +11195,7 @@ else
     $PRINTF "$FAILED\n"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 fi
 if ! ls -l $f |diff "$td/test$N.$F.ls-l" -; then
     $PRINTF "${RED}this test changed properties of $f!${NORMAL}\n"
@@ -10971,9 +11207,10 @@ esac
 N=$((N+1))
 
 
-echo "summary: $((N-1)) tests; $numOK ok, $numFAIL failed, $numCANT could not be performed"
+echo "summary: $((N-1)) tests, $((numOK+numFAILD+numCANT)) chosen; $numOK ok, $numFAIL failed, $numCANT could not be performed"
 
 if [ "$numFAIL" -gt 0 ]; then
+    echo "FAILED: $listFAIL"
     exit 1
 fi
 exit 0
@@ -10998,7 +11235,7 @@ exit
 # give a description of what is tested (a bugfix, a new feature...)
 NAME=SHORT_UNIQUE_TESTNAME
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%socket%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%socket%*|*%$NAME%*)
 TEST="$NAME: give a one line description of test"
 # describe how the test is performed, and what's the success criteria
 if ! eval $NUMCOND; then :; else
