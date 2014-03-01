@@ -63,13 +63,13 @@
 #undef HAVE_SOCKET
 
 /* Define if you have the strdup function.  */
-#undef HAVE_STRDUP
+#undef HAVE_PROTOTYPE_LIB_strdup
 
 /* Define if you have the strerror function.  */
-#undef HAVE_STRERROR
+#undef HAVE_PROTOTYPE_LIB_strerror
 
 /* Define if you have the strstr function.  */
-#undef HAVE_STRSTR
+#undef HAVE_PROTOTYPE_LIB_strstr
 
 /* Define if you have the strtod function.  */
 #undef HAVE_STRTOD
@@ -96,7 +96,7 @@
 #undef HAVE_GETADDRINFO
 
 /* Define if you have the getipnodebyname function.  */
-#undef HAVE_GETIPNODEBYNAME
+#undef HAVE_PROTOTYPE_LIB_getipnodebyname
 
 /* Define if you have the setgroups function. */
 #undef HAVE_SETGROUPS
@@ -105,10 +105,10 @@
 #undef HAVE_INET_ATON
 
 /* Define if you have the memrchr function. */
-#undef HAVE_MEMRCHR
+#undef HAVE_PROTOTYPE_LIB_memrchr
 
 /* Define if you have the if_indextoname function. */
-#undef HAVE_IF_INDEXTONAME
+#undef HAVE_PROTOTYPE_LIB_if_indextoname
 
 /* Define if you have the sigaction function */
 #undef HAVE_SIGACTION
@@ -376,6 +376,9 @@
 /* define if your struct in_pktinfo has component ipi_spec_dst */
 #undef HAVE_PKTINFO_IPI_SPEC_DST
 
+/* define if you have struct in6_pktinfo */
+#undef HAVE_STRUCT_IN6_PKTINFO
+
 /* define if your struct ip has ip_hl; otherwise assume ip_vhl */
 #undef HAVE_STRUCT_IP_IP_HL
 
@@ -404,7 +407,7 @@
 #undef HAVE_UNLOCKPT
 
 /* Define if you have the ptsname function */
-#undef HAVE_PTSNAME
+#undef HAVE_PROTOTYPE_LIB_ptsname
 
 /* Define if you have the /dev/ptmx pseudo terminal multiplexer */
 #undef HAVE_DEV_PTMX

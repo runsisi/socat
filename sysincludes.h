@@ -87,7 +87,7 @@
 #if HAVE_SYS_FILE_H
 #include <sys/file.h>	/* LOCK_EX, on AIX directly included */
 #endif
-#if _WITH_SOCKET
+#if WITH_IP4 || WITH_IP6
 #  if HAVE_NETINET_IN_H
 #include <netinet/in.h>	/* struct sockaddr_in, htonl() */
 #  endif

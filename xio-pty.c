@@ -120,13 +120,13 @@ static int xioopen_pty(int argc, const char *argv[], struct opt *opts, int xiofl
 	    Warn2("unlockpt(%d): %s", ptyfd, strerror(errno));
 	 }
 #endif /* HAVE_UNLOCKPT */
-#if HAVE_PTSNAME	/* AIX, not Linux */
+#if HAVE_PROTOTYPE_LIB_ptsname	/* AIX, not Linux */
 	 if ((tn = Ptsname(ptyfd)) == NULL) {
 	    Warn2("ptsname(%d): %s", ptyfd, strerror(errno));
 	 } else {
 	    Notice1("PTY is %s", tn);
 	 }
-#endif /* HAVE_PTSNAME */
+#endif /* HAVE_PROTOTYPE_LIB_ptsname */
 	 if (tn == NULL) {
 	    if ((tn = Ttyname(ptyfd)) == NULL) {
 	       Warn2("ttyname(%d): %s", ptyfd, strerror(errno));

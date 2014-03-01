@@ -11718,7 +11718,7 @@ esac
 N=$((N+1))
 
 
-echo "summary: $((N-1)) tests, $((numOK+numFAILD+numCANT)) chosen; $numOK ok, $numFAIL failed, $numCANT could not be performed"
+echo "summary: $((N-1)) tests, $((numOK+numFAILD+numCANT)) selected; $numOK ok, $numFAIL failed, $numCANT could not be performed"
 
 if [ "$numFAIL" -gt 0 ]; then
     echo "FAILED: $listFAIL"

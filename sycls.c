@@ -1239,7 +1239,7 @@ int Getaddrinfo(const char *node, const char *service,
 }
 #endif /* (_WITH_IP4 || _WITH_IP6) && HAVE_GETADDRINFO */
 
-#if (WITH_IP4 || WITH_IP6) && HAVE_GETIPNODEBYNAME
+#if (WITH_IP4 || WITH_IP6) && HAVE_PROTOTYPE_LIB_getipnodebyname
 struct hostent *Getipnodebyname(const char *name, int af, int flags,
                                 int *error_num) {
    struct hostent *result;
@@ -1254,7 +1254,7 @@ struct hostent *Getipnodebyname(const char *name, int af, int flags,
    }
    return result;
 }
-#endif /* (WITH_IP4 || WITH_IP6) && HAVE_GETIPNODEBYNAME */
+#endif /* (WITH_IP4 || WITH_IP6) && HAVE_PROTOTYPE_LIB_getipnodebyname */
 
 void *Malloc(size_t size) {
    void *result;
@@ -1396,7 +1396,7 @@ int Unlockpt(int fd) {
 }
 #endif /* HAVE_UNLOCKPT */
 
-#if HAVE_PTSNAME	/* AIX, not Linux */
+#if HAVE_PROTOTYPE_LIB_ptsname	/* AIX, not Linux */
 char *Ptsname(int fd) {
    char *result;
    int _errno;
@@ -1410,7 +1410,7 @@ char *Ptsname(int fd) {
    errno = _errno;
    return result;
 }
-#endif /* HAVE_PTSNAME */
+#endif /* HAVE_PROTOTYPE_LIB_ptsname */
 
 int Uname(struct utsname *buf) {
    int result, _errno;

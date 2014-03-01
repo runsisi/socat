@@ -129,7 +129,7 @@ int xiogetaddrinfo(const char *node, const char *service,
 #if HAVE_GETADDRINFO
    struct addrinfo hints = {0};
    struct addrinfo *res = NULL;
-#else /* HAVE_GETIPNODEBYNAME || nothing */
+#else /* HAVE_PROTOTYPE_LIB_getipnodebyname || nothing */
    struct hostent *host;
 #endif
    int error_num;
@@ -314,7 +314,7 @@ int xiogetaddrinfo(const char *node, const char *service,
       }
    }
 
-#elif HAVE_GETIPNODEBYNAME /* !HAVE_GETADDRINFO */
+#elif HAVE_PROTOTYPE_LIB_getipnodebyname /* !HAVE_GETADDRINFO */
 
    if (node != NULL) {
       /* first fallback is getipnodebyname() */
@@ -362,7 +362,7 @@ int xiogetaddrinfo(const char *node, const char *service,
       freehostent(host);
    }
 
-#else /* !HAVE_GETIPNODEBYNAME */
+#else /* !HAVE_PROTOTYPE_LIB_getipnodebyname */
 
    if (node != NULL) {
       /* this is not a typical IP6 resolver function - but Linux

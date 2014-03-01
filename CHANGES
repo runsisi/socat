@@ -54,6 +54,9 @@ corrections:
 	Thanks to Lorenzo Monti for pointing me to this issue
 
 porting:
+	Red Hat issue 1020203: configure checks fail with some compilers.
+	Use case: clang
+
 	Performed changes for Fedora release 19
 
 	Adapted, improved test.sh script

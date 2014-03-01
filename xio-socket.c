@@ -1876,7 +1876,7 @@ xiolog_ancillary_socket(struct cmsghdr *cmsg, int *num,
    provide one in parameter ins to avoid creation of a dummy socket. ins must
    be <0 if it does not specify a socket fd. */
 char *xiogetifname(int ind, char *val, int ins) {
-#if !HAVE_IF_INDEXTONAME
+#if !HAVE_PROTOTYPE_LIB_if_indextoname
    int s;
    struct ifreq ifr;
 
@@ -1910,9 +1910,9 @@ char *xiogetifname(int ind, char *val, int ins) {
    if (ins < 0)  Close(s);
    strcpy(val, ifr.ifr_name);
    return val;
-#else /* HAVE_IF_INDEXTONAME */
+#else /* HAVE_PROTOTYPE_LIB_if_indextoname */
    return if_indextoname(ind, val);
-#endif /* HAVE_IF_INDEXTONAME */
+#endif /* HAVE_PROTOTYPE_LIB_if_indextoname */
 }
 
 

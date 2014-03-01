@@ -229,14 +229,14 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 	       Warn2("unlockpt(%d): %s", ptyfd, strerror(errno));
 	    }
 #endif /* HAVE_UNLOCKPT */
-#if HAVE_PTSNAME	/* AIX, not Linux */
+#if HAVE_PROTOTYPE_LIB_ptsname	/* AIX, not Linux */
 	    if ((tn = Ptsname(ptyfd)) == NULL) {
 	       Warn2("ptsname(%d): %s", ptyfd, strerror(errno));
 	    }
-#endif /* HAVE_PTSNAME */
+#endif /* HAVE_PROTOTYPE_LIB_ptsname */
 	    if (tn == NULL) {
 	       if ((tn = Ttyname(ptyfd)) == NULL) {
-		  Warn2("ttyname(%d): %s", ptyfd, strerror(errno));
+		  Error2("ttyname(%d): %s", ptyfd, strerror(errno));
 	       }
 	    }
 	    ptyname[0] = '\0'; strncat(ptyname, tn, MAXPTYNAMELEN-1);

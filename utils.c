@@ -14,7 +14,7 @@
 #include "utils.h"
 
 
-#if !HAVE_MEMRCHR
+#if !HAVE_PROTOTYPE_LIB_memrchr
 /* GNU extension, available since glibc 2.1.91 */
 void *memrchr(const void *s, int c, size_t n) {
    const unsigned char *t = ((unsigned char *)s)+n;
@@ -25,7 +25,7 @@ void *memrchr(const void *s, int c, size_t n) {
       return NULL;
    return (void *)t;
 }
-#endif /* !HAVE_MEMRCHR */
+#endif /* !HAVE_PROTOTYPE_LIB_memrchr */
 
 void *memdup(const void *src, size_t n) {
    void *dest;

@@ -233,7 +233,7 @@ int xiolog_ancillary_ip6(struct cmsghdr *cmsg, int *num,
    msglen = cmsg->cmsg_len-((char *)CMSG_DATA(cmsg)-(char *)cmsg);
       envbuff[0] = '\0';
    switch (cmsg->cmsg_type) {
-#ifdef IPV6_PKTINFO
+#if defined(IPV6_PKTINFO) && HAVE_STRUCT_IN6_PKTINFO
    case IPV6_PKTINFO: {
       struct in6_pktinfo *pktinfo = (struct in6_pktinfo *)CMSG_DATA(cmsg);
       *num = 2;
@@ -245,7 +245,7 @@ int xiolog_ancillary_ip6(struct cmsghdr *cmsg, int *num,
 	       '\0', xiogetifname(pktinfo->ipi6_ifindex, scratch2, -1));
    }
       return STAT_OK;
-#endif /* defined(IPV6_PKTINFO) */
+#endif /* defined(IPV6_PKTINFO) && HAVE_STRUCT_IN6_PKTINFO */
 #ifdef IPV6_HOPLIMIT
    case IPV6_HOPLIMIT:
       typbuff[0] = '\0'; strncat(typbuff, "IPV6_HOPLIMIT", typlen-1);

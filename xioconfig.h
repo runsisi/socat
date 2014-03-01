@@ -1,5 +1,5 @@
 /* source: xioconfig.h */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xioconfig_h_included
@@ -86,12 +86,12 @@
 #endif
 
 
-#if HAVE_DEV_PTMX && HAVE_GRANTPT && HAVE_UNLOCKPT && HAVE_PTSNAME
+#if HAVE_DEV_PTMX && HAVE_GRANTPT && HAVE_UNLOCKPT && HAVE_PROTOTYPE_LIB_ptsname
 #else
 #  undef HAVE_DEV_PTMX
 #endif
 
-#if HAVE_DEV_PTC /* && HAVE_GRANTPT && HAVE_UNLOCKPT && HAVE_PTSNAME */
+#if HAVE_DEV_PTC /* && HAVE_GRANTPT && HAVE_UNLOCKPT && HAVE_PROTOTYPE_LIB_ptsname */
 #else
 #  undef HAVE_DEV_PTC
 #endif
