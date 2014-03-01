@@ -75,6 +75,9 @@ porting:
 
 	Artem Mygaiev extended Cedril Priscals Android build script with pty code
 
+	The check for fips.h required stddef.h
+	Thanks to Matt Hilt for reporting this issue and sending a patch
+
 docu:
 	libwrap always logs to syslog
 

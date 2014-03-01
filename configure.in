@@ -587,6 +587,7 @@ if test -n "$WITH_FIPS"; then
   # first, we need to find the include file <openssl/fips.h>
   AC_CACHE_VAL(sc_cv_have_openssl_fips_h,
     [AC_TRY_COMPILE([#define OPENSSL_FIPS
+#include <stddef.h>
 #include <openssl/fips.h>],[;],
       [sc_cv_have_openssl_fips_h=yes; ],
       [sv_cv_have_openssl_fips_h=no
