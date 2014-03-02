@@ -45,6 +45,9 @@ corrections:
 	Red Hat issue 1021972: fixed a missing NUL termination in return string
 	of sysutils.c:sockaddr_info() for the AF_UNIX case
 
+	fixed some typos and minor issues, including:
+	Red Hat issue 1021967: formatting error in manual page
+
 porting:
 	Performed changes for Fedora release 19
 

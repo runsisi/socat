@@ -190,7 +190,7 @@ platform specifics - hp-ux
 --------------------------
 
 Ancillary messages cannot be compiled in with socat: both struct msghdr and
-strutc cmsghdr are required. Compiling with -D_XOPEN_SOURCE_EXTENDED provides
+struct cmsghdr are required. Compiling with -D_XOPEN_SOURCE_EXTENDED provides
 struct msghdr but disables struct cmsghdr while -D_OPEN_SOURCE disables struct
 msghdr but disables struct cmsghdr. Please contact socat development if you
 know a solution.

@@ -45,6 +45,9 @@ _MICROS=$((MICROS+999999)); SECONDs="${_MICROS%??????}"
 withroot=0	# perform privileged tests even if not run by root
 #PATH=$PATH:/opt/freeware/bin
 #PATH=$PATH:/usr/local/ssl/bin
+case "$0" in
+    */*) PATH="${0%/*}:$PATH"
+esac
 #OPENSSL_RAND="-rand /dev/egd-pool"
 #SOCAT_EGD="egd=/dev/egd-pool"
 MISCDELAY=1
@@ -224,7 +227,7 @@ ECHO="echo $E"
 PRINTF="printf"
 
 case "$TERM" in
-vt100|vt320|linux|xterm|cons25|dtterm|aixterm|sun-color|xterm-color)
+vt100|vt320|linux|xterm|cons25|dtterm|aixterm|sun-color|xterm-color|xterm-256color)
 	# there are different behaviours of printf (and echo)
 	# on some systems, echo behaves different than printf...
 	if [ $($PRINTF "\0101") = "A" ]; then

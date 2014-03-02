@@ -1708,7 +1708,8 @@ label(OPTION_SUBSTUSER)dit(bf(tt(su=<user>)))
    Changes the link(<user>)(TYPE_USER) (owner) and groups of the process after
    processing the address (link(example)(EXAMPLE_OPTION_SUBSTUSER)). This call might require root privilege. 
 label(OPTION_SUBSTUSER_DELAYED)dit(bf(tt(su-d=<user>)))
-   Short name for bf(tt(substuser-delayed)). 
+   Short name for tt(substuser-delayed).
+   COMMENT(Short name for bf(tt(substuser-delayed) ).)
    Changes the link(<user>)(TYPE_USER)
    (owner) and groups of the process after processing the address (link(example)(EXAMPLE_OPTION_SUBSTUSER_DELAYED)).
    The user and his groups are retrieved em(before) a possible

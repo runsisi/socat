@@ -1127,14 +1127,14 @@ void xiosigaction_hasread(int signum
 	 if (pid == 0) {
 	    Msg(wassig?E_INFO:E_WARN,
 		"waitpid(-1, {}, WNOHANG): no child has exited");
-	    Info("childdied() finished");
+	    Info("xiosigaction_hasread() finished");
 	    errno = _errno;
 	    Debug("xiosigaction_hasread() ->");
 	    return;
 	 } else if (pid < 0 && errno == ECHILD) {
 	    Msg1(wassig?E_INFO:E_WARN,
 		 "waitpid(-1, {}, WNOHANG): %s", strerror(errno));
-	    Info("childdied() finished");
+	    Info("xiosigaction_hasread() finished");
 	    errno = _errno;
 	    Debug("xiosigaction_hasread() ->");
 	    return;
@@ -1142,7 +1142,7 @@ void xiosigaction_hasread(int signum
 	 wassig = true;
 	 if (pid < 0) {
 	    Warn2("waitpid(-1, {%d}, WNOHANG): %s", status, strerror(errno));
-	    Info("childdied() finished");
+	    Info("xiosigaction_hasread() finished");
 	    errno = _errno;
 	    Debug("xiosigaction_hasread() ->");
 	    return;
@@ -1735,7 +1735,7 @@ int xiocheckpeer(xiosingle_t *xfd,
 #if WITH_IP6
       if (pa->soa.sa_family == AF_INET6 &&
 	  ntohs(((struct sockaddr_in6 *)pa)->sin6_port) != xfd->para.socket.ip.sourceport) {
-	 Warn1("refusing connection from %s due to sourceport option",
+	 Warn1("refusing connection from %s due to wrong sourceport",
 	       sockaddr_info((struct sockaddr *)pa, 0,
 			     infobuff, sizeof(infobuff)));
 	 return -1;
@@ -2085,7 +2085,7 @@ int xiosetsockaddrenv(const char *lr,
 
 /* these do sockets internally */
 
-/* retrieves options so-type and so-prototype from opts, calls socketpair, and
+/* retrieves options so-type and so-prototype from opts, calls socket, and
    ev. generates an appropriate error message.
    returns 0 on success or -1 if an error occurred. */
 int 
