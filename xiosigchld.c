@@ -1,5 +1,5 @@
 /* source: xiosigchld.c */
-/* Copyright Gerhard Rieger 2001-2011 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this is the source of the extended child signal handler */
@@ -117,7 +117,7 @@ void childdied(int signum) {
 	    nextunknown = 0;
 	 }
 	 diedunknown[nextunknown++] = pid;
-	 Debug1("saving pid in diedunknown%u",
+	 Debug1("saving pid in diedunknown"F_Zu,
 		nextunknown/*sic, for compatibility*/);
       }
 

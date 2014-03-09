@@ -99,7 +99,7 @@
 #  define SIZET_MAX UINT_MAX
 #  define SSIZET_MIN INT_MIN
 #  define SSIZET_MAX INT_MAX
-#  define F_Zd "%d"
+#  define F_Zd "%""d"
 #  define F_Zu "%u"
 #elif HAVE_BASIC_SIZE_T==6
 #  define SIZET_MAX ULONG_MAX
@@ -153,7 +153,7 @@
 #  elif HAVE_BASIC_PID_T==2
 #define F_pid "%hu"
 #  elif HAVE_BASIC_PID_T==3
-#define F_pid "%d"
+#define F_pid "%""d"
 #  elif HAVE_BASIC_PID_T==4
 #define F_pid "%u"
 #  elif HAVE_BASIC_PID_T==5
@@ -177,7 +177,7 @@
 #  elif HAVE_BASIC_UID_T==2
 #define F_uid "%hu"
 #  elif HAVE_BASIC_UID_T==3
-#define F_uid "%d"
+#define F_uid "%""d"
 #  elif HAVE_BASIC_UID_T==4
 #define F_uid "%u"
 #  elif HAVE_BASIC_UID_T==5
@@ -201,7 +201,7 @@
 #  elif HAVE_BASIC_GID_T==2
 #define F_gid "%hu"
 #  elif HAVE_BASIC_GID_T==3
-#define F_gid "%d"
+#define F_gid "%""d"
 #  elif HAVE_BASIC_GID_T==4
 #define F_gid "%u"
 #  elif HAVE_BASIC_GID_T==5
@@ -225,7 +225,7 @@
 #  elif HAVE_BASIC_TIME_T==2
 #define F_time "%hu"
 #  elif HAVE_BASIC_TIME_T==3
-#define F_time "%d"
+#define F_time "%""d"
 #  elif HAVE_BASIC_TIME_T==4
 #define F_time "%u"
 #  elif HAVE_BASIC_TIME_T==5
@@ -253,7 +253,7 @@
 #  elif HAVE_BASIC_SOCKLEN_T==2
 #define F_socklen "%hu"
 #  elif HAVE_BASIC_SOCKLEN_T==3
-#define F_socklen "%d"
+#define F_socklen "%""d"
 #  elif HAVE_BASIC_SOCKLEN_T==4
 #define F_socklen "%u"
 #  elif HAVE_BASIC_SOCKLEN_T==5
@@ -275,7 +275,7 @@
 #endif
 #ifndef F_off
 #  if HAVE_BASIC_OFF_T==3
-#     define F_off "%d"
+#     define F_off "%""d"
 #  elif HAVE_BASIC_OFF_T==5
 #     define F_off "%ld"
 #  elif HAVE_BASIC_OFF_T==7
@@ -296,7 +296,7 @@
 #  elif HAVE_BASIC_OFF64_T==2
 #define F_off64 "%hu"
 #  elif HAVE_BASIC_OFF64_T==3
-#define F_off64 "%d"
+#define F_off64 "%""d"
 #  elif HAVE_BASIC_OFF64_T==4
 #define F_off64 "%u"
 #  elif HAVE_BASIC_OFF64_T==5
@@ -324,7 +324,7 @@
 #  elif HAVE_BASIC_DEV_T==2
 #define F_dev "%hu"
 #  elif HAVE_BASIC_DEV_T==3
-#define F_dev "%d"
+#define F_dev "%""d"
 #  elif HAVE_BASIC_DEV_T==4
 #define F_dev "%u"
 #  elif HAVE_BASIC_DEV_T==5
@@ -351,7 +351,7 @@
 #  elif HAVE_TYPEOF_ST_INO==2
 #define F_st_ino "%hu"
 #  elif HAVE_TYPEOF_ST_INO==3
-#define F_st_ino "%d"
+#define F_st_ino "%""d"
 #  elif HAVE_TYPEOF_ST_INO==4
 #define F_st_ino "%u"
 #  elif HAVE_TYPEOF_ST_INO==5
@@ -378,7 +378,7 @@
 #  elif HAVE_TYPEOF_ST64_INO==2
 #define F_st64_ino "%hu"
 #  elif HAVE_TYPEOF_ST64_INO==3
-#define F_st64_ino "%d"
+#define F_st64_ino "%""d"
 #  elif HAVE_TYPEOF_ST64_INO==4
 #define F_st64_ino "%u"
 #  elif HAVE_TYPEOF_ST64_INO==5
@@ -405,7 +405,7 @@
 #  elif HAVE_TYPEOF_ST_NLINK==2
 #define F_st_nlink "%hu"
 #  elif HAVE_TYPEOF_ST_NLINK==3
-#define F_st_nlink "%d"
+#define F_st_nlink "%""d"
 #  elif HAVE_TYPEOF_ST_NLINK==4
 #define F_st_nlink "%u"
 #  elif HAVE_TYPEOF_ST_NLINK==5
@@ -432,7 +432,7 @@
 #  elif HAVE_TYPEOF_ST_SIZE==2
 #define F_st_size "%hu"
 #  elif HAVE_TYPEOF_ST_SIZE==3
-#define F_st_size "%d"
+#define F_st_size "%""d"
 #  elif HAVE_TYPEOF_ST_SIZE==4
 #define F_st_size "%u"
 #  elif HAVE_TYPEOF_ST_SIZE==5
@@ -459,7 +459,7 @@
 #  elif HAVE_TYPEOF_ST64_SIZE==2
 #define F_st64_size "%hu"
 #  elif HAVE_TYPEOF_ST64_SIZE==3
-#define F_st64_size "%d"
+#define F_st64_size "%""d"
 #  elif HAVE_TYPEOF_ST64_SIZE==4
 #define F_st64_size "%u"
 #  elif HAVE_TYPEOF_ST64_SIZE==5
@@ -486,7 +486,7 @@
 #  elif HAVE_TYPEOF_ST_BLKSIZE==2
 #define F_st_blksize "%hu"
 #  elif HAVE_TYPEOF_ST_BLKSIZE==3
-#define F_st_blksize "%d"
+#define F_st_blksize "%""d"
 #  elif HAVE_TYPEOF_ST_BLKSIZE==4
 #define F_st_blksize "%u"
 #  elif HAVE_TYPEOF_ST_BLKSIZE==5
@@ -513,7 +513,7 @@
 #  elif HAVE_TYPEOF_ST_BLOCKS==2
 #define F_st_blocks "%hu"
 #  elif HAVE_TYPEOF_ST_BLOCKS==3
-#define F_st_blocks "%d"
+#define F_st_blocks "%""d"
 #  elif HAVE_TYPEOF_ST_BLOCKS==4
 #define F_st_blocks "%u"
 #  elif HAVE_TYPEOF_ST_BLOCKS==5
@@ -540,7 +540,7 @@
 #  elif HAVE_TYPEOF_ST64_BLOCKS==2
 #define F_st64_blocks "%hu"
 #  elif HAVE_TYPEOF_ST64_BLOCKS==3
-#define F_st64_blocks "%d"
+#define F_st64_blocks "%""d"
 #  elif HAVE_TYPEOF_ST64_BLOCKS==4
 #define F_st64_blocks "%u"
 #  elif HAVE_TYPEOF_ST64_BLOCKS==5
@@ -611,6 +611,33 @@
 #define F_rlim_max "Lu"
 #  else
 #error "HAVE_TYPEOF_RLIM_MAX is out of range:" HAVE_TYPEOF_RLIM_MAX
+#  endif
+#endif
+
+/* default: socklen_t */
+#if !defined(HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN) || !HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN
+#  undef HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN
+#  define HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN HAVE_BASIC_SOCKLEN_T
+#endif
+#ifndef F_cmsg_len
+#  if HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN==1
+#define F_cmsg_len "%""hd"
+#  elif HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN==2
+#define F_cmsg_len "%""hu"
+#  elif HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN==3
+#define F_cmsg_len "%""d"
+#  elif HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN==4
+#define F_cmsg_len "%""u"
+#  elif HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN==5
+#define F_cmsg_len "%""ld"
+#  elif HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN==6
+#define F_cmsg_len "%""lu"
+#  elif HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN==7
+#define F_cmsg_len "%""Ld"
+#  elif HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN==8
+#define F_cmsg_len "%""Lu"
+#  else
+#error "HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN is out of range:" HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN
 #  endif
 #endif
 

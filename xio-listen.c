@@ -152,7 +152,7 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
    applyopts(xfd->fd, opts, PH_PREBIND);
    applyopts(xfd->fd, opts, PH_BIND);
    if (Bind(xfd->fd, (struct sockaddr *)us, uslen) < 0) {
-      Msg4(level, "bind(%d, {%s}, "F_Zd"): %s", xfd->fd,
+      Msg4(level, "bind(%d, {%s}, "F_socklen"): %s", xfd->fd,
 	   sockaddr_info(us, uslen, infobuff, sizeof(infobuff)), uslen,
 	   strerror(errno));
       Close(xfd->fd);
@@ -237,11 +237,11 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
 	    continue;
 	 }
 	 if (errno == ECONNABORTED) {
-	    Notice4("accept(%d, %p, {"F_Zu"}): %s",
+	    Notice4("accept(%d, %p, {"F_socklen"}): %s",
 		    xfd->fd, &sa, salen, strerror(errno));
 	    continue;
 	 }
-	 Msg4(level, "accept(%d, %p, {"F_Zu"}): %s",
+	 Msg4(level, "accept(%d, %p, {"F_socklen"}): %s",
 	      xfd->fd, &sa, salen, strerror(errno));
 	 Close(xfd->fd);
 	 return STAT_RETRYLATER;

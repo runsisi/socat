@@ -552,7 +552,7 @@ int _xioopen_proxy_connect(struct single *xfd,
    }
 
    if (offset >= BUFLEN) {
-      Msg1(level, "proxy answer exceeds "F_Zu" bytes, aborting", BUFLEN);
+      Msg1(level, "proxy answer exceeds %d bytes, aborting", BUFLEN);
       return STAT_NORETRY;
    }
 

@@ -153,6 +153,27 @@ DragonFly) IFCONFIG=/sbin/ifconfig ;;
 *)     IFCONFIG=/sbin/ifconfig ;;
 esac
 
+# need output like "644"
+case "$UNAME" in
+    Linux) fileperms() { stat -L --print "%a\n" "$1" 2>/dev/null; } ;;
+    FreeBSD) fileperms() { stat -L -x "$1" |grep ' Mode:' |sed 's/.* Mode:[[:space:]]*([0-9]\([0-7][0-7][0-7]\).*/\1/'; } ;;
+    *) fileperms() {
+	    local p s=0 c
+	    p="$(ls -l -L "$1" |awk '{print($1);}')"
+	    p="${p:1:9}"
+	    while [ "$p" ]; do c=${p:0:1}; p=${p:1}; [ "x$c" == x- ]; let "s=2*s+$?"; done
+	    printf "%03o\n" $s;
+	} ;;
+esac
+
+# need user (owner) of filesystem entry
+case "$UNAME" in
+    Linux) fileuser() { stat -L --print "%U\n" "$tsock" 2>/dev/null; } ;;
+    FreeBSD) fileuser() { ls -l test.sh |awk '{print($3);}'; } ;;
+    *) fileuser() { ls -l test.sh |awk '{print($3);}'; } ;;
+esac
+
+
 # for some tests we need a second local IPv4 address
 case "$UNAME" in
 Linux)
@@ -9633,7 +9654,7 @@ test_proto="$(echo "$KEYW" |tr A-Z a-z)"
 NAME=${KEYW}LISTENENV
 case "$TESTS" in
 *%$N%*|*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%$test_proto%*|*%envvar%*|*%$NAME%*)
-TEST="$NAME: $KEYW-LISTEN fills environment variables with socket addresses"
+TEST="$NAME: $KEYW-LISTEN sets environment variables with socket addresses"
 # have a server accepting a connection and invoking some shell code. The shell
 # code extracts and prints the SOCAT related environment vars.
 # outside code then checks if the environment contains the variables correctly
@@ -9706,6 +9727,8 @@ else
     cat "${te}0"
     echo "$CMD1"
     cat "${te}1"
+    echo -e "SOCAT_SOCKADDR=$TEST_SOCKADDR\nSOCAT_PEERADDR=$TEST_PEERADDR\nSOCAT_SOCKPORT=$TEST_SOCKPORT\nSOCAT_PEERPORT=$TEST_PEERPORT" |
+    diff - "${tf}"
     numFAIL=$((numFAIL+1))
     listFAIL="$listFAIL $N"
 fi
@@ -11155,7 +11178,7 @@ fi	# false
 # and TCP options only to the listening socket instead of the connection socket.
 NAME=LISTEN_KEEPALIVE
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%listen%*|*%keepalive%*|*%socket%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%listen%*|*%keepalive%*|*%socket%*|*%$NAME%*)
 TEST="$NAME: keepalive option is applied to connection socket"
 # instance 0 has TCP-LISTEN with option so-keepalive and invokes filan after 
 # accept(). filan writes its output to the socket. instance 1 connects to 
@@ -11193,6 +11216,7 @@ else
     cat "${te}0"
     cat "${te}1"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 fi
 fi # NUMCOND
  ;;
@@ -11205,7 +11229,7 @@ N=$((N+1))
 # Linux) with "Invalid argument".
 NAME=OPENSSL_CONNECT_BIND
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%socket%*|*%ssl%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%socket%*|*%ssl%*|*%$NAME%*)
 TEST="$NAME: test OPENSSL-CONNECT with bind option"
 # have a simple SSL server that just echoes data.
 # connect with socat using OPENSSL-CONNECT with bind, send data and check if the
@@ -11233,6 +11257,7 @@ if [ "$rc1" -ne 0 ]; then
     cat "$te0"
     cat "$te1"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - $tf1 >"$tdiff"; then
     $PRINTF "$FAILED\n"
     echo "$CMD0 &"
@@ -11241,6 +11266,7 @@ elif ! echo "$da" |diff - $tf1 >"$tdiff"; then
     cat "${te}1"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     numOK=$((numOK+1))
@@ -11256,7 +11282,7 @@ N=$((N+1))
 # had a bug that converted a bit mask of 0 internally to 0xffffffff
 NAME=TCP4RANGE_0BITS
 case "$TESTS" in
-*%functions%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%range%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%range%*|*%$NAME%*)
 TEST="$NAME: correct evaluation of range mask 0"
 if ! eval $NUMCOND; then :;
 elif [ -z "$SECONDADDR" ]; then
@@ -11287,6 +11313,7 @@ elif ! [ -f "$tf" ]; then
     cat "${te}0"
     cat "${te}1"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
     $PRINTF "${YELLOW}diff failed${NORMAL}\n"
     numCANT=$((numCANT+1))
@@ -11315,7 +11342,7 @@ if [ "$fileopt" = "." ]; then fileopt=; fi
 if [ "$addropts" = "." ]; then addropts=; fi
 NAME=${ADDR_}_UMASK
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%proto%*|*%socket%*|*%$proto%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%proto%*|*%socket%*|*%$proto%*|*%$NAME%*)
 TEST="$NAME: $ADDR applies option umask"
 # start a socat process with passive/listening file system entry. Check the
 # permissions of the FS entry, then terminate the process.
@@ -11335,7 +11362,7 @@ $CMD0 >/dev/null 2>"$te0" &
 pid0=$!
 wait${proto} $tsock 1 2>"$tlog"
 ERRNOENT=; if ! [ -e "$tsock" ]; then  ERRNOENT=1;  fi
-perms=$(stat -L --print "%a\n" "$tsock" 2>/dev/null)
+perms=$(fileperms "$tsock")
 kill $pid0 2>>"$tlog"
 wait
 if [ "$ERRNOENT" ]; then
@@ -11344,11 +11371,13 @@ if [ "$ERRNOENT" ]; then
     cat "$te0"
     cat "$tlog"
     let numFAIL=numFAIL+1
+    listFAIL="$listFAIL $N"
 elif [ "$perms" != "600" ]; then
     $PRINTF "${RED}perms \"$perms\", expected \"600\" ${NORMAL}\n"
     echo "$CMD0 &"
     cat "$te0"
     let numFAIL=numFAIL+1
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     let numOK=numOK+1
@@ -11386,7 +11415,7 @@ if [ "$fileopt" = "." ]; then fileopt=; fi
 if [ "$addropts" = "." ]; then addropts=; fi
 NAME=${ADDR_}_PERM
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%proto%*|*%socket%*|*%$proto%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%proto%*|*%socket%*|*%$proto%*|*%$NAME%*)
 TEST="$NAME: $ADDR applies option perm"
 # start a socat process with passive/listening file system entry. Check the
 # permissions of the FS entry, then terminate the process.
@@ -11406,7 +11435,7 @@ $CMD0 >/dev/null 2>"$te0" &
 pid0=$!
 wait${proto} $tsock 1 2>"$tlog"
 ERRNOENT=; if ! [ -e "$tsock" ]; then  ERRNOENT=1;  fi
-perms=$(stat -L --print "%a\n" "$tsock" 2>/dev/null)
+perms=$(fileperms "$tsock")
 kill $pid0 2>>"$tlog"
 wait
 if [ "$ERRNOENT" ]; then
@@ -11415,11 +11444,13 @@ if [ "$ERRNOENT" ]; then
     cat "$te0"
     cat "$tlog"
     let numFAIL=numFAIL+1
+    listFAIL="$listFAIL $N"
 elif [ "$perms" != "511" ]; then
     $PRINTF "${RED}perms \"$perms\", expected \"511\" ${NORMAL}\n"
     echo "$CMD0 &"
     cat "$te0"
     let numFAIL=numFAIL+1
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     let numOK=numOK+1
@@ -11456,7 +11487,7 @@ if [ "$fileopt" = "." ]; then fileopt=; fi
 if [ "$addropts" = "." ]; then addropts=; fi
 NAME=${ADDR_}_USER
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%proto%*|*%socket%*|*%$proto%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%proto%*|*%socket%*|*%$proto%*|*%root%*|*%$NAME%*)
 TEST="$NAME: $ADDR applies option user"
 # start a socat process with passive/listening file system entry with user option.
 # Check the owner of the FS entry, then terminate the process.
@@ -11480,7 +11511,7 @@ $CMD0 >/dev/null 2>"$te0" &
 pid0=$!
 wait${proto} $tsock 1 2>"$tlog"
 ERRNOENT=; if ! [ -e "$tsock" ]; then  ERRNOENT=1;  fi
-user=$(stat -L --print "%U\n" "$tsock" 2>/dev/null)
+user=$(fileuser "$tsock")
 kill $pid0 2>>"$tlog"
 wait
 if [ "$ERRNOENT" ]; then
@@ -11489,11 +11520,13 @@ if [ "$ERRNOENT" ]; then
     cat "$te0"
     cat "$tlog"
     let numFAIL=numFAIL+1
+    listFAIL="$listFAIL $N"
 elif [ "$user" != "$SUBSTUSER" ]; then
     $PRINTF "${RED}user \"$user\", expected \"$SUBSTUSER\" ${NORMAL}\n"
     echo "$CMD0 &"
     cat "$te0"
     let numFAIL=numFAIL+1
+    listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
     let numOK=numOK+1
@@ -11532,7 +11565,7 @@ if [ "$addropts" = "." ]; then addropts=; fi
 # $ADDR removes the file system entry when the process is terminated
 NAME=${ADDR_}_REMOVE
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%unix%*|*%socket%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%unix%*|*%socket%*|*%$NAME%*)
 TEST="$NAME: $ADDR removes socket entry when terminated during accept"
 # start a socat process with listening unix domain socket etc. Terminate the
 # process and check if the file system socket entry still exists.
@@ -11568,6 +11601,7 @@ else
     cat "$te0"
     cat "$tlog"
     let numFAIL=numFAIL+1
+    listFAIL="$listFAIL $N"
 fi
 fi # NUMCOND
  ;;
@@ -11599,7 +11633,7 @@ if [ "$addropts" = "." ]; then addropts=; fi
 # $ADDR with fork removes the file system entry when the process is terminated
 NAME=${ADDR_}_REMOVE_FORK
 case "$TESTS" in
-*%functions%*|*%bugs%*|*%unix%*|*%socket%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%unix%*|*%socket%*|*%$NAME%*)
 TEST="$NAME: $ADDR with fork removes socket entry when terminated during accept"
 # start a socat process with listening unix domain socket etc and option fork.
 # Terminate the process and check if the file system socket entry still exists.
@@ -11635,6 +11669,7 @@ else
     cat "$te0"
     cat "$tlog"
     let numFAIL=numFAIL+1
+    listFAIL="$listFAIL $N"
 fi
 fi # NUMCOND
  ;;
@@ -11718,7 +11753,7 @@ esac
 N=$((N+1))
 
 
-echo "summary: $((N-1)) tests, $((numOK+numFAILD+numCANT)) selected; $numOK ok, $numFAIL failed, $numCANT could not be performed"
+echo "summary: $((N-1)) tests, $((numOK+numFAIL+numCANT)) selected; $numOK ok, $numFAIL failed, $numCANT could not be performed"
 
 if [ "$numFAIL" -gt 0 ]; then
     echo "FAILED: $listFAIL"
@@ -11773,6 +11808,7 @@ else
     cat "${te}0"
     cat "${te}1"
     numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 fi
 fi # NUMCOND
  ;;

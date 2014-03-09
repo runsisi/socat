@@ -898,12 +898,12 @@ int Socket(int domain, int type, int protocol) {
 #endif /* _WITH_SOCKET */
 
 #if _WITH_SOCKET
-int Bind(int sockfd, struct sockaddr *my_addr, int addrlen) {
+int Bind(int sockfd, struct sockaddr *my_addr, socklen_t addrlen) {
    int result, _errno;
    char infobuff[256];
 
    sockaddr_info(my_addr, addrlen, infobuff, sizeof(infobuff));
-   Debug3("bind(%d, %s, "F_Zd")", sockfd, infobuff, addrlen);
+   Debug3("bind(%d, %s, "F_socklen")", sockfd, infobuff, addrlen);
    result = bind(sockfd, my_addr, addrlen);
    _errno = errno;
    Debug1("bind() -> %d", result);
@@ -913,7 +913,7 @@ int Bind(int sockfd, struct sockaddr *my_addr, int addrlen) {
 #endif /* _WITH_SOCKET */
 
 #if _WITH_SOCKET
-int Connect(int sockfd, const struct sockaddr *serv_addr, int addrlen) {
+int Connect(int sockfd, const struct sockaddr *serv_addr, socklen_t addrlen) {
    int result, _errno;
    char infobuff[256];
 
@@ -932,7 +932,7 @@ int Connect(int sockfd, const struct sockaddr *serv_addr, int addrlen) {
 	   ((unsigned char *)serv_addr)[14], ((unsigned char *)serv_addr)[15], 
 	   addrlen);
 #else
-   Debug4("connect(%d, {%d,%s}, "F_Zd")",
+   Debug4("connect(%d, {%d,%s}, "F_socklen")",
 	  sockfd, serv_addr->sa_family,
 	  sockaddr_info(serv_addr, addrlen, infobuff, sizeof(infobuff)),
 	  addrlen);
@@ -968,7 +968,7 @@ int Accept(int s, struct sockaddr *addr, socklen_t *addrlen) {
    if (result >= 0) {
       char infobuff[256];
       sockaddr_info(addr, *addrlen, infobuff, sizeof(infobuff));
-      Info5("accept(%d, {%d, %s}, "F_Zd") -> %d", s,
+      Info5("accept(%d, {%d, %s}, "F_socklen") -> %d", s,
 	    addr->sa_family,
 	    sockaddr_info(addr, *addrlen, infobuff, sizeof(infobuff)),
 	    *addrlen, result);
@@ -1017,7 +1017,7 @@ int Getpeername(int s, struct sockaddr *name, socklen_t *namelen) {
 #if _WITH_SOCKET
 int Getsockopt(int s, int level, int optname, void *optval, socklen_t *optlen) {
    int result, _errno;
-   Debug5("getsockopt(%d, %d, %d, %p, {"F_Zd"})",
+   Debug5("getsockopt(%d, %d, %d, %p, {"F_socklen"})",
 	  s, level, optname, optval, *optlen);
    result = getsockopt(s, level, optname, optval, optlen);
    _errno = errno;
@@ -1065,12 +1065,12 @@ int Recvfrom(int s, void *buf, size_t len, int flags, struct sockaddr *from,
 	     socklen_t *fromlen) {
    int retval, _errno;
    char infobuff[256];
-   Debug6("recvfrom(%d, %p, "F_Zu", %d, %p, "F_Zu")",
+   Debug6("recvfrom(%d, %p, "F_Zu", %d, %p, "F_socklen")",
 	  s, buf, len, flags, from, *fromlen);
    retval = recvfrom(s, buf, len, flags, from, fromlen);
    _errno = errno;
    if (from) {
-      Debug4("recvfrom(,,,, {%d,%s}, "F_Zd") -> %d",
+      Debug4("recvfrom(,,,, {%d,%s}, "F_socklen") -> %d",
 	     from->sa_family,
 	     sockaddr_info(from, *fromlen, infobuff, sizeof(infobuff)),
 	     *fromlen, retval);
@@ -1087,7 +1087,7 @@ int Recvmsg(int s, struct msghdr *msgh, int flags) {
    int retval, _errno;
    char infobuff[256];
 #if defined(HAVE_STRUCT_MSGHDR_MSGCONTROL) && defined(HAVE_STRUCT_MSGHDR_MSGCONTROLLEN) && defined(HAVE_STRUCT_MSGHDR_MSGFLAGS)
-   Debug10("recvmsg(%d, %p{%p,%u,%p,%u,%p,%u,%d}, %d)", s, msgh,
+   Debug10("recvmsg(%d, %p{%p,%u,%p,"F_Zu",%p,"F_Zu",%d}, %d)", s, msgh,
 	  msgh->msg_name, msgh->msg_namelen,  msgh->msg_iov,  msgh->msg_iovlen,
 	  msgh->msg_control,  msgh->msg_controllen,  msgh->msg_flags, flags);
 #else
@@ -1098,7 +1098,7 @@ int Recvmsg(int s, struct msghdr *msgh, int flags) {
    retval = recvmsg(s, msgh, flags);
    _errno = errno;
 #if defined(HAVE_STRUCT_MSGHDR_MSGCONTROLLEN)
-   Debug5("recvmsg(, {%s,%u,,%u,,%u,}, ) -> %d",
+   Debug5("recvmsg(, {%s,%u,,"F_Zu",,"F_Zu",}, ) -> %d",
 	  msgh->msg_name?sockaddr_info(msgh->msg_name, msgh->msg_namelen, infobuff, sizeof(infobuff)):"NULL",
 	  msgh->msg_namelen, msgh->msg_iovlen, msgh->msg_controllen,
 	  retval);
@@ -1219,7 +1219,7 @@ struct hostent *Gethostbyname(const char *name) {
 int Getaddrinfo(const char *node, const char *service,
 		const struct addrinfo *hints, struct addrinfo **res) {
    int result;
-   Debug15("getaddrinfo(%s%s%s, %s%s%s, {%d,%d,%d,%d,"F_Zu",%p,%p,%p}, %p)",
+   Debug15("getaddrinfo(%s%s%s, %s%s%s, {%d,%d,%d,%d,"F_socklen",%p,%p,%p}, %p)",
 	   node?"\"":"", node?node:"NULL", node?"\"":"",
 	   service?"\"":"", service?service:"NULL", service?"\"":"",
 	   hints->ai_flags, hints->ai_family, hints->ai_socktype,

@@ -1055,7 +1055,7 @@ int _xioopen_dgram_sendto(/* them is already in xfd->peersa */
 
    if (us) {
       if (Bind(xfd->fd, (struct sockaddr *)us, uslen) < 0) {
-	 Msg4(level, "bind(%d, {%s}, "F_Zd"): %s",
+	 Msg4(level, "bind(%d, {%s}, "F_socklen"): %s",
 	      xfd->fd, sockaddr_info((struct sockaddr *)us, uslen, infobuff, sizeof(infobuff)),
 	      uslen, strerror(errno));
 	 Close(xfd->fd);
@@ -1216,7 +1216,7 @@ int _xioopen_dgram_recvfrom(struct single *xfd, int xioflags,
    applyopts(xfd->fd, opts, PH_PREBIND);
    applyopts(xfd->fd, opts, PH_BIND);
    if ((us != NULL) && Bind(xfd->fd, (struct sockaddr *)us, uslen) < 0) {
-      Msg4(level, "bind(%d, {%s}, "F_Zd"): %s", xfd->fd,
+      Msg4(level, "bind(%d, {%s}, "F_socklen"): %s", xfd->fd,
 	   sockaddr_info(us, uslen, infobuff, sizeof(infobuff)), uslen,
 	   strerror(errno));
       Close(xfd->fd);
@@ -1467,7 +1467,7 @@ int _xioopen_dgram_recv(struct single *xfd, int xioflags,
    applyopts(xfd->fd, opts, PH_PREBIND);
    applyopts(xfd->fd, opts, PH_BIND);
    if ((us != NULL) && Bind(xfd->fd, (struct sockaddr *)us, uslen) < 0) {
-      Msg4(level, "bind(%d, {%s}, "F_Zd"): %s", xfd->fd,
+      Msg4(level, "bind(%d, {%s}, "F_socklen"): %s", xfd->fd,
 	   sockaddr_info(us, uslen, infobuff, sizeof(infobuff)), uslen,
 	   strerror(errno));
       Close(xfd->fd);
@@ -1600,7 +1600,7 @@ int xiodopacketinfo(struct msghdr *msgh, bool withlog, bool withenv) {
 	 xiodump(CMSG_DATA(cmsg),
 		 cmsg->cmsg_len-((char *)CMSG_DATA(cmsg)-(char *)cmsg),
 		 valbuff, sizeof(valbuff)-1, 0);
-	 Debug4("ancillary message: len="F_socklen", level=%d, type=%d, data=%s",
+	 Debug4("ancillary message: len="F_cmsg_len", level=%d, type=%d, data=%s",
 		cmsg->cmsg_len, cmsg->cmsg_level, cmsg->cmsg_type,
 		valbuff);
       }
@@ -1843,7 +1843,6 @@ xiolog_ancillary_socket(struct cmsghdr *cmsg, int *num,
       cmsgname = "timestamp";
       cmsgenvn = "TIMESTAMP";
       { time_t t = tv->tv_sec; ctime_r(&t, valbuff); }
-     //sprintf(strchr(valbuff, '\0')-1/*del \n*/, ", %06ld usecs", (long)tv->tv_usec);
       snprintf(strchr(valbuff, '\0')-1/*del \n*/, vallen-strlen(valbuff)+1, ", %06ld usecs", (long)tv->tv_usec);
       break;
 #endif /* defined(SO_TIMESTAMP) */

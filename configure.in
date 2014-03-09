@@ -1694,6 +1694,8 @@ AC_TYPEOF_COMPONENT([#include <sys/types.h>
 #include <sys/resource.h>],
 struct rlimit, rlim_max, HAVE_TYPEOF_RLIM_MAX, sc_cv_type_rlimit_rlimmax_basic)
 
+# Fedora-19 doc says it is socklen_t which is equivalent to unsigned int, but it is equivalent to size_t (x86_64)
+AC_TYPEOF_COMPONENT([#include "sysincludes.h"], struct cmsghdr, cmsg_len, HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN, sc_cv_typeof_struct_cmsghdr_cmsg_len)
 ### snprintf, vsnprintf
 
 

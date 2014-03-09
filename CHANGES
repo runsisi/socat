@@ -84,6 +84,9 @@ porting:
 	autoconf now prefers configure.ac over configure.in
 	Thanks to Michael Vastola for sending a patch.
 
+	type of struct cmsghdr.cmsg is system dependend, determine it with
+	configure; some more print format corrections
+
 docu:
 	libwrap always logs to syslog
 

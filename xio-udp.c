@@ -1,5 +1,5 @@
 /* source: xio-udp.c */
-/* Copyright Gerhard Rieger 2001-2011 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for handling UDP addresses */
@@ -195,7 +195,7 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
       applyopts(fd->stream.fd, opts, PH_PREBIND);
       applyopts(fd->stream.fd, opts, PH_BIND);
       if (Bind(fd->stream.fd, &us.soa, uslen) < 0) {
-	 Error4("bind(%d, {%s}, "F_Zd"): %s", fd->stream.fd,
+	 Error4("bind(%d, {%s}, "F_socklen"): %s", fd->stream.fd,
 		sockaddr_info(&us.soa, uslen, infobuff, sizeof(infobuff)),
 		uslen, strerror(errno));
 	 return STAT_RETRYLATER;
@@ -221,7 +221,7 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
 			     &them->soa, &themlen);
       } while (result < 0 && errno == EINTR);
       if (result < 0) {
-	 Error5("recvfrom(%d, %p, 1, MSG_PEEK, {%s}, {"F_Zu"}): %s",
+	 Error5("recvfrom(%d, %p, 1, MSG_PEEK, {%s}, {"F_socklen"}): %s",
 		fd->stream.fd, buff1,
 		sockaddr_info(&them->soa, themlen, infobuff, sizeof(infobuff)),
 		themlen, strerror(errno));
@@ -265,7 +265,7 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
 
    applyopts(fd->stream.fd, opts, PH_CONNECT);
    if ((result = Connect(fd->stream.fd, &them->soa, themlen)) < 0) {
-      Error4("connect(%d, {%s}, "F_Zd"): %s",
+      Error4("connect(%d, {%s}, "F_socklen"): %s",
 	     fd->stream.fd,
 	     sockaddr_info(&them->soa, themlen, infobuff, sizeof(infobuff)),
 	     themlen, strerror(errno));

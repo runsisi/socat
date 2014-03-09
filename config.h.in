@@ -495,6 +495,8 @@
 
 #undef HAVE_TYPEOF_RLIM_MAX
 
+#undef HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN
+
 /* Define if you have the /proc filesystem */
 #undef HAVE_PROC_DIR
 

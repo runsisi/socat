@@ -40,7 +40,7 @@ int _xioopen_setdelayeduser(void) {
    if (delayeduser) {
 #if HAVE_SETGROUPS
       if ((Setgroups(delayeduser_ngids, delayeduser_gids)) != 0) {
-	 Error3("setgroups("F_Zu", %p): %s",
+	 Error3("setgroups(%d, %p): %s",
 		delayeduser_ngids, delayeduser_gids, strerror(errno));
       }
 #endif /* HAVE_SETGROUPS */

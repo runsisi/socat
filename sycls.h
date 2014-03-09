@@ -94,8 +94,8 @@ int System(const char *string);
 int Socketpair(int d, int type, int protocol, int sv[2]);
 #if _WITH_SOCKET
 int Socket(int domain, int type, int protocol);
-int Bind(int sockfd, struct sockaddr *my_addr, int addrlen);
-int Connect(int sockfd, const struct sockaddr *serv_addr, int addrlen);
+int Bind(int sockfd, struct sockaddr *my_addr, socklen_t addrlen);
+int Connect(int sockfd, const struct sockaddr *serv_addr, socklen_t addrlen);
 int Listen(int s, int backlog);
 int Accept(int s, struct sockaddr *addr, socklen_t *addrlen);
 int Getsockname(int s, struct sockaddr *name, socklen_t *namelen);

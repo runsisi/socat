@@ -726,7 +726,9 @@ const struct optname optionnames[] = {
 #endif
 	IF_IP     ("iptos",	&opt_ip_tos)
 	IF_IP     ("ipttl",	&opt_ip_ttl)
+#ifdef IPV6_JOIN_GROUP
 	IF_IP6    ("ipv6-add-membership",	&opt_ipv6_join_group)
+#endif
 #ifdef IPV6_AUTHHDR
 	IF_IP6    ("ipv6-authhdr",	&opt_ipv6_authhdr)
 #endif
@@ -742,7 +744,9 @@ const struct optname optionnames[] = {
 #ifdef IPV6_HOPOPTS
 	IF_IP6    ("ipv6-hopopts",	&opt_ipv6_hopopts)
 #endif
+#ifdef IPV6_JOIN_GROUP
 	IF_IP6    ("ipv6-join-group",	&opt_ipv6_join_group)
+#endif
 #ifdef IPV6_PKTINFO
 	IF_IP6    ("ipv6-pktinfo",	&opt_ipv6_pktinfo)
 #endif
@@ -792,7 +796,9 @@ const struct optname optionnames[] = {
 	IF_TERMIOS("ixany",	&opt_ixany)
 	IF_TERMIOS("ixoff",	&opt_ixoff)
 	IF_TERMIOS("ixon",	&opt_ixon)
+#ifdef IPV6_JOIN_GROUP
 	IF_IP6    ("join-group",	&opt_ipv6_join_group)
+#endif
 #if WITH_EXT2 && defined(EXT2_JOURNAL_DATA_FL)
 	IF_ANY    ("journal",		&opt_ext2_journal_data)
 	IF_ANY    ("journal-data",	&opt_ext2_journal_data)
@@ -3046,7 +3052,7 @@ int applyopts(int fd, struct opt *opts, enum e_phase phase) {
 	       if (Setsockopt(fd, opt->desc->major, opt->desc->minor,
 			      opt->value.u_bin.b_data, opt->value.u_bin.b_len)
 		   < 0) {
-		  Error6("setsockopt(%d, %d, %d, %p, %d): %s",
+		  Error6("setsockopt(%d, %d, %d, %p, "F_Zu"): %s",
 			 fd, opt->desc->major, opt->desc->minor,
 			 opt->value.u_bin.b_data, opt->value.u_bin.b_len,
 			 strerror(errno));
@@ -3178,7 +3184,7 @@ int applyopts(int fd, struct opt *opts, enum e_phase phase) {
 	    if (Getsockopt(fd, opt->desc->major, opt->desc->minor,
 			   data, &oldlen)
 		< 0) {
-	       Error6("getsockopt(%d, %d, %d, %p, {"F_Zu"}): %s",
+	       Error6("getsockopt(%d, %d, %d, %p, {"F_socklen"}): %s",
 		      fd, opt->desc->major, opt->desc->minor, data, oldlen,
 		      strerror(errno));
 	       opt->desc = ODESC_ERROR; ++opt; continue;
