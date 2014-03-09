@@ -1,5 +1,5 @@
 # source: Makefile.in
-# Copyright Gerhard Rieger 2001-2009
+# Copyright Gerhard Rieger
 # Published under the GNU General Public License V.2, see file COPYING
 
 # note: @...@ forms are filled in by configure script
@@ -156,7 +156,8 @@ socat.tar.bz2: socat.tar
 
 VERSION = `sed 's/"//g' VERSION`
 TARDIR = socat-$(VERSION)
-socat.tar: configure.in configure Makefile.in config.h.in install-sh VERSION $(CFILES) $(HFILES) $(DOCFILES) $(SHFILES) $(OSFILES) $(TESTFILES) socat.spec
+socat.tar: configure.in configure Makefile.in config.h.in install-sh VERSION $(CFILES) $(HFILES) $(DOCFILES) $(SHFILES) $(OSFILES) $(TESTFILES) socat.spec \
+	configure.ac
 	if [ ! -d $(TARDIR) ]; then mkdir $(TARDIR); fi
 	tar cf - $+ |(cd $(TARDIR); tar xf -)
 	tar cvf socat.tar $(TARDIR)

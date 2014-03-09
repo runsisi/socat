@@ -81,6 +81,9 @@ porting:
 	Check for linux/errqueue.h failed on some systems due to lack of
 	linux/types.h inclusion. Thanks to Michael Vastola for sending a patch.
 
+	autoconf now prefers configure.ac over configure.in
+	Thanks to Michael Vastola for sending a patch.
+
 docu:
 	libwrap always logs to syslog
 
