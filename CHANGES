@@ -1,4 +1,6 @@
 
+####################### V 1.7.2.4:
+
 corrections:
 	LISTEN based addresses applied some address options, e.g. so-keepalive,
 	to the listening file descriptor instead of the connected file
