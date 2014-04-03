@@ -1336,7 +1336,8 @@ AC_CHECK_FUNC(unsetenv, AC_DEFINE(HAVE_UNSETENV))
 dnl Search for SSLv2_client_method, SSLv2_server_method
 AC_CHECK_FUNC(SSLv3_client_method, AC_DEFINE(HAVE_SSLv3_client_method), AC_CHECK_LIB(crypt, SSLv3_client_method, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(SSLv2_server_method, AC_DEFINE(HAVE_SSLv2_server_method), AC_CHECK_LIB(crypt, SSLv2_server_method, [LIBS=-lcrypt $LIBS]))
-
+dnl 
+AC_CHECK_FUNC(SSL_CTX_set_default_verify_paths, AC_DEFINE(HAVE_SSL_CTX_set_default_verify_paths))
 
 dnl Run time checks
 

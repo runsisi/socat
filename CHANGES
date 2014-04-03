@@ -29,6 +29,9 @@ security:
 	the openssl-commonname option when it is used.
 	Test: OPENSSL_CN_SERVER_SECURITY
 
+	Red Hat issue 1019964: socat now uses the system certificate store with
+	OPENSSL when neither options cafile nor capath are used
+
 new features:
 	OpenSSL addresses set couple of environment variables from values in
 	peer certificate, e.g.: 

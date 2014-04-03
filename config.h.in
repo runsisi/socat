@@ -400,6 +400,9 @@
 /* Define if you have the SSLv2_server_method function. not in new openssl */
 #undef HAVE_SSLv2_server_method
 
+/* Define if you have the HAVE_SSL_CTX_set_default_verify_paths function */
+#undef HAVE_SSL_CTX_set_default_verify_paths
+
 /* Define if you have the flock function */
 #undef HAVE_FLOCK
 
