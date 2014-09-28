@@ -200,6 +200,9 @@ typedef struct single {
 	    char    *hosts_deny_table;
 #endif
 	 } ip;
+	 struct {
+	    bool     tight;
+	 } un;
 #endif /* _WITH_IP4 || _WITH_IP6 */
       } socket;
 #endif /* _WITH_SOCKET */

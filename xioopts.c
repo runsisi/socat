@@ -2816,7 +2816,7 @@ int retropt_string(struct opt *opts, int optcode, char **result) {
 
 
 #if _WITH_SOCKET
-/* looks for an bind option and, if found, overwrites the complete contents of
+/* looks for a bind option and, if found, overwrites the complete contents of
    sa with the appropriate value(s).
    returns STAT_OK if option exists and could be resolved,
    STAT_NORETRY if option exists but had error,
@@ -2829,7 +2829,10 @@ int retropt_bind(struct opt *opts,
 		 struct sockaddr *sa,
 		 socklen_t *salen,
 		 int feats,	/* TCP etc: 1..address allowed,
-				   3..address and port allowed */
+					    3..address and port allowed
+				   UNIX (or'd): 1..tight
+						2..abstract
+				*/
 		 unsigned long res_opts0, unsigned long res_opts1) {
    const char portsep[] = ":";
    const char *ends[] = { portsep, NULL };
@@ -2897,9 +2900,10 @@ int retropt_bind(struct opt *opts,
 #if WITH_UNIX
    case AF_UNIX:
       {
-	 bool tight = false;
+	 bool abstract = (feats&2);
+	 bool tight = (feats&1);
 	 struct sockaddr_un *s_un = (struct sockaddr_un *)sa;
-	 *salen = xiosetunix(af, s_un, bindname, false, tight);
+	 *salen = xiosetunix(af, s_un, bindname, abstract, tight);
       }
       break;
 #endif /* WITH_UNIX */

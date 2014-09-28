@@ -57,13 +57,13 @@ const struct addrdesc xioaddr_abstract_recv    = { "abstract-recv",     1, xioop
 const struct addrdesc xioaddr_abstract_client  = { "abstract-client",   3, xioopen_unix_client,   GROUP_FD|GROUP_SOCKET|GROUP_SOCK_UNIX|GROUP_RETRY,                          1, 0, 0 HELP(":<filename>") };
 #endif /* WITH_ABSTRACT_UNIXSOCKET */
 
-const struct optdesc xioopt_unix_tightsocklen = { "unix-tightsocklen",    "tightsocklen",  OPT_UNIX_TIGHTSOCKLEN,  GROUP_SOCK_UNIX, PH_INIT, TYPE_BOOL, OFUNC_SPEC, 0, 0 };
+const struct optdesc xioopt_unix_tightsocklen = { "unix-tightsocklen",    "tightsocklen",  OPT_UNIX_TIGHTSOCKLEN,  GROUP_SOCK_UNIX, PH_PREBIND, TYPE_BOOL, OFUNC_OFFSET, XIO_OFFSETOF(para.socket.un.tight), XIO_SIZEOF(para.socket.un.tight) };
 
 
 /* fills the socket address struct and returns its effective length.
    abstract is usually 0;  != 0 generates an abstract socket address on Linux.
    tight!=0 calculates the resulting length from the path length, not from the
-   structures length; this is more common.
+   structures length; this is more common (see option unix-tightsocklen)
    the struct need not be initialized when calling this function.
 */
 socklen_t
@@ -124,7 +124,6 @@ static int xioopen_unix_listen(int argc, const char *argv[], struct opt *opts, i
    int protocol = 0;
    struct sockaddr_un us;
    socklen_t uslen;
-   bool tight = true;
    struct opt *opts0 = NULL;
    pid_t pid = Getpid();
    bool opt_unlink_early = false;
@@ -136,12 +135,10 @@ static int xioopen_unix_listen(int argc, const char *argv[], struct opt *opts, i
 	     argv[0], argc-1);
       return STAT_NORETRY;
    }
-
    name = argv[1];
-   retropt_socket_pf(opts, &pf);
-   retropt_bool(opts, OPT_UNIX_TIGHTSOCKLEN, &tight);
-   uslen = xiosetunix(pf, &us, name, abstract, tight);
 
+   xfd->para.socket.un.tight = true;
+   retropt_socket_pf(opts, &pf);
    xfd->howtoend = END_SHUTDOWN;
 
    if (!(ABSTRACT && abstract)) {
@@ -153,7 +150,10 @@ static int xioopen_unix_listen(int argc, const char *argv[], struct opt *opts, i
    if (applyopts_single(xfd, opts, PH_INIT) < 0) return STAT_NORETRY;
    applyopts(-1, opts, PH_INIT);
    applyopts_named(name, opts, PH_EARLY);	/* umask! */
+   applyopts_offset(xfd, opts);
    applyopts(-1, opts, PH_EARLY);
+
+   uslen = xiosetunix(pf, &us, name, abstract, xfd->para.socket.un.tight);
 
    if (!(ABSTRACT && abstract)) {
       if (opt_unlink_early) {
@@ -214,8 +214,7 @@ static int xioopen_unix_connect(int argc, const char *argv[], struct opt *opts, 
    int socktype = SOCK_STREAM;
    int protocol = 0;
    struct sockaddr_un them, us;
-   socklen_t themlen, uslen;
-   bool tight = true;
+   socklen_t themlen, uslen = sizeof(us);
    bool needbind = false;
    bool opt_unlink_close = false;
    int result;
@@ -225,19 +224,23 @@ static int xioopen_unix_connect(int argc, const char *argv[], struct opt *opts, 
 	     argv[0], argc-1);
       return STAT_NORETRY;
    }
-
-   xfd->howtoend = END_SHUTDOWN;
-
    name = argv[1];
+
+   xfd->para.socket.un.tight = true;
    retropt_socket_pf(opts, &pf);
-   retropt_bool(opts, OPT_UNIX_TIGHTSOCKLEN, &tight);
-   themlen = xiosetunix(pf, &them, name, abstract, tight);
+   xfd->howtoend = END_SHUTDOWN;
+   if (applyopts_single(xfd, opts, PH_INIT) < 0)  return STAT_NORETRY;
+   applyopts(-1, opts, PH_INIT);
+   applyopts_offset(xfd, opts);
+   applyopts(-1, opts, PH_EARLY);
+
+   themlen = xiosetunix(pf, &them, name, abstract, xfd->para.socket.un.tight);
    if (!(ABSTRACT && abstract)) {
       /* only for non abstract because abstract do not work in file system */
       retropt_bool(opts, OPT_UNLINK_CLOSE, &opt_unlink_close);
    }
-   if (retropt_bind(opts, pf, socktype, protocol, (struct sockaddr *)&us, &uslen, 0, 0, 0)
-       != STAT_NOACTION) {
+   if (retropt_bind(opts, pf, socktype, protocol, (struct sockaddr *)&us, &uslen,
+		    (abstract<<1)|xfd->para.socket.un.tight, 0, 0) == STAT_OK) {
       needbind = true;
    }
 
@@ -247,10 +250,6 @@ static int xioopen_unix_connect(int argc, const char *argv[], struct opt *opts, 
       }
       xfd->opt_unlink_close = true;
    }
-
-   if (applyopts_single(xfd, opts, PH_INIT) < 0)  return -1;
-   applyopts(-1, opts, PH_INIT);
-   applyopts(-1, opts, PH_EARLY);
 
    if ((result =
 	xioopen_connect(xfd,
@@ -274,8 +273,7 @@ static int xioopen_unix_sendto(int argc, const char *argv[], struct opt *opts, i
    int socktype = SOCK_DGRAM;
    int protocol = 0;
    union sockaddr_union us;
-   socklen_t uslen;
-   bool tight = true;
+   socklen_t uslen = sizeof(us);
    bool needbind = false;
    bool opt_unlink_close = false;
 
@@ -284,13 +282,14 @@ static int xioopen_unix_sendto(int argc, const char *argv[], struct opt *opts, i
 	     argv[0], argc-1);
       return STAT_NORETRY;
    }
-
-   retropt_bool(opts, OPT_UNIX_TIGHTSOCKLEN, &tight);
    name = argv[1];
-   retropt_socket_pf(opts, &pf);
-   xfd->salen = xiosetunix(pf, &xfd->peersa.un, name, abstract, tight);
 
+   xfd->para.socket.un.tight = true;
+   retropt_socket_pf(opts, &pf);
    xfd->howtoend = END_SHUTDOWN;
+   applyopts_offset(xfd, opts);
+
+   xfd->salen = xiosetunix(pf, &xfd->peersa.un, name, abstract, xfd->para.socket.un.tight);
 
    if (!(ABSTRACT && abstract)) {
       /* only for non abstract because abstract do not work in file system */
@@ -299,8 +298,8 @@ static int xioopen_unix_sendto(int argc, const char *argv[], struct opt *opts, i
 
    xfd->dtype = XIODATA_RECVFROM;
 
-   if (retropt_bind(opts, pf, socktype, protocol, &us.soa, &uslen, 0, 0, 0)
-       != STAT_NOACTION) {
+   if (retropt_bind(opts, pf, socktype, protocol, &us.soa, &uslen,
+		   (abstract<<1)| xfd->para.socket.un.tight, 0, 0) == STAT_OK) {
       needbind = true;
    }
 
@@ -333,7 +332,6 @@ int xioopen_unix_recvfrom(int argc, const char *argv[], struct opt *opts,
    int protocol = 0;
    struct sockaddr_un us;
    socklen_t uslen;
-   bool tight = true;
    bool needbind = true;
    bool opt_unlink_early = false;
    bool opt_unlink_close = true;
@@ -343,21 +341,30 @@ int xioopen_unix_recvfrom(int argc, const char *argv[], struct opt *opts,
 	     argv[0], argc-1);
       return STAT_NORETRY;
    }
-
    name = argv[1];
-   retropt_socket_pf(opts, &pf);
-   retropt_bool(opts, OPT_UNIX_TIGHTSOCKLEN, &tight);
-   uslen = xiosetunix(pf, &us, name, abstract, tight);
 
+   xfd->para.socket.un.tight = true;
+   retropt_socket_pf(opts, &pf);
    xfd->howtoend = END_NONE;
-   retropt_bind(opts, pf, socktype, protocol, (struct sockaddr *)&us, &uslen,
-		1, 0, 0);
+   if (applyopts_single(xfd, opts, PH_INIT) < 0)  return STAT_NORETRY;
+   applyopts(-1, opts, PH_INIT);
+   applyopts_named(name, opts, PH_EARLY);       /* umask! */
+   applyopts_offset(xfd, opts);
 
    if (!(ABSTRACT && abstract)) {
       /* only for non abstract because abstract do not work in file system */
       retropt_bool(opts, OPT_UNLINK_EARLY, &opt_unlink_early);
       retropt_bool(opts, OPT_UNLINK_CLOSE, &opt_unlink_close);
    }
+   applyopts(-1, opts, PH_EARLY);
+
+   uslen = xiosetunix(pf, &us, name, abstract, xfd->para.socket.un.tight);
+
+#if 0
+   if (retropt_bind(opts, pf, socktype, protocol, (struct sockaddr *)&us, &uslen,
+		    (abstract<<1)|xfd->para.socket.un.tight, 0, 0) == STAT_OK) {
+   }
+#endif
 
    if (!(ABSTRACT && abstract)) {
       if (opt_unlink_early) {
@@ -411,7 +418,6 @@ int xioopen_unix_recv(int argc, const char *argv[], struct opt *opts,
    int protocol = 0;
    union sockaddr_union us;
    socklen_t uslen;
-   bool tight = true;
    bool opt_unlink_early = false;
    bool opt_unlink_close = true;
    int result;
@@ -421,21 +427,33 @@ int xioopen_unix_recv(int argc, const char *argv[], struct opt *opts,
 	     argv[0], argc-1);
       return STAT_NORETRY;
    }
-
    name = argv[1];
-   retropt_socket_pf(opts, &pf);
-   retropt_bool(opts, OPT_UNIX_TIGHTSOCKLEN, &tight);
-   uslen = xiosetunix(pf, &us.un, name, abstract, tight);
 
-#if 1	/*!!! why bind option? */
-   retropt_bind(opts, pf, socktype, protocol, &us.soa, &uslen, 1, 0, 0);
-#endif
+   xfd->para.socket.un.tight = true;
+   retropt_socket_pf(opts, &pf);
+   xfd->howtoend = END_SHUTDOWN;
+   if (applyopts_single(xfd, opts, PH_INIT) < 0)  return STAT_NORETRY;
+   applyopts(-1, opts, PH_INIT);
+   applyopts_named(name, opts, PH_EARLY);       /* umask! */
+   applyopts_offset(xfd, opts);
 
    if (!(ABSTRACT && abstract)) {
       /* only for non abstract because abstract do not work in file system */
       retropt_bool(opts, OPT_UNLINK_EARLY, &opt_unlink_early);
       retropt_bool(opts, OPT_UNLINK_CLOSE, &opt_unlink_close);
+   }
+   applyopts(-1, opts, PH_EARLY);
 
+   uslen = xiosetunix(pf, &us.un, name, abstract, xfd->para.socket.un.tight);
+
+#if 0
+   if (retropt_bind(opts, pf, socktype, protocol, &us.soa, &uslen,
+		    (abstract<<1)|xfd->para.socket.un.tight, 0, 0)
+       == STAT_OK) {
+   }
+#endif
+
+   if (!(ABSTRACT && abstract)) {
       if (opt_unlink_early) {
 	 if (Unlink(name) < 0) {
 	    if (errno == ENOENT) {
@@ -497,28 +515,27 @@ _xioopen_unix_client(xiosingle_t *xfd, int xioflags, unsigned groups,
    int socktype = 0;	/* to be determined by server socket type */
    int protocol = 0;
    union sockaddr_union them, us;
-   socklen_t themlen, uslen;
-   bool tight = true;
+   socklen_t themlen, uslen = sizeof(us);
    bool needbind = false;
    bool opt_unlink_close = false;
    struct opt *opts0;
    int result;
 
-   if (applyopts_single(xfd, opts, PH_INIT) < 0)  return -1;
-   applyopts(-1, opts, PH_INIT);
-
-   xfd->howtoend = END_SHUTDOWN;
+   xfd->para.socket.un.tight = true;
    retropt_socket_pf(opts, &pf);
+   xfd->howtoend = END_SHUTDOWN;
+   if (applyopts_single(xfd, opts, PH_INIT) < 0)  return STAT_NORETRY;
+   applyopts(-1, opts, PH_INIT);
+   applyopts_offset(xfd, opts);
+   applyopts(-1, opts, PH_EARLY);
 
-   retropt_bool(opts, OPT_UNIX_TIGHTSOCKLEN, &tight);
-   themlen = xiosetunix(pf, &them.un, name, abstract, tight);
-
+   themlen = xiosetunix(pf, &them.un, name, abstract, xfd->para.socket.un.tight);
    if (!(ABSTRACT && abstract)) {
       /* only for non abstract because abstract do not work in file system */
       retropt_bool(opts, OPT_UNLINK_CLOSE, &opt_unlink_close);
    }
-
-   if (retropt_bind(opts, pf, socktype, protocol, &us.soa, &uslen, 0, 0, 0)
+   if (retropt_bind(opts, pf, socktype, protocol, &us.soa, &uslen,
+		    (abstract<<1)|xfd->para.socket.un.tight, 0, 0)
        != STAT_NOACTION) {
       needbind = true;
    }

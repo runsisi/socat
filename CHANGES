@@ -18,6 +18,11 @@ security:
 	Turn off nested signal handler invocations
 	Thanks to Peter Lobsinger for reporting and explaining this issue.
 
+corrections:
+	Bind with ABSTRACT commands used non-abstract namespace (Linux).
+	Test: ABSTRACT_BIND
+	Thanks to Denis Shatov for reporting this bug.
+
 ####################### V 1.7.2.4:
 
 corrections:

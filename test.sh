@@ -8872,6 +8872,54 @@ esac
 N=$((N+1))
 
 
+# bind with Linux abstract UNIX domain addresses bound to filesystem socket
+# instead of abstract namespace
+NAME=ABSTRACT_BIND
+case "$TESTS" in
+*%$N%*|*%functions%*|*%bugs%*|*%socket%*|*%unix%*|*%abstract%*|*%$NAME%*)
+TEST="$NAME: abstract bind"
+# open an abstract client address with bind option, bind to the target socket.
+# send a datagram. 
+# when socat outputs the datagram it got the test succeeded
+if ! eval $NUMCOND; then :; 
+elif [ "$UNAME" != Linux ]; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}only on Linux${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+ts1="$td/test$N.sock1"
+da="test$N $(date) $RANDOM"
+CMD1="$TRACE $SOCAT $opts - ABSTRACT-SENDTO:$ts1,bind=$ts1"
+printf "test $F_n $TEST... " $N
+echo "$da" |$CMD1 >$tf 2>"${te}1"
+rc1=$?
+if [ $rc1 -ne 0 ]; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD1" >&2
+    echo "rc=$rc1" >&2
+    cat "${te}1" >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+elif echo "$da" |diff -q - $tf; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD1" >&2
+    cat "${te}1" >&2
+    echo "$da" |diff - "$tf" >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
 NAME=OPENSSLREAD
 # socat determined availability of data using select(). With openssl, the
 # following situation might occur:
