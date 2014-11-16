@@ -110,6 +110,9 @@ porting:
 	David Arnstein contributed a patch for NetBSD 5.1 including stdbool.h
 	support and appropriate files in Config/
 
+	Lauri Tirkkonen contributed a patch regarding netinet/if_ether.h
+	on Illumos
+
 testing:
 	Do not distribute testcert.conf with socat source but generate it
 	(and new testcert6.conf) during test.sh run.

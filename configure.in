@@ -297,7 +297,12 @@ if test "$WITH_INTERFACE"; then
   AC_CHECK_HEADER(netinet/if_ether.h,
     AC_DEFINE(HAVE_NETINET_IF_ETHER_H),
     [WITH_INTERFACE=;
-     AC_MSG_WARN([include file netinet/if_ether.h not found, disabling interface])])
+     AC_MSG_WARN([include file netinet/if_ether.h not found, disabling interface])],
+     [AC_INCLUDES_DEFAULT
+     #if HAVE_NET_IF_H && HAVE_NETINET_IN_H
+     #include <net/if.h>
+     #include <netinet/in.h>
+     #endif])
 fi
 if test "$WITH_INTERFACE"; then
    AC_DEFINE(WITH_INTERFACE)
