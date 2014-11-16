@@ -3552,7 +3552,6 @@ esac
 N=$((N+1))
 
 
-#set -vx
 NAME=IGNOREEOF
 case "$TESTS" in
 *%$N%*|*%functions%*|*%engine%*|*%ignoreeof%*|*%$NAME%*)
@@ -3585,7 +3584,40 @@ fi
 fi ;; # NUMCOND
 esac
 N=$((N+1))
-#set +vx
+
+NAME=IGNOREEOF_REV
+case "$TESTS" in
+*%$N%*|*%functions%*|*%engine%*|*%ignoreeof%*|*%$NAME%*)
+TEST="$NAME: ignoreeof on file right-to-left"
+if ! eval $NUMCOND; then :; else
+ti="$td/test$N.file"
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD="$SOCAT $opts -U - file:\"$ti\",ignoreeof"
+printf "test $F_n $TEST... " $N
+touch "$ti"
+$CMD >"$tf" 2>"$te" &
+bg=$!
+usleep 500000
+echo "$da" >>"$ti"
+sleep 1
+kill $bg 2>/dev/null
+if ! echo "$da" |diff - "$tf" >"$tdiff"; then
+    $PRINTF "$FAILED: diff:\n"
+    cat "$tdiff"
+    listFAIL="$listFAIL $N"
+    numFAIL=$((numFAIL+1))
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat $te; fi
+   numOK=$((numOK+1))
+fi
+wait
+fi ;; # NUMCOND
+esac
+N=$((N+1))
 
 
 NAME=EXECIGNOREEOF
@@ -7792,7 +7824,7 @@ N=$((N+1))
 
 NAME=COOLWRITE
 case "$TESTS" in
-*%$N%*|*%functions%*|*%engine%*|*%timeout%*|*%ignoreeof%*|*%coolwrite%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%engine%*|*%timeout%*|*%coolwrite%*|*%$NAME%*)
 TEST="$NAME: option cool-write"
 if ! eval $NUMCOND; then :;
 elif ! testoptions cool-write >/dev/null; then
@@ -7835,7 +7867,7 @@ N=$((N+1))
 # this failed up to socat 1.6.0.0
 NAME=COOLSTDIO
 case "$TESTS" in
-*%$N%*|*%functions%*|*%engine%*|*%timeout%*|*%ignoreeof%*|*%coolwrite%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%engine%*|*%timeout%*|*%coolwrite%*|*%$NAME%*)
 TEST="$NAME: option cool-write on bidirectional stdio"
 # this test starts a socat reader that terminates after receiving one+ 
 # bytes (option readbytes); and a test process that sends two bytes via
@@ -11503,7 +11535,7 @@ if [ "$fileopt" = "." ]; then fileopt=; fi
 if [ "$addropts" = "." ]; then addropts=; fi
 NAME=${ADDR_}_PERM
 case "$TESTS" in
-*%$N%*|*%functions%*|*%bugs%*|*%proto%*|*%socket%*|*%$proto%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%proto%*|*%socket%*|*%$proto%*|*%ignoreeof%*|*%$NAME%*)
 TEST="$NAME: $ADDR applies option perm"
 # start a socat process with passive/listening file system entry. Check the
 # permissions of the FS entry, then terminate the process.
@@ -11575,7 +11607,7 @@ if [ "$fileopt" = "." ]; then fileopt=; fi
 if [ "$addropts" = "." ]; then addropts=; fi
 NAME=${ADDR_}_USER
 case "$TESTS" in
-*%$N%*|*%functions%*|*%bugs%*|*%proto%*|*%socket%*|*%$proto%*|*%root%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%proto%*|*%socket%*|*%$proto%*|*%root%*|*%ignoreeof%*|*%$NAME%*)
 TEST="$NAME: $ADDR applies option user"
 # start a socat process with passive/listening file system entry with user option.
 # Check the owner of the FS entry, then terminate the process.

@@ -25,6 +25,10 @@ corrections:
 
 	Fixed return value of nestlex()
 
+	Option ignoreeof on the right address hung.
+	Test: IGNOREEOF_REV
+	Thanks to Franz Fasching for reporting this bug.
+
 ####################### V 1.7.2.4:
 
 corrections:
