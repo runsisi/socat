@@ -766,6 +766,16 @@ AC_MSG_RESULT($sc_cv_type_longlong)
 
 AC_CHECK_TYPE(sig_atomic_t,AC_DEFINE(HAVE_TYPE_SIG_ATOMIC_T),,[#include "sysincludes.h"])
 
+AC_MSG_CHECKING(for bool)
+AC_CACHE_VAL(sc_cv_type_bool,
+[AC_TRY_COMPILE([],[bool b;],
+[sc_cv_type_bool=yes],
+[sc_cv_type_bool=no])])
+if test $sc_cv_type_bool = yes; then
+   AC_DEFINE(HAVE_TYPE_BOOL)
+fi
+AC_MSG_RESULT($sc_cv_type_bool)
+
 # following builtin macro does not check unistd.h and sys/socket.h where
 # socklen_t might be defined
 #AC_CHECK_TYPE(socklen_t, int)

@@ -1,5 +1,4 @@
 
-
 security:
 	(CVE Id pending)
 	Fixed problems with signal handling caused by use of not async signal
@@ -103,6 +102,10 @@ porting:
 	binaries
 
 	Joachim Fenkes provided an new adapted spec file.
+
+	Type bool and macros Min and Max are defined by socat which led to
+	compile errors when they were already provided by build framework.
+	Thanks to Liyu Liu for providing a patch.
 
 testing:
 	Do not distribute testcert.conf with socat source but generate it

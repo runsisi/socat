@@ -452,6 +452,9 @@
 /* is sig_atomic_t declared */
 #undef HAVE_TYPE_SIG_ATOMIC_T
 
+/* is bool already typedef'd? */
+#undef HAVE_TYPE_BOOL
+
 /* is socklen_t already typedef'd? */
 #undef HAVE_TYPE_SOCKLEN
 
