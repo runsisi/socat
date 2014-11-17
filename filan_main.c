@@ -1,5 +1,5 @@
 /* source: filan_main.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 const char copyright[] = "filan by Gerhard Rieger - see http://www.dest-unreach.org/socat/";
@@ -239,7 +239,7 @@ static void filan_usage(FILE *fd) {
    fputs("      -f<filename>   analyze file system entry\n", fd);
    fputs("      -T<seconds>    wait before analyzing, useful to connect with debugger\n", fd);
    fputs("      -r             raw output for time stamps and rdev\n", fd);
-   fputs("      -L             show symlink properties instead of following it\n", fd);
+   fputs("      -L             follow symbolic links instead of showing their properties\n", fd);
    fputs("      -o<filename>   output goes to filename, that can be:\n", fd);
    fputs("                     a regular file name, the output goes to that\n", fd);
    fputs("                     +<filedes> , output goes to the file descriptor (which must be open writable)\n", fd);

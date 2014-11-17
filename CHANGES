@@ -78,6 +78,9 @@ corrections:
 	Christophe Leroy provided a patch that fixes memory leaks reported by
 	valgrind
 
+	Help for filan -L was bad, is now corrected to:
+	"follow symbolic links instead of showing their properties"
+
 porting:
 	Socat included <sys/poll.h> instead of POSIX <poll.h>
 	Thanks to John Spencer for reporting this issue.
