@@ -1,12 +1,16 @@
 /* source: dalan.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* idea of a low level data description language. currently only a most
    primitive subset exists. */
 
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
+#if HAVE_STDBOOL_H
+#include <stdbool.h>
+#endif
 #include <ctype.h>
 #include "dalan.h"
 

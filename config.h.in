@@ -146,6 +146,9 @@
 /* Define if you have the hstrerror prototype */
 #undef HAVE_PROTOTYPE_HSTRERROR
 
+/* Define if you have the <stdbool.h> header file.  */
+#undef HAVE_STDBOOL_H
+
 /* Define if you have the <inttypes.h> header file.  */
 #undef HAVE_INTTYPES_H
 

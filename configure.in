@@ -57,6 +57,7 @@ export CFLAGS
 
 dnl Checks for header files.
 AC_HEADER_STDC
+AC_CHECK_HEADERS(stdbool.h)
 AC_CHECK_HEADERS(inttypes.h)
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS(fcntl.h limits.h strings.h sys/param.h sys/ioctl.h sys/time.h syslog.h unistd.h)
@@ -768,7 +769,10 @@ AC_CHECK_TYPE(sig_atomic_t,AC_DEFINE(HAVE_TYPE_SIG_ATOMIC_T),,[#include "sysincl
 
 AC_MSG_CHECKING(for bool)
 AC_CACHE_VAL(sc_cv_type_bool,
-[AC_TRY_COMPILE([],[bool b;],
+[AC_TRY_COMPILE([#ifdef HAVE_STDBOOL_H
+   #include <stdbool.h>
+   #endif],
+[bool b;],
 [sc_cv_type_bool=yes],
 [sc_cv_type_bool=no])])
 if test $sc_cv_type_bool = yes; then

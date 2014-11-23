@@ -107,6 +107,9 @@ porting:
 	compile errors when they were already provided by build framework.
 	Thanks to Liyu Liu for providing a patch.
 
+	David Arnstein contributed a patch for NetBSD 5.1 including stdbool.h
+	support and appropriate files in Config/
+
 testing:
 	Do not distribute testcert.conf with socat source but generate it
 	(and new testcert6.conf) during test.sh run.

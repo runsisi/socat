@@ -5,6 +5,9 @@
 #ifndef __sysincludes_h_included
 #define __sysincludes_h_included 1
 
+#if HAVE_STDBOOL_H
+#include <stdbool.h>	/* bool, true, false */
+#endif
 #if HAVE_INTTYPES_H
 #include <inttypes.h>	/* uint16_t */
 #endif
