@@ -179,8 +179,8 @@ case "$UNAME" in
 *)
     PTYOPTS="echo=0,opost=0"
     #PTYOPTS2="raw,echo=0"
-    #PTYOPTS2="cfmakeraw"
-    PTYOPTS2="rawer"
+    PTYOPTS2="cfmakeraw"
+    #PTYOPTS2="rawer"
     ;;
 esac
 

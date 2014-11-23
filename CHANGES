@@ -61,7 +61,7 @@ corrections:
 	Test: IGNOREEOF_REV
 	Thanks to Franz Fasching for reporting this bug.
 
-	Address SYSTEM, when terminating, shutted down its parent addresses,
+	Address SYSTEM, when terminating, shut down its parent addresses,
 	e.g. an SSL connection which the parent assumed to still be active.
 	Test: SYSTEM_SHUTDOWN
 
@@ -92,6 +92,10 @@ corrections:
 porting:
 	Socat included <sys/poll.h> instead of POSIX <poll.h>
 	Thanks to John Spencer for reporting this issue.
+
+	Version 1.7.2.4 changed the check for gcc in configure.ac; this
+	broke cross compiling. The particular check gets reverted.
+	Thanks to Ross Burton and Danomi Manchego for reporting this issue.
 
 testing:
 	Do not distribute testcert.conf with socat source but generate it
