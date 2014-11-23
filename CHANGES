@@ -32,6 +32,10 @@ security:
 	Red Hat issue 1019964: socat now uses the system certificate store with
 	OPENSSL when neither options cafile nor capath are used
 
+	Red Hat issue 1019972: needs to specify OpenSSL cipher suites
+	Default cipherlist is now "HIGH:-NULL:-PSK:-aNULL" instead of empty to
+	prevent downgrade attacks
+
 new features:
 	OpenSSL addresses set couple of environment variables from values in
 	peer certificate, e.g.: 

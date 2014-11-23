@@ -717,7 +717,7 @@ int
    bool opt_fips = false;
    const SSL_METHOD *method;
    char *me_str = NULL;	/* method string */
-   char *ci_str = NULL;	/* cipher string */
+   char *ci_str = "HIGH:-NULL:-PSK:-aNULL";	/* cipher string */
    char *opt_key  = NULL;	/* file name of client private key */
    char *opt_dhparam = NULL;	/* file name of DH params */
    char *opt_cafile = NULL;	/* certificate authority file */
