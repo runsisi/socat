@@ -1,14 +1,14 @@
 
 %define majorver 1.7
-%define minorver 2.0
+%define minorver 2.4
 
 Summary: socat - multipurpose relay
 Name: socat
 Version: %{majorver}.%{minorver}
 Release: 1
-Copyright: GPL
+License: GPL
 Group: Applications/Communications
-Source0: http://www.dest-unreach.org/socat/download/socat-%{version}.tar.gz
+Source0: http://www.dest-unreach.org/socat/download/socat-%{version}.tar.bz2
 Requires: readline
 Requires: openssl
 BuildRoot: /var/tmp/%{name}-buildroot
@@ -20,7 +20,7 @@ modem etc.), socket (UNIX, IP4, IP6 - raw, UDP, TCP), a file descriptor (stdin
 etc.), a program, or an arbitrary combination of two of these.
 
 %prep
-%setup -n %{name}-%{majorver}
+%setup -n %{name}-%{version}
 
 %build
 # the CPPFLAGS setting is required for RedHat Linux
@@ -44,7 +44,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root)
-%doc README CHANGES EXAMPLES SECURITY xio.help socat.html FAQ BUGREPORTS
+%doc README CHANGES EXAMPLES SECURITY doc/xio.help doc/socat.html FAQ BUGREPORTS
 %doc COPYING COPYING.OpenSSL FILES PORTING DEVELOPMENT
 %{_bindir}/socat
 %{_bindir}/procan

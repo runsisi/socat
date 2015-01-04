@@ -1,4 +1,5 @@
 
+
 security:
 	(CVE Id pending)
 	Fixed problems with signal handling caused by use of not async signal
@@ -100,6 +101,8 @@ porting:
 	Debian Bug#764251: Set the build timestamp to a deterministic time:
 	support external BUILD_DATE env var to allow to build reproducable
 	binaries
+
+	Joachim Fenkes provided an new adapted spec file.
 
 testing:
 	Do not distribute testcert.conf with socat source but generate it
