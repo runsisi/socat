@@ -70,7 +70,7 @@ static int socat_newchild(void);
 static const char socatversion[] =
 #include "./VERSION"
       ;
-static const char timestamp[] = __DATE__" "__TIME__;
+static const char timestamp[] = BUILD_DATE;
 
 const char copyright_socat[] = "socat by Gerhard Rieger - see www.dest-unreach.org";
 #if WITH_OPENSSL

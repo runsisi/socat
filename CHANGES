@@ -97,6 +97,10 @@ porting:
 	broke cross compiling. The particular check gets reverted.
 	Thanks to Ross Burton and Danomi Manchego for reporting this issue.
 
+	Debian Bug#764251: Set the build timestamp to a deterministic time:
+	support external BUILD_DATE env var to allow to build reproducable
+	binaries
+
 testing:
 	Do not distribute testcert.conf with socat source but generate it
 	(and new testcert6.conf) during test.sh run.

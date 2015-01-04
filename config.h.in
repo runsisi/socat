@@ -584,4 +584,6 @@
 
 #undef WITH_MSGLEVEL
 
+#define BUILD_DATE __DATE__ " " __TIME__
+
 #endif /* !defined(__config_h_included) */

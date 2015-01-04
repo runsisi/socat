@@ -1863,4 +1863,11 @@ if test -n "$WITH_FIPS"; then
 fi
 AC_SUBST(FIPSLD_CC)
 
+# allow BUILD_DATE to be externally set for build reproducibility
+if test "$BUILD_DATE"; then
+  AC_DEFINE_UNQUOTED(BUILD_DATE, ["$BUILD_DATE"])
+else
+  AC_DEFINE(BUILD_DATE, [__DATE__" "__TIME__])
+fi
+
 AC_OUTPUT(Makefile)
