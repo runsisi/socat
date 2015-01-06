@@ -75,6 +75,9 @@ corrections:
 	Socat did not work in FIPS mode because 1024 instead of 512 bit DH prime
 	is required. Thanks to Zhigang Wang for reporting and sending a patch.
 
+	Christophe Leroy provided a patch that fixes memory leaks reported by
+	valgrind
+
 porting:
 	Socat included <sys/poll.h> instead of POSIX <poll.h>
 	Thanks to John Spencer for reporting this issue.

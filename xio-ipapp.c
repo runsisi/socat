@@ -1,5 +1,5 @@
 /* source: xio-ipapp.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for TCP and UDP related options */
@@ -92,12 +92,13 @@ int xioopen_ipapp_connect(int argc, const char *argv[], struct opt *opts,
 	    if (result == STAT_RETRYLATER) {
 	       Nanosleep(&xfd->intervall, NULL);
 	    }
-	    dropopts(opts, PH_ALL); opts = copyopts(opts0, GROUP_ALL);
+	    dropopts(opts, PH_ALL); free(opts); opts = copyopts(opts0, GROUP_ALL);
 	    continue;
 	 }
 	 return STAT_NORETRY;
 #endif /* WITH_RETRY */
       default:
+	  free(opts0);free(opts);
 	 return result;
       }
 
@@ -113,6 +114,7 @@ int xioopen_ipapp_connect(int argc, const char *argv[], struct opt *opts,
 	    if (xfd->forever || --xfd->retry) {
 	       Nanosleep(&xfd->intervall, NULL); continue;
 	    }
+	  free(opts0);
 	    return STAT_RETRYLATER;
 	 }
 
@@ -125,7 +127,7 @@ int xioopen_ipapp_connect(int argc, const char *argv[], struct opt *opts,
 	 Close(xfd->fd);
 	 /* with and without retry */
 	 Nanosleep(&xfd->intervall, NULL);
-	 dropopts(opts, PH_ALL); opts = copyopts(opts0, GROUP_ALL);
+	 dropopts(opts, PH_ALL); free(opts); opts = copyopts(opts0, GROUP_ALL);
 	 continue;	/* with next socket() bind() connect() */
       } else
 #endif /* WITH_RETRY */
@@ -136,8 +138,10 @@ int xioopen_ipapp_connect(int argc, const char *argv[], struct opt *opts,
    /* only "active" process breaks (master without fork, or child) */
 
    if ((result = _xio_openlate(xfd, opts)) < 0) {
+	   free(opts0);free(opts);
       return result;
    }
+   free(opts0);free(opts);
    return 0;
 }
 
