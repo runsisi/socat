@@ -47,6 +47,9 @@ new features:
 	Added support for methods TLSv1, TLSv1.1, TLSv1.2, and DTLS1
 	Tests: OPENSSL_METHOD_*
 
+	Added a new option termios-rawer for ptys.
+	Thanks to Christian Vogelgsang for pointing me to this requirement
+
 corrections:
 	Bind with ABSTRACT commands used non-abstract namespace (Linux).
 	Test: ABSTRACT_BIND

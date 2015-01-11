@@ -785,6 +785,8 @@ enum e_optcode {
 #ifdef TCP_WINDOW_CLAMP
    OPT_TCP_WINDOW_CLAMP,	/* Linux 2.4.0 */
 #endif
+   OPT_TERMIOS_CFMAKERAW,	/* termios.cfmakeraw() */
+   OPT_TERMIOS_RAWER,
    OPT_TIOCSCTTY,
    OPT_TOSTOP,		/* termios.c_lflag */
    OPT_TUN_DEVICE,	/* tun: /dev/net/tun ... */

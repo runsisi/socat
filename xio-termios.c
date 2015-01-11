@@ -1,5 +1,5 @@
 /* source: xio-termios.c */
-/* Copyright Gerhard Rieger 2001-2011 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for terminal I/O options */
@@ -268,6 +268,8 @@ const struct optdesc opt_veol2    = { "veol2",  "eol2",  OPT_VEOL2,    GROUP_TER
 
 const struct optdesc opt_raw      = { "raw",    NULL,    OPT_RAW,      GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_SPEC };
 const struct optdesc opt_sane     = { "sane",   NULL,    OPT_SANE,     GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_SPEC };
+const struct optdesc opt_termios_cfmakeraw = { "termios-cfmakeraw", "cfmakeraw", OPT_TERMIOS_CFMAKERAW, GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_SPEC };
+const struct optdesc opt_termios_rawer     = { "termios-rawer",     "rawer",     OPT_TERMIOS_RAWER,     GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_SPEC };
 
 #ifdef HAVE_TERMIOS_ISPEED
 #if defined(ISPEED_OFFSET) && (ISPEED_OFFSET != -1)
