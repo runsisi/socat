@@ -54,7 +54,9 @@
 #if HAVE_SYS_TYPES_H
 #include <sys/types.h>	/* pid_t, select(), socket(), connect(), open(), u_short */
 #endif
-#if HAVE_SYS_POLL_H
+#if HAVE_POLL_H
+#include <poll.h>	/* poll() */
+#elif HAVE_SYS_POLL_H
 #include <sys/poll.h>	/* poll() */
 #endif
 #if HAVE_SYS_SOCKET_H

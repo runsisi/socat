@@ -37,6 +37,10 @@ corrections:
 	to a random port instead of terminating with error.
 	Test: TCP4_NOPORT
 
+porting:
+	Socat included <sys/poll.h> instead of POSIX <poll.h>
+	Thanks to John Spencer for reporting this issue.
+
 ####################### V 1.7.2.4:
 
 corrections:
