@@ -149,6 +149,9 @@ int xiogetaddrinfo(const char *node, const char *service,
    memset(sau, 0, *socklen);
    sau->soa.sa_family = family;
 
+   if (service && service[0]=='\0') {
+      Error("empty port/service");
+   }
    /* if service is numeric we don't want to have a lookup (might take long
       with NIS), so we handle this specially */
    if (service && isdigit(service[0]&0xff)) {

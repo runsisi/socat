@@ -33,6 +33,10 @@ corrections:
 	e.g. an SSL connection which the parent assumed to still be active.
 	Test: SYSTEM_SHUTDOWN
 
+	Passive (listening or receiving) addresses with empty port field bound
+	to a random port instead of terminating with error.
+	Test: TCP4_NOPORT
+
 ####################### V 1.7.2.4:
 
 corrections:

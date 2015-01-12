@@ -11859,6 +11859,50 @@ PORT=$((PORT+1))
 N=$((N+1))
 
 
+# test if TCP4-LISTEN with empty port arg terminates with error
+NAME=TCP4_NOPORT
+case "$TESTS" in
+*%$N%*|*%functions%*|*%bugs%*|*%socket%*|*%tcp%*|*%tcp4%*|*%$NAME%*)
+TEST="$NAME: test if TCP4-LISTEN with empty port arg bails out"
+# run socat with TCP4-LISTEN with empty port arg. Check if it terminates
+# immediately with return code 1
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+t0rc="$td/test$N.rc"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$SOCAT $opts TCP4-LISTEN: /dev/null"
+printf "test $F_n $TEST... " $N
+{ $CMD0 >/dev/null 2>"${te}0"; echo $? >"$t0rc"; } & 2>/dev/null
+pid0=$!
+sleep 1
+kill $pid0 2>/dev/null; wait
+if [ ! -f "$t0rc" ]; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    cat "${te}0"
+    echo "did not terminate with error"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+elif ! echo 1 |diff - "$t0rc"; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    cat "${te}0"
+    echo "expected return code 1"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+else
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
 ##################################################################################
 #=================================================================================
 # here come tests that might affect your systems integrity. Put normal tests
