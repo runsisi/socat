@@ -27,6 +27,7 @@ int xiosetsigchild(xiofile_t *xfd, int (*callback)(struct single *)) {
 }
 
 /* exec'd child has died, perform appropriate changes to descriptor */
+/* is async-signal-safe */
 static int sigchld_stream(struct single *file) {
    /*!! call back to application */
    file->para.exec.pid = 0;
@@ -47,7 +48,7 @@ static int xio_checkchild(xiofile_t *socket, int socknum, pid_t deadchild) {
 	     socket->stream.para.exec.pid == deadchild) {
 	    Info2("exec'd process %d on socket %d terminated",
 		  socket->stream.para.exec.pid, socknum);
-	    sigchld_stream(&socket->stream);
+	    sigchld_stream(&socket->stream);	/* is async-signal-safe */
 	    return 1;
 	 }
       } else {
@@ -78,8 +79,8 @@ void childdied(int signum) {
 			   to set it to EINTR _before_ handling the signal, and
 			   then passes the value left by the signal handler to
 			   the caller of select(), accept() etc. */
-   /* is not thread/signal save, but confused messages in rare cases are better
-      than no messages at all */
+   diag_in_handler = 1;
+   Notice1("childdied(): handling signal %d", signum);
    Info1("childdied(signum=%d)", signum);
    do {
       pid = Waitpid(-1, &status, WNOHANG);
@@ -87,19 +88,22 @@ void childdied(int signum) {
 	 Msg(wassig?E_INFO:E_WARN,
 	     "waitpid(-1, {}, WNOHANG): no child has exited");
 	 Info("childdied() finished");
+	 diag_in_handler = 0;
 	 errno = _errno;
 	 return;
       } else if (pid < 0 && errno == ECHILD) {
-	 Msg1(wassig?E_INFO:E_WARN,
-	      "waitpid(-1, {}, WNOHANG): %s", strerror(errno));
+	 Msg(wassig?E_INFO:E_WARN,
+	      "waitpid(-1, {}, WNOHANG): "F_strerror);
 	 Info("childdied() finished");
+	 diag_in_handler = 0;
 	 errno = _errno;
 	 return;
       }
       wassig = true;
       if (pid < 0) {
-	 Warn2("waitpid(-1, {%d}, WNOHANG): %s", status, strerror(errno));
+	 Warn1("waitpid(-1, {%d}, WNOHANG): "F_strerror, status);
 	 Info("childdied() finished");
+	 diag_in_handler = 0;
 	 errno = _errno;
 	 return;
       }
@@ -142,11 +146,12 @@ void childdied(int signum) {
 #if !HAVE_SIGACTION
    /* we might need to re-register our handler */
    if (Signal(SIGCHLD, childdied) == SIG_ERR) {
-      Warn2("signal(SIGCHLD, %p): %s", childdied, strerror(errno));
+      Warn("signal(SIGCHLD, childdied): "F_strerror);
    }
 #endif /* !HAVE_SIGACTION */
   } while (1);
    Info("childdied() finished");
+   diag_in_handler = 0;
    errno = _errno;
 }
 
@@ -155,12 +160,13 @@ int xiosetchilddied(void) {
 #if HAVE_SIGACTION
    struct sigaction act;
    memset(&act, 0, sizeof(struct sigaction));
-   act.sa_flags   = SA_NOCLDSTOP|SA_RESTART
+   act.sa_flags   = SA_NOCLDSTOP/*|SA_RESTART*/
 #ifdef SA_NOMASK
       |SA_NOMASK
 #endif
       ;
    act.sa_handler = childdied;
+   sigfillset(&act.sa_mask);
    if (Sigaction(SIGCHLD, &act, NULL) < 0) {
       /*! man does not say that errno is defined */
       Warn2("sigaction(SIGCHLD, %p, NULL): %s", childdied, strerror(errno));

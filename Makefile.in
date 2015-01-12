@@ -54,13 +54,13 @@ XIOSRCS = xioinitialize.c xiohelp.c xioparam.c xiodiag.c xioopen.c xioopts.c \
 	xio-pty.c xio-openssl.c xio-streams.c\
 	xio-ascii.c xiolockfile.c xio-tcpwrap.c xio-ext2.c xio-tun.c
 XIOOBJS = $(XIOSRCS:.c=.o)
-UTLSRCS = error.c dalan.c procan.c procan-cdefs.c hostan.c fdname.c sysutils.c utils.c nestlex.c @FILAN@ @SYCLS@ @SSLCLS@
+UTLSRCS = error.c dalan.c procan.c procan-cdefs.c hostan.c fdname.c sysutils.c utils.c nestlex.c vsnprintf_r.c snprinterr.c @FILAN@ @SYCLS@ @SSLCLS@
 UTLOBJS = $(UTLSRCS:.c=.o)
 CFILES = $(XIOSRCS) $(UTLSRCS) socat.c procan_main.c filan_main.c
 OFILES = $(CFILES:.c=.o)
 PROGS = socat procan filan
 
-HFILES = sycls.h sslcls.h error.h dalan.h procan.h filan.h hostan.h sysincludes.h xio.h xioopen.h sysutils.h utils.h nestlex.h compat.h \
+HFILES = sycls.h sslcls.h error.h dalan.h procan.h filan.h hostan.h sysincludes.h xio.h xioopen.h sysutils.h utils.h nestlex.h vsnprintf_r.h snprinterr.h compat.h \
 	xioconfig.h mytypes.h xioopts.h xiodiag.h xiohelp.h xiosysincludes.h \
 	xiomodes.h xiolayer.h xio-process.h xio-fd.h xio-fdnum.h xio-stdio.h \
 	xio-named.h xio-file.h xio-creat.h xio-gopen.h xio-pipe.h \
@@ -114,12 +114,12 @@ depend: $(CFILES) $(HFILES)
 socat: socat.o libxio.a
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ socat.o libxio.a $(CLIBS)
 
-PROCAN_OBJS=procan_main.o procan.o procan-cdefs.o hostan.o error.o sycls.o sysutils.o utils.o
+PROCAN_OBJS=procan_main.o procan.o procan-cdefs.o hostan.o error.o sycls.o sysutils.o utils.o vsnprintf_r.o snprinterr.o
 procan: $(PROCAN_OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(PROCAN_OBJS) $(CLIBS)
 
 filan: filan_main.o filan.o fdname.o error.o sycls.o sysutils.o utils.o
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ filan_main.o filan.o fdname.o error.o sycls.o sysutils.o utils.o $(CLIBS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ filan_main.o filan.o fdname.o error.o sycls.o sysutils.o utils.o vsnprintf_r.o snprinterr.o $(CLIBS)
 
 libxio.a: $(XIOOBJS) $(UTLOBJS)
 	$(AR) r $@ $(XIOOBJS) $(UTLOBJS)

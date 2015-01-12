@@ -1,5 +1,5 @@
 /* source: hostan.c */
-/* Copyright Gerhard Rieger 2006-2011 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* the subroutine hostan makes a "HOST ANalysis". It gathers information
@@ -17,9 +17,27 @@
 
 #include "hostan.h"
 
+#include "error.h"
+
 static int iffan(FILE *outfile);
 
 int hostan(FILE *outfile) {
+   fprintf(outfile, "\nC TYPE SIZES\n");
+   fprintf(outfile, "sizeof(char)      = %u\n", (unsigned int)sizeof(char));
+   fprintf(outfile, "sizeof(short)     = %u\n", (unsigned int)sizeof(short));
+   fprintf(outfile, "sizeof(int)       = %u\n", (unsigned int)sizeof(int));
+   fprintf(outfile, "sizeof(long)      = %u\n", (unsigned int)sizeof(long));
+#if HAVE_TYPE_LONGLONG
+   fprintf(outfile, "sizeof(long long) = %u\n", (unsigned int)sizeof(long long));
+#endif
+   fprintf(outfile, "sizeof(size_t)    = %u\n", (unsigned int)sizeof(size_t));
+#include <sys/time.h>	/* select(); OpenBSD: struct timespec */
+   fprintf(outfile, "sizeof(struct timespec)      = %u\n", (unsigned int)sizeof(struct timespec));
+   fprintf(outfile, "sizeof(struct diag_dgram)      = %u\n", (unsigned int)sizeof(struct diag_dgram));
+   fprintf(outfile, "((struct diag_dgram *)0)->op-((struct diag_dgram *)0)     = %u\n", (unsigned int)((char *)(&((struct diag_dgram *)0)->op)-(char *)((struct diag_dgram *)0)));
+   fprintf(outfile, "((struct diag_dgram *)0)->now-((struct diag_dgram *)0)     = %u\n", (unsigned int)((char *)(&((struct diag_dgram *)0)->now)-(char *)((struct diag_dgram *)0)));
+   fprintf(outfile, "((struct diag_dgram *)0)->exitcode-((struct diag_dgram *)0)     = %u\n", (unsigned int)((char *)(&((struct diag_dgram *)0)->exitcode)-(char *)((struct diag_dgram *)0)));
+   fprintf(outfile, "((struct diag_dgram *)0)->text-((struct diag_dgram *)0)     = %u\n", (unsigned int)((((struct diag_dgram *)0)->text)-(char *)((struct diag_dgram *)0)));
 #if _WITH_SOCKET
    fprintf(outfile, "\nIP INTERFACES\n");
    iffan(outfile);

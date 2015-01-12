@@ -1,4 +1,23 @@
 
+security:
+	(CVE Id pending)
+	Fixed problems with signal handling caused by use of not async signal
+	safe functions in signal handlers that could freeze socat, allowing
+	denial of service attacks.
+	Many changes in signal handling and the diagnostic messages system were
+	applied to make the code async signal safe but still provide detailled
+	logging from signal handlers:
+	Coded function vsnprintf_r() as async signal safe incomplete substitute
+	of libc vsnprintf()
+	Coded function snprinterr() to replace %m in strings with a system error
+	message
+	Instead of gettimeofday() use clock_gettime() when available
+	Pass Diagnostic messages from signal handler per unix socket to the main
+	program flow
+	Use sigaction() instead of signal() for better control
+	Turn off nested signal handler invocations
+	Thanks to Peter Lobsinger for reporting and explaining this issue.
+
 ####################### V 1.7.2.4:
 
 corrections:

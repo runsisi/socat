@@ -1,5 +1,5 @@
 /* source: sysincludes.h */
-/* Copyright Gerhard Rieger 2001-2011 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __sysincludes_h_included
@@ -26,7 +26,7 @@
 #include <syslog.h>	/* openlog(), syslog(), closelog() */
 #endif
 #include <signal.h>	/* signal(), SIGPIPE, SIG_IGN */
-#include <time.h>	/* struct timeval, strftime() */
+#include <time.h>	/* struct timeval, strftime(), clock_gettime() */
 #if 0
 #include <sys/timeb.h>	/* struct timeb */
 #endif

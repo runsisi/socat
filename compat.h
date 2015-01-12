@@ -31,6 +31,10 @@
 
 /* substitute some features that might be missing on some platforms */
 
+#if !HAVE_TYPE_SIG_ATOMIC_T
+typedef int sig_atomic_t;
+#endif
+
 #ifndef SHUT_RD
 #  define SHUT_RD 0
 #endif

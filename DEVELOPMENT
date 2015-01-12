@@ -204,3 +204,19 @@ PH_PREFORK,	PH_FORK,	PH_PASTFORK	# (all before/after?)
 PH_LATE						# chroot
 PH_LATE2					# su, su-d.2
 PH_PREEXEC,	PH_EXEC				# (all before)
+
+===============================================================================
+// Up to 1.7.2.4 socat used non async signal safe system and library calls in signal handlers, mostly for logging purposes. This problem was fixed in release 1.7.3.0 with the following concepts:
+
+Signal handlers set on entry and unset on return the diag_in_handler global variable. The logging system, when this variable is set, queues the text message together with errno and exit info in a UNIX datagram socket. When invoked with unset diag_in_handler it first checks if there are messages in that queue and prints them first.
+
+A async signal safe but minimal version of vsnprintf, named vsnprintf_r, was written so no value arguments need to be queued.
+
+Because strerror is not async signal safe a new function snprinterr was written that replaces the (glibc compatible) %m format with strerror output. The original errno is passed in the message queue, snprinterr is called when dequeuing messages outside of signal handler.
+
+// List of signal handlers in socat
+socat.c:socat_signal (generic, just logs and maybe exits)
+xioshutdown.c:signal_kill_pid (SIGALRM, kill child process)
+xiosigchld.c:childdied (SIGCHLD: get info, log; possibly close channel)
+xiosignal.c:socatsignalpass: cascades signal to channel child processes; w/ options sighup,sigint,sigquit
+xio-socket.c:xiosigaction_hasread: SIGUSR1,SIGCHLD, tells parent that datagram has been consumed

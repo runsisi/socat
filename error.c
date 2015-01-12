@@ -1,30 +1,21 @@
 /* source: error.c */
-/* Copyright Gerhard Rieger 2001-2011 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* the logging subsystem */
 
 #include "config.h"
+#include "sysincludes.h"
 
-#include <stdarg.h>
-#include <stdlib.h>
-#include <errno.h>
-#if HAVE_SYSLOG_H
-#include <syslog.h>
-#endif
-#include <sys/utsname.h>
-#include <time.h>	/* time_t, strftime() */
-#include <sys/time.h>	/* gettimeofday() */
-#include <stdio.h>
-#include <string.h>
-#if HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 #include "mytypes.h"
 #include "compat.h"
 #include "utils.h"
+#include "vsnprintf_r.h"
+#include "snprinterr.h"
 
 #include "error.h"
+#include "sysincludes.h"
+#include "sycls.h"
 
 /* translate MSG level to SYSLOG level */
 int syslevel[] = {
@@ -49,10 +40,26 @@ struct diag_opts {
 } ;
 
 
+static void _diag_exit(int status);
+
+
 struct diag_opts diagopts =
   { NULL, E_ERROR, E_ERROR, 0, NULL, LOG_DAEMON, false, 0 } ;
 
+static void msg2(
+#if HAVE_CLOCK_GETTIME
+		 struct timespec *now,
+#elif HAVE_GETTIMEOFDAY
+		 struct timeval *now,
+#else
+		 time_t *now,
+#endif
+		 int level, int exitcode, int handler, const char *text);
 static void _msg(int level, const char *buff, const char *syslp);
+
+sig_atomic_t diag_in_handler;	/* !=0 indicates to msg() that in signal handler */
+sig_atomic_t diag_immediate_msg;	/* !=0 prints messages even from within signal handler instead of deferring them */
+sig_atomic_t diag_immediate_exit;	/* !=0 calls exit() from diag_exit() even when in signal handler. For system() */
 
 static struct wordent facilitynames[] = {
    {"auth",     (void *)LOG_AUTH},
@@ -87,15 +94,38 @@ static struct wordent facilitynames[] = {
    {"uucp",     (void *)LOG_UUCP}
 } ;
 
+/* serialize message for sending from signal handlers */
+struct sermsg {
+   int severity;
+#if HAVE_CLOCK_GETTIME
+   struct timespec ts;
+#else
+   struct timeval tv;
+#endif
+} ;
 
 static int diaginitialized;
+static int diag_sock_send = -1;
+static int diag_sock_recv = -1;
+static int diag_msg_avail = 0;	/* !=0: messages from within signal handler may be waiting */
+
+
 static int diag_init(void) {
+   int handlersocks[2];
+
    if (diaginitialized) {
       return 0;
    }
    diaginitialized = 1;
    /* gcc with GNU libc refuses to set this in the initializer */
    diagopts.logfile = stderr;
+   if (socketpair(AF_UNIX, SOCK_DGRAM, 0, handlersocks) < 0) {
+      diag_sock_send = -1;
+      diag_sock_recv = -1;
+      return -1;
+   }
+   diag_sock_send = handlersocks[1];
+   diag_sock_recv = handlersocks[0];
    return 0;
 }
 #define DIAG_INIT ((void)(diaginitialized || diag_init()))
@@ -180,67 +210,104 @@ const char *diag_get_string(char what) {
    return NULL;
 }
 
+
 /* Linux and AIX syslog format:
 Oct  4 17:10:37 hostname socat[52798]: D signal(13, 1)
 */
 void msg(int level, const char *format, ...) {
-#if HAVE_GETTIMEOFDAY || 1
-   struct timeval now;
-   int result;
-   time_t nowt;
-#else /* !HAVE_GETTIMEOFDAY */
-   time_t now;
-#endif /* !HAVE_GETTIMEOFDAY */
+   struct diag_dgram diag_dgram;
+   va_list ap;
+
+   /* does not perform a system call if nothing todo, thanks diag_msg_avail */
+
+   diag_dgram._errno = errno;	/* keep for passing from signal handler to sock.
+				   reason is that strerror is definitely not
+				   async-signal-safe */
+   DIAG_INIT;
+
+   /* in normal program flow (not in signal handler) */
+   /* first flush the queue of datagrams from the socket */
+   if (diag_msg_avail && !diag_in_handler) {
+      diag_msg_avail = 0;	/* _before_ flush to prevent inconsistent state when signal occurs inbetween */
+      diag_flush();
+   }
+
+   if (level < diagopts.msglevel)  { va_end(ap); return; }
+   va_start(ap, format);
+
+   /* we do only a minimum in the outer parts which may run in a signal handler
+      these are: get actual time, level, serialized message  and write them to socket
+   */
+   diag_dgram.op = DIAG_OP_MSG;
+#if HAVE_CLOCK_GETTIME
+   clock_gettime(CLOCK_REALTIME, &diag_dgram.now);
+#elif HAVE_GETTIMEOFDAY
+   gettimeofday(&diag_dgram.now, NULL);
+#else
+   diag_dgram.now = time(NULL);
+#endif
+   diag_dgram.level = level;
+   diag_dgram.exitcode = diagopts.exitstatus;
+   vsnprintf_r(diag_dgram.text, sizeof(diag_dgram.text), format, ap);
+   if (diag_in_handler && !diag_immediate_msg) {
+      send(diag_sock_send, &diag_dgram, sizeof(diag_dgram)-TEXTLEN + strlen(diag_dgram.text)+1, MSG_DONTWAIT|MSG_NOSIGNAL);
+      diag_msg_avail = 1;
+      va_end(ap);
+      return;
+   }
+
+   msg2(&diag_dgram.now, diag_dgram.level, diagopts.exitstatus, 0, diag_dgram.text);
+   va_end(ap); return;
+}
+
+void msg2(
+#if HAVE_CLOCK_GETTIME
+	  struct timespec *now,
+#elif HAVE_GETTIMEOFDAY
+	  struct timeval *now,
+#else
+	  time_t *now,
+#endif
+	  int level,		/* E_INFO... */
+	  int exitcode,		/* on exit use this exit code */
+	  int handler,		/* message comes from signal handler */
+	  const char *text) {
+   time_t epoch;
+   unsigned long micros;
 #if HAVE_STRFTIME
    struct tm struct_tm;
 #endif
 #define BUFLEN 512
    char buff[BUFLEN], *bufp, *syslp;
    size_t bytes;
-   va_list ap;
 
-   DIAG_INIT;
-   if (level < diagopts.msglevel)  return;
-   va_start(ap, format);
-#if HAVE_GETTIMEOFDAY || 1
-   result = gettimeofday(&now, NULL);
-   if (result < 0) {
-      /* invoking msg() might create endless recursion; by hand instead */
-      sprintf(buff, "cannot read time:   %s["F_pid"] E %s",
-	      diagopts.progname, getpid(), strerror(errno));
-      _msg(LOG_ERR, buff, strstr(buff, " E "+1));
-      strcpy(buff, "unknown time        ");  bytes = 20;
-   } else {
-      nowt = now.tv_sec;
-#if HAVE_STRFTIME
-      if (diagopts.micros) {
- 	 bytes = strftime(buff, 20, "%Y/%m/%d %H:%M:%S", localtime_r(&nowt, &struct_tm));
-	 bytes += sprintf(buff+19, "."F_tv_usec" ", now.tv_usec);
-      } else {
-	 bytes =
-	    strftime(buff, 21, "%Y/%m/%d %H:%M:%S ", localtime_r(&nowt, &struct_tm));
-      }
+#if HAVE_CLOCK_GETTIME
+   epoch = now->tv_sec;
+#elif HAVE_GETTIMEOFDAY
+   epoch = now->tv_sec;
 #else
-      strcpy(buff, ctime(&nowt));
-      bytes = strlen(buff);
+   epoch = *now;
 #endif
-   }
-#else /* !HAVE_GETTIMEOFDAY */
-   now = time(NULL);  if (now == (time_t)-1) {
-      /* invoking msg() might create endless recursion; by hand instead */
-      sprintf(buff, "cannot read time:   %s["F_pid"] E %s",
-	      diagopts.progname, getpid(), strerror(errno));
-      _msg(LOG_ERR, buff, strstr(buff, " E "+1));
-      strcpy(buff, "unknown time        ");  bytes = 20;
-   } else {
 #if HAVE_STRFTIME
-      bytes = strftime(buff, 21, "%Y/%m/%d %H:%M:%S ", localtime_r(&now, &struct_tm));
+   bytes = strftime(buff, 20, "%Y/%m/%d %H:%M:%S", localtime_r(&epoch, &struct_tm));
+   buff[bytes] = '\0';
 #else
-      strcpy(buff, ctime(&now));
-      bytes = strlen(buff);
+   bytes = snprintf(buff, 11, F_time, epoch);
 #endif
+   if (diagopts.micros) {
+#if HAVE_CLOCK_GETTIME
+      micros = now->tv_nsec/1000;
+#elif HAVE_GETTIMEOFDAY
+      micros = now->tv_usec;
+#else
+      micros = 0;
+#endif
+      bytes += sprintf(buff+19, ".%06lu ", micros);
+   } else {
+      buff[19] = ' '; buff[20] = '\0';
    }
-#endif /* !HAVE_GETTIMEOFDAY */
+   bytes = strlen(buff);
+
    bufp = buff + bytes;
    if (diagopts.withhostname) {
       bytes = sprintf(bufp, "%s ", diagopts.hostname), bufp+=bytes;
@@ -249,19 +316,20 @@ void msg(int level, const char *format, ...) {
    bufp += bytes;
    syslp = bufp;
    *bufp++ = "DINWEF"[level];
+#if 0 /* only for debugging socat */
+   if (handler)  bufp[-1] = tolower(bufp[-1]); /* for debugging, low chars indicate messages from signal handlers */
+#endif
    *bufp++ = ' ';
-   vsnprintf(bufp, BUFLEN-(bufp-buff)-1, format, ap);
+   strncpy(bufp, text, BUFLEN-(bufp-buff)-1);
    strcat(bufp, "\n");
    _msg(level, buff, syslp);
    if (level >= diagopts.exitlevel) {
-      va_end(ap);
       if (E_NOTICE >= diagopts.msglevel) {
-	 sprintf(syslp, "N exit(1)\n");
+	 snprintf_r(syslp, 16, "N exit(%d)\n", exitcode?exitcode:(diagopts.exitstatus?diagopts.exitstatus:1));
 	 _msg(E_NOTICE, buff, syslp);
       }
-      exit(diagopts.exitstatus ? diagopts.exitstatus : 1);
+      exit(exitcode?exitcode:(diagopts.exitstatus?diagopts.exitstatus:1));
    }
-   va_end(ap);
 }
 
 
@@ -272,6 +340,44 @@ static void _msg(int level, const char *buff, const char *syslp) {
    }
    if (diagopts.logfile) {
       fputs(buff, diagopts.logfile); fflush(diagopts.logfile);
+   }
+}
+
+
+/* handle the messages in the queue */
+void diag_flush(void) {
+   struct diag_dgram recv_dgram;
+   char exitmsg[20];
+   while (recv(diag_sock_recv, &recv_dgram, sizeof(recv_dgram)-1, MSG_DONTWAIT) > 0) {
+      recv_dgram.text[TEXTLEN-1] = '\0';
+      switch (recv_dgram.op) {
+      case DIAG_OP_EXIT:
+	 /* we want the actual time, not when this dgram was sent */
+#if HAVE_CLOCK_GETTIME
+	 clock_gettime(CLOCK_REALTIME, &recv_dgram.now);
+#elif HAVE_GETTIMEOFDAY
+	 gettimeofday(&recv_dgram.now, NULL);
+#else
+	 recv_dgram.now = time(NULL);
+#endif
+	 if (E_NOTICE >= diagopts.msglevel) {
+	    snprintf_r(exitmsg, sizeof(exitmsg), "exit(%d)", recv_dgram.exitcode?recv_dgram.exitcode:1);
+	    msg2(&recv_dgram.now, E_NOTICE, recv_dgram.exitcode?recv_dgram.exitcode:1, 1, exitmsg);
+	 }
+	 exit(recv_dgram.exitcode?recv_dgram.exitcode:1);
+      case DIAG_OP_MSG:
+	 if (recv_dgram._errno) {
+	    /* there might be a %m control in the string (glibc compatible,
+	       replace with strerror(...errno) ) */
+	    char text[TEXTLEN];
+	    errno = recv_dgram._errno;
+	    snprinterr(text, TEXTLEN, recv_dgram.text);
+	    msg2(&recv_dgram.now, recv_dgram.level, recv_dgram.exitcode, 1, text);
+	 } else {
+	    msg2(&recv_dgram.now, recv_dgram.level, recv_dgram.exitcode, 1, recv_dgram.text);
+	 }
+	 break;
+      }
    }
 }
 
@@ -295,3 +401,52 @@ int diag_dup(void) {
    }
    return newfd;
 }
+
+
+/* this function is kind of async-signal-safe exit(). When invoked from signal
+   handler it defers exit. */
+void diag_exit(int status) {
+   struct diag_dgram diag_dgram;
+
+   if (diag_in_handler && !diag_immediate_exit) {
+      diag_dgram.op = DIAG_OP_EXIT;
+      diag_dgram.exitcode = status;
+      send(diag_sock_send, &diag_dgram, sizeof(diag_dgram)-TEXTLEN, MSG_DONTWAIT|MSG_NOSIGNAL);
+      return;
+   }
+   _diag_exit(status);
+}
+
+static void _diag_exit(int status) {
+   Exit(status);
+}
+
+
+/* a function that appears to the application like select() but that also
+   monitors the diag socket diag_sock_recv and processes its messages.
+   Do not call from within a signal handler. */
+int diag_select(int nfds, fd_set *readfds, fd_set *writefds,
+		 fd_set *exceptfds, struct timeval *timeout) {
+   int result;
+   fd_set save_readfds, save_writefds, save_exceptfds;
+
+   if (readfds)   { memcpy(&save_readfds,   readfds,   sizeof(*readfds)); }
+   if (writefds)  { memcpy(&save_writefds,  writefds,  sizeof(*writefds)); }
+   if (exceptfds) { memcpy(&save_exceptfds, exceptfds, sizeof(*exceptfds)); }
+
+   while (1) {
+      FD_SET(diag_sock_recv, readfds);
+      result = Select(nfds, readfds, writefds,
+		       exceptfds, timeout);
+     if (!FD_ISSET(diag_sock_recv, readfds)) {
+	 /* select terminated not due to diag_sock_recv, normalt continuation */
+	 break;
+      }
+      diag_flush();
+      if (readfds)   { memcpy(readfds,   &save_readfds,   sizeof(*readfds)); }
+      if (writefds)  { memcpy(writefds,  &save_writefds,  sizeof(*writefds)); }
+      if (exceptfds) { memcpy(exceptfds, &save_exceptfds, sizeof(*exceptfds)); }
+   }
+   return result;
+}
+

@@ -1,5 +1,5 @@
 /* source: error.h */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __error_h_included
@@ -13,6 +13,7 @@
 #define E_ERROR  4	/* errors */
 #define E_FATAL  5	/* emergency abort */
 
+#define F_strerror "%m"	/* a pseudo format, replaced by strerror(errno) */
 
 /* here are the macros for diag invocation; use WITH_MSGLEVEL to specify the
    lowest priority that is compiled into your program */
@@ -204,6 +205,33 @@
 #endif /* !(WITH_MSGLEVEL <= E_FATAL) */
 
 
+enum diag_op {
+   DIAG_OP_MSG,		/* a diagnostic message */
+   DIAG_OP_EXIT,	/* exit the program */
+} ;
+
+/* datagram for communication between outer msg() call from signal handler to
+   inner msg() call in normal flow */
+#  define TEXTLEN 480
+struct diag_dgram {
+   enum diag_op op;
+#if HAVE_CLOCK_GETTIME
+   struct timespec now;
+#elif HAVE_GETTIMEOFDAY
+   struct timeval now;
+#else
+   time_t now;
+#endif
+   int level;		/* E_FATAL, ... E_DEBUG */
+   int _errno;		/* for glibc %m format */
+   int exitcode;	/* if exiting take this num */
+   char text[TEXTLEN];
+} ;
+
+extern sig_atomic_t diag_in_handler;
+extern int diag_immediate_msg;
+extern int diag_immediate_exit;
+
 extern void diag_set(char what, const char *arg);
 extern void diag_set_int(char what, int arg);
 extern int diag_get_int(char what);
@@ -211,5 +239,9 @@ extern const char *diag_get_string(char what);
 extern int diag_dup(void);
 extern int diag_dup2(int newfd);
 extern void msg(int level, const char *format, ...);
+extern void diag_flush(void);
+extern void diag_exit(int status);
+extern int diag_select(int nfds, fd_set *readfds, fd_set *writefds,
+		       fd_set *exceptfds, struct timeval *timeout);
 
 #endif /* !defined(__error_h_included) */

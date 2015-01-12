@@ -11,8 +11,13 @@
 static pid_t socat_kill_pid;	/* here we pass the pid to be killed in sighandler */
 
 static void signal_kill_pid(int dummy) {
-   Notice("SIGALRM while waiting for w/o child process to die, killing it now");
+   int _errno;
+   _errno = errno;
+   diag_in_handler = 1;
+   Notice("SIGALRM while waiting for wo child process to die, killing it now");
    Kill(socat_kill_pid, SIGTERM);
+   diag_in_handler = 0;
+   errno = _errno;
 }
 
 int xioshutdown(xiofile_t *sock, int how) {
@@ -114,7 +119,13 @@ int xioshutdown(xiofile_t *sock, int how) {
 	    we raise an alarm after some time.
 	    NOTE: the alarm does not terminate waitpid() on Linux/glibc (BUG?),
 	    therefore we have to do the kill in the signal handler */
-	 Signal(SIGALRM, signal_kill_pid);
+	 {
+	    struct sigaction act;
+	    sigfillset(&act.sa_mask);
+	    act.sa_flags = 0;
+	    act.sa_handler = signal_kill_pid;
+	    Sigaction(SIGALRM, &act, NULL);
+	 }
 	 socat_kill_pid = sock->stream.para.exec.pid;
 #if HAVE_SETITIMER
 	 /*! with next feature release, we get usec resolution and an option */

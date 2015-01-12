@@ -764,6 +764,8 @@ if test $sc_cv_type_longlong = yes; then
 fi
 AC_MSG_RESULT($sc_cv_type_longlong)
 
+AC_CHECK_TYPE(sig_atomic_t,AC_DEFINE(HAVE_TYPE_SIG_ATOMIC_T),,[#include "sysincludes.h"])
+
 # following builtin macro does not check unistd.h and sys/socket.h where
 # socklen_t might be defined
 #AC_CHECK_TYPE(socklen_t, int)
@@ -1315,6 +1317,9 @@ AC_CHECK_LIB(bsd, openpty,
 # Linux 2.4
 AC_CHECK_LIB(util, openpty,
   [LIBS="-lutil $LIBS"; AC_DEFINE(HAVE_OPENPTY)])
+
+AC_CHECK_LIB(rt, clock_gettime,
+		 [LIBS="-lrt $LIBS"; AC_DEFINE(HAVE_CLOCK_GETTIME)])
 
 dnl Search for flock()
 # with Linux it's in libc, with AIX in libbsd

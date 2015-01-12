@@ -7,6 +7,7 @@
 #include "xiosysincludes.h"
 #include "compat.h"
 #include "xio.h"
+#include "error.h"
 
 
 /* this function closes all open xio sockets on exit, if they are still open.
@@ -14,9 +15,12 @@
 void xioexit(void) {
    int i;
 
+   diag_in_handler = 0;
+   Debug("starting xioexit()");
    for (i = 0; i < XIO_MAXSOCK; ++i) {
       if (sock[i] != NULL && sock[i]->tag != XIO_TAG_INVALID) {
 	 xioclose(sock[i]);
       }
    }
+   Debug("finished xioexit()");
 }

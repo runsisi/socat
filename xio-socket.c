@@ -1099,7 +1099,7 @@ int _xioopen_dgram_sendto(/* them is already in xfd->peersa */
    handler sets xio_hashappened if the pid matched.
 */
 static pid_t xio_waitingfor;	/* info from recv loop to signal handler:
-				   indicates the pid that of the child process
+				   indicates the pid of the child process
 				   that should send us the USR1 signal */
 static bool xio_hashappened;	/* info from signal handler to loop: child
 				   process has read ("consumed") the packet */
@@ -1113,6 +1113,9 @@ void xiosigaction_hasread(int signum
    int _errno;
    int status = 0;
    bool wassig = false;
+
+   _errno = errno;
+   diag_in_handler = 1;
 #if HAVE_STRUCT_SIGACTION_SA_SIGACTION && defined(SA_SIGINFO)
    Debug5("xiosigaction_hasread(%d, {%d,%d,%d,"F_pid"}, )",
 	  signum, siginfo->si_signo, siginfo->si_errno, siginfo->si_code,
@@ -1121,35 +1124,39 @@ void xiosigaction_hasread(int signum
    Debug1("xiosigaction_hasread(%d)", signum);
 #endif
    if (signum == SIGCHLD) {
-      _errno = errno;
       do {
 	 pid = Waitpid(-1, &status, WNOHANG);
 	 if (pid == 0) {
 	    Msg(wassig?E_INFO:E_WARN,
 		"waitpid(-1, {}, WNOHANG): no child has exited");
 	    Info("xiosigaction_hasread() finished");
-	    errno = _errno;
 	    Debug("xiosigaction_hasread() ->");
+	    diag_in_handler = 0;
+	    errno = _errno;
 	    return;
 	 } else if (pid < 0 && errno == ECHILD) {
-	    Msg1(wassig?E_INFO:E_WARN,
-		 "waitpid(-1, {}, WNOHANG): %s", strerror(errno));
+	    Msg(wassig?E_INFO:E_WARN,
+		 "waitpid(-1, {}, WNOHANG): "F_strerror);
 	    Info("xiosigaction_hasread() finished");
-	    errno = _errno;
 	    Debug("xiosigaction_hasread() ->");
+	    diag_in_handler = 0;
+	    errno = _errno;
 	    return;
 	 }
 	 wassig = true;
 	 if (pid < 0) {
-	    Warn2("waitpid(-1, {%d}, WNOHANG): %s", status, strerror(errno));
+	    Warn1("waitpid(-1, {%d}, WNOHANG): "F_strerror, status);
 	    Info("xiosigaction_hasread() finished");
-	    errno = _errno;
 	    Debug("xiosigaction_hasread() ->");
+	    diag_in_handler = 0;
+	    errno = _errno;
 	    return;
 	 }
 	 if (pid == xio_waitingfor) {
 	    xio_hashappened = true;
 	    Debug("xiosigaction_hasread() ->");
+	    diag_in_handler = 0;
+	    errno = _errno;
 	    return;
 	 }
       } while (1);
@@ -1161,7 +1168,12 @@ void xiosigaction_hasread(int signum
 #else
    xio_hashappened = true;
 #endif
+#if !HAVE_SIGACTION
+   Signal(sig, xiosigaction_hasread);
+#endif /* !HAVE_SIGACTION */
    Debug("xiosigaction_hasread() ->");
+   diag_in_handler = 0;
+   errno = _errno;
    return;
 }
 
@@ -1265,7 +1277,7 @@ int _xioopen_dgram_recvfrom(struct single *xfd, int xioflags,
    {
       struct sigaction act;
       memset(&act, 0, sizeof(struct sigaction));
-      act.sa_flags   = SA_NOCLDSTOP|SA_RESTART
+      act.sa_flags   = SA_NOCLDSTOP/*|SA_RESTART*/
 #ifdef SA_SIGINFO /* not on Linux 2.0(.33) */
 	 |SA_SIGINFO
 #endif
@@ -1278,6 +1290,7 @@ int _xioopen_dgram_recvfrom(struct single *xfd, int xioflags,
 #else /* Linux 2.0(.33) does not have sigaction.sa_sigaction */
       act.sa_handler = xiosigaction_hasread;
 #endif
+      sigfillset(&act.sa_mask);
       if (Sigaction(SIGUSR1, &act, NULL) < 0) {
          /*! Linux man does not explicitely say that errno is defined */
          Warn1("sigaction(SIGUSR1, {&xiosigaction_subaddr_ok}, NULL): %s", strerror(errno));

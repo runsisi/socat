@@ -1,12 +1,18 @@
 /* source: procan_main.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 const char copyright[] = "procan by Gerhard Rieger - send bug reports to socat@dest-unreach.org";
 
+#include <signal.h>	/* sig_atomic_t for error.h */
+#include <time.h>	/* struct timespec for error.h */
 #include <stdlib.h>	/* strtoul() */
 #include <string.h>
 #include <stdio.h>
+#include "config.h"
+#if HAVE_SYS_SELECT_H
+#include <sys/select.h>	/* select(), fdset on FreeBSD */
+#endif
 #include "mytypes.h"
 #include "error.h"
 #include "procan.h"
