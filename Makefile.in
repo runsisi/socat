@@ -77,7 +77,7 @@ DOCFILES = README README.FIPS CHANGES FILES EXAMPLES PORTING SECURITY DEVELOPMEN
 SHFILES = daemon.sh mail.sh ftp.sh readline.sh \
 	socat_buildscript_for_android.sh
 TESTFILES = test.sh socks4echo.sh proxyecho.sh gatherinfo.sh readline-test.sh \
-	proxy.sh socks4a-echo.sh testcert.conf
+	proxy.sh socks4a-echo.sh
 OSFILES = Config/Makefile.Linux-2-6-24 Config/config.Linux-2-6-24.h \
 	Config/Makefile.SunOS-5-10 Config/config.SunOS-5-10.h \
 	Config/Makefile.FreeBSD-6-1 Config/config.FreeBSD-6-1.h \
