@@ -23,6 +23,8 @@ corrections:
 	Test: ABSTRACT_BIND
 	Thanks to Denis Shatov for reporting this bug.
 
+	Fixed return value of nestlex()
+
 ####################### V 1.7.2.4:
 
 corrections:
