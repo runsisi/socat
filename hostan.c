@@ -38,14 +38,14 @@ int hostan(FILE *outfile) {
    fprintf(outfile, "((struct diag_dgram *)0)->now-((struct diag_dgram *)0)     = %u\n", (unsigned int)((char *)(&((struct diag_dgram *)0)->now)-(char *)((struct diag_dgram *)0)));
    fprintf(outfile, "((struct diag_dgram *)0)->exitcode-((struct diag_dgram *)0)     = %u\n", (unsigned int)((char *)(&((struct diag_dgram *)0)->exitcode)-(char *)((struct diag_dgram *)0)));
    fprintf(outfile, "((struct diag_dgram *)0)->text-((struct diag_dgram *)0)     = %u\n", (unsigned int)((((struct diag_dgram *)0)->text)-(char *)((struct diag_dgram *)0)));
-#if _WITH_SOCKET
+#if _WITH_SOCKET && (_WITH_IP4 || _WITH_IP6)
    fprintf(outfile, "\nIP INTERFACES\n");
    iffan(outfile);
 #endif
    return 0;
 }
 
-#if _WITH_SOCKET
+#if _WITH_SOCKET && (_WITH_IP4 || _WITH_IP6)
 static int iffan(FILE *outfile) {
    /* Linux: man 7 netdevice */
    /* FreeBSD, NetBSD: man 4 networking */

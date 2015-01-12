@@ -76,7 +76,9 @@ typedef int sig_atomic_t;
 
 /* SOL_TCP: AIX 4.3.3 */
 #ifndef SOL_TCP
-#  define SOL_TCP IPPROTO_TCP
+#  ifdef IPPROTO_TCP
+#     define SOL_TCP IPPROTO_TCP
+#  endif
 #endif
 
 /* POSIX.1 doesn't seem to know sockets */

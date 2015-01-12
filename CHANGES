@@ -37,6 +37,10 @@ corrections:
 	to a random port instead of terminating with error.
 	Test: TCP4_NOPORT
 
+	configure with some combination of disable options produced config
+	files that failed to compile due to missing IPPROTO_TCP.
+	Thanks to Thierry Fournier for report and patch.
+
 porting:
 	Socat included <sys/poll.h> instead of POSIX <poll.h>
 	Thanks to John Spencer for reporting this issue.
