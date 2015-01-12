@@ -29,6 +29,10 @@ corrections:
 	Test: IGNOREEOF_REV
 	Thanks to Franz Fasching for reporting this bug.
 
+	Address SYSTEM, when terminating, shutted down its parent addresses,
+	e.g. an SSL connection which the parent assumed to still be active.
+	Test: SYSTEM_SHUTDOWN
+
 ####################### V 1.7.2.4:
 
 corrections:

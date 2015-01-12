@@ -11804,6 +11804,61 @@ unix-recvfrom .       .        unixport .        -e   FILE:/dev/null
 "
 
 
+# bug fix: SYSTEM address child process shutted down parents sockets including
+# SSL connection under some circumstances.
+NAME=SYSTEM_SHUTDOWN
+case "$TESTS" in
+*%$N%*|*%functions%*|*%bugs%*|*%system%*|*%openssl%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: SYSTEM address does not shutdown its parents addresses"
+# start an OpenSSL echo server using SYSTEM:cat
+# start an OpenSSL client that sends data
+# when the client recieves its data and terminates without error the test succeeded
+# in case of the bug the client issues an error like:
+# SSL_connect(): error:1408F119:SSL routines:SSL3_GET_RECORD:decryption failed or bad record mac
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,cipher=aNULL,verify=0 SYSTEM:cat"
+CMD1="$SOCAT $opts - OPENSSL-CONNECT:$LOCALHOST:$PORT,cipher=aNULL,verify=0"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+waittcp4port $PORT 1
+echo "$da" |$CMD1 >"${tf}1" 2>"${te}1"
+rc1=$?
+kill $pid0 2>/dev/null; wait
+if [ $rc1 -ne 0 ]; then
+    $PRINTF "$FAILED\n"
+    echo "rc1=$rc1"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "${te}0"
+    cat "${te}1"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+elif ! echo "$da" |diff - "${tf}1" >"$tdiff" 2>&1; then
+    $PRINTF "$FAILED\n"
+    echo "diff:"
+    cat "$tdiff"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "${te}0"
+    cat "${te}1"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+else
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
 ##################################################################################
 #=================================================================================
 # here come tests that might affect your systems integrity. Put normal tests

@@ -1,5 +1,5 @@
 /* source: xio-system.c */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening addresses of system type */
@@ -39,6 +39,10 @@ static int xioopen_system(int argc, const char *argv[], struct opt *opts,
    if (status < 0)  return status;
    if (status == 0) {	/* child */
       int numleft;
+
+      /* do not shutdown connections that belong our parent */
+      sock[0] = NULL;
+      sock[1] = NULL;
 
       if (setopt_path(opts, &path) < 0) {
 	 /* this could be dangerous, so let us abort this child... */
