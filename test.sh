@@ -78,6 +78,9 @@ LOCALHOST6=[::1]
 PROTO=$((144+RANDOM/2048))
 PORT=12002
 SOURCEPORT=2002
+TESTCERT_CONF=testcert.conf
+TESTCERT_SUBJECT="/C=XY"
+TESTCERT_ISSUER="/C=XY"
 CAT=cat
 OD_C="od -c"
 # precision sleep; takes seconds with fractional part
@@ -2204,7 +2207,7 @@ gentestcert () {
     local name="$1"
     if [ -s $name.key -a -s $name.crt -a -s $name.pem ]; then return; fi
     openssl genrsa $OPENSSL_RAND -out $name.key 768 >/dev/null 2>&1
-    openssl req -new -config testcert.conf -key $name.key -x509 -out $name.crt -days 3653 >/dev/null 2>&1
+    openssl req -new -config $TESTCERT_CONF -key $name.key -x509 -out $name.crt -days 3653 >/dev/null 2>&1
     cat $name.key $name.crt >$name.pem
 }
 
@@ -2214,7 +2217,7 @@ gentestdsacert () {
     if [ -s $name.key -a -s $name.crt -a -s $name.pem ]; then return; fi
     openssl dsaparam -out $name-dsa.pem 512 >/dev/null 2>&1
     openssl dhparam -dsaparam -out $name-dh.pem 512 >/dev/null 2>&1
-    openssl req -newkey dsa:$name-dsa.pem -keyout $name.key -nodes -x509 -config testcert.conf -out $name.crt -days 3653 >/dev/null 2>&1
+    openssl req -newkey dsa:$name-dsa.pem -keyout $name.key -nodes -x509 -config $TESTCERT_CONF -out $name.crt -days 3653 >/dev/null 2>&1
     cat $name-dsa.pem $name-dh.pem $name.key $name.crt >$name.pem
 }
 
@@ -11446,6 +11449,98 @@ fi ;; # $SECONDADDR, NUMCOND
 esac
 PORT=$((PORT+1))
 N=$((N+1))
+
+
+#set -xv
+# test: OPENSSL sets of environment variables with important values of peer certificate
+unset SOCAT_OPENSSL_X509_SUBJECT SOCAT_OPENSSL_X509_ISSUER
+while read SSLDIST MODE MODULE FIELD VALUE TESTADDRESS PEERADDRESS; do
+if [ -z "$SSLDIST" ] || [[ "$SSLDIST" == \#* ]]; then continue; fi
+#
+test_proto="$(echo "$KEYW" |tr A-Z a-z)"
+NAME="ENV_${SSLDIST}_${MODE}_${MODULE}_${FIELD}"
+case "$TESTS" in
+*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%$SSLDIST%*|*%envvar%*|*%$NAME%*)
+TEST="$NAME: $SSLDIST generates environment variable SOCAT_${SSLDIST}_${MODULE}_${FIELD} with correct value"
+# have a server accepting a connection and invoking some shell code. The shell
+# code extracts and prints the SOCAT related environment vars.
+# outside code then checks if the environment contains the variables correctly
+# describing the desired field.
+if ! eval $NUMCOND; then :;
+elif ! feat=$(testaddrs $FEAT); then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat" |tr a-z A-Z) not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+gentestcert testsrv
+gentestcert testcli
+#CMD0="$SOCAT $opts -u ${SSLDIST}-LISTEN:$PORT,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1 system:\"echo SOCAT_${SSLDIST}_${MODULE}_${FIELD}=\\\$SOCAT_${SSLDIST}_${MODULE}_${FIELD}; sleep 1\""
+test_proto=tcp4
+case "$MODE" in
+    SERVER)
+	CMD0="$SOCAT $opts -u $TESTADDRESS system:\"echo SOCAT_${SSLDIST}_${MODULE}_${FIELD}=\\\$SOCAT_${SSLDIST}_${MODULE}_${FIELD}; sleep 1\""
+	CMD1="$SOCAT $opts -u /dev/null $PEERADDRESS"
+	printf "test $F_n $TEST... " $N
+	eval "$CMD0 2>\"${te}0\" >\"$tf\" &"
+	pid0=$!
+	wait${test_proto}port $PORT 1
+	$CMD1 2>"${te}1"
+	rc1=$?
+	waitfile "$tf" 2
+	kill $pid0 2>/dev/null; wait
+	;;
+    CLIENT)
+	CMD0="$SOCAT $opts -u /dev/null $PEERADDRESS"
+	CMD1="$SOCAT $opts -u $TESTADDRESS system:\"echo SOCAT_${SSLDIST}_${MODULE}_${FIELD}=\\\$SOCAT_${SSLDIST}_${MODULE}_${FIELD}; sleep 1\""
+	printf "test $F_n $TEST... " $N
+	$CMD0 2>"${te}0" &
+	pid0=$!
+	wait${test_proto}port $PORT 1
+	eval "$CMD1 2>\"${te}1\" >\"$tf\""
+	rc1=$?
+	waitfile "$tf" 2
+	kill $pid0 2>/dev/null; wait
+	;;
+esac
+if [ $rc1 != 0 ]; then
+    $PRINTF "$NO_RESULT (client failed):\n"
+    echo "$CMD0 &"
+    cat "${te}0"
+    echo "$CMD1"
+    cat "${te}1"
+    numCANT=$((numCANT+1))
+elif [ "$(grep SOCAT_${SSLDIST}_${MODULE}_${FIELD} "${tf}" |sed -e 's/^[^=]*=//' |sed -e "s/[\"']//g")" = "$VALUE" ]; then
+    $PRINTF "$OK\n"
+    if [ "$debug" ]; then
+	echo "$CMD0 &"
+	cat "${te}0"
+	echo "$CMD1"
+	cat "${te}1"
+    fi
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    cat "${te}0"
+    echo "$CMD1"
+    cat "${te}1"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND, feats
+ ;;
+esac
+N=$((N+1))
+#set +xv
+#
+done <<<"
+OPENSSL SERVER X509 SUBJECT $TESTCERT_SUBJECT OPENSSL-LISTEN:$PORT,so-reuseaddr,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1 OPENSSL-CONNECT:$LOCALHOST:$PORT,cert=testcli.pem,cafile=testsrv.crt,verify=1
+OPENSSL SERVER X509 ISSUER  $TESTCERT_ISSUER  OPENSSL-LISTEN:$PORT,so-reuseaddr,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1 OPENSSL-CONNECT:$LOCALHOST:$PORT,cert=testcli.pem,cafile=testsrv.crt,verify=1
+OPENSSL CLIENT X509 SUBJECT $TESTCERT_SUBJECT OPENSSL-CONNECT:$LOCALHOST:$PORT,cert=testcli.pem,cafile=testsrv.crt,verify=1 OPENSSL-LISTEN:$PORT,so-reuseaddr,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1
+OPENSSL CLIENT X509 ISSUER  $TESTCERT_ISSUER  OPENSSL-CONNECT:$LOCALHOST:$PORT,cert=testcli.pem,cafile=testsrv.crt,verify=1 OPENSSL-LISTEN:$PORT,so-reuseaddr,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1
+"
+set +xv
 
 
 ###############################################################################

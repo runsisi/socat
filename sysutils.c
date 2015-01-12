@@ -726,6 +726,42 @@ int xiosetenv2(const char *varname, const char *varname2, const char *value,
 #  undef XIO_ENVNAMELEN
 }
 
+int xiosetenv3(const char *varname, const char *varname2, const char *varname3,
+	       const char *value,
+	       int overwrite) {
+#  define XIO_ENVNAMELEN 256
+   const char *progname;
+   char envname[XIO_ENVNAMELEN];
+   size_t i, l;
+
+   progname = diag_get_string('p');
+   envname[0] = '\0'; strncat(envname, progname, XIO_ENVNAMELEN-1);
+   l = strlen(progname);
+   strncat(envname+l, "_", XIO_ENVNAMELEN-l-1);
+   l += 1;
+   strncat(envname+l, varname, XIO_ENVNAMELEN-l-1);
+   l += strlen(envname+l);
+   strncat(envname+l, "_", XIO_ENVNAMELEN-l-1);
+   l += 1;
+   strncat(envname+l, varname2, XIO_ENVNAMELEN-l-1);
+   l += strlen(envname+l);
+   strncat(envname+l, "_", XIO_ENVNAMELEN-l-1);
+   l += 1;
+   strncat(envname+l, varname3, XIO_ENVNAMELEN-l-1);
+   l += strlen(envname+l);
+   for (i = 0; i < l; ++i)  envname[i] = toupper(envname[i]);
+   if (Setenv(envname, value, overwrite) < 0) {
+      Warn3("setenv(\"%s\", \"%s\", 1): %s",
+	    envname, value, strerror(errno));
+#if HAVE_UNSETENV
+      Unsetenv(envname);      /* dont want to have a wrong value */
+#endif
+      return -1;
+   }
+   return 0;
+#  undef XIO_ENVNAMELEN
+}
+
 
 /* like xiosetenv(), but uses an unsigned long value */
 int xiosetenvulong(const char *varname, unsigned long value, int overwrite) {

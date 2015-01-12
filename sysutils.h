@@ -92,6 +92,9 @@ extern int xiosetenv(const char *varname, const char *value, int overwrite);
 extern int
 xiosetenv2(const char *varname, const char *varname2, const char *value,
 	   int overwrite);
+extern int
+xiosetenv3(const char *varname, const char *varname2, const char *varname3,
+	   const char *value, int overwrite);
 extern int xiosetenvulong(const char *varname, unsigned long value,
 			  int overwrite);
 extern int xiosetenvushort(const char *varname, unsigned short value,

@@ -18,6 +18,14 @@ security:
 	Turn off nested signal handler invocations
 	Thanks to Peter Lobsinger for reporting and explaining this issue.
 
+new features:
+	OpenSSL addresses set couple of environment variables from values in
+	peer certificate, e.g.: 
+	SOCAT_OPENSSL_X509_SUBJECT, SOCAT_OPENSSL_X509_ISSUER,
+	SOCAT_OPENSSL_X509_COMMONNAME, 
+	SOCAT_OPENSSL_X509V3_SUBJECTALTNAME_DNS
+	Tests: ENV_OPENSSL_{CLIENT,SERVER}_X509_*
+
 corrections:
 	Bind with ABSTRACT commands used non-abstract namespace (Linux).
 	Test: ABSTRACT_BIND

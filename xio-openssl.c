@@ -602,7 +602,7 @@ int _xioopen_openssl_listen(struct single *xfd,
 		    ERR_lib_error_string(err), ERR_func_error_string(err),
 		    ERR_reason_error_string(err));
 	    }
-	    /* Msg1(level, "SSL_connect(): %s", ERR_error_string(e, buf));*/
+	    /* Msg1(level, "SSL_accept(): %s", ERR_error_string(e, buf));*/
 	 }
 	 break;
       case SSL_ERROR_SSL:
@@ -1042,22 +1042,59 @@ static const char *openssl_verify_messages[] = {
    /* 50 */ "application verification failure",
 } ;
 
+static int openssl_extract_cert_info(const char *field, X509_NAME *name) {
+   int n, i;
+   {
+      BIO *bio = BIO_new(BIO_s_mem());
+      char *buf = NULL, *str;
+      size_t len;
+      X509_NAME_print_ex(bio, name, 0, XN_FLAG_ONELINE&~ASN1_STRFLGS_ESC_MSB);	/* rc not documented */
+      len = BIO_get_mem_data (bio, &buf);
+      if ((str = Malloc(len+1)) == NULL) {
+	 BIO_free(bio);
+	 return -1;
+      }
+      str[len] = '\0';
+      Info2("SSL peer cert %s: \"%s\"", field, buf);
+      xiosetenv2("OPENSSL_X509", field, buf, 1);
+      free(str);
+      BIO_free(bio);
+   }
+   n = X509_NAME_entry_count(name);
+   for (i = 0; i < n; ++i) {
+      X509_NAME_ENTRY *entry;
+      char *text;
+      ASN1_STRING *data;
+      ASN1_OBJECT *obj;
+      int nid;
+      entry = X509_NAME_get_entry(name, i);
+      data = X509_NAME_ENTRY_get_data(entry);
+      obj  = X509_NAME_ENTRY_get_object(entry);
+      nid  = OBJ_obj2nid(obj);
+      text = (char *)ASN1_STRING_data(data);
+      Debug3("SSL peer cert %s entry: %s=\"%s\"", field, OBJ_nid2ln(nid), text);
+      xiosetenv3("OPENSSL_X509", field, OBJ_nid2ln(nid), text, 0);
+   }
+   return 0;
+}
+
 static int openssl_handle_peer_certificate(struct single *xfd,
 					   bool opt_ver, int level) {
    X509 *peer_cert;
-   char *str;
-   char buff[2048];	/* hold peer certificate */
+   /*ASN1_TIME not_before, not_after;*/
    int status;
 
    /* SSL_CTX_add_extra_chain_cert
       SSL_get_verify_result
    */
    if ((peer_cert = SSL_get_peer_certificate(xfd->para.openssl.ssl)) != NULL) {
-      Debug("peer certificate:");
-      if ((str = X509_NAME_oneline(X509_get_subject_name(peer_cert), buff, sizeof(buff))) != NULL)
-	 Debug1("\tsubject: %s", str);  /*free (str); SIGSEGV*/
-      if ((str = X509_NAME_oneline(X509_get_issuer_name(peer_cert), buff, sizeof(buff))) != NULL)
-	 Debug1("\tissuer: %s", str);  /*free (str); SIGSEGV*/
+      X509_NAME *name;
+      if ((name = X509_get_subject_name(peer_cert)) != NULL)
+	 openssl_extract_cert_info("subject", name);
+      if ((name = X509_get_issuer_name(peer_cert)) != NULL)
+	 openssl_extract_cert_info("issuer", name);
+      /* I'd like to provide dates too; see
+	 http://markmail.org/message/yi4vspp7aeu3xwtu#query:+page:1+mid:jhnl4wklif3pgzqf+state:results */
    }
 
    if (peer_cert) {
@@ -1192,6 +1229,7 @@ ssize_t xioread_openssl(struct single *pipe, void *buff, size_t bufsiz) {
       case SSL_ERROR_NONE:
 	 /* this is not an error, but I dare not continue for security reasons*/
 	 Error("ok");
+	 break;
       case SSL_ERROR_ZERO_RETURN:
 	 Error("connection closed by peer");
 	 break;
