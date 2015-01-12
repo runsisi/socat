@@ -1661,11 +1661,11 @@ int xiodopacketinfo(struct msghdr *msgh, bool withlog, bool withenv) {
 	 }
 	 if (withenv) {
 	    if (*envp) {
-	       xiosetenv(envp, valp, 1);
+	       xiosetenv(envp, valp, 1, NULL);
 	    } else if (!strcasecmp(typp+strlen(typp)-strlen(namp), namp)) {
-	       xiosetenv(typp, valp, 1);
+	       xiosetenv(typp, valp, 1, NULL);
 	    } else	{
-	       xiosetenv2(typp, namp, valp, 1);
+	       xiosetenv2(typp, namp, valp, 1, NULL);
 	    }
 	 }
 	 if (++i == num)  break;
@@ -2053,7 +2053,7 @@ int xiosetsockaddrenv(const char *lr,
 	 xiosetsockaddrenv_unix(idx, strchr(namebuff, '\0'), XIOSOCKADDRENVLEN-strlen(lr),
 				valuebuff, XIOSOCKADDRENVLEN,
 				&sau->un, salen, proto);
-      xiosetenv(namebuff, valuebuff, 1);
+      xiosetenv(namebuff, valuebuff, 1, NULL);
       break;
 #endif /* WITH_UNIX */
 #if WITH_IP4
@@ -2063,7 +2063,7 @@ int xiosetsockaddrenv(const char *lr,
 	    xiosetsockaddrenv_ip4(idx, strchr(namebuff, '\0'), XIOSOCKADDRENVLEN-strlen(lr),
 				  valuebuff, XIOSOCKADDRENVLEN,
 				  &sau->ip4, proto);
-	 xiosetenv(namebuff, valuebuff, 1);
+	 xiosetenv(namebuff, valuebuff, 1, NULL);
 	 namebuff[strlen(lr)] = '\0';  ++idx;
       } while (result > 0);
       break; 
@@ -2076,7 +2076,7 @@ int xiosetsockaddrenv(const char *lr,
 	    xiosetsockaddrenv_ip6(idx, strchr(namebuff, '\0'), XIOSOCKADDRENVLEN-strlen(lr),
 				  valuebuff, XIOSOCKADDRENVLEN,
 				  &sau->ip6, proto);
-	 xiosetenv(namebuff, valuebuff, 1);
+	 xiosetenv(namebuff, valuebuff, 1, NULL);
 	 namebuff[strlen(lr)] = '\0';  ++idx;
       } while (result > 0);
       break; 

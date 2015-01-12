@@ -88,13 +88,13 @@ extern int parseport(const char *portname, int proto);
 extern int ifindexbyname(const char *ifname, int anysock);
 extern int ifindex(const char *ifname, unsigned int *ifindex, int anysock);
 
-extern int xiosetenv(const char *varname, const char *value, int overwrite);
+extern int xiosetenv(const char *varname, const char *value, int overwrite, const char *sep);
 extern int
 xiosetenv2(const char *varname, const char *varname2, const char *value,
-	   int overwrite);
+	   int overwrite, const char *sep);
 extern int
 xiosetenv3(const char *varname, const char *varname2, const char *varname3,
-	   const char *value, int overwrite);
+	   const char *value, int overwrite, const char *sep);
 extern int xiosetenvulong(const char *varname, unsigned long value,
 			  int overwrite);
 extern int xiosetenvushort(const char *varname, unsigned short value,

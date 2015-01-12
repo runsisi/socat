@@ -1,5 +1,5 @@
 /* source: xioopts.h */
-/* Copyright Gerhard Rieger 2001-2009 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xioopts_h_included
@@ -473,6 +473,7 @@ enum e_optcode {
    OPT_OPENSSL_CAPATH,
    OPT_OPENSSL_CERTIFICATE,
    OPT_OPENSSL_CIPHERLIST,
+   OPT_OPENSSL_COMMONNAME,
 #if OPENSSL_VERSION_NUMBER >= 0x00908000L
    OPT_OPENSSL_COMPRESS,
 #endif

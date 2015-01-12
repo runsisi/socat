@@ -67,7 +67,7 @@ const struct wordent *keyw(const struct wordent *keywds, const char *name, unsig
    return NULL;
 }
 
-/* Linux: setenv(), AIX: putenv() */
+/* Linux: setenv(), AIX (4.3?): putenv() */
 #if !HAVE_SETENV
 int setenv(const char *name, const char *value, int overwrite) {
    int result;

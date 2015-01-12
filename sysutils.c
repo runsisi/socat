@@ -666,24 +666,19 @@ int ifindex(const char *ifname, unsigned int *ifindex, int anysock) {
 #endif /* WITH_IP4 || WITH_IP6 || WITH_INTERFACE */
 
 
-/* constructs an environment variable whose name is built from socats uppercase
-   program name, and underscore and varname; if a variable of this name already
-   exists a non zero value of overwrite lets the old value be overwritten.
-   returns 0 on success or <0 if an error occurred. */
-int xiosetenv(const char *varname, const char *value, int overwrite) {
-#  define XIO_ENVNAMELEN 256
-   const char *progname;
-   char envname[XIO_ENVNAMELEN];
-   size_t i, l;
-
-   progname = diag_get_string('p');
-   envname[0] = '\0'; strncat(envname, progname, XIO_ENVNAMELEN-1);
-   l = strlen(progname);
-   for (i = 0; i < l; ++i)  envname[i] = toupper(envname[i]);
-   strncat(envname+l, "_", XIO_ENVNAMELEN-l-1);
-   l += 1;
-   strncat(envname+l, varname, XIO_ENVNAMELEN-l-1);
-   if (Setenv(envname, value, overwrite) < 0) {
+int _xiosetenv(const char *envname, const char *value, int overwrite, const char *sep) {
+   char *oldval;
+   char *newval;
+   if (overwrite >= 2 && (oldval = getenv(envname)) != NULL) {
+      size_t newlen = strlen(oldval)+strlen(sep)+strlen(value)+1;
+      if ((newval = Malloc(newlen+1)) == NULL) {
+	 return -1;
+      }
+      snprintf(newval, newlen+1, "%s%s%s", oldval, sep, value);
+   } else {
+      newval = (char *)value;
+   }
+   if (Setenv(envname, newval, overwrite) < 0) {
       Warn3("setenv(\"%s\", \"%s\", 1): %s",
 	    envname, value, strerror(errno));
 #if HAVE_UNSETENV
@@ -692,11 +687,35 @@ int xiosetenv(const char *varname, const char *value, int overwrite) {
       return -1;
    }
    return 0;
-#  undef XIO_ENVNAMELEN
+}
+
+/* constructs an environment variable whose name is built from socats uppercase
+   program name, and underscore and varname;
+   if the variable of this name already exists arg overwrite determines:
+   0: keep old value
+   1: overwrite with new value
+   2: append to old value, separated by *sep
+a non zero value of overwrite lets the old value be overwritten.
+   returns 0 on success or <0 if an error occurred. */
+int xiosetenv(const char *varname, const char *value, int overwrite, const char *sep) {
+#  define XIO_ENVNAMELEN 256
+   const char *progname;
+   char envname[XIO_ENVNAMELEN];
+   size_t i, l;
+
+   progname = diag_get_string('p');
+   envname[0] = '\0'; strncat(envname, progname, XIO_ENVNAMELEN-1);
+   l = strlen(envname);
+   for (i = 0; i < l; ++i)  envname[i] = toupper(envname[i]);
+   strncat(envname+l, "_", XIO_ENVNAMELEN-l-1);
+   l += 1;
+   strncat(envname+l, varname, XIO_ENVNAMELEN-l-1);
+   return _xiosetenv(envname, value, overwrite, sep);
+#  undef ENVNAMELEN
 }
 
 int xiosetenv2(const char *varname, const char *varname2, const char *value,
-	       int overwrite) {
+	       int overwrite, const char *sep) {
 #  define XIO_ENVNAMELEN 256
    const char *progname;
    char envname[XIO_ENVNAMELEN];
@@ -714,21 +733,13 @@ int xiosetenv2(const char *varname, const char *varname2, const char *value,
    strncat(envname+l, varname2, XIO_ENVNAMELEN-l-1);
    l += strlen(envname+l);
    for (i = 0; i < l; ++i)  envname[i] = toupper(envname[i]);
-   if (Setenv(envname, value, overwrite) < 0) {
-      Warn3("setenv(\"%s\", \"%s\", 1): %s",
-	    envname, value, strerror(errno));
-#if HAVE_UNSETENV
-      Unsetenv(envname);      /* dont want to have a wrong value */
-#endif
-      return -1;
-   }
-   return 0;
+   return _xiosetenv(envname, value, overwrite, sep);
 #  undef XIO_ENVNAMELEN
 }
 
 int xiosetenv3(const char *varname, const char *varname2, const char *varname3,
 	       const char *value,
-	       int overwrite) {
+	       int overwrite, const char *sep) {
 #  define XIO_ENVNAMELEN 256
    const char *progname;
    char envname[XIO_ENVNAMELEN];
@@ -750,15 +761,7 @@ int xiosetenv3(const char *varname, const char *varname2, const char *varname3,
    strncat(envname+l, varname3, XIO_ENVNAMELEN-l-1);
    l += strlen(envname+l);
    for (i = 0; i < l; ++i)  envname[i] = toupper(envname[i]);
-   if (Setenv(envname, value, overwrite) < 0) {
-      Warn3("setenv(\"%s\", \"%s\", 1): %s",
-	    envname, value, strerror(errno));
-#if HAVE_UNSETENV
-      Unsetenv(envname);      /* dont want to have a wrong value */
-#endif
-      return -1;
-   }
-   return 0;
+   return _xiosetenv(envname, value, overwrite, sep);
 #  undef XIO_ENVNAMELEN
 }
 
@@ -769,7 +772,7 @@ int xiosetenvulong(const char *varname, unsigned long value, int overwrite) {
    char envbuff[XIO_LONGLEN];
 
    snprintf(envbuff, XIO_LONGLEN, "%lu", value);
-   return xiosetenv(varname, envbuff, overwrite);
+   return xiosetenv(varname, envbuff, overwrite, NULL);
 #  undef XIO_LONGLEN
 }
 
@@ -779,6 +782,6 @@ int xiosetenvushort(const char *varname, unsigned short value, int overwrite) {
    char envbuff[XIO_SHORTLEN];
 
    snprintf(envbuff, XIO_SHORTLEN, "%hu", value);
-   return xiosetenv(varname, envbuff, overwrite);
+   return xiosetenv(varname, envbuff, overwrite, NULL);
 #  undef XIO_SHORTLEN
 }

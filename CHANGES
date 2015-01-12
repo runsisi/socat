@@ -18,6 +18,17 @@ security:
 	Turn off nested signal handler invocations
 	Thanks to Peter Lobsinger for reporting and explaining this issue.
 
+	Red Hat issue 1019975: add TLS host name checks
+	OpenSSL client checks if the server certificates names in
+	extensions/subjectAltName/DNS or in subject/commonName match the name
+	used to connect or the value of the openssl-commonname option.
+	Test: OPENSSL_CN_CLIENT_SECURITY
+
+	OpenSSL server checks if the client certificates names in
+	extensions/subjectAltNames/DNS or subject/commonName match the value of
+	the openssl-commonname option when it is used.
+	Test: OPENSSL_CN_SERVER_SECURITY
+
 new features:
 	OpenSSL addresses set couple of environment variables from values in
 	peer certificate, e.g.: 
@@ -1033,7 +1044,7 @@ further corrections:
 	ftp.sh script supports proxy address
 
 	man page no longer installed with execute permissions (thanks to Peter
-        Bray) 
+	Bray) 
 
 	fixed a malloc call bug that could cause SIGSEGV or false "out of
 	memory" errors on EXEC and SYSTEM, depending on program name length and

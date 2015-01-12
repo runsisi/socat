@@ -290,6 +290,8 @@ const struct optname optionnames[] = {
 	IF_TERMIOS("clocal",	&opt_clocal)
 	IF_ANY    ("cloexec",	&opt_cloexec)
 	IF_ANY    ("close",	&opt_end_close)
+	IF_OPENSSL("cn",		&opt_openssl_commonname)
+	IF_OPENSSL("commonname",	&opt_openssl_commonname)
 #if WITH_EXT2 && defined(EXT2_COMPR_FL)
 	IF_ANY    ("compr",	&opt_ext2_compr)
 #endif
@@ -1094,6 +1096,7 @@ const struct optname optionnames[] = {
 	IF_OPENSSL("openssl-capath",	&opt_openssl_capath)
 	IF_OPENSSL("openssl-certificate",	&opt_openssl_certificate)
 	IF_OPENSSL("openssl-cipherlist",	&opt_openssl_cipherlist)
+	IF_OPENSSL("openssl-commonname",	&opt_openssl_commonname)
 #if OPENSSL_VERSION_NUMBER >= 0x00908000L
 	IF_OPENSSL("openssl-compress",	&opt_openssl_compress)
 #endif

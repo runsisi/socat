@@ -1,5 +1,5 @@
 /* source: xio-openssl.h */
-/* Copyright Gerhard Rieger 2002-2010 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_openssl_included
@@ -29,6 +29,7 @@ extern const struct optdesc opt_openssl_compress;
 #if WITH_FIPS
 extern const struct optdesc opt_openssl_fips;
 #endif
+extern const struct optdesc opt_openssl_commonname;
 
 extern int
    _xioopen_openssl_prepare(struct opt *opts, struct single *xfd,
@@ -36,9 +37,11 @@ extern int
 			    SSL_CTX **ctx);
 extern int
    _xioopen_openssl_connect(struct single *xfd,  bool opt_ver,
+			    const char *opt_commonname,
 			    SSL_CTX *ctx, int level);
 extern int
    _xioopen_openssl_listen(struct single *xfd, bool opt_ver,
+			   const char *opt_commonname,
 			   SSL_CTX *ctx, int level);
 extern int xioclose_openssl(xiofile_t *xfd);
 extern int xioshutdown_openssl(xiofile_t *xfd, int how);

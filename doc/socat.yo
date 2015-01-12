@@ -492,14 +492,23 @@ label(ADDRESS_OPENSSL_CONNECT)dit(bf(tt(OPENSSL:<host>:<port>)))
    <host> [link(IP address)(TYPE_IP_ADDRESS)] using TCP/IP version 4 or 6
    depending on address specification, name resolution, or option
    link(pf)(OPTION_PROTOCOL_FAMILY).nl()
-   NOTE: The server certificate is only checked for validity against
-   link(cafile)(OPTION_OPENSSL_CAFILE) or link(capath)(OPTION_OPENSSL_CAPATH),
-   but not for match with the server's name or its IP address!nl() 
+   NOTE: Up to version 1.7.2.4
+   the server certificate was only checked for validity against the system
+   certificate store or link(cafile)(OPTION_OPENSSL_CAFILE) or
+   link(capath)(OPTION_OPENSSL_CAPATH),
+   but not for match with the server's name or its IP address.
+   Since version 1.7.3.0 socat checks the peer certificate for match with the
+   <host> parameter or the value of the 
+   link(openssl-commonname)(OPTION_OPENSSL_COMMONNAME) option.
+   Socat tries to match it against the certificates subject commonName,
+   and the certifications extension subjectAltName DNS names. Wildcards in the
+   certificate are supported.nl() 
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4),link(IP6)(GROUP_IP6),link(TCP)(GROUP_TCP),link(OPENSSL)(GROUP_OPENSSL),link(RETRY)(GROUP_RETRY) nl()
    Useful options:
    link(cipher)(OPTION_OPENSSL_CIPHERLIST),
    link(method)(OPTION_OPENSSL_METHOD),
    link(verify)(OPTION_OPENSSL_VERIFY),
+   link(commonname)(OPTION_OPENSSL_COMMONNAME)
    link(cafile)(OPTION_OPENSSL_CAFILE),
    link(capath)(OPTION_OPENSSL_CAPATH),
    link(certificate)(OPTION_OPENSSL_CERTIFICATE),
@@ -528,6 +537,7 @@ label(ADDRESS_OPENSSL_LISTEN)dit(bf(tt(OPENSSL-LISTEN:<port>)))
    link(cipher)(OPTION_OPENSSL_CIPHERLIST),
    link(method)(OPTION_OPENSSL_METHOD),
    link(verify)(OPTION_OPENSSL_VERIFY),
+   link(commonname)(OPTION_OPENSSL_COMMONNAME)
    link(cafile)(OPTION_OPENSSL_CAFILE),
    link(capath)(OPTION_OPENSSL_CAPATH),
    link(certificate)(OPTION_OPENSSL_CERTIFICATE),
@@ -2675,6 +2685,14 @@ label(OPTION_OPENSSL_COMPRESS)dit(bf(tt(compress)))
    compression-related settings.
    NOTE: Requires OpenSSL 0.9.8 or higher and disabling compression with
    OpenSSL 0.9.8 affects all new connections in the process.
+label(OPTION_OPENSSL_COMMONNAME)dit(bf(tt(commonname=<string>)))
+   Specify the commonname that the peer certificate must match. With
+   link(OPENSSL-CONNECT)(ADDRESS_OPENSSL_CONNECT) address this overrides the
+   given hostname or IP target address; with
+   link(OPENSSL-LISTEN)(ADDRESS_OPENSSL_LISTEN) this turns on check of peer
+   certificates commonname. This option has only meaning when option
+   link(verify)(OPTION_OPENSSL_VERIFY) is not disabled and the choosen cipher
+   provides a peer certificate.
 label(OPTION_OPENSSL_FIPS)dit(bf(tt(fips)))
    Enables FIPS mode if compiled in. For info about the FIPS encryption
    implementation standard see lurl(http://oss-institute.org/fips-faq.html). 
@@ -3439,6 +3457,16 @@ packet.
 dit(bf(SOCAT_IPV6_TCLASS) (output)) With all IPv6 based RECVFROM addresses
 where address option link(ipv6-recvtclass)(OPTION_IPV6_RECVTCLASS) is applied,
 socat sets this variable to the transfer class of the received packet.
+
+dit(bf(SOCAT_OPENSSL_X509_ISSUER) (output)) Issuer field from peer certificate
+
+dit(bf(SOCAT_OPENSSL_X509_SUBJECT (output))) Subject field from peer certificate
+
+dit(bf(SOCAT_OPENSSL_X509_COMMONNAME) (output)) commonName entries from peer certificates subject. Multiple values are separated by " // ".
+
+dit(bf(SOCAT_OPENSSL_X509_*) (output)) all other entries from peer certificates subject
+
+dit(bf(SOCAT_OPENSSL_X509V3_DNS) (output)) DNS entries from peer certificates extensions - subjectAltName field. Multiple values are separated by " // ".
 
 dit(bf(HOSTNAME) (input)) Is used to determine the hostname for logging (see
 link(-lh)(option_lh)).
