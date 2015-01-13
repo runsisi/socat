@@ -81,6 +81,11 @@ corrections:
 	Help for filan -L was bad, is now corrected to:
 	"follow symbolic links instead of showing their properties"
 
+	Address options fdin and fdout were silently ignored when not applicable
+	due to -u or -U option. Now these combinations are caught as errors.
+	Test: FDOUT_ERROR
+	Issue reported by Hendrik.
+
 porting:
 	Socat included <sys/poll.h> instead of POSIX <poll.h>
 	Thanks to John Spencer for reporting this issue.

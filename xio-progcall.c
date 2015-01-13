@@ -103,8 +103,17 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
       usepipes = false;
    }
 #endif /* HAVE_PTY */
-   retropt_ushort(popts, OPT_FDIN,  (unsigned short *)&fdi);
-   retropt_ushort(popts, OPT_FDOUT, (unsigned short *)&fdo);
+
+   if (retropt_ushort(popts, OPT_FDIN,  (unsigned short *)&fdi) >= 0) {
+      if ((xioflags&XIO_ACCMODE) == XIO_RDONLY) {
+	 Error("_xioopen_foxec(): option fdin is useless in read-only mode");
+      }
+   }
+   if (retropt_ushort(popts, OPT_FDOUT, (unsigned short *)&fdo) >= 0) {
+      if ((xioflags&XIO_ACCMODE) == XIO_WRONLY) {
+	 Error("_xioopen_foxec(): option fdout is useless in write-only mode");
+      }
+   }
 
    if (withfork) {
       if (!(xioflags&XIO_MAYCHILD)) {

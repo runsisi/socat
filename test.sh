@@ -12149,6 +12149,39 @@ N=$((N+1))
 done
 
 
+# give a description of what is tested (a bugfix, a new feature...)
+NAME=FDOUT_ERROR
+case "$TESTS" in
+*%$N%*|*%functions%*|*%bugs%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: fdout bails out in write-only context"
+# use EXEC in write-only context with option fdout. Expected behaviour: error
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD="$SOCAT $opts -u /dev/null EXEC:cat,fdout=1"
+printf "test $F_n $TEST... " $N
+$CMD >/dev/null 2>"${te}"
+rc=$?
+if [ $rc -eq 1 ]; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD"
+    cat "${te}"
+    echo "command did not terminate with error!"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
 ##################################################################################
 #=================================================================================
 # here come tests that might affect your systems integrity. Put normal tests
