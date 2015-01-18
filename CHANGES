@@ -119,6 +119,12 @@ porting:
 	including <linux/errqueue.h> and a weakness in the conditional code.
 	Thanks to Michel Normand for reporting this issue.
 
+doc:
+	In the man page the PTY example was badly formatted. Thanks to
+	J.F.Sebastian for sending a patch.
+
+	Added missing CVE ids to security issues in CHANGES
+
 testing:
 	Do not distribute testcert.conf with socat source but generate it
 	(and new testcert6.conf) during test.sh run.
@@ -228,6 +234,7 @@ security:
 ####################### V 1.7.2.2:
 
 security:
+	CVE-2013-3571:
 	after refusing a client connection due to bad source address or source
 	port socat shutdown() the socket but did not close() it, resulting in
 	a file descriptor leak in the listening process, visible with lsof and
@@ -238,6 +245,7 @@ security:
 ####################### V 1.7.2.1:
 
 security:
+	CVE-2012-0219:
 	fixed a possible heap buffer overflow in the readline address. This bug
 	could be exploited when all of the following conditions were met:
 	1) one of the addresses is READLINE without the noprompt and without the
@@ -370,6 +378,7 @@ docu:
 ####################### V 1.7.1.3:
 
 security:
+	CVE-2010-2799:
 	fixed a stack overflow vulnerability that occurred when command
 	line arguments (whole addresses, host names, file names) were longer
 	than 512 bytes.
@@ -869,7 +878,8 @@ further corrections:
 
 ####################### V 1.4.0.3:
 
-corrections:
+security:
+	CVE-2004-1484:
 	fix to a syslog() based format string vulnerability that can lead to
 	remote code execution. See advisory socat-adv-1.txt
 

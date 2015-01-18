@@ -3148,7 +3148,14 @@ label(EXAMPLE_ADDRESS_PTY)
 label(EXAMPLE_OPTION_SYMBOLIC_LINK)
 label(EXAMPLE_OPTION_WAIT_SLAVE)
 label(EXAMPLE_OPTION_NONBLOCK)
-(bf(tt(socat PTY,link=$HOME/dev/vmodem0,raw,echo=0,wait-slave EXEC:'"ssh modemserver.us.org socat - /dev/ttyS0,nonblock,raw,echo=0"')))
+mancommand(\.LP)
+mancommand(\.nf)
+mancommand(\fBsocat PTY,link=$HOME/dev/vmodem0,raw,echo=0,wait-slave \\\bf)
+mancommand(\fBEXEC:"ssh modemserver.us.org socat - /dev/ttyS0,nonblock,raw,echo=0"\fP)
+mancommand(\.fi)
+
+htmlcommand(<dt><code><strong>socat PTY,link=$HOME/dev/vmodem0,raw,echo=0,wait-slave \</strong><br>
+<strong>EXEC:'"ssh modemserver.us.org socat - /dev/ttyS0,nonblock,raw,echo=0"'</strong></code><dd>)
 
 generates a pseudo terminal 
 device (link(PTY)(ADDRESS_PTY)) on the client that can be reached under the
@@ -3463,7 +3470,7 @@ socat sets this variable to the transfer class of the received packet.
 
 dit(bf(SOCAT_OPENSSL_X509_ISSUER) (output)) Issuer field from peer certificate
 
-dit(bf(SOCAT_OPENSSL_X509_SUBJECT (output))) Subject field from peer certificate
+dit(bf(SOCAT_OPENSSL_X509_SUBJECT) (output)) Subject field from peer certificate
 
 dit(bf(SOCAT_OPENSSL_X509_COMMONNAME) (output)) commonName entries from peer certificates subject. Multiple values are separated by " // ".
 

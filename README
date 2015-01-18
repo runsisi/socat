@@ -257,7 +257,7 @@ correction must be performed in /usr/share/yodl/shared.yo in two places:
 license
 -------
 
-socat is distributed under the terms of the GNU GPL;
+socat is distributed under the terms of the GNU GPLv2;
 except for install-sh, which is copyright MIT, with its own license;
 
 In addition, as a special exception, the copyright holder
