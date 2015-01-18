@@ -5,6 +5,10 @@
 #ifndef __compat_h_included
 #define __compat_h_included 1
 
+#if !HAVE_DECL_ENVIRON && HAVE_VAR_ENVIRON
+extern char **environ;
+#endif
+
 /*****************************************************************************/
 /* I dont like this system dependent part, but it would be quite a challenge
    for configure */

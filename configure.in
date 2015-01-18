@@ -1899,6 +1899,29 @@ if test -n "$WITH_FIPS"; then
 fi
 AC_SUBST(FIPSLD_CC)
 
+# autoconf does not seem to provide AC_CHECK_VAR or so
+# thus we have to check by foot
+AC_MSG_CHECKING(for declaration of environ)
+AC_CACHE_VAL(sc_cv_decl_environ,
+[AC_TRY_COMPILE([#include <unistd.h>],[char **s = environ;],
+[sc_cv_decl_environ=yes],
+[sc_cv_decl_environ=no])])
+if test $sc_cv_decl_environ = yes; then
+   AC_DEFINE(HAVE_DECL_ENVIRON)
+fi
+AC_MSG_RESULT($sc_cv_decl_environ)
+
+# on some systems environ exists but not the declaration
+AC_MSG_CHECKING(for var environ)
+AC_CACHE_VAL(sc_cv_var_environ,
+[AC_TRY_COMPILE([],[extern char **environ; char **s = environ;],
+[sc_cv_var_environ=yes],
+[sc_cv_var_environ=no])])
+if test $sc_cv_var_environ = yes; then
+   AC_DEFINE(HAVE_VAR_ENVIRON)
+fi
+AC_MSG_RESULT($sc_cv_var_environ)
+
 # allow BUILD_DATE to be externally set for build reproducibility
 if test "$BUILD_DATE"; then
   AC_DEFINE_UNQUOTED(BUILD_DATE, ["$BUILD_DATE"])

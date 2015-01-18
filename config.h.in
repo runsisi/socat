@@ -53,6 +53,13 @@
 /* Define if you have the putenv function.  */
 #undef HAVE_PUTENV
 
+/* Define if your cc provides char **environ declaration.
+   This implies HAVE_VAR_ENVIRON */
+#undef HAVE_DECL_ENVIRON
+
+/* Define if you have the char **environ variable */
+#undef HAVE_VAR_ENVIRON
+
 /* Define if you have the select function.  */
 #undef HAVE_SELECT
 
