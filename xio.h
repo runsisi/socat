@@ -205,8 +205,8 @@ typedef struct single {
 	 struct {
 	    bool     tight;
 	 } un;
-      } socket;
 #endif /* WITH_UNIX */
+      } socket;
 #endif /* _WITH_SOCKET */
       struct {
 	 pid_t pid;		/* child PID, with EXEC: */

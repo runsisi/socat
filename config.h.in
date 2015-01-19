@@ -344,6 +344,15 @@
 /* Define if your termios.h likes _SVID3 defined */
 #undef _SVID3
 
+/* Define if your sys/socket.h likes _XPG4_2 defined */
+#undef _XPG4_2
+
+/* Define if your ctime_r() choices need _POSIX_PTHREAD_SEMANTICS */
+#undef _POSIX_PTHREAD_SEMANTICS
+
+/* Define if you need __EXTENSIONS__ */
+#undef __EXTENSIONS__
+
 /* Define if you have struct timespec (e.g. for nanosleep) */
 #undef HAVE_STRUCT_TIMESPEC
 

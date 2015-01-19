@@ -1026,6 +1026,69 @@ if test $ac_cv_svid3 = yes; then
 fi
 AC_MSG_RESULT($ac_cv_svid3)
 
+
+# Openindiana needs _XPG4_2 for CMSG stuff
+AC_MSG_CHECKING(if _XPG4_2 is helpful)
+AC_CACHE_VAL(ac_cv_xpg4_2,
+ [AC_TRY_LINK([#include <sys/socket.h>],
+ [int i=CMSG_DATA(0)],
+ [ac_cv_xpg4_2=no],
+ [AC_TRY_LINK([#define _XPG4_2 1
+#include <sys/socket.h>],
+   [int i=CMSG_DATA(0)],
+   [ac_cv_xpg4_2=yes],
+   [ac_cv_xpg4_2=no]
+ )]
+)])
+if test $ac_cv_xpg4_2 = yes; then
+  AC_DEFINE(_XPG4_2)
+fi
+AC_MSG_RESULT($ac_cv_xpg4_2)
+
+# When on Openindiana _XPG4_2 is defined (see above)
+# we also need to define __EXTENSIONS__ for basic stuff.
+# Note that <sys/procset.h> is important on Openindiana
+# but does not exist on Linux
+if test "$ac_cv_xpg4_2" = yes; then
+ AC_MSG_CHECKING(if __EXTENSIONS__ is helpful)
+ AC_CACHE_VAL(ac_cv___extensions__,
+  [AC_TRY_COMPILE([#include <sys/procset.h>],
+  [procset_t *s=0;],
+  [ac_cv___extensions__=no],
+  [AC_TRY_COMPILE([#define __EXTENSIONS__ 1
+#include <sys/procset.h>],
+    [procset_t *s=0;],
+    [ac_cv___extensions__=yes],
+    [ac_cv___extensions__=no]
+  )]
+ )])
+ if test $ac_cv___extensions__ = yes; then
+   AC_DEFINE(__EXTENSIONS__)
+ fi
+ AC_MSG_RESULT($ac_cv___extensions__)
+fi
+
+# When on Openindiana __EXTENSIONS__ is defined (see above)
+# _POSIX_PTHREAD_SEMANTICS must be defined for standard ctime_r()
+if test "$ac_cv___extensions__" = yes; then
+ AC_MSG_CHECKING(if _POSIX_PTHREAD_SEMANTICS is helpful)
+ AC_CACHE_VAL(ac_cv__posix_pthread_semantics,
+  [AC_TRY_COMPILE([#include <time.h>],
+  [char *s = ctime_r(0,0);],
+  [ac_cv__posix_pthread_semantics=no],
+  [AC_TRY_COMPILE([#define _POSIX_PTHREAD_SEMANTICS 1
+#include <time.h>],
+    [char *s = ctime_r(0,0);],
+    [ac_cv__posix_pthread_semantics=yes],
+    [ac_cv__posix_pthread_semantics=no]
+  )]
+ )])
+ if test $ac_cv__posix_pthread_semantics = yes; then
+   AC_DEFINE(_POSIX_PTHREAD_SEMANTICS)
+ fi
+ AC_MSG_RESULT($ac_cv__posix_pthread_semantics)
+fi
+
  
 # struct timespec
 AC_MSG_CHECKING(for struct timespec)
@@ -1929,4 +1992,5 @@ else
   AC_DEFINE(BUILD_DATE, [__DATE__" "__TIME__])
 fi
 
+cp -p confdefs.h save-confdefs.h
 AC_OUTPUT(Makefile)

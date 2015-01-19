@@ -250,7 +250,11 @@ void msg(int level, const char *format, ...) {
    diag_dgram.exitcode = diagopts.exitstatus;
    vsnprintf_r(diag_dgram.text, sizeof(diag_dgram.text), format, ap);
    if (diag_in_handler && !diag_immediate_msg) {
-      send(diag_sock_send, &diag_dgram, sizeof(diag_dgram)-TEXTLEN + strlen(diag_dgram.text)+1, MSG_DONTWAIT|MSG_NOSIGNAL);
+      send(diag_sock_send, &diag_dgram, sizeof(diag_dgram)-TEXTLEN + strlen(diag_dgram.text)+1, MSG_DONTWAIT
+#ifdef MSG_NOSIGNAL
+	   |MSG_NOSIGNAL
+#endif
+	   );
       diag_msg_avail = 1;
       va_end(ap);
       return;
@@ -411,7 +415,11 @@ void diag_exit(int status) {
    if (diag_in_handler && !diag_immediate_exit) {
       diag_dgram.op = DIAG_OP_EXIT;
       diag_dgram.exitcode = status;
-      send(diag_sock_send, &diag_dgram, sizeof(diag_dgram)-TEXTLEN, MSG_DONTWAIT|MSG_NOSIGNAL);
+      send(diag_sock_send, &diag_dgram, sizeof(diag_dgram)-TEXTLEN, MSG_DONTWAIT
+#ifdef MSG_NOSIGNAL
+	   |MSG_NOSIGNAL
+#endif
+	   );
       return;
    }
    _diag_exit(status);

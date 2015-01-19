@@ -328,7 +328,9 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
 	 while (maxchildren) {
 	    if (num_child < maxchildren) break;
 	    Notice("maxchildren are active, waiting");
-	    while (!Sleep(UINT_MAX)) ;	/* any signal lets us continue */
+	    /* UINT_MAX would even be nicer, but Openindiana works only
+	       with 31 bits */
+	    while (!Sleep(INT_MAX)) ;	/* any signal lets us continue */
 	 }
 	 Info("still listening");
       } else {

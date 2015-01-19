@@ -124,6 +124,9 @@ porting:
 	including <linux/errqueue.h> and a weakness in the conditional code.
 	Thanks to Michel Normand for reporting this issue.
 
+	Changes for Openindiana: define _XPG4_2, __EXTENSIONS__,
+	_POSIX_PTHREAD_SEMANTICS; and minor changes
+
 doc:
 	In the man page the PTY example was badly formatted. Thanks to
 	J.F.Sebastian for sending a patch.
