@@ -277,6 +277,7 @@ const struct optname optionnames[] = {
 	IF_OPENSSL("capath",	&opt_openssl_capath)
 	IF_OPENSSL("cert",	&opt_openssl_certificate)
 	IF_OPENSSL("certificate",	&opt_openssl_certificate)
+	IF_TERMIOS("cfmakeraw",		&opt_termios_cfmakeraw)
 	IF_ANY    ("chroot",	&opt_chroot)
 	IF_ANY    ("chroot-early",	&opt_chroot_early)
 	/*IF_TERMIOS("cibaud",	&opt_cibaud)*/
@@ -3654,6 +3655,7 @@ int applyopts(int fd, struct opt *opts, enum e_phase phase) {
 	    termarg.c_iflag = 0;
 	    termarg.c_oflag = 0;
 	    termarg.c_lflag = 0;
+	    termarg.c_cflag = (CS8);
 	    termarg.c_cc[VMIN] = 1;
 	    termarg.c_cc[VTIME] = 0;
 	    break;
@@ -3743,6 +3745,19 @@ int applyopts(int fd, struct opt *opts, enum e_phase phase) {
 				 );
 	    termarg.c_lflag |= (ISIG|ICANON|IEXTEN|ECHO|ECHOE|ECHOK|ECHOCTL|ECHOKE);
 	    /*! "sets characters to their default values... - which? */
+	    break;
+	 case OPT_TERMIOS_CFMAKERAW:
+#if HAVE_CFMAKERAW
+	    cfmakeraw(&termarg);
+#else
+	    /* these setting follow the Linux documenation of cfmakeraw */
+	    termarg.c_iflag &=
+	      ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
+	    termarg.c_oflag &= ~(OPOST);
+	    termarg.c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
+	    termarg.c_cflag &= ~(CSIZE|PARENB);
+	    termarg.c_cflag |= (CS8);
+#endif
 	    break;
 	 default:
 	    Error("TERMIOS option not handled - internal error?");

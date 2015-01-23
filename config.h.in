@@ -459,6 +459,9 @@
 /* Define if you have the /dev/ptc pseudo terminal multiplexer */
 #undef HAVE_DEV_PTC
 
+/* Define if you have the cfmakeraw() function */
+#undef HAVE_CFMAKERAW
+
 /* Define if you have the long long type */
 #undef HAVE_TYPE_LONGLONG
 

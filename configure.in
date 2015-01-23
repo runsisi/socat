@@ -91,6 +91,7 @@ dnl Checks for setgrent, getgrent and endgrent.
 AC_CHECK_FUNCS(setgrent getgrent endgrent)
 dnl Checks for getgrouplist() /* BSD */
 AC_CHECK_FUNCS(getgrouplist)
+AC_CHECK_FUNCS(cfmakeraw)
 
 dnl Link libresolv if necessary (for Mac OS X)
 AC_SEARCH_LIBS([res_9_init], [resolv])
@@ -100,7 +101,6 @@ dnl Check for extra socket library (for Solaris)
 AC_CHECK_FUNC(hstrerror,  , AC_CHECK_LIB(resolv, hstrerror, [LIBS="$LIBS -lresolv"; AC_DEFINE(HAVE_HSTRERROR)]))
 AC_CHECK_FUNC(gethostent, , AC_CHECK_LIB(nsl, gethostent))
 AC_CHECK_FUNC(setsockopt, , AC_CHECK_LIB(socket, setsockopt))
-
 
 dnl Check for function prototype and in lib
 dnl arg1: function name

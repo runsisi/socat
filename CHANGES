@@ -89,6 +89,11 @@ corrections:
 	Test: FDOUT_ERROR
 	Issue reported by Hendrik.
 
+	Added option termios-cfmakeraw that calls cfmakeraw() and is preferred
+	over option raw which is now obsolote. On SysV systems this call is
+	simulated by appropriate setting.
+	Thanks to Youfu Zhang for reporting issue with option raw.
+
 porting:
 	Socat included <sys/poll.h> instead of POSIX <poll.h>
 	Thanks to John Spencer for reporting this issue.

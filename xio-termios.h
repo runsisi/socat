@@ -139,6 +139,7 @@ extern const struct optdesc opt_ispeed;
 extern const struct optdesc opt_ospeed;
 
 extern const struct optdesc opt_termios_rawer;
+extern const struct optdesc opt_termios_cfmakeraw;
 
 #if _WITH_TERMIOS /* otherwise tcflag_t might be reported undefined */
 extern int xiotermios_setflag(int fd, int word, tcflag_t mask);
