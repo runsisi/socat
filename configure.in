@@ -1992,5 +1992,4 @@ else
   AC_DEFINE(BUILD_DATE, [__DATE__" "__TIME__])
 fi
 
-cp -p confdefs.h save-confdefs.h
 AC_OUTPUT(Makefile)
