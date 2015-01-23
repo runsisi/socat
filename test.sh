@@ -11455,7 +11455,7 @@ N=$((N+1))
 # Linux) with "Invalid argument".
 NAME=OPENSSL_CONNECT_BIND
 case "$TESTS" in
-*%$N%*|*%functions%*|*%openssl%*|*%bugs%*|*%socket%*|*%ssl%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%socket%*|*%openssl%*|*%$NAME%*)
 TEST="$NAME: test OPENSSL-CONNECT with bind option"
 # have a simple SSL server that just echoes data.
 # connect with socat using OPENSSL-CONNECT with bind, send data and check if the
@@ -12004,7 +12004,7 @@ unix-recvfrom .       .        unixport .        -e   FILE:/dev/null
 "
 
 
-# bug fix: SYSTEM address child process shutted down parents sockets including
+# bug fix: SYSTEM address child process shut down parents sockets including
 # SSL connection under some circumstances.
 NAME=SYSTEM_SHUTDOWN
 case "$TESTS" in
@@ -12101,6 +12101,52 @@ fi # NUMCOND
 esac
 PORT=$((PORT+1))
 N=$((N+1))
+
+# test if the various SSL methods can be used with OpenSSL
+for method in SSL3 SSL23 TLS1 TLS1.1 TLS1.2 DTLS1; do
+
+NAME=OPENSSL_METHOD_$method
+case "$TESTS" in
+*%$N%*|*%functions%*|*%bugs%*|*%socket%*|*%openssl%*|*%$NAME%*)
+TEST="$NAME: test OpenSSL method $method"
+# Start a socat process listening with OpenSSL and echoing data,
+# using the selected method
+# Start a second socat process connecting to the listener using
+# the same method, send some data and catch the reply.
+# If the reply is identical to the sent data the test succeeded.
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,method=$method,cipher=aNULL,verify=0 PIPE"
+CMD1="$SOCAT $opts - OPENSSL-CONNECT:$LOCALHOST:$PORT,method=$method,cipher=aNULL,verify=0"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+waittcp4port $PORT 1
+echo "$da" |$CMD1 >"${tf}1" 2>"${te}1"
+rc1=$?
+kill $pid0 2>/dev/null; wait
+if echo "$da" |diff - "${tf}1"; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "${te}0"
+    cat "${te}1"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+done
 
 
 ##################################################################################

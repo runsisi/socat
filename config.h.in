@@ -394,14 +394,36 @@
 /* Define if you have the unsetenv function. not on HP-UX */
 #undef HAVE_UNSETENV
 
-/* Define if you have the SSLv2_client_method function. not in new openssl */
+/* Define if you have the SSLv2 client and server method functions. not in new openssl */
 #undef HAVE_SSLv2_client_method
-
-/* Define if you have the SSLv2_server_method function. not in new openssl */
 #undef HAVE_SSLv2_server_method
 
 /* Define if you have the HAVE_SSL_CTX_set_default_verify_paths function */
 #undef HAVE_SSL_CTX_set_default_verify_paths
+
+/* Define if you have the SSLv3 client and server method functions. not in new openssl */
+#undef HAVE_SSLv3_client_method
+#undef HAVE_SSLv3_server_method
+
+/* Define if you have the SSLv3 client and server method functions with rollback to v2 */
+#undef HAVE_SSLv23_client_method
+#undef HAVE_SSLv23_server_method
+
+/* Define if you have the TLSv1.0 client and server method functions */
+#undef HAVE_TLSv1_client_method
+#undef HAVE_TLSv1_server_method
+
+/* Define if you have the TLSv1.1 client and server method functions */
+#undef HAVE_TLSv1_1_client_method
+#undef HAVE_TLSv1_1_server_method
+
+/* Define if you have the TLSv1.2 client and server method functions */
+#undef HAVE_TLSv1_2_client_method
+#undef HAVE_TLSv1_2_server_method
+
+/* Define if you have the DTLSv1 client and server method functions */
+#undef HAVE_DTLSv1_client_method
+#undef HAVE_DTLSv1_server_method
 
 /* Define if you have the flock function */
 #undef HAVE_FLOCK

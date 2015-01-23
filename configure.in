@@ -1334,10 +1334,23 @@ dnl Search for unsetenv()
 AC_CHECK_FUNC(unsetenv, AC_DEFINE(HAVE_UNSETENV))
 
 dnl Search for SSLv2_client_method, SSLv2_server_method
-AC_CHECK_FUNC(SSLv3_client_method, AC_DEFINE(HAVE_SSLv3_client_method), AC_CHECK_LIB(crypt, SSLv3_client_method, [LIBS=-lcrypt $LIBS]))
+AC_CHECK_FUNC(SSLv2_client_method, AC_DEFINE(HAVE_SSLv2_client_method), AC_CHECK_LIB(crypt, SSLv2_client_method, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(SSLv2_server_method, AC_DEFINE(HAVE_SSLv2_server_method), AC_CHECK_LIB(crypt, SSLv2_server_method, [LIBS=-lcrypt $LIBS]))
 dnl 
 AC_CHECK_FUNC(SSL_CTX_set_default_verify_paths, AC_DEFINE(HAVE_SSL_CTX_set_default_verify_paths))
+
+AC_CHECK_FUNC(SSLv3_client_method, AC_DEFINE(HAVE_SSLv3_client_method), AC_CHECK_LIB(crypt, SSLv3_client_method, [LIBS=-lcrypt $LIBS]))
+AC_CHECK_FUNC(SSLv3_server_method, AC_DEFINE(HAVE_SSLv3_server_method), AC_CHECK_LIB(crypt, SSLv3_server_method, [LIBS=-lcrypt $LIBS]))
+AC_CHECK_FUNC(SSLv23_client_method, AC_DEFINE(HAVE_SSLv23_client_method), AC_CHECK_LIB(crypt, SSLv23_client_method, [LIBS=-lcrypt $LIBS]))
+AC_CHECK_FUNC(SSLv23_server_method, AC_DEFINE(HAVE_SSLv23_server_method), AC_CHECK_LIB(crypt, SSLv23_server_method, [LIBS=-lcrypt $LIBS]))
+AC_CHECK_FUNC(TLSv1_client_method, AC_DEFINE(HAVE_TLSv1_client_method), AC_CHECK_LIB(crypt, TLSv1_client_method, [LIBS=-lcrypt $LIBS]))
+AC_CHECK_FUNC(TLSv1_server_method, AC_DEFINE(HAVE_TLSv1_server_method), AC_CHECK_LIB(crypt, TLSv1_server_method, [LIBS=-lcrypt $LIBS]))
+AC_CHECK_FUNC(TLSv1_1_client_method, AC_DEFINE(HAVE_TLSv1_1_client_method), AC_CHECK_LIB(crypt, TLSv1_1_client_method, [LIBS=-lcrypt $LIBS]))
+AC_CHECK_FUNC(TLSv1_1_server_method, AC_DEFINE(HAVE_TLSv1_1_server_method), AC_CHECK_LIB(crypt, TLSv1_1_server_method, [LIBS=-lcrypt $LIBS]))
+AC_CHECK_FUNC(TLSv1_2_client_method, AC_DEFINE(HAVE_TLSv1_2_client_method), AC_CHECK_LIB(crypt, TLSv1_2_client_method, [LIBS=-lcrypt $LIBS]))
+AC_CHECK_FUNC(TLSv1_2_server_method, AC_DEFINE(HAVE_TLSv1_2_server_method), AC_CHECK_LIB(crypt, TLSv1_2_server_method, [LIBS=-lcrypt $LIBS]))
+AC_CHECK_FUNC(DTLSv1_client_method, AC_DEFINE(HAVE_DTLSv1_client_method), AC_CHECK_LIB(crypt, DTLSv1_client_method, [LIBS=-lcrypt $LIBS]))
+AC_CHECK_FUNC(DTLSv1_server_method, AC_DEFINE(HAVE_DTLSv1_server_method), AC_CHECK_LIB(crypt, DTLSv1_server_method, [LIBS=-lcrypt $LIBS]))
 
 dnl Run time checks
 

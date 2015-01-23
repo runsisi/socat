@@ -44,6 +44,9 @@ new features:
 	SOCAT_OPENSSL_X509V3_SUBJECTALTNAME_DNS
 	Tests: ENV_OPENSSL_{CLIENT,SERVER}_X509_*
 
+	Added support for methods TLSv1, TLSv1.1, TLSv1.2, and DTLS1
+	Tests: OPENSSL_METHOD_*
+
 corrections:
 	Bind with ABSTRACT commands used non-abstract namespace (Linux).
 	Test: ABSTRACT_BIND
@@ -66,6 +69,8 @@ corrections:
 	configure with some combination of disable options produced config
 	files that failed to compile due to missing IPPROTO_TCP.
 	Thanks to Thierry Fournier for report and patch.
+
+	fixed a few minor bugs with OpenSSL in configure and with messages
 
 porting:
 	Socat included <sys/poll.h> instead of POSIX <poll.h>

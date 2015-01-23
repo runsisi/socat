@@ -1,5 +1,5 @@
 /* source: sslcls.h */
-/* Copyright Gerhard Rieger 2001-2011 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __sslcls_h_included
@@ -18,6 +18,12 @@ const SSL_METHOD *sycSSLv23_client_method(void);
 const SSL_METHOD *sycSSLv23_server_method(void);
 const SSL_METHOD *sycTLSv1_client_method(void);
 const SSL_METHOD *sycTLSv1_server_method(void);
+const SSL_METHOD *sycTLSv1_1_client_method(void);
+const SSL_METHOD *sycTLSv1_1_server_method(void);
+const SSL_METHOD *sycTLSv1_2_client_method(void);
+const SSL_METHOD *sycTLSv1_2_server_method(void);
+const SSL_METHOD *sycDTLSv1_client_method(void);
+const SSL_METHOD *sycDTLSv1_server_method(void);
 SSL_CTX *sycSSL_CTX_new(const SSL_METHOD *method);
 SSL *sycSSL_new(SSL_CTX *ctx);
 int sycSSL_CTX_load_verify_locations(SSL_CTX *ctx, const char *CAfile,

@@ -715,7 +715,7 @@ int
 			    SSL_CTX **ctx)
 {
    bool opt_fips = false;
-   const SSL_METHOD *method;
+   const SSL_METHOD *method = NULL;
    char *me_str = NULL;	/* method string */
    char *ci_str = "HIGH:-NULL:-PSK:-aNULL";	/* cipher string */
    char *opt_key  = NULL;	/* file name of client private key */
@@ -771,54 +771,109 @@ int
    /*! actions_to_seed_PRNG();*/
 
    if (!server) {
-      if (me_str != 0) {
-	 if (!strcasecmp(me_str, "SSLv2") || !strcasecmp(me_str, "SSL2")) {
+      if (me_str != NULL) {
+	 if (false) {
+	    ;	/* for canonical reasons */
 #if HAVE_SSLv2_client_method
+	 } else if (!strcasecmp(me_str, "SSL2")) {
 	    method = sycSSLv2_client_method();
-#else
-	    Error1("OpenSSL method \"%s\" not provided by library", me_str);
-	    method = sycSSLv23_server_method();
 #endif
-	 } else
-	 if (!strcasecmp(me_str, "SSLv3") || !strcasecmp(me_str, "SSL3")) {
+#if HAVE_SSLv3_client_method
+	 } else if (!strcasecmp(me_str, "SSL3")) {
 	    method = sycSSLv3_client_method();
-	 } else if (!strcasecmp(me_str, "SSLv23") || !strcasecmp(me_str, "SSL23") ||
-		    !strcasecmp(me_str, "SSL")) {
+#endif
+#if HAVE_SSLv23_client_method
+	 } else if (!strcasecmp(me_str, "SSL23")) {
 	    method = sycSSLv23_client_method();
-	 } else if (!strcasecmp(me_str, "TLSv1") || !strcasecmp(me_str, "TLS1") ||
-		    !strcasecmp(me_str, "TLS")) {
+#endif
+#if HAVE_TLSv1_client_method
+	 } else if (!strcasecmp(me_str, "TLS1") || !strcasecmp(me_str, "TLS1.0")) {
 	    method = sycTLSv1_client_method();
+#endif
+#if HAVE_TLSv1_1_client_method
+	 } else if (!strcasecmp(me_str, "TLS1.1")) {
+	    method = sycTLSv1_1_client_method();
+#endif
+#if HAVE_TLSv1_2_client_method
+	 } else if (!strcasecmp(me_str, "TLS1.2")) {
+	    method = sycTLSv1_2_client_method();
+#endif
+#if HAVE_DTLSv1_client_method
+	 } else if (!strcasecmp(me_str, "DTLS") || !strcasecmp(me_str, "DTLS1")) {
+	    method = sycDTLSv1_client_method();
+#endif
 	 } else {
-	    Error1("openssl-method=\"%s\": unknown method", me_str);
-	    method = sycSSLv23_client_method();
+	    Error1("openssl-method=\"%s\": method unknown or not provided by library", me_str);
 	 }
       } else {
+#if HAVE_TLSv1_2_client_method
+	 method = sycTLSv1_2_client_method();
+#elif HAVE_TLSv1_1_client_method
+	 method = sycTLSv1_1_client_method();
+#elif HAVE_TLSv1_client_method
+	 method = sycTLSv1_client_method();
+#elif HAVE_SSLv3_client_method
+	 method = sycSSLv3_client_method();
+#elif HAVE_SSLv23_client_method
 	 method = sycSSLv23_client_method();
+#elif HAVE_SSLv2_client_method
+	 method = sycSSLv2_client_method();
+#else
+#        error "OpenSSL does not seem to provide client methods"
+#endif
       }
    } else /* server */ {
       if (me_str != 0) {
-	 if (!strcasecmp(me_str, "SSLv2") || !strcasecmp(me_str, "SSL2")) {
+	 if (false) {
+	    ;	/* for canonical reasons */
+
 #if HAVE_SSLv2_server_method
+	 } else if (!strcasecmp(me_str, "SSL2")) {
 	    method = sycSSLv2_server_method();
-#else
-	    Error1("OpenSSL method \"%s\" not provided by library", me_str);
+#endif
+#if HAVE_SSLv3_server_method
+	 } else if (!strcasecmp(me_str, "SSL3")) {
+	    method = sycSSLv3_server_method();
+#endif
+#if HAVE_SSLv23_server_method
+	 } else if (!strcasecmp(me_str, "SSL23")) {
 	    method = sycSSLv23_server_method();
 #endif
-	 } else
-	 if (!strcasecmp(me_str, "SSLv3") || !strcasecmp(me_str, "SSL3")) {
-	    method = sycSSLv3_server_method();
-	 } else if (!strcasecmp(me_str, "SSLv23") || !strcasecmp(me_str, "SSL23") ||
-		    !strcasecmp(me_str, "SSL")) {
-	    method = sycSSLv23_server_method();
-	 } else if (!strcasecmp(me_str, "TLSv1") || !strcasecmp(me_str, "TLS1") ||
-		    !strcasecmp(me_str, "TLS")) {
+#if HAVE_TLSv1_server_method
+	 } else if (!strcasecmp(me_str, "TLS1") || !strcasecmp(me_str, "TLS1.0")) {
 	    method = sycTLSv1_server_method();
+#endif
+#if HAVE_TLSv1_1_server_method
+	 } else if (!strcasecmp(me_str, "TLS1.1")) {
+	    method = sycTLSv1_1_server_method();
+#endif
+#if HAVE_TLSv1_2_server_method
+	 } else if (!strcasecmp(me_str, "TLS1.2")) {
+	    method = sycTLSv1_2_server_method();
+#endif
+#if HAVE_DTLSv1_server_method
+	 } else if (!strcasecmp(me_str, "DTLS") || !strcasecmp(me_str, "DTLS1")) {
+	    method = sycDTLSv1_server_method();
+#endif
 	 } else {
-	    Error1("openssl-method=\"%s\": unknown method", me_str);
-	    method = sycSSLv23_server_method();
+	    Error1("openssl-method=\"%s\": method unknown or not provided by library", me_str);
 	 }
       } else {
+#if HAVE_TLSv1_2_server_method
+	 method = sycTLSv1_2_server_method();
+#elif HAVE_TLSv1_1_server_method
+	 method = sycTLSv1_1_server_method();
+#elif HAVE_TLSv1_server_method
+	 method = sycTLSv1_1_method();
+#elif HAVE_SSLv3_server_method
+	 method = sycSSLv3_server_method();
+#elif HAVE_SSLv23_server_method
 	 method = sycSSLv23_server_method();
+#elif HAVE_SSLv2_server_method
+	 method = sycSSLv2_server_method();
+#else
+#        error "OpenSSL does not seem to provide client methods"
+#endif
       }
    }
 
@@ -887,7 +942,7 @@ int
 	    }
 	    Error("BN_bin2bn() failed");
 	 } else {
-	    if (SSL_CTX_set_tmp_dh(*ctx, dh) <= 0) {
+	    if (sycSSL_CTX_set_tmp_dh(*ctx, dh) <= 0) {
 	       while (err = ERR_get_error()) {
 		  Warn3("SSL_CTX_set_tmp_dh(%p, %p): %s", *ctx, dh,
 			ERR_error_string(err, NULL));
@@ -961,8 +1016,12 @@ int
 	    Info1("PEM_read_bio_DHparams(%p, NULL, NULL, NULL): error", bio);
 	 } else {
 	    BIO_free(bio);
-	    if (sycSSL_CTX_set_tmp_dh(*ctx, dh) == 0) {
-	       Error2("SSL_CTX_set_tmp_dh(%p, %p): error", ctx, dh);
+	    if (sycSSL_CTX_set_tmp_dh(*ctx, dh) <= 0) {
+	       while (err = ERR_get_error()) {
+		  Warn3("SSL_CTX_set_tmp_dh(%p, %p): %s", *ctx, dh,
+			ERR_error_string(err, NULL));
+	       }
+	       Error2("SSL_CTX_set_tmp_dh(%p, %p): error", *ctx, dh);
 	    }
 	 }
       }

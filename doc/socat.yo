@@ -2635,11 +2635,14 @@ label(OPTION_OPENSSL_METHOD)dit(bf(tt(method=<ssl-method>)))
    Sets the protocol version to be used. Valid strings (not case sensitive)
    are:  
    startdit()
-   dit(tt(SSLv2)) Select SSL protocol version 2.
-   dit(tt(SSLv3)) Select SSL protocol version 3.
-   dit(tt(SSLv23)) Select SSL protocol version 2 or 3. This is the default when
+   dit(tt(SSL2)) Select SSL protocol version 2.
+   dit(tt(SSL3)) Select SSL protocol version 3.
+   dit(tt(SSL23)) Select the best available SSL or TLS protocol. This is the default when
    this option is not provided.
-   dit(tt(TLSv1)) Select TLS protocol version 1.
+   dit(tt(TLS1)) Select TLS protocol version 1.
+   dit(tt(TLS1.1)) Select TLS protocol version 1.1.
+   dit(tt(TLS1.2)) Select TLS protocol version 1.2.
+   dit(tt(DTLS1)) Select DTLS protocol version 1.
    enddit()
 label(OPTION_OPENSSL_VERIFY)dit(bf(tt(verify=<bool>)))
    Controls check of the peer's certificate. Default is 1 (true). Disabling
