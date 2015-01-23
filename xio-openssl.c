@@ -960,6 +960,28 @@ int
       }
    }
 
+   {
+      /* see http://openssl.6102.n7.nabble.com/Problem-with-cipher-suite-ECDHE-ECDSA-AES256-SHA384-td42229.html */
+      int	 nid;
+      EC_KEY *ecdh;
+
+#if 0
+      nid = OBJ_sn2nid(ECDHE_CURVE);
+      if (nid == NID_undef) {
+	 Error("openssl: failed to set ECDHE parameters");
+	 return -1;
+      }
+#endif
+      nid = NID_X9_62_prime256v1;
+      ecdh = EC_KEY_new_by_curve_name(nid);
+      if (NULL == ecdh) {
+	 Error("openssl: failed to set ECDHE parameters");
+	 return -1;
+      }
+
+      SSL_CTX_set_tmp_ecdh(*ctx, ecdh);
+   }
+
 #if OPENSSL_VERSION_NUMBER >= 0x00908000L
    if (opt_compress) {
       int result;

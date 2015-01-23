@@ -47,6 +47,9 @@ new features:
 	Added support for methods TLSv1, TLSv1.1, TLSv1.2, and DTLS1
 	Tests: OPENSSL_METHOD_*
 
+	Enabled OpenSSL server side use of ECDHE ciphers. Feature suggested
+	by Andrey Arapov.
+
 	Added a new option termios-rawer for ptys.
 	Thanks to Christian Vogelgsang for pointing me to this requirement
 
@@ -118,14 +121,14 @@ porting:
 	Lauri Tirkkonen contributed a patch regarding netinet/if_ether.h
 	on Illumos
 
+	Changes for Openindiana: define _XPG4_2, __EXTENSIONS__,
+	_POSIX_PTHREAD_SEMANTICS; and minor changes
+
 	Red Hat issue 1182005: socat 1.7.2.4 build failure missing
 	linux/errqueue.h
 	Socat failed to compile on on PPC due to new requirements for
 	including <linux/errqueue.h> and a weakness in the conditional code.
 	Thanks to Michel Normand for reporting this issue.
-
-	Changes for Openindiana: define _XPG4_2, __EXTENSIONS__,
-	_POSIX_PTHREAD_SEMANTICS; and minor changes
 
 doc:
 	In the man page the PTY example was badly formatted. Thanks to
