@@ -317,6 +317,9 @@
 /* define if your struct sigaction has sa_sigaction */
 #undef HAVE_STRUCT_SIGACTION_SA_SIGACTION
 
+/* define if you have struct sock_extended_err */
+#undef HAVE_STRUCT_SOCK_EXTENDED_ERR
+
 /* Define if your struct termios has component c_ispeed */
 #undef HAVE_TERMIOS_ISPEED
 

@@ -113,6 +113,12 @@ porting:
 	Lauri Tirkkonen contributed a patch regarding netinet/if_ether.h
 	on Illumos
 
+	Red Hat issue 1182005: socat 1.7.2.4 build failure missing
+	linux/errqueue.h
+	Socat failed to compile on on PPC due to new requirements for
+	including <linux/errqueue.h> and a weakness in the conditional code.
+	Thanks to Michel Normand for reporting this issue.
+
 testing:
 	Do not distribute testcert.conf with socat source but generate it
 	(and new testcert6.conf) during test.sh run.

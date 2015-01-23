@@ -81,7 +81,8 @@ AC_HEADER_RESOLV()
 AC_CHECK_HEADERS(termios.h linux/if_tun.h)
 AC_CHECK_HEADERS(net/if_dl.h)
 AC_CHECK_HEADERS(linux/types.h)
-AC_CHECK_HEADER(linux/errqueue.h, AC_DEFINE(HAVE_LINUX_ERRQUEUE_H), [], [#include <linux/types.h>])
+AC_CHECK_HEADER(linux/errqueue.h, AC_DEFINE(HAVE_LINUX_ERRQUEUE_H), [], [#include <sys/time.h>
+#include <linux/types.h>])
 AC_CHECK_HEADERS(sys/utsname.h sys/select.h sys/file.h)
 AC_CHECK_HEADERS(util.h bsd/libutil.h libutil.h sys/stropts.h regex.h)
 AC_CHECK_HEADERS(linux/fs.h linux/ext2_fs.h)
@@ -935,6 +936,22 @@ if test $sc_cv_type_sa_family_t = yes; then
    AC_DEFINE(HAVE_TYPE_SA_FAMILY_T)
 fi
 AC_MSG_RESULT($sc_cv_type_sa_family_t)
+
+AC_MSG_CHECKING(for struct sock_extended_err)
+AC_CACHE_VAL(sc_cv_struct_sock_extended_err,
+[AC_TRY_COMPILE([#include <linux/types.h>
+#if TIME_WITH_SYS_TIME
+#include <sys/time.h>
+#endif
+#if HAVE_LINUX_ERRQUEUE_H
+#include <linux/errqueue.h>
+#endif],[struct sock_extended_err s;],
+[sc_cv_struct_sock_extended_err=yes],
+[sc_cv_struct_sock_extended_err=no])])
+if test $sc_cv_struct_sock_extended_err = yes; then
+   AC_DEFINE(HAVE_STRUCT_SOCK_EXTENDED_ERR)
+fi
+AC_MSG_RESULT($sc_cv_struct_sock_extended_err)
 
 AC_MSG_CHECKING(for struct sigaction.sa_sigaction)
 AC_CACHE_VAL(sc_cv_struct_sigaction_sa_sigaction,

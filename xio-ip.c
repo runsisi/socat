@@ -506,7 +506,7 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
       return STAT_OK;
 #endif /* defined(IP_PKTINFO) && HAVE_STRUCT_IN_PKTINFO */
 #endif /* WITH_IP4 */
-#ifdef IP_RECVERR
+#if defined(IP_RECVERR) && HAVE_STRUCT_SOCK_EXTENDED_ERR
    case IP_RECVERR: {
       struct sock_extended_err *err =
 	 (struct sock_extended_err *)CMSG_DATA(cmsg);
@@ -524,7 +524,7 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
 	       err->ee_code, '\0', err->ee_info, '\0', err->ee_data);
       return STAT_OK;
    }
-#endif /* IP_RECVERR */
+#endif /* defined(IP_RECVERR) && HAVE_STRUCT_SOCK_EXTENDED_ERR */
 #ifdef IP_RECVIF
    case IP_RECVIF: {
       /* spec in FreeBSD: /usr/include/net/if_dl.h */
