@@ -10,7 +10,7 @@ def(Filan)(0)(bf(Filan))
 def(procan)(0)(bf(procan))
 def(Procan)(0)(bf(Procan))
 
-manpage(socat)(1)(Mar 2014)()()
+manpage(socat)(1)()()()
 
 whenhtml(
 label(CONTENTS)
@@ -3030,7 +3030,7 @@ label(EXAMPLE_OPTION_ESCAPE)
 dit(bf(tt(socat -,escape=0x0f /dev/ttyS0,rawer,crnl)))
 
 opens an interactive connection via the serial line, e.g. for talking with a
-modem. link(rawer)(OPTION_TERMIOS_RAWER) and link(echo)(OPTION_ECHO) set the console's and
+modem. link(rawer)(OPTION_TERMIOS_RAWER) sets the console's and
 ttyS0's terminal parameters to practicable values, link(crnl)(OPTION_CRNL) 
 converts to correct newline characters. link(escape)(OPTION_ESCAPE) allows to
 terminate the socat process with character control-O. 
@@ -3165,7 +3165,7 @@ device (link(PTY)(ADDRESS_PTY)) on the client that can be reached under the
 symbolic link(link)(OPTION_SYMBOLIC_LINK) file($HOME/dev/vmodem0). 
 An application that expects a serial line or modem
 can be configured to use file($HOME/dev/vmodem0); its traffic will be directed
-to a modemserver via ssh where another socat instance links it with
+to a modemserver via ssh where another socat instance links it to
 file(/dev/ttyS0).
 
 

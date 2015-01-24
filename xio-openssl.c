@@ -806,7 +806,9 @@ int
 	    Error1("openssl-method=\"%s\": method unknown or not provided by library", me_str);
 	 }
       } else {
-#if HAVE_TLSv1_2_client_method
+#if   HAVE_SSLv23_client_method
+	 method = sycSSLv23_client_method();
+#elif HAVE_TLSv1_2_client_method
 	 method = sycTLSv1_2_client_method();
 #elif HAVE_TLSv1_1_client_method
 	 method = sycTLSv1_1_client_method();
@@ -814,8 +816,6 @@ int
 	 method = sycTLSv1_client_method();
 #elif HAVE_SSLv3_client_method
 	 method = sycSSLv3_client_method();
-#elif HAVE_SSLv23_client_method
-	 method = sycSSLv23_client_method();
 #elif HAVE_SSLv2_client_method
 	 method = sycSSLv2_client_method();
 #else
@@ -859,16 +859,16 @@ int
 	    Error1("openssl-method=\"%s\": method unknown or not provided by library", me_str);
 	 }
       } else {
-#if HAVE_TLSv1_2_server_method
+#if   HAVE_SSLv23_server_method
+	 method = sycSSLv23_server_method();
+#elif HAVE_TLSv1_2_server_method
 	 method = sycTLSv1_2_server_method();
 #elif HAVE_TLSv1_1_server_method
 	 method = sycTLSv1_1_server_method();
 #elif HAVE_TLSv1_server_method
-	 method = sycTLSv1_1_method();
+	 method = sycTLSv1_server_method();
 #elif HAVE_SSLv3_server_method
 	 method = sycSSLv3_server_method();
-#elif HAVE_SSLv23_server_method
-	 method = sycSSLv23_server_method();
 #elif HAVE_SSLv2_server_method
 	 method = sycSSLv2_server_method();
 #else
@@ -960,6 +960,7 @@ int
       }
    }
 
+#if defined(EC_KEY)	/* not on Openindiana 5.11 */
    {
       /* see http://openssl.6102.n7.nabble.com/Problem-with-cipher-suite-ECDHE-ECDSA-AES256-SHA384-td42229.html */
       int	 nid;
@@ -981,6 +982,7 @@ int
 
       SSL_CTX_set_tmp_ecdh(*ctx, ecdh);
    }
+#endif /* !defined(EC_KEY) */
 
 #if OPENSSL_VERSION_NUMBER >= 0x00908000L
    if (opt_compress) {
@@ -1206,9 +1208,10 @@ static int openssl_setenv_cert_name(const char *field, X509_NAME *name) {
       BIO_free(bio);
       return -1;
    }
+   memcpy(str, buf, len);
    str[len] = '\0';
    Info2("SSL peer cert %s: \"%s\"", field, buf);
-   xiosetenv2("OPENSSL_X509", field, buf, 1, NULL);
+   xiosetenv2("OPENSSL_X509", field, str, 1, NULL);
    free(str);
    BIO_free(bio);
    return 0;
