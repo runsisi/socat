@@ -385,7 +385,7 @@ int sycFIPS_mode_set(int onoff) {
 }
 #endif /* WITH_FIPS */
 
-#if OPENSSL_VERSION_NUMBER >= 0x00908000L
+#if OPENSSL_VERSION_NUMBER >= 0x00908000L && !defined(OPENSSL_NO_COMP)
 const COMP_METHOD *sycSSL_get_current_compression(SSL *ssl) {
    const COMP_METHOD *result;
    Debug1("SSL_get_current_compression(%p)", ssl);
