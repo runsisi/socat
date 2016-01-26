@@ -1,5 +1,18 @@
 
 security:
+	Socat security advisory 8
+	A stack overflow in vulnerability was found that can be triggered when
+	command line arguments (complete address specifications, host names,
+	file names) are longer than 512 bytes.
+	Successful exploitation might allow an attacker to execute arbitrary
+	code with the privileges of the socat process.
+	This vulnerability can only be exploited when an attacker is able to
+	inject data into socat's command line.
+	A vulnerable scenario would be a CGI script that reads data from clients
+	and uses (parts of) this data as hostname for a Socat invocation.
+	Test: NESTEDOVFL
+	Credits to Takumi Akiyama for finding and reporting this issue.
+
 	Socat security advisory 7
 	MSVR-1499
 	In the OpenSSL address implementation the hard coded 1024 bit DH p
@@ -18,7 +31,7 @@ security:
 
 security:
 	Socat security advisory 6
-	CVE-2015-1379
+	CVE-2015-1379: Possible DoS with fork
 	Fixed problems with signal handling caused by use of not async signal
 	safe functions in signal handlers that could freeze socat, allowing
 	denial of service attacks.

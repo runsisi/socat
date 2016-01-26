@@ -1,5 +1,5 @@
 /* source: nestlex.c */
-/* Copyright Gerhard Rieger 2006-2010 */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* a function for lexical scanning of nested character patterns */
@@ -9,6 +9,17 @@
 
 #include "sysincludes.h"
 
+static int _nestlex(const char **addr,
+		    char **token,
+		    ptrdiff_t *len,
+		    const char *ends[],
+		    const char *hquotes[],
+		    const char *squotes[],
+		    const char *nests[],
+		    bool dropquotes,
+		    bool c_esc,
+		    bool html_esc
+		    );
 
 /* sub: scan a string and copy its value to output string
    end scanning when an unescaped, unnested string from ends array is found
@@ -33,6 +44,22 @@ int nestlex(const char **addr,	/* input string; aft points to end token */
 	    bool c_esc,		/* solve C char escapes: \n \t \0 etc */
 	    bool html_esc	/* solve HTML char escapes: %0d %08 etc */
 	    ) {
+   return
+      _nestlex(addr, token, (ptrdiff_t *)len, ends, hquotes, squotes, nests,
+	       dropquotes, c_esc, html_esc);
+}
+
+static int _nestlex(const char **addr,
+		    char **token,
+		    ptrdiff_t *len,
+		    const char *ends[],
+		    const char *hquotes[],
+		    const char *squotes[],
+		    const char *nests[],
+		    bool dropquotes,
+		    bool c_esc,
+		    bool html_esc
+		    ) {
    const char *in = *addr;	/* pointer into input string */
    const char **endx;	/* loops over end patterns */
    const char **quotx;	/* loops over quote patterns */
@@ -77,16 +104,18 @@ int nestlex(const char **addr,	/* input string; aft points to end token */
 		  if (--*len <= 0) { *addr = in; *token = out; return -1; }
 	       }
 	    }
-	    /* we call nestlex recursively */
+	    /* we call _nestlex recursively */
 	    endnest[0] = *quotx;
 	    endnest[1] = NULL;
 	    result =
-	       nestlex(&in, &out, len, endnest, NULL/*hquotes*/,
+	       _nestlex(&in, &out, len, endnest, NULL/*hquotes*/,
 		       NULL/*squotes*/, NULL/*nests*/,
 		       false, c_esc, html_esc);
 	    if (result == 0 && dropquotes) {
 	       /* we strip this quote */
 	       in += strlen(*quotx);
+	    } else if (result < 0) {
+	       *addr = in; *token = out; return result;
 	    } else {
 	       /* we copy the trailing quote */
 	       for (i = strlen(*quotx); i > 0; --i) {
@@ -110,7 +139,7 @@ int nestlex(const char **addr,	/* input string; aft points to end token */
 	 if (!strncmp(in, *quotx, strlen(*quotx))) {
 	    /* this quote pattern matches */
 	    /* we strip this quote */
-	    /* we call nestlex recursively */
+	    /* we call _nestlex recursively */
 	    const char *endnest[2];
 	    if (dropquotes) {
 	       /* we strip this quote */
@@ -124,13 +153,15 @@ int nestlex(const char **addr,	/* input string; aft points to end token */
 	    endnest[0] = *quotx;
 	    endnest[1] = NULL;
 	    result =
-	       nestlex(&in, &out, len, endnest, hquotes,
+	       _nestlex(&in, &out, len, endnest, hquotes,
 		       squotes, nests,
 		       false, c_esc, html_esc);
 
 	    if (result == 0 && dropquotes) {
 	       /* we strip the trailing quote */
 	       in += strlen(*quotx);
+	    } else if (result < 0) {
+	       *addr = in; *token = out; return result;
 	    } else {
 	       /* we copy the trailing quote */
 	       for (i = strlen(*quotx); i > 0; --i) {
@@ -162,7 +193,7 @@ int nestlex(const char **addr,	/* input string; aft points to end token */
 	    }
 
 	    result =
-	       nestlex(&in, &out, len, endnest, hquotes, squotes, nests,
+	       _nestlex(&in, &out, len, endnest, hquotes, squotes, nests,
 		       false, c_esc, html_esc);
 	    if (result == 0) {
 	       /* copy endnest */
@@ -175,6 +206,8 @@ int nestlex(const char **addr,	/* input string; aft points to end token */
 		  }
 		  --i;
 	       }
+	    } else if (result < 0) {
+	       *addr = in; *token = out; return result;
 	    }
 	    break;
 	 }
@@ -211,7 +244,7 @@ int nestlex(const char **addr,	/* input string; aft points to end token */
 	 }
 	 *out++ = c;
 	 --*len;
-	 if (*len == 0) {
+	 if (*len <= 0) {
 	    *addr = in;
 	    *token = out;
 	    return -1;	/* output overflow */
@@ -222,7 +255,7 @@ int nestlex(const char **addr,	/* input string; aft points to end token */
       /* just a simple char */
       *out++ = c;
       --*len;
-      if (*len == 0) {
+      if (*len <= 0) {
 	 *addr = in;
 	 *token = out;
 	 return -1;	/* output overflow */
