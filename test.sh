@@ -2266,8 +2266,8 @@ gentestcert () {
 gentestdsacert () {
     local name="$1"
     if [ -s $name.key -a -s $name.crt -a -s $name.pem ]; then return; fi
-    openssl dsaparam -out $name-dsa.pem 512 >/dev/null 2>&1
-    openssl dhparam -dsaparam -out $name-dh.pem 512 >/dev/null 2>&1
+    openssl dsaparam -out $name-dsa.pem 1024 >/dev/null 2>&1
+    openssl dhparam -dsaparam -out $name-dh.pem 1024 >/dev/null 2>&1
     openssl req -newkey dsa:$name-dsa.pem -keyout $name.key -nodes -x509 -config $TESTCERT_CONF -out $name.crt -days 3653 >/dev/null 2>&1
     cat $name-dsa.pem $name-dh.pem $name.key $name.crt >$name.pem
 }
