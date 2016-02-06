@@ -5,6 +5,9 @@ corrections:
 	Failing name resolution could lead to SIGSEGV
 	Thanks to Max for reporting this issue.
 
+	Include <stddef.h> for ptrdiff_t
+	Thanks to Jeroen Roovers for reporting this issue.
+
 testing:
 	socks4echo.sh and socks4a-echo.sh hung with new bash with read -n
 
