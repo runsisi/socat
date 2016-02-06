@@ -168,39 +168,31 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
       }
 #endif
 
+      /* remember: fdin is the fs where the sub program reads from, thus it is
+	 sock0[]'s read fd */
       /*! problem: when fdi==WRFD(sock[0]) or fdo==RDFD(sock[0]) */
       if (rw != XIO_WRONLY) {
-	 if (XIO_GETRDFD(sock[0]/*!!*/) == fdi) {
-	    if (Fcntl_l(fdi, F_SETFD, 0) < 0) {
-	       Warn2("fcntl(%d, F_SETFD, 0): %s", fdi, strerror(errno));
-	    }
-	    if (Dup2(XIO_GETRDFD(sock[0]), fdi) < 0) {
-	       Error3("dup2(%d, %d): %s",
-		      XIO_GETRDFD(sock[0]), fdi, strerror(errno));
-	    }
-	    /*0 Info2("dup2(%d, %d)", XIO_GETRDFD(sock[0]), fdi);*/
-	 } else {
-	    if (Dup2(XIO_GETRDFD(sock[0]), fdi) < 0) {
-	       Error3("dup2(%d, %d): %s",
-		      XIO_GETRDFD(sock[0]), fdi, strerror(errno));
-	    }
-	    /*0 Info2("dup2(%d, %d)", XIO_GETRDFD(sock[0]), fdi);*/
-	 }
-      }
-      if (rw != XIO_RDONLY) {
-	 if (XIO_GETWRFD(sock[0]) == fdo) {
+	 if (XIO_GETWRFD(sock[0]/*!!*/) == fdo) {
 	    if (Fcntl_l(fdo, F_SETFD, 0) < 0) {
 	       Warn2("fcntl(%d, F_SETFD, 0): %s", fdo, strerror(errno));
 	    }
-	    if (Dup2(XIO_GETWRFD(sock[0]), fdo) < 0) {
-	       Error3("dup2(%d, %d): %s)",
-		      XIO_GETWRFD(sock[0]), fdo, strerror(errno));
-	    }
-	    /*0 Info2("dup2(%d, %d)", XIO_GETWRFD(sock[0]), fdo);*/
 	 } else {
 	    if (Dup2(XIO_GETWRFD(sock[0]), fdo) < 0) {
-	       Error3("dup2(%d, %d): %s)",
+	       Error3("dup2(%d, %d): %s",
 		      XIO_GETWRFD(sock[0]), fdo, strerror(errno));
+	    }
+	 }
+	 /*0 Info2("dup2(%d, %d)", XIO_GETRDFD(sock[0]), fdi);*/
+      }
+      if (rw != XIO_RDONLY) {
+	 if (XIO_GETRDFD(sock[0]) == fdi) {
+	    if (Fcntl_l(fdi, F_SETFD, 0) < 0) {
+	       Warn2("fcntl(%d, F_SETFD, 0): %s", fdi, strerror(errno));
+	    }
+	 } else {
+	    if (Dup2(XIO_GETRDFD(sock[0]), fdi) < 0) {
+	       Error3("dup2(%d, %d): %s)",
+		      XIO_GETRDFD(sock[0]), fdi, strerror(errno));
 	    }
 	    /*0 Info2("dup2(%d, %d)", XIO_GETWRFD(sock[0]), fdo);*/
 	 }

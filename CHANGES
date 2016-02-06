@@ -17,6 +17,11 @@ corrections:
 	Option so-reuseport did not work. Thanks to Some Raghavendra Prabhu
 	for sending a patch.
 
+	Programs invoked with EXEC, nofork, and -u or -U had stdin and stdout
+	incorrectly assigned
+	Test: EXEC_NOFORK_UNIDIR
+	Thanks to David Reiss for reporting this problem.
+
 porting:
 	Type conflict between int and sig_atomic_t between declaration and
 	definition of diag_immediate_type and diag_immediate_exit broke

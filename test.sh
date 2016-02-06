@@ -12383,6 +12383,39 @@ fi # NUMCOND, SO_REUSEPORT
  ;;
 esac
 PORT=$((PORT+1))
+
+
+# Programs invoked with EXEC, nofork, and -u or -U had stdin and stdout assignment swapped. 
+NAME=EXEC_NOFORK_UNIDIR
+case "$TESTS" in
+*%$N%*|*%functions%*|*%bugs%*|*%exec%*|*%$NAME%*)
+TEST="$NAME: Programs invoked with EXEC, nofork, and -u or -U had stdin and stdout assignment swapped"
+# invoke a simple echo command with EXEC, nofork, and -u
+# expected behaviour: output appears on stdout
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts -u /dev/null EXEC:\"echo \\\"$da\\\"\",nofork"
+printf "test $F_n $TEST... " $N
+eval $CMD0 >"${tf}0" 2>"${te}0"
+rc1=$?
+if echo "$da" |diff - "${tf}0" >"$tdiff"; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0"
+    cat "${te}0"
+    cat "$tdiff"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
+esac
+#PORT=$((PORT+1))
 N=$((N+1))
 
 
