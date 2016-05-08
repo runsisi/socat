@@ -2,6 +2,9 @@
 corrections:
 	SIGSEGV and other signals could lead to a 100% CPU loop
 
+	Failing name resolution could lead to SIGSEGV
+	Thanks to Max for reporting this issue.
+
 testing:
 	socks4echo.sh and socks4a-echo.sh hung with new bash with read -n
 

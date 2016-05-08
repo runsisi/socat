@@ -232,7 +232,7 @@ void msg(int level, const char *format, ...) {
       diag_flush();
    }
 
-   if (level < diagopts.msglevel)  { va_end(ap); return; }
+   if (level < diagopts.msglevel)  { return; }
    va_start(ap, format);
 
    /* we do only a minimum in the outer parts which may run in a signal handler

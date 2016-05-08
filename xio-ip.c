@@ -239,7 +239,8 @@ int xiogetaddrinfo(const char *node, const char *service,
 
       if ((error_num = Getaddrinfo(node, service, &hints, &res)) != 0) {
 	 Error7("getaddrinfo(\"%s\", \"%s\", {%d,%d,%d,%d}, {}): %s",
-		node, service, hints.ai_flags, hints.ai_family,
+		node?node:"NULL", service?service:"NULL",
+		hints.ai_flags, hints.ai_family,
 		hints.ai_socktype, hints.ai_protocol,
 		(error_num == EAI_SYSTEM)?
 		strerror(errno):gai_strerror(error_num));
