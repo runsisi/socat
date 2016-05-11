@@ -12,11 +12,12 @@
 # socat tcp-l:1080,reuseaddr,crlf system:"socks4a-echo.sh"
 
 # older bash and ksh do not have -n option to read command; we try dd then
-if echo a |read -n 1 null >/dev/null 2>&1; then
-    HAVE_READ_N=1
-else
+#if echo a |read -n 1 null >/dev/null 2>&1; then
+#    HAVE_READ_N=1
+#else
+    # and newer bash (4.3) has some other problem with read -n
     HAVE_READ_N=
-fi
+#fi
 
 if type socat >/dev/null 2>&1; then
     SOCAT=socat
