@@ -1422,12 +1422,13 @@ void socat_signal(int signum) {
    diag_in_handler = 1;
    Notice1("socat_signal(): handling signal %d", signum);
    switch (signum) {
-   case SIGQUIT:
    case SIGILL:
    case SIGABRT:
    case SIGBUS:
    case SIGFPE:
    case SIGSEGV:
+      diag_immediate_exit = 1;
+   case SIGQUIT:
    case SIGPIPE:
       diag_set_int('x', 128+signum);	/* in case Error exits for us */
       Error1("exiting on signal %d", signum);
