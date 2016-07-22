@@ -1,5 +1,5 @@
 /* source: hostan.h */
-/* Copyright Gerhard Rieger 2006 */
+/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __hostan_h_included

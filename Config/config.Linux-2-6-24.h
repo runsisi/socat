@@ -1,6 +1,6 @@
 /* config.h.  Generated from config.h.in by configure.  */
 /* source: config.h.in */
-/* Copyright Gerhard Rieger 2001-2008 */
+/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __config_h_included

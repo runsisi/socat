@@ -1,5 +1,5 @@
 /* source: xioread.c */
-/* Copyright Gerhard Rieger 2001-2010 */
+/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this is the source of the extended read function */

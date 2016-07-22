@@ -1,6 +1,6 @@
 #! /bin/sh
 # source: gatherinfo.sh
-# Copyright Gerhard Rieger 2001, 2002
+# Copyright Gerhard Rieger and contributors (see file CHANGES)
 # Published under the GNU General Public License V.2, see file COPYING
 
 #set -vx

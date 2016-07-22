@@ -1,5 +1,5 @@
 /* source: dalan.h */
-/* Copyright Gerhard Rieger 2001 */
+/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __dalan_h_included

@@ -1,5 +1,5 @@
 /* source: xio-process.c */
-/* Copyright Gerhard Rieger */
+/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file handles process related addresses options */

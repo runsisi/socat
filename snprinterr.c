@@ -1,5 +1,5 @@
 /* snprinterr.c */
-/* Copyright Gerhard Rieger */
+/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
 
 /* a function similar to vsnprintf() but it just handles %m */
 

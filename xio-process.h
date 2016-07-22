@@ -1,5 +1,5 @@
 /* source: xio-process.h */
-/* Copyright Gerhard Rieger */
+/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_process_h_included

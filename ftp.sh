@@ -1,6 +1,6 @@
 #! /bin/sh
 # source: ftp.sh
-# Copyright Gerhard Rieger 2001-2006
+# Copyright Gerhard Rieger and contributors (see file CHANGES)
 # Published under the GNU General Public License V.2, see file COPYING
 
 # example how to write a shell script that communicates with stdio on the front

@@ -1,5 +1,5 @@
 /* source: xio-streams.h */
-/* Copyright Gerhard Rieger 2008 */
+/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* when including this file select one part that you need by defining the

@@ -1,5 +1,5 @@
 /* source: xiolockfile.h */
-/* Copyright Gerhard Rieger 2005 */
+/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xiolockfile_h_included

@@ -1,8 +1,8 @@
 /* source: filan_main.c */
-/* Copyright Gerhard Rieger */
+/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
-const char copyright[] = "filan by Gerhard Rieger - see http://www.dest-unreach.org/socat/";
+const char copyright[] = "filan by Gerhard Rieger and contributors - see http://www.dest-unreach.org/socat/";
 
 #include "config.h"
 #include "xioconfig.h"

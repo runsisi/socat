@@ -1,5 +1,5 @@
 /* source: xiodiag.c */
-/* Copyright Gerhard Rieger 2001, 2003 */
+/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains source for some diagnostics */

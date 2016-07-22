@@ -1,6 +1,6 @@
 #! /bin/sh
 # source: daemon.sh
-# Copyright Gerhard Rieger 2001
+# Copyright Gerhard Rieger and contributors (see file CHANGES)
 # Published under the GNU General Public License V.2, see file COPYING
 
 # This script assumes that you create group daemon1 and user daemon1 before.

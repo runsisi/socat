@@ -1,8 +1,8 @@
 /* source: procan_main.c */
-/* Copyright Gerhard Rieger */
+/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
-const char copyright[] = "procan by Gerhard Rieger - send bug reports to socat@dest-unreach.org";
+const char copyright[] = "procan by Gerhard Rieger and contributors - send bug reports to socat@dest-unreach.org";
 
 #include <signal.h>	/* sig_atomic_t for error.h */
 #include <time.h>	/* struct timespec for error.h */

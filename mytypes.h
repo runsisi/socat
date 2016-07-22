@@ -1,5 +1,5 @@
 /* source: mytypes.h */
-/* Copyright Gerhard Rieger */
+/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __mytypes_h_included

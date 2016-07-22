@@ -1,5 +1,5 @@
 /* source: hostan.c */
-/* Copyright Gerhard Rieger */
+/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* the subroutine hostan makes a "HOST ANalysis". It gathers information

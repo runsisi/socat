@@ -6,6 +6,9 @@ testing:
 
 	improved proxy.sh - it now also takes hostnames
 
+legal:
+	Added contributors to copyright notices. Suggested by Matt Braithwaite.
+
 ####################### V 1.7.3.1:
 
 security:

@@ -1,5 +1,5 @@
 /* source: xio-socks.h */
-/* Copyright Gerhard Rieger 2001-2004 */
+/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_socks_h_included

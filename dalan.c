@@ -1,5 +1,5 @@
 /* source: dalan.c */
-/* Copyright Gerhard Rieger */
+/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* idea of a low level data description language. currently only a most

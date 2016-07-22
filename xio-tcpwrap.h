@@ -1,5 +1,5 @@
 /* source: xio-tcpwrap.h */
-/* Copyright Gerhard Rieger 2006 */
+/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_tcpwrap_h_included

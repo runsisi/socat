@@ -1,7 +1,7 @@
 #! /bin/bash
 # source: socks4echo.sh
 
-# Copyright Gerhard Rieger 2004-2006
+# Copyright Gerhard Rieger and contributors (see file CHANGES)
 # Published under the GNU General Public License V.2, see file COPYING
 
 # perform primitive simulation of a socks4 server with echo function via stdio.

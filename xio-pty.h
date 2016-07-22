@@ -1,5 +1,5 @@
 /* source: xio-pty.h */
-/* Copyright Gerhard Rieger 2002-2004 */
+/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_pty_h_included

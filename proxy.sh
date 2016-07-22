@@ -1,6 +1,6 @@
 #! /bin/bash
 # source: proxy.sh
-# Copyright Gerhard Rieger 2003-2004
+# Copyright Gerhard Rieger and contributors (see file CHANGES)
 # Published under the GNU General Public License V.2, see file COPYING
 
 # perform primitive simulation of a proxy server.

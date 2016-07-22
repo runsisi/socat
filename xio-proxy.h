@@ -1,5 +1,5 @@
 /* source: xio-proxy.h */
-/* Copyright Gerhard Rieger 2002-2006 */
+/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_proxy_h_included

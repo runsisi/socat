@@ -1,5 +1,5 @@
 /* source: procan-cdefs.c */
-/* Copyright Gerhard Rieger */
+/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* a function that prints compile time parameters */

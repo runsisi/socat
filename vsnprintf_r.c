@@ -1,5 +1,5 @@
 /* vsnprintf_r.c */
-/* Copyright Gerhard Rieger */
+/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
 
 /* a reduced but async-signal-safe and thread-safe version of vsnprintf */
 

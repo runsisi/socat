@@ -1,5 +1,5 @@
 /* source: socat.c */
-/* Copyright Gerhard Rieger */
+/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this is the main source, including command line option parsing, general
@@ -72,7 +72,7 @@ static const char socatversion[] =
       ;
 static const char timestamp[] = BUILD_DATE;
 
-const char copyright_socat[] = "socat by Gerhard Rieger - see www.dest-unreach.org";
+const char copyright_socat[] = "socat by Gerhard Rieger and contributors - see www.dest-unreach.org";
 #if WITH_OPENSSL
 const char copyright_openssl[] = "This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit. (http://www.openssl.org/)";
 const char copyright_ssleay[] = "This product includes software written by Tim Hudson (tjh@cryptsoft.com)";
