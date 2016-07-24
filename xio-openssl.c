@@ -1123,6 +1123,8 @@ static int openssl_SSL_ERROR_SSL(int level, const char *funcname) {
 	 (
 #if defined(OPENSSL_IS_BORINGSSL)
 	  0  /* BoringSSL's RNG always succeeds. */
+#elif defined(HAVE_RAND_status)
+	  ERR_GET_LIB(e) == ERR_LIB_RAND && RAND_status() != 1
 #else
 	  e == ((ERR_LIB_RAND<<24)|
 #if defined(RAND_F_RAND_BYTES)

@@ -58,6 +58,9 @@ porting:
 	Make Socat compatible with BoringSSL.
 	Thanks to Matt Braithwaite for providing a patch.
 
+	OpenSSL: Use RAND_status to determine PRNG state
+	Thanks to Adam Langley for providing a patch
+
 testing:
 	socks4echo.sh and socks4a-echo.sh hung with new bash with read -n
 

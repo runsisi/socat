@@ -456,6 +456,9 @@
 /* Define if you have the OpenSSL RAND_egd function */
 #undef HAVE_RAND_egd
 
+/* Define if you have the OpenSSL RAND_status function */
+#undef HAVE_RAND_status
+
 /* Define if you have the OpenSSL DH_set0_pqg function */
 #undef HAVE_DH_set0_pqg
 
