@@ -14,6 +14,9 @@ corrections:
 
 	Some minor corrections with includes etc.
 
+	Option so-reuseport did not work. Thanks to Some Raghavendra Prabhu
+	for sending a patch.
+
 porting:
 	Type conflict between int and sig_atomic_t between declaration and
 	definition of diag_immediate_type and diag_immediate_exit broke

@@ -10647,7 +10647,7 @@ TEST="$NAME: test the setsockopt-int option"
 # (generically specified) SO_REUSEADDR socket options did not work
 # process 3 connects to this port; only if it is successful the test is ok
 if ! eval $NUMCOND; then :;
-elif [ -z "SO_REUSEADDR" ]; then
+elif [ -z "$SO_REUSEADDR" ]; then
     # we use the numeric value of SO_REUSEADDR which might be system dependent
     $PRINTF "test $F_n $TEST... ${YELLOW}value of SO_REUSEADDR not known${NORMAL}\n" $N
     numCANT=$((numCANT+1))
@@ -10681,6 +10681,8 @@ if ! echo "$da" |diff - "$tf"; then
     numCANT=$((numCANT+1))
 elif [ $rc3 -ne 0 ]; then
     $PRINTF "$FAILED: $TRACE $SOCAT:\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
     echo "$CMD2 &"
     echo "$CMD3"
     cat "${te}2" "${te}3"
@@ -10688,6 +10690,8 @@ elif [ $rc3 -ne 0 ]; then
     listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "${tf}3"; then
     $PRINTF "$FAILED: $TRACE $SOCAT:\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
     echo "$CMD2 &"
     echo "$CMD3"
     echo "$da" |diff - "${tf}3"
@@ -12228,6 +12232,154 @@ else
     listFAIL="$listFAIL $N"
 fi
 fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
+# test the so-reuseaddr option
+NAME=SO_REUSEADDR
+case "$TESTS" in
+*%$N%*|*%functions%*|*%ip4%*|*%tcp%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: test the so-reuseaddr option"
+# process 0 provides a tcp listening socket with so-reuseaddr;
+# process 1 connects to this port; thus the port is connected but no longer
+# listening
+# process 2 tries to listen on this port with SO_REUSEADDR, will fail if the
+# SO_REUSEADDR socket options did not work
+# process 3 connects to this port; only if it is successful the test is ok
+if ! eval $NUMCOND; then :; else
+tp="$PORT"
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts TCP4-L:$tp,so-reuseaddr PIPE"
+CMD1="$TRACE $SOCAT $opts - TCP:localhost:$tp"
+CMD2="$CMD0"
+CMD3="$CMD1"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+waittcp4port $tp 1
+(echo "$da"; sleep 3) |$CMD1 >"$tf" 2>"${te}1" &	# this should always work
+pid1=$!
+usleep 1000000
+$CMD2 >/dev/null 2>"${te}2" &
+pid2=$!
+waittcp4port $tp 1
+(echo "$da") |$CMD3 >"${tf}3" 2>"${te}3"
+rc3=$?
+kill $pid0 $pid1 $pid2 2>/dev/null; wait
+if ! echo "$da" |diff - "$tf"; then
+    $PRINTF "${YELLOW}phase 1 failed${NORMAL}\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    numCANT=$((numCANT+1))
+elif [ $rc3 -ne 0 ]; then
+    $PRINTF "$FAILED: $TRACE $SOCAT:\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    echo "$CMD2 &"
+    echo "$CMD3"
+    cat "${te}2" "${te}3"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+elif ! echo "$da" |diff - "${tf}3"; then
+    $PRINTF "$FAILED: $TRACE $SOCAT:\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    echo "$CMD2 &"
+    echo "$CMD3"
+    echo "$da" |diff - "${tf}3"
+    numCANT=$((numCANT+1))
+else
+    $PRINTF "$OK\n"
+    if [ -n "$debug" ]; then cat "${te}0" "${te}1" "${te}2" "${te}3"; fi
+    numOK=$((numOK+1))
+fi
+fi # NUMCOND, SO_REUSEADDR
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
+# test the so-reuseport option
+NAME=SO_REUSEPORT
+case "$TESTS" in
+*%$N%*|*%functions%*|*%ip4%*|*%tcp%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: test the so-reuseport option"
+# process 0 provides a tcp listening socket with so-reuseport;
+# process 1 provides an equivalent tcp listening socket with so-reuseport;
+# process 2 connects to this port and transfers data
+# process 3 connects to this port and transfers data
+# test succeeds when both data transfers work
+if ! eval $NUMCOND; then :; else
+tp="$PORT"
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da2="test$N $(date) $RANDOM"
+da3="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts TCP4-L:$tp,so-reuseport PIPE"
+CMD1="$CMD0"
+CMD2="$TRACE $SOCAT $opts - TCP:localhost:$tp"
+CMD3="$CMD2"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+$CMD1 >/dev/null 2>"${te}1" &
+pid1=$!
+waittcp4port $tp 1
+(echo "$da2") |$CMD2 >"${tf}2" 2>"${te}2"	# this should always work
+rc2=$?
+(echo "$da3") |$CMD3 >"${tf}3" 2>"${te}3"
+rc3=$?
+kill $pid0 $pid1 $pid2 2>/dev/null; wait
+if ! echo "$da2" |diff - "${tf}2"; then
+    $PRINTF "${YELLOW}phase 1 failed${NORMAL}\n"
+    echo "$CMD0 &"
+    echo "$CMD1 &"
+    echo "$CMD2"
+    cat "${te}0" "${te}1" "${te}2"
+    numCANT=$((numCANT+1))
+elif [ $rc3 -ne 0 ]; then
+    $PRINTF "$FAILED:\n"
+    echo "$CMD0 &"
+    echo "$CMD1 &"
+    echo "$CMD2"
+    echo "$CMD3"
+    cat "${te}0" "${te}1" "${te}2" "${te}3"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+elif ! echo "$da2" |diff - "${tf}2"; then
+    $PRINTF "$FAILED:\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    echo "$CMD2"
+    echo "$CMD3"
+    cat "${te}0" "${te}1" "${te}2" "${te}3"
+    echo "$da2" |diff - "${tf}2"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+elif ! echo "$da3" |diff - "${tf}3"; then
+    $PRINTF "$FAILED:\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    echo "$CMD2"
+    echo "$CMD3"
+    cat "${te}0" "${te}1" "${te}2" "${te}3"
+    echo "$da3" |diff - "${tf}3"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+else
+    $PRINTF "$OK\n"
+    if [ -n "$debug" ]; then cat "${te}0" "${te}1" "${te}2" "${te}3"; fi
+    numOK=$((numOK+1))
+fi
+fi # NUMCOND, SO_REUSEPORT
  ;;
 esac
 PORT=$((PORT+1))
