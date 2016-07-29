@@ -22,6 +22,11 @@ corrections:
 	Test: EXEC_NOFORK_UNIDIR
 	Thanks to David Reiss for reporting this problem.
 
+	Socat exited with status 0 even when a program invoked with SYSTEM or
+	EXEC failed.
+	Tests: SYSTEM_RC EXEC_RC
+	Issue reported by Felix Winkelmann.
+
 porting:
 	Type conflict between int and sig_atomic_t between declaration and
 	definition of diag_immediate_type and diag_immediate_exit broke

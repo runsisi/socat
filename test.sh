@@ -12205,7 +12205,8 @@ N=$((N+1))
 done
 
 
-# test if option fdout in write only context issues an error
+# Address options fdin and fdout were silently ignored when not applicable
+# due to -u or -U option. Now these combinations are caught as errors.
 NAME=FDOUT_ERROR
 case "$TESTS" in
 *%$N%*|*%functions%*|*%bugs%*|*%socket%*|*%$NAME%*)
@@ -12230,6 +12231,72 @@ else
     echo "command did not terminate with error!"
     numFAIL=$((numFAIL+1))
     listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
+# test if failure exit code of SYSTEM invocation causes socat to also exit
+# with !=0
+NAME=SYSTEM_RC
+case "$TESTS" in
+*%$N%*|*%functions%*|*%system%*|*%$NAME%*)
+TEST="$NAME: promote failure of SYSTEM"
+# run socat with SYSTEM:false and check if socat exits with !=0
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts /dev/null SYSTEM:false"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0"
+rc0=$?
+if [ $rc0 -eq 0 ]; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0"
+    cat "${te}0"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+else
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
+# test if failure exit code of EXEC invocation causes socat to also exit
+# with !=0
+NAME=EXEC_RC
+case "$TESTS" in
+*%$N%*|*%functions%*|*%exec%*|*%$NAME%*)
+TEST="$NAME: promote failure of EXEC"
+# run socat with EXEC:false and check if socat exits with !=0
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts EXEC:false /dev/null"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0"
+rc0=$?
+if [ $rc0 -eq 0 ]; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0"
+    cat "${te}0"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+else
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
 fi
 fi # NUMCOND
  ;;

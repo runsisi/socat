@@ -130,12 +130,22 @@ void childdied(int signum) {
 	 Info2("waitpid(): child %d exited with status %d",
 	       pid, WEXITSTATUS(status));
       } else {
-	 Warn2("waitpid(): child %d exited with status %d",
-	       pid, WEXITSTATUS(status));
+	 if (i == XIO_MAXSOCK) {
+	    Info2("waitpid(): child %d exited with status %d",
+		   pid, WEXITSTATUS(status));
+	 } else {
+	    Error2("waitpid(): child %d exited with status %d",
+		   pid, WEXITSTATUS(status));
+	 }
       }
    } else if (WIFSIGNALED(status)) {
-      Info2("waitpid(): child %d exited on signal %d",
-	    pid, WTERMSIG(status));
+      if (i == XIO_MAXSOCK) {
+	 Info2("waitpid(): child %d exited on signal %d",
+	       pid, WTERMSIG(status));
+      } else {
+	 Error2("waitpid(): child %d exited on signal %d",
+	       pid, WTERMSIG(status));
+      }
    } else if (WIFSTOPPED(status)) {
       Info2("waitpid(): child %d stopped on signal %d",
 	    pid, WSTOPSIG(status));
