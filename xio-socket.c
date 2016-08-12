@@ -1493,6 +1493,7 @@ int _xioopen_dgram_recv(struct single *xfd, int xioflags,
    }
 #endif
 
+   applyopts_single(xfd, opts, PH_PASTBIND);   
    applyopts(xfd->fd, opts, PH_PASTBIND);
 #if WITH_UNIX
    if (pf == AF_UNIX && us != NULL) {

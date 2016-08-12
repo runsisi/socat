@@ -8195,7 +8195,7 @@ NAME=UDP6LISTENBIND
 # this tests for a bug in (up to) 1.5.0.0:
 #    with udp*-listen, the bind option supported only IPv4
 case "$TESTS" in
-*%$N%*|*%functions%*|*%bugs%*|*%ip6%*|*%ipapp%*|*%udp%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%ip6%*|*%ipapp%*|*%udp%*|*%udp6%*|*%$NAME%*)
 TEST="$NAME: UDP6-LISTEN with bind"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
@@ -12522,6 +12522,41 @@ esac
 PORT=$((PORT+1))
 N=$((N+1))
 
+
+# option ipv6-join-group "could not be used"
+# fixed in 1.7.3.2
+NAME=USE_IPV6_JOIN_GROUP
+case "$TESTS" in
+*%$N%*|*%functions%*|*%bugs%*|*%socket%*|*%ip6%*|*%udp%*|*%udp6%*|*%dgram%*|*%$NAME%*)
+TEST="$NAME: is option ipv6-join-group used"
+# Invoke socat with option ipv6-join-group on UDP6 address.
+# Terminate immediately, do not transfer data.
+# If socat exits with 0 the test succeeds.
+# Up to 1.7.3.1 it failed with "1 option(s) could not be used"
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts UDP6-RECV:$PORT,ipv6-join-group=[ff02::2]:$INTERFACE /dev/null"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0"
+rc0=$?
+if [ $rc0 -eq 0 ]; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0"
+    cat "${te}0"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
 
 ##################################################################################
 #=================================================================================

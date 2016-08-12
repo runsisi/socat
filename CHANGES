@@ -31,6 +31,10 @@ corrections:
 	Nevertheless fixed Socat source.
 	Issue reported by Hanno Böck.
 
+	Socat did not use option ipv6-join-group.
+	Test: USE_IPV6_JOIN_GROUP
+	Thanks to Linux Lüssing for sending a patch.
+
 porting:
 	Type conflict between int and sig_atomic_t between declaration and
 	definition of diag_immediate_type and diag_immediate_exit broke
