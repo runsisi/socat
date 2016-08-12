@@ -88,6 +88,10 @@ testing:
 
 	A few corrections in test.sh
 
+docu:
+	Corrected source of socat man page to correctly show man references
+	like socket(2); removed obseolete entries from See Also
+
 legal:
 	Added contributors to copyright notices. Suggested by Matt Braithwaite.
 

@@ -698,7 +698,7 @@ label(ADDRESS_SCTP6_LISTEN)dit(bf(tt(SCTP6-LISTEN:<port>)))
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(LISTEN)(GROUP_LISTEN),link(CHILD)(GROUP_CHILD),link(RANGE)(GROUP_RANGE),link(IP6)(GROUP_IP6),link(SCTP)(GROUP_SCTP),link(RETRY)(GROUP_RETRY) nl()
 label(ADDRESS_SOCKET_CONNECT)dit(bf(tt(SOCKET-CONNECT:<domain>:<protocol>:<remote-address>)))
    Creates a stream socket using the first and second given socket parameters
-   and tt(SOCK_STREAM) (see man socket\(2)) and connects to the remote-address.
+   and tt(SOCK_STREAM) (see man NOEXPAND(socket(2))) and connects to the remote-address.
    The two socket parameters have to be specified by link(int)(TYPE_INT)
    numbers. Consult your OS documentation and include files to find the
    appropriate values. The remote-address must be the link(data)(TYPE_DATA)
@@ -722,7 +722,7 @@ label(ADDRESS_SOCKET_CONNECT)dit(bf(tt(SOCKET-CONNECT:<domain>:<protocol>:<remot
    link(SOCKET-SENDTO)(ADDRESS_SOCKET_SENDTO)
 label(ADDRESS_SOCKET_DATAGRAM)dit(bf(tt(SOCKET-DATAGRAM:<domain>:<type>:<protocol>:<remote-address>)))
    Creates a datagram socket using the first three given socket parameters (see
-   man socket\(2)) and sends outgoing data to the remote-address. The three
+   man NOEXPAND(socket(2))) and sends outgoing data to the remote-address. The three
    socket parameters have to be specified by link(int)(TYPE_INT)
    numbers. Consult your OS documentation and include files to find the
    appropriate values. The remote-address must be the link(data)(TYPE_DATA)
@@ -747,7 +747,7 @@ label(ADDRESS_SOCKET_DATAGRAM)dit(bf(tt(SOCKET-DATAGRAM:<domain>:<type>:<protoco
    link(SOCKET-RECVFROM)(ADDRESS_SOCKET_RECVFROM)
 label(ADDRESS_SOCKET_LISTEN)dit(bf(tt(SOCKET-LISTEN:<domain>:<protocol>:<local-address>)))
    Creates a stream socket using the first and second given socket parameters
-   and tt(SOCK_STREAM) (see man socket\(2)) and waits for incoming connections
+   and tt(SOCK_STREAM) (see man NOEXPAND(socket(2))) and waits for incoming connections
    on local-address. The two socket parameters have to be specified by
    link(int)(TYPE_INT) numbers. Consult your OS documentation and include files
    to find the appropriate values. The local-address must be the
@@ -770,7 +770,7 @@ label(ADDRESS_SOCKET_LISTEN)dit(bf(tt(SOCKET-LISTEN:<domain>:<protocol>:<local-a
    link(SOCKET-SENDTO)(ADDRESS_SOCKET_RECVFROM),
    link(SOCKET-SENDTO)(ADDRESS_SOCKET_RECV)
 label(ADDRESS_SOCKET_RECV)dit(bf(tt(SOCKET-RECV:<domain>:<type>:<protocol>:<local-address>)))
-   Creates a socket using the three given socket parameters (see man socket\(2))
+   Creates a socket using the three given socket parameters (see man NOEXPAND(socket(2)))
    and binds it to <local-address>. Receives arriving data. The three
    parameters have to be specified by link(int)(TYPE_INT) numbers. Consult your
    OS documentation and include files to find the appropriate values. The
@@ -791,7 +791,7 @@ label(ADDRESS_SOCKET_RECV)dit(bf(tt(SOCKET-RECV:<domain>:<type>:<protocol>:<loca
    link(SOCKET-SENDTO)(ADDRESS_SOCKET_SENDTO),
    link(SOCKET-RECVFROM)(ADDRESS_SOCKET_RECVFROM)
 label(ADDRESS_SOCKET_RECVFROM)dit(bf(tt(SOCKET-RECVFROM:<domain>:<type>:<protocol>:<local-address>)))
-   Creates a socket using the three given socket parameters (see man socket\(2))
+   Creates a socket using the three given socket parameters (see man NOEXPAND(socket(2)))
    and binds it to <local-address>. Receives arriving data and sends replies
    back to the sender. The first three parameters have to be specified as
    link(int)(TYPE_INT) numbers. Consult your OS documentation and include files
@@ -815,7 +815,7 @@ label(ADDRESS_SOCKET_RECVFROM)dit(bf(tt(SOCKET-RECVFROM:<domain>:<type>:<protoco
    link(SOCKET-RECV)(ADDRESS_SOCKET_RECV)
 label(ADDRESS_SOCKET_SENDTO)dit(bf(tt(SOCKET-SENDTO:<domain>:<type>:<protocol>:<remote-address>)))
    Creates a socket using the three given socket parameters (see man
-   socket\(2)). Sends outgoing data to the given address and receives replies.
+   NOEXPAND(socket(2))). Sends outgoing data to the given address and receives replies.
    The three parameters have to be specified as link(int)(TYPE_INT)
    numbers. Consult your OS documentation and include files to find the
    appropriate values. The remote-address must be the link(data)(TYPE_DATA)
@@ -1503,10 +1503,10 @@ label(OPTION_SHUT_NONE)dit(bf(tt(shut-none)))
    connection to not do anything.
 label(OPTION_SHUT_DOWN)dit(bf(tt(shut-down)))
    Changes the (address dependent) method of shutting down the write part of a
-   connection to tt(shutdown\(fd, SHUT_WR)). Is only useful with sockets.
+   connection to tt(NOEXPAND(shutdown(fd, SHUT_WR))). Is only useful with sockets.
 label(OPTION_SHUT_CLOSE)dit(bf(tt(shut-close)))
    Changes the (address dependent) method of shutting down the write part of a
-   connection to tt(close\(fd)).
+   connection to tt(NOEXPAND(close(fd))).
 label(OPTION_SHUT_NULL)dit(bf(tt(shut-null)))
    When one address indicates EOF, socat() will send a zero sized packet to the
    write channel of the other address to transfer the EOF condition. This is
@@ -1754,7 +1754,7 @@ label(OPTION_NOECHO)dit(bf(tt(noecho=<pattern>)))
    The prompt is defined as the text that was output to the readline address 
    after the lastest newline character and before an input character was
    typed. The pattern is a regular expression, e.g.
-   "^[Pp]assword:.*$" or "([Uu]ser:|[Pp]assword:)". See regex\(7) for details.
+   "^[Pp]assword:.*$" or "([Uu]ser:|[Pp]assword:)". See NOEXPAND(regex(7)) for details.
    (link(example)(EXAMPLE_OPTION_NOECHO))
 label(OPTION_PROMPT)dit(bf(tt(prompt=<string>)))
    Passes the string as prompt to the readline function. readline prints this
@@ -1935,7 +1935,7 @@ label(OPTION_SETSOCKOPT_INT)dit(bf(tt(setsockopt-int=<level>:<optname>:<optval>)
    set. For the actual numbers you might have to look up the appropriate include
    files of your system. The 4th tt(setsockopt()) parameter, tt(value)
    [link(int)(TYPE_INT)], is passed to the function per pointer, and for the
-   length parameter sizeof\(int) is taken implicitely.
+   length parameter NOEXPAND(sizeof(int)) is taken implicitely.
 label(OPTION_SETSOCKOPT_BIN)dit(bf(tt(setsockopt-bin=<level>:<optname>:<optval>)))
    Like tt(setsockopt-int), but <optval> must be provided in
    link(dalan)(TYPE_DATA) format and specifies an arbitrary sequence of bytes;
@@ -2057,7 +2057,7 @@ label(OPTION_RES_DEFNAMES)dit(bf(tt(res-defnames)))
 label(OPTION_RES_STAYOPEN)dit(bf(tt(res-stayopen)))
 label(OPTION_RES_DNSRCH)dit(bf(tt(res-dnsrch)))
    These options set the corresponding resolver (name resolution) option flags.
-   Append "=0" to clear a default option. See man resolver\(5) for more
+   Append "=0" to clear a default option. See man NOEXPAND(resolver(5)) for more
    information on these options. Note: these options are valid only for the
    address they are applied to.
    
@@ -2164,7 +2164,7 @@ label(OPTION_TCP_CONN_ABORT_THRESHOLD)dit(bf(tt(conn-abort-threshold=<millisecon
    Sets the time to wait for an answer of the server during the initial connect
    (HP-UX).
 label(OPTION_TCP_KEEPINIT)dit(bf(tt(keepinit)))
-   Sets the time to wait for an answer of the server during connect\() before
+   Sets the time to wait for an answer of the server during NOEXPAND(connect()) before
    giving up. Value in half seconds, default is 150 (75s) (Tru64).
 label(OPTION_TCP_PAWS)dit(bf(tt(paws)))
    Enables the "protect against wrapped sequence numbers" feature (Tru64).
@@ -2353,8 +2353,8 @@ child process uses file descriptors 0 and 1 for communicating with the main
 socat process.
 startdit()
 label(OPTION_NOFORK)dit(bf(tt(nofork)))
-   Does not fork a subprocess for executing the program, instead calls execvp\()
-   or system\() directly from the actual socat instance. This avoids the
+   Does not fork a subprocess for executing the program, instead calls NOEXPAND(execvp())
+   or NOEXPAND(system()) directly from the actual socat instance. This avoids the
    overhead of another process between the program and its peer,
    but introduces a lot of restrictions:
    startit()
@@ -2683,7 +2683,7 @@ label(OPTION_OPENSSL_PSEUDO)dit(bf(tt(pseudo)))
    gathering daemon can be utilized, this option activates a mechanism for
    providing pseudo entropy. This is archieved by taking the current time in
    microseconds for feeding the libc pseudo random number generator with an
-   initial value. openssl is then feeded with output from random\() calls.nl()
+   initial value. openssl is then feeded with output from NOEXPAND(random()) calls.nl()
    NOTE:This mechanism is not sufficient for generation of secure keys!
 label(OPTION_OPENSSL_COMPRESS)dit(bf(tt(compress)))
    Enable or disable the use of compression for a connection. Setting this to
@@ -3246,8 +3246,8 @@ dit(bf(tt(socat -U TCP:target:9999,end-close TCP-L:8888,reuseaddr,fork)))
 merges data arriving from different TCP streams on port 8888 to just one stream
 to target:9999. The link(end-close)(OPTION_END_CLOSE) option prevents the child
 processes forked off by the second address from terminating the shared
-connection to 9999 (close\(2) just unlinks the inode which stays active as long
-as the parent process lives; shutdown\(2) would actively terminate the
+connection to 9999 (NOEXPAND(close(2)) just unlinks the inode which stays active as long
+as the parent process lives; NOEXPAND(shutdown(2)) would actively terminate the
 connection).
 
 
@@ -3270,7 +3270,7 @@ tt(SO_BROADCAST).
 label(EXAMPLE_ADDRESS_IP4_BROADCAST_CLIENT)
 dit(bf(tt(socat - IP4-DATAGRAM:255.255.255.255:44,broadcast,range=10.0.0.0/8)))
 
-sends a broadcast to the local network\(s) using protocol 44. Accepts replies
+sends a broadcast to the local NOEXPAND(network(s)) using protocol 44. Accepts replies
 from the private address range only.
 
 
@@ -3395,7 +3395,7 @@ result (with differing IP version) is taken. With value 0, socat always selects
 the first record and its IP version. 
 
 dit(bf(SOCAT_FORK_WAIT) (input)) Specifies the time (seconds) to sleep the
-parent and child processes after successful fork\(). Useful for debugging.
+parent and child processes after successful NOEXPAND(fork()). Useful for debugging.
 
 dit(bf(SOCAT_VERSION) (output)) Socat sets this variable to its version string,
 e.g. tt("1.7.0.0") for released versions or e.g. tt("1.6.0.1+envvar") for
@@ -3553,9 +3553,9 @@ Send bug reports to <socat@dest-unreach.org>
 label(SEEALSO)
 manpageseealso()
 
-COMMENT(procan\(1), filan\(1), )
-nc\(1), netcat6\(1), sock\(1), rinetd\(8), cage\(1), socks.conf\(5), openssl\(1),
-stunnel\(8), pty\(1), rlwrap\(1), setsid\(1)
+COMMENT(NOEXPAND(procan(1)), NOEXPAND(filan(1)), )
+NOEXPAND(nc(1)), NOEXPAND(rinetd(8)), NOEXPAND(openssl(1)),
+NOEXPAND(stunnel(8)), NOEXPAND(rlwrap(1)), NOEXPAND(setsid(1))
 
 Socat() home page lurl(http://www.dest-unreach.org/socat/)
 
