@@ -878,7 +878,11 @@ int
    }
 
    if (opt_egd) {
+#if !defined(OPENSSL_NO_EGD) && HAVE_RAND_egd
       sycRAND_egd(opt_egd);
+#else
+      Debug("RAND_egd() is not available by OpenSSL");
+#endif
    }
 
    if (opt_pseudo) {
@@ -936,35 +940,48 @@ int
 	 0x02,
       };
       DH *dh;
+      BIGNUM *p = NULL, *g = NULL;
       unsigned long err;
 
-      if ((dh = DH_new()) == NULL) {
-	 while (err = ERR_get_error()) {
-	    Warn1("DH_new(): %s",
-		   ERR_error_string(err, NULL));
-	 }
-	 Error("DH_new() failed");
-      } else {
-	 dh->p = BN_bin2bn(dh2048_p, sizeof(dh2048_p), NULL);
-	 dh->g = BN_bin2bn(dh2048_g, sizeof(dh2048_g), NULL);
-	 if ((dh->p == NULL) || (dh->g == NULL)) {
-	    while (err = ERR_get_error()) {
-	       Warn1("BN_bin2bn(): %s",
-		     ERR_error_string(err, NULL));
-	    }
-	    Error("BN_bin2bn() failed");
-	 } else {
-	    if (sycSSL_CTX_set_tmp_dh(*ctx, dh) <= 0) {
-	       while (err = ERR_get_error()) {
-		  Warn3("SSL_CTX_set_tmp_dh(%p, %p): %s", *ctx, dh,
-			ERR_error_string(err, NULL));
-	       }
-	       Error2("SSL_CTX_set_tmp_dh(%p, %p) failed", *ctx, dh);
-	    }
-	    /*! OPENSSL_free(dh->p,g)? doc does not tell so */
-	 }
-	 DH_free(dh);
+      dh = DH_new();
+      p = BN_bin2bn(dh2048_p, sizeof(dh2048_p), NULL);
+      g = BN_bin2bn(dh2048_g, sizeof(dh2048_g), NULL);
+      if (!dh || !p || !g) {
+         if (dh)
+            DH_free(dh);
+         if (p)
+            BN_free(p);
+         if (g)
+            BN_free(g);
+         while (err = ERR_get_error()) {
+            Warn1("dh2048 setup(): %s",
+                  ERR_error_string(err, NULL));
+         }
+         Error("dh2048 setup failed");
+         goto cont_out;
       }
+#if HAVE_DH_set0_pqg
+      if (!DH_set0_pqg(dh, p, NULL, g)) {
+	      DH_free(dh);
+	      BN_free(p);
+	      BN_free(g);
+	      goto cont_out;
+      }
+#else
+      dh->p = p;
+      dh->g = g;
+#endif /* HAVE_DH_set0_pqg */
+      if (sycSSL_CTX_set_tmp_dh(*ctx, dh) <= 0) {
+         while (err = ERR_get_error()) {
+            Warn3("SSL_CTX_set_tmp_dh(%p, %p): %s", *ctx, dh,
+                  ERR_error_string(err, NULL));
+         }
+         Error2("SSL_CTX_set_tmp_dh(%p, %p) failed", *ctx, dh);
+      }
+      /* p & g are freed by DH_free() once attached */
+      DH_free(dh);
+cont_out:
+      ;
    }
 
 #if defined(EC_KEY)	/* not on Openindiana 5.11 */
@@ -1103,7 +1120,11 @@ static int openssl_SSL_ERROR_SSL(int level, const char *funcname) {
    while (e = ERR_get_error()) {
       Debug1("ERR_get_error(): %lx", e);
       if (e == ((ERR_LIB_RAND<<24)|
+#if defined(RAND_F_RAND_BYTES)
+		(RAND_F_RAND_BYTES<<12)|
+#else
 		(RAND_F_SSLEAY_RAND_BYTES<<12)|
+#endif
 		(RAND_R_PRNG_NOT_SEEDED)) /*0x24064064*/) {
 	 Error("too few entropy; use options \"egd\" or \"pseudo\"");
 	 stat = STAT_NORETRY;
@@ -1236,13 +1257,17 @@ static int openssl_setenv_cert_fields(const char *field, X509_NAME *name) {
       X509_NAME_ENTRY *entry;
       ASN1_OBJECT *obj;
       ASN1_STRING *data;
-      unsigned char *text;
+      const unsigned char *text;
       int nid;
       entry = X509_NAME_get_entry(name, i);
       obj  = X509_NAME_ENTRY_get_object(entry);
       data = X509_NAME_ENTRY_get_data(entry);
       nid  = OBJ_obj2nid(obj);
+#if HAVE_ASN1_STRING_get0_data
+      text = ASN1_STRING_get0_data(data);
+#else
       text = ASN1_STRING_data(data);
+#endif
       Debug3("SSL peer cert %s entry: %s=\"%s\"", (field[0]?field:"subject"), OBJ_nid2ln(nid), text);
       if (field != NULL && field[0] != '\0') {
          xiosetenv3("OPENSSL_X509", field, OBJ_nid2ln(nid), (const char *)text, 2, " // ");
@@ -1306,7 +1331,7 @@ static bool openssl_check_peername(X509_NAME *name, const char *peername) {
    int ind = -1;
    X509_NAME_ENTRY *entry;
    ASN1_STRING *data;
-   unsigned char *text;
+   const unsigned char *text;
    ind = X509_NAME_get_index_by_NID(name, NID_commonName, -1);
    if (ind < 0) {
       Info("no COMMONNAME field in peer certificate");	
@@ -1314,7 +1339,11 @@ static bool openssl_check_peername(X509_NAME *name, const char *peername) {
    }
    entry = X509_NAME_get_entry(name, ind);
    data = X509_NAME_ENTRY_get_data(entry);
+#if HAVE_ASN1_STRING_get0_data
+   text = ASN1_STRING_get0_data(data);
+#else
    text = ASN1_STRING_data(data);
+#endif
    return openssl_check_name((const char *)text, peername);
 }
 

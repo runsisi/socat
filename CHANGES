@@ -1,3 +1,8 @@
+porting:
+	Changes to make socat compile with OpenSSL 1.1. 
+	Thanks to Sebastian Andrzej Siewior e.a. from the Debian team for
+	providing the base patch.
+	Debian Bug#828550
 
 ####################### V 1.7.3.1:
 
