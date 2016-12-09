@@ -8,6 +8,12 @@ corrections:
 	Include <stddef.h> for ptrdiff_t
 	Thanks to Jeroen Roovers for reporting this issue.
 
+porting:
+	Type conflict between int and sig_atomic_t between declaration and
+	definition of diag_immediate_type and diag_immediate_exit broke
+	compilation on FreeBSD 10.1 with clang. Thanks to Emanuel Haupt for
+	reporting this bug.
+
 testing:
 	socks4echo.sh and socks4a-echo.sh hung with new bash with read -n
 
