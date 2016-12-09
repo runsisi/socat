@@ -14,10 +14,12 @@
 val_t=0.1
 NUMCOND=true
 #NUMCOND="test \$N -gt 70"
+VERBOSE=
 while [ "$1" ]; do
     case "X$1" in
 	X-t?*) val_t="${1#-t}" ;;
 	X-t)   shift; val_t="$1" ;;
+	X-v)   VERBOSE=1 ;; 	# show commands
 	X-n?*) NUMCOND="test \$N -eq ${1#-n}" ;;
 	X-n)   shift; NUMCOND="test \$N -eq $1" ;;
 	X-N?*) NUMCOND="test \$N -gt ${1#-N}" ;;
@@ -1610,20 +1612,21 @@ testecho () {
 #    kill $rc2 2>/dev/null
     if [ "$(cat "$td/test$N.rc")" != 0 ]; then
 	$PRINTF "$FAILED: $TRACE $SOCAT:\n"
-	echo "$TRACE $SOCAT $opts $arg1 $arg2"
-	cat "$te"
+	echo "$TRACE $SOCAT $opts $arg1 $arg2" >&2
+	cat "$te" >&2
 	numFAIL=$((numFAIL+1))
 	listFAIL="$listFAIL $N"
     elif echo "$da" |diff - "$tf" >"$tdiff" 2>&1; then
 	$PRINTF "$OK\n"
-	if [ -n "$debug" ]; then cat $te; fi
+	if [ "$verbose" ]; then echo "$SOCAT $opts $arg1 $arg2" >&2; fi
+	if [ -n "$debug" ]; then cat $te >&2; fi
 	numOK=$((numOK+1))
     else
 	$PRINTF "$FAILED:\n"
-	echo "$TRACE $SOCAT $opts $arg1 $arg2"
-	cat "$te"
-	echo diff:
-	cat "$tdiff"
+	echo "$TRACE $SOCAT $opts $arg1 $arg2" >&2
+	cat "$te" >&2
+	echo diff: >&2
+	cat "$tdiff" >&2
 	numFAIL=$((numFAIL+1))
 	listFAIL="$listFAIL $N"
     fi
@@ -12176,6 +12179,10 @@ kill $pid0 2>/dev/null; wait
 if echo "$da" |diff - "${tf}1"; then
     $PRINTF "$OK\n"
     numOK=$((numOK+1))
+    if [ "$VERBOSE" ]; then
+	echo "  $CMD0"
+	echo "  echo \"$da\" |$CMD1"
+    fi
 else
     $PRINTF "$FAILED\n"
     echo "$CMD0 &"
@@ -12194,7 +12201,7 @@ N=$((N+1))
 done
 
 
-# give a description of what is tested (a bugfix, a new feature...)
+# test if option fdout in write only context issues an error
 NAME=FDOUT_ERROR
 case "$TESTS" in
 *%$N%*|*%functions%*|*%bugs%*|*%socket%*|*%$NAME%*)
