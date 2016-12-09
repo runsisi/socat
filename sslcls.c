@@ -143,6 +143,7 @@ const SSL_METHOD *sycTLSv1_2_server_method(void) {
 }
 #endif
 
+#if HAVE_DTLSv1_client_method
 const SSL_METHOD *sycDTLSv1_client_method(void) {
    const SSL_METHOD *result;
    Debug("DTLSv1_client_method()");
@@ -150,7 +151,9 @@ const SSL_METHOD *sycDTLSv1_client_method(void) {
    Debug1("DTLSv1_client_method() -> %p", result);
    return result;
 }
+#endif
 
+#if HAVE_DTLSv1_server_method
 const SSL_METHOD *sycDTLSv1_server_method(void) {
    const SSL_METHOD *result;
    Debug("DTLSv1_server_method()");
@@ -158,6 +161,7 @@ const SSL_METHOD *sycDTLSv1_server_method(void) {
    Debug1("DTLSv1_server_method() -> %p", result);
    return result;
 }
+#endif
 
 SSL_CTX *sycSSL_CTX_new(const SSL_METHOD *method) {
    SSL_CTX *result;

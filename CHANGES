@@ -18,6 +18,10 @@ porting:
 	compilation on FreeBSD 10.1 with clang. Thanks to Emanuel Haupt for
 	reporting this bug.
 
+	Socat failed to compile on platforms with OpenSSL without
+	DTLSv1_client_method or DTLSv1_server_method.
+	Thanks to Simon Matter for sending a patch.
+
 testing:
 	socks4echo.sh and socks4a-echo.sh hung with new bash with read -n
 
