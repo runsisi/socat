@@ -12,7 +12,9 @@ struct flock;
 struct addrinfo;
 
 mode_t Umask(mode_t mask);
+#endif /* WITH_SYCLS */
 int Open(const char *pathname, int flags, mode_t mode);
+#if WITH_SYCLS
 int Creat(const char *pathname, mode_t mode);
 off_t Lseek(int fildes, off_t offset, int whence);
 #if HAVE_LSEEK64
@@ -54,18 +56,22 @@ int Lstat64(const char *file_name, struct stat64 *buf);
 int Dup(int oldfd);
 int Dup2(int oldfd, int newfd);
 int Pipe(int filedes[2]);
+#endif /* WITH_SYCLS */
 ssize_t Read(int fd, void *buf, size_t count);
 ssize_t Write(int fd, const void *buf, size_t count);
 int Fcntl(int fd, int cmd);
 int Fcntl_l(int fd, int cmd, long arg);
 int Fcntl_lock(int fd, int cmd, struct flock *l);
+#if WITH_SYCLS
 int Ftruncate(int fd, off_t length);
 #if HAVE_FTRUNCATE64
 int Ftruncate64(int fd, off64_t length);
 #endif /* HAVE_FTRUNCATE64 */
+#endif /* WITH_SYCLS */
 int Flock(int fd, int operation);
 int Ioctl(int d, int request, void *argp);
 int Ioctl_int(int d, int request, int arg);
+#if WITH_SYCLS
 int Close(int fd);
 int Fchown(int fd, uid_t owner, gid_t group);
 int Fchmod(int fd, mode_t mode);
@@ -74,11 +80,15 @@ int Symlink(const char *oldpath, const char *newpath);
 int Readlink(const char *path, char *buf, size_t bufsiz);
 int Chown(const char *path, uid_t owner, gid_t group);
 int Chmod(const char *path, mode_t mode);
+#endif /* WITH_SYCLS */
 int Poll(struct pollfd *ufds, unsigned int nfds, int timeout);
 int Select(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
 	   struct timeval *timeout);
+#if WITH_SYCLS
 pid_t Fork(void);
+#endif /* WITH_SYCLS */
 pid_t Waitpid(pid_t pid, int *status, int options);
+#if WITH_SYCLS
 #ifndef HAVE_TYPE_SIGHANDLER
 typedef RETSIGTYPE (*sighandler_t)(int);
 #endif
@@ -90,18 +100,27 @@ unsigned int Alarm(unsigned int seconds);
 int Kill(pid_t pid, int sig);
 int Link(const char *oldpath, const char *newpath);
 int Execvp(const char *file, char *const argv[]);
+#endif /* WITH_SYCLS */
 int System(const char *string);
+#if WITH_SYCLS
 int Socketpair(int d, int type, int protocol, int sv[2]);
+#endif /* WITH_SYCLS */
 #if _WITH_SOCKET
+#if WITH_SYCLS
 int Socket(int domain, int type, int protocol);
 int Bind(int sockfd, struct sockaddr *my_addr, socklen_t addrlen);
+#endif /* WITH_SYCLS */
 int Connect(int sockfd, const struct sockaddr *serv_addr, socklen_t addrlen);
+#if WITH_SYCLS
 int Listen(int s, int backlog);
+#endif /* WITH_SYCLS */
 int Accept(int s, struct sockaddr *addr, socklen_t *addrlen);
+#if WITH_SYCLS
 int Getsockname(int s, struct sockaddr *name, socklen_t *namelen);
 int Getpeername(int s, struct sockaddr *name, socklen_t *namelen);
 int Getsockopt(int s, int level, int optname, void *optval, socklen_t *optlen);
 int Setsockopt(int s, int level, int optname, const void *optval, int optlen);
+#endif /* WITH_SYCLS */
 int Recv(int s, void *buf, size_t len, int flags);
 int Recvfrom(int s, void *buf, size_t len, int flags, struct sockaddr *from,
 	     socklen_t *fromlen);
@@ -109,8 +128,11 @@ int Recvmsg(int s, struct msghdr *msg, int flags);
 int Send(int s, const void *mesg, size_t len, int flags);
 int Sendto(int s, const void *msg, size_t len, int flags,
 	   const struct sockaddr *to, socklen_t tolen);
+#if WITH_SYCLS
 int Shutdown(int fd, int how);
+#endif /* WITH_SYCLS */
 #endif /* _WITH_SOCKET */
+#if WITH_SYCLS
 unsigned int Sleep(unsigned int seconds);
 void Usleep(unsigned long usec);
 unsigned int Nanosleep(const struct timespec *req, struct timespec *rem);
@@ -136,7 +158,9 @@ int Unlockpt(int fd);
 int Gethostname(char *name, size_t len);
 int Uname(struct utsname *buf);
 int Atexit(void (*func)(void));
+#endif /* WITH_SYCLS */
 void Exit(int status);
+#if WITH_SYCLS
 void Abort(void);
 int Mkstemp(char *template);
 int Setenv(const char *name, const char *value, int overwrite);
@@ -153,7 +177,6 @@ void Add_history(const char *string);
 #else /* !WITH_SYCLS */
 
 #define Umask(m) umask(m)
-#define Open(p,f,m) open(p,f,m)
 #define Creat(p,m) creat(p,m)
 #define Lseek(f,o,w) lseek(f,o,w)
 #define Lseek64(f,o,w) lseek64(f,o,w)
@@ -191,16 +214,8 @@ void Add_history(const char *string);
 #define Dup(o) dup(o)
 #define Dup2(o,n) dup2(o,n)
 #define Pipe(f) pipe(f)
-#define Read(f,b,c) read(f,b,c)
-#define Write(f,b,c) write(f,b,c)
-#define Fcntl(f,c) fcntl(f,c)
-#define Fcntl_l(f,c,a) fcntl(f,c,a)
-#define Fcntl_lock(f,c,l) fcntl(f,c,l)
 #define Ftruncate(f,l) ftruncate(f,l)
 #define Ftruncate64(f,l) ftruncate64(f,l)
-#define Flock(f,o) flock(f,o)
-#define Ioctl(d,r,a) ioctl(d,r,a)
-#define Ioctl_int(d,r,a) ioctl(d,r,a)
 #define Close(f) close(f)
 #define Fchown(f,o,g) fchown(f,o,g)
 #define Fchmod(f,m) fchmod(f,m)
@@ -209,10 +224,7 @@ void Add_history(const char *string);
 #define Readlink(p,b,s) readlink(p,b,s)
 #define Chown(p,o,g) chown(p,o,g)
 #define Chmod(p,m) chmod(p,m)
-#define Poll(u, n, t) poll(u, n, t)
-#define Select(n,r,w,e,t) select(n,r,w,e,t)
 #define Fork() fork()
-#define Waitpid(p,s,o) waitpid(p,s,o)
 #define Signal(s,h) signal(s,h)
 #define Sigaction(s,a,o) sigaction(s,a,o)
 #define Sigprocmask(h,s,o) sigprocmask(h,s,o)
@@ -220,22 +232,14 @@ void Add_history(const char *string);
 #define Kill(p,s) kill(p,s)
 #define Link(o,n) link(o,n)
 #define Execvp(f,a) execvp(f,a)
-#define System(s) system(s)
 #define Socketpair(d,t,p,s) socketpair(d,t,p,s)
 #define Socket(d,t,p) socket(d,t,p)
 #define Bind(s,m,a) bind(s,m,a)
-#define Connect(s,a,l) connect(s,a,l)
 #define Listen(s,b) listen(s,b)
-#define Accept(s,a,l) accept(s,a,l)
 #define Getsockname(s,n,l) getsockname(s,n,l)
 #define Getpeername(s,n,l) getpeername(s,n,l)
 #define Getsockopt(s,d,n,v,l) getsockopt(s,d,n,v,l)
 #define Setsockopt(s,d,n,v,l) setsockopt(s,d,n,v,l)
-#define Recv(s,b,l,f) recv(s,b,l,f)
-#define Recvfrom(s,b,bl,f,fr,fl) recvfrom(s,b,bl,f,fr,fl)
-#define Recvmsg(s,m,f) recvmsg(s,m,f)
-#define Send(s,m,l,f) send(s,m,l,f)
-#define Sendto(s,b,bl,f,t,tl) sendto(s,b,bl,f,t,tl)
 #define Shutdown(f,h) shutdown(f,h)
 #define Sleep(s) sleep(s)
 #define Usleep(u) usleep(u)
@@ -259,7 +263,6 @@ void Add_history(const char *string);
 #define Gethostname(n,l) gethostname(n,l)
 #define Uname(b) uname(b)
 #define Atexit(f) atexit(f)
-#define Exit(s) exit(s)
 #define Abort() abort()
 #define Mkstemp(t) mkstemp(t)
 #define Setenv(n,v,o) setenv(n,v,o)

@@ -10,6 +10,8 @@ corrections:
 
 	Building with --disable-sycls failed due to missing sslcls.h defines
 
+	Socat hung when configured with --disable-sycls.
+
 porting:
 	Type conflict between int and sig_atomic_t between declaration and
 	definition of diag_immediate_type and diag_immediate_exit broke

@@ -54,7 +54,7 @@ XIOSRCS = xioinitialize.c xiohelp.c xioparam.c xiodiag.c xioopen.c xioopts.c \
 	xio-pty.c xio-openssl.c xio-streams.c\
 	xio-ascii.c xiolockfile.c xio-tcpwrap.c xio-ext2.c xio-tun.c
 XIOOBJS = $(XIOSRCS:.c=.o)
-UTLSRCS = error.c dalan.c procan.c procan-cdefs.c hostan.c fdname.c sysutils.c utils.c nestlex.c vsnprintf_r.c snprinterr.c @FILAN@ @SYCLS@ @SSLCLS@
+UTLSRCS = error.c dalan.c procan.c procan-cdefs.c hostan.c fdname.c sysutils.c utils.c nestlex.c vsnprintf_r.c snprinterr.c @FILAN@ sycls.c @SSLCLS@
 UTLOBJS = $(UTLSRCS:.c=.o)
 CFILES = $(XIOSRCS) $(UTLSRCS) socat.c procan_main.c filan_main.c
 OFILES = $(CFILES:.c=.o)
