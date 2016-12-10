@@ -17,7 +17,6 @@
 
 #include "hostan.h"
 
-#include "error.h"
 
 static int iffan(FILE *outfile);
 

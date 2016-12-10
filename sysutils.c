@@ -711,7 +711,7 @@ int xiosetenv(const char *varname, const char *value, int overwrite, const char 
    l += 1;
    strncat(envname+l, varname, XIO_ENVNAMELEN-l-1);
    return _xiosetenv(envname, value, overwrite, sep);
-#  undef ENVNAMELEN
+#  undef XIO_ENVNAMELEN
 }
 
 int xiosetenv2(const char *varname, const char *varname2, const char *value,

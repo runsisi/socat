@@ -12,6 +12,8 @@ corrections:
 
 	Socat hung when configured with --disable-sycls.
 
+	Some minor corrections with includes etc.
+
 porting:
 	Type conflict between int and sig_atomic_t between declaration and
 	definition of diag_immediate_type and diag_immediate_exit broke

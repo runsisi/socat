@@ -14,8 +14,8 @@
 #include "snprinterr.h"
 
 #include "error.h"
-#include "sysincludes.h"
 #include "sycls.h"
+
 
 /* translate MSG level to SYSLOG level */
 int syslevel[] = {
