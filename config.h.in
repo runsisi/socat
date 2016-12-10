@@ -450,6 +450,9 @@
 #undef HAVE_DTLSv1_client_method
 #undef HAVE_DTLSv1_server_method
 
+/* Define if you have the EC_KEY type */
+#undef HAVE_TYPE_EC_KEY
+
 /* Define if you have the flock function */
 #undef HAVE_FLOCK
 

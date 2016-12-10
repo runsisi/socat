@@ -41,6 +41,15 @@ porting:
 	Made struct ip subject to configure.
 	Thanks to SP for reporting this issue.
 
+	Socat failed to compile with OpenSSL version 1.0.2d where
+	SSLv3_server_method and SSLv3_client_method are no longer defined.
+	Thanks to Mischa ter Smitten for reporting this issue and providing
+	a patch.
+
+	configure checked for OpenSSL EC_KEY assuming it is a define but it
+	is a type, thus OpenSSL ECDHE ciphers failed even on Linux.
+	Thanks to Andrey Arapov for reporting this bug.
+
 testing:
 	socks4echo.sh and socks4a-echo.sh hung with new bash with read -n
 

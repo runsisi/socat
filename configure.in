@@ -1462,6 +1462,18 @@ AC_CHECK_FUNC(TLSv1_2_server_method, AC_DEFINE(HAVE_TLSv1_2_server_method), AC_C
 AC_CHECK_FUNC(DTLSv1_client_method, AC_DEFINE(HAVE_DTLSv1_client_method), AC_CHECK_LIB(crypt, DTLSv1_client_method, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(DTLSv1_server_method, AC_DEFINE(HAVE_DTLSv1_server_method), AC_CHECK_LIB(crypt, DTLSv1_server_method, [LIBS=-lcrypt $LIBS]))
 
+AC_MSG_CHECKING(for type EC_KEY)
+AC_CACHE_VAL(sc_cv_type_EC_TYPE,
+[AC_TRY_COMPILE([#include <openssl/ec.h>
+],[EC_KEY *s;],
+[sc_cv_type_EC_KEY=yes],
+[sc_cv_type_EC_KEY=no])])
+if test $sc_cv_type_EC_KEY = yes; then
+   AC_DEFINE(HAVE_TYPE_EC_KEY)
+fi
+AC_MSG_RESULT($sc_cv_type_EC_KEY)
+
+
 dnl Run time checks
 
 

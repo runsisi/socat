@@ -2275,6 +2275,16 @@ gentestdsacert () {
     cat $name-dsa.pem $name-dh.pem $name.key $name.crt >$name.pem
 }
 
+# generate a test EC key and certificate
+gentesteccert () {
+    local name="$1"
+    if [ -s $name.key -a -s $name.crt -a -s $name.pem ]; then return; fi
+    openssl ecparam -name secp521r1 -out $name-ec.pem >/dev/null 2>&1
+    chmod 0400 $name-ec.pem
+    openssl req -newkey ec:$name-ec.pem -keyout $name.key -nodes -x509 -config $TESTCERT_CONF -out $name.crt -days 3653 >/dev/null 2>&1
+    cat $name-ec.pem $name.key $name.crt >$name.pem
+}
+
 gentestcert6 () {
     local name="$1"
     if [ -s $name.key -a -s $name.crt -a -s $name.pem ]; then return; fi
@@ -12483,6 +12493,62 @@ fi # NUMCOND
  ;;
 esac
 #PORT=$((PORT+1))
+N=$((N+1))
+
+
+# OpenSSL ECDHE ciphers were introduced in socat 1.7.3.0 but in the same release
+# they were broken by a porting effort. This test checks if OpenSSL ECDHE works
+NAME=OPENSSL_ECDHE
+case "$TESTS" in
+*%$N%*|*%functions%*|*%bugs%*|*%openssl%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: test OpenSSL ECDHE"
+# generate a ECDHE key, start an OpenSSL server, connect with a client and try to
+# pass data
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+TESTSRV=./testsrvec
+gentesteccert $TESTSRV
+CMD0="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,cert=testsrvec.crt,key=$TESTSRV.pem,verify=0 PIPE"
+CMD1="$TRACE $SOCAT $opts - OPENSSL-CONNECT:$LOCALHOST:$PORT,cipher=ECDHE-ECDSA-AES256-GCM-SHA384,cafile=$TESTSRV.crt"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+waittcp4port $PORT 1
+echo "$da" |$CMD1 >"${tf}1" 2>"${te}1"
+rc1=$?
+kill $pid0 2>/dev/null; wait
+if [ $rc1 -ne 0 ]; then
+    $PRINTF "$FAILED\n"
+    echo "failure symptom: client error" >&2
+    echo "server and stderr:" >&2
+    echo "$CMD0 &"
+    cat "${te}0"
+    echo "client and stderr:" >&2
+    echo "$CMD1"
+    cat "${te}1"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+elif echo "$da" |diff - "${tf}1" >"$tdiff"; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "server and stderr:" >&2
+    echo "$CMD1"
+    cat "${te}1"
+    echo "client and stderr:" >&2
+    echo "$CMD0 &"
+    cat "${te}0"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
 N=$((N+1))
 
 

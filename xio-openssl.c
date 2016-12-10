@@ -967,7 +967,7 @@ int
       }
    }
 
-#if defined(EC_KEY)	/* not on Openindiana 5.11 */
+#if HAVE_TYPE_EC_KEY	/* not on Openindiana 5.11 */
    {
       /* see http://openssl.6102.n7.nabble.com/Problem-with-cipher-suite-ECDHE-ECDSA-AES256-SHA384-td42229.html */
       int	 nid;
@@ -989,7 +989,7 @@ int
 
       SSL_CTX_set_tmp_ecdh(*ctx, ecdh);
    }
-#endif /* !defined(EC_KEY) */
+#endif /* HAVE_TYPE_EC_KEY */
 
 #if OPENSSL_VERSION_NUMBER >= 0x00908000L
    if (opt_compress) {
