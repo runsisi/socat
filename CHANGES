@@ -37,6 +37,10 @@ porting:
 	DTLSv1_client_method or DTLSv1_server_method.
 	Thanks to Simon Matter for sending a patch.
 
+	NuttX OS headers do not provide struct ip, thus socat did not compile.
+	Made struct ip subject to configure.
+	Thanks to SP for reporting this issue.
+
 testing:
 	socks4echo.sh and socks4a-echo.sh hung with new bash with read -n
 

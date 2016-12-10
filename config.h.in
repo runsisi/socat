@@ -359,6 +359,9 @@
 /* Define if you have struct linger */
 #undef HAVE_STRUCT_LINGER
 
+/* Define if you have struct ip */
+#undef HAVE_STRUCT_IP
+
 /* Define if you have struct ip_mreq */
 #undef HAVE_STRUCT_IP_MREQ
 

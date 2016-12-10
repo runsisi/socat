@@ -1118,6 +1118,17 @@ fi
 AC_MSG_RESULT($sc_cv_struct_linger)
 
 
+# struct ip (for IPv4 header info)
+AC_MSG_CHECKING(for struct ip)
+AC_CACHE_VAL(sc_cv_struct_ip,
+[AC_TRY_COMPILE([#include <netinet/ip.h>],[struct ip s;],
+[sc_cv_struct_ip=yes],
+[sc_cv_struct_ip=no])])
+if test $sc_cv_struct_ip = yes; then
+   AC_DEFINE(HAVE_STRUCT_IP)
+fi
+AC_MSG_RESULT($sc_cv_struct_ip)
+
 # struct ip_mreq (for multicasting options)
 AC_MSG_CHECKING(for struct ip_mreq)
 AC_CACHE_VAL(sc_cv_struct_ip_mreq,
