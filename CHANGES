@@ -55,6 +55,9 @@ porting:
 	providing the base patch.
 	Debian Bug#828550
 
+	Make Socat compatible with BoringSSL.
+	Thanks to Matt Braithwaite for providing a patch.
+
 testing:
 	socks4echo.sh and socks4a-echo.sh hung with new bash with read -n
 

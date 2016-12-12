@@ -1119,13 +1119,21 @@ static int openssl_SSL_ERROR_SSL(int level, const char *funcname) {
 
    while (e = ERR_get_error()) {
       Debug1("ERR_get_error(): %lx", e);
-      if (e == ((ERR_LIB_RAND<<24)|
+      if
+	 (
+#if defined(OPENSSL_IS_BORINGSSL)
+	  0  /* BoringSSL's RNG always succeeds. */
+#else
+	  e == ((ERR_LIB_RAND<<24)|
 #if defined(RAND_F_RAND_BYTES)
 		(RAND_F_RAND_BYTES<<12)|
 #else
 		(RAND_F_SSLEAY_RAND_BYTES<<12)|
 #endif
-		(RAND_R_PRNG_NOT_SEEDED)) /*0x24064064*/) {
+		(RAND_R_PRNG_NOT_SEEDED)) /*0x24064064*/
+#endif
+	  )
+      {
 	 Error("too few entropy; use options \"egd\" or \"pseudo\"");
 	 stat = STAT_NORETRY;
       } else {
