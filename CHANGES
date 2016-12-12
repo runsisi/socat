@@ -50,6 +50,11 @@ porting:
 	is a type, thus OpenSSL ECDHE ciphers failed even on Linux.
 	Thanks to Andrey Arapov for reporting this bug.
 
+	Changes to make socat compile with OpenSSL 1.1. 
+	Thanks to Sebastian Andrzej Siewior e.a. from the Debian team for
+	providing the base patch.
+	Debian Bug#828550
+
 testing:
 	socks4echo.sh and socks4a-echo.sh hung with new bash with read -n
 

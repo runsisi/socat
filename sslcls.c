@@ -339,6 +339,7 @@ void sycSSL_free(SSL *ssl) {
    return;
 }
 
+#if !defined(OPENSSL_NO_EGD) && HAVE_RAND_egd
 int sycRAND_egd(const char *path) {
    int result;
    Debug1("RAND_egd(\"%s\")", path);
@@ -346,6 +347,7 @@ int sycRAND_egd(const char *path) {
    Debug1("RAND_egd() -> %d", result);
    return result;
 }
+#endif
 
 DH *sycPEM_read_bio_DHparams(BIO *bp, DH **x, pem_password_cb *cb, void *u) {
    DH *result;

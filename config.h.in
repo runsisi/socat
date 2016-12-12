@@ -453,6 +453,15 @@
 /* Define if you have the EC_KEY type */
 #undef HAVE_TYPE_EC_KEY
 
+/* Define if you have the OpenSSL RAND_egd function */
+#undef HAVE_RAND_egd
+
+/* Define if you have the OpenSSL DH_set0_pqg function */
+#undef HAVE_DH_set0_pqg
+
+/* Define if you have the OpenSSL ASN1_STRING_get0_data function */
+#undef HAVE_ASN1_STRING_get0_data
+
 /* Define if you have the flock function */
 #undef HAVE_FLOCK
 
