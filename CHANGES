@@ -61,6 +61,9 @@ porting:
 	OpenSSL: Use RAND_status to determine PRNG state
 	Thanks to Adam Langley for providing a patch
 
+	AIX-7 uses an extended O_ACCMODE that does not fit socat's internal
+	requirements. Thanks to Garrick Trowsdale for providing a patch
+
 testing:
 	socks4echo.sh and socks4a-echo.sh hung with new bash with read -n
 

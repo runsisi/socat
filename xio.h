@@ -26,7 +26,7 @@ struct opt;
 #define XIO_RDONLY  O_RDONLY /* asserted to be 0 */
 #define XIO_WRONLY  O_WRONLY /* asserted to be 1 */
 #define XIO_RDWR    O_RDWR   /* asserted to be 2 */
-#define XIO_ACCMODE O_ACCMODE	/* must be 3 */
+#define XIO_ACCMODE (XIO_RDONLY|XIO_WRONLY|XIO_RDWR)	/* must be 3 */
 #define XIO_MAYFORK     4 /* address is allowed to fork the program (fork) */
 #define XIO_MAYCHILD    8 /* address is allowed to fork off a child (exec)*/
 #define XIO_MAYEXEC    16 /* address is allowed to exec a prog (exec+nofork) */
