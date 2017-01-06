@@ -27,6 +27,10 @@ corrections:
 	Tests: SYSTEM_RC EXEC_RC
 	Issue reported by Felix Winkelmann.
 
+	AddressSanitizer reported a few buffer overflows (false positives).
+	Nevertheless fixed Socat source.
+	Issue reported by Hanno Böck.
+
 porting:
 	Type conflict between int and sig_atomic_t between declaration and
 	definition of diag_immediate_type and diag_immediate_exit broke

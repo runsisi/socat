@@ -2700,11 +2700,14 @@ $CMD1 </dev/null >$tf 2>"${te}1" &
 bg=$!	# background process id
 waitfile "$ts"
 echo "$da" |$CMD2 >>"$tf" 2>>"${te}2"
-if [ $? -ne 0 ]; then
+rc2=$?
+if [ "$rc2" -ne 0 ]; then
    $PRINTF "$FAILED: $TRACE $SOCAT:\n"
    echo "$CMD1 &"
    echo "$CMD2"
-   cat "$te"
+   echo "rc=$rc2"
+   cat "${te}1"
+   cat "${te}2"
    numFAIL=$((numFAIL+1))
    listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then

@@ -252,9 +252,9 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 	    /* AIX:   I_PUSH def'd; pty: ioctl(, I_FIND, ...) -> 1 */
 	    /* SunOS: I_PUSH def'd; pty: ioctl(, I_FIND, ...) -> 0 */
 	    /* HP-UX: I_PUSH def'd; pty: ioctl(, I_FIND, ...) -> 0 */
-	    if (Ioctl(ttyfd, I_FIND, "ldterm") == 0) {
-	       Ioctl(ttyfd, I_PUSH, "ptem");		/* 0 */
-	       Ioctl(ttyfd, I_PUSH, "ldterm");		/* 0 */
+	    if (Ioctl(ttyfd, I_FIND, "ldterm\0") == 0) {
+	       Ioctl(ttyfd, I_PUSH, "ptem\0\0\0");	/* 0 */ /* padding for AdressSanitizer */
+	       Ioctl(ttyfd, I_PUSH, "ldterm\0");	/* 0 */
 	       Ioctl(ttyfd, I_PUSH, "ttcompat");	/* HP-UX: -1 */
 	    }
 #endif
