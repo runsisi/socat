@@ -71,6 +71,8 @@ testing:
 
 	improved proxy.sh - it now also takes hostnames
 
+	A few corrections in test.sh
+
 legal:
 	Added contributors to copyright notices. Suggested by Matt Braithwaite.
 

@@ -1779,8 +1779,8 @@ runsip4 () {
     [ -z "$l" ] && return 1    
     # existence of interface might not suffice, check for routeability:
     case "$UNAME" in
-    Darwin) ping -c 1 127.0.0.1; l="$?" ;;
-    Linux)  ping -c 1 127.0.0.1; l="$?" ;;
+    Darwin) ping -c 1 127.0.0.1 >/dev/null 2>&1; l="$?" ;;
+    Linux)  ping -c 1 127.0.0.1 >/dev/null 2>&1; l="$?" ;;
     *) if [ -n "$l" ]; then l=0; else l=1; fi ;;
     esac
     HAVENOT_IP4=$l
@@ -1806,8 +1806,8 @@ runsip6 () {
     [ -z "$l" ] && return 1    
     # existence of interface might not suffice, check for routeability:
     case "$UNAME" in
-    Darwin) ping6 -c 1 ::1; l="$?" ;;
-    Linux)  ping6 -c 1 ::1; l="$?" ;;
+    Darwin) ping6 -c 1 ::1 >/dev/null 2>&1; l="$?" ;;
+    Linux)  ping6 -c 1 ::1 >/dev/null 2>&1; l="$?" ;;
     *) if [ -n "$l" ]; then l=0; else l=1; fi ;;
     esac
     HAVENOT_IP6=$l
@@ -1816,77 +1816,44 @@ runsip6 () {
 
 # check if TCP on IPv4 is available on host
 runstcp4 () {
+    runsip4 || return 1
+    $SOCAT -h |grep '\<tcp4-' >/dev/null || return 1
     return 0;
-#    PORT="$1"
-    $TRACE $SOCAT $opts /dev/null TCP4-LISTEN:$PORT 2>"$td/tcp4.stderr" &
-    pid=$!
-    usleep $MICROS
-    kill "$pid" 2>/dev/null
-    wait
-    usleep $MICROS
-    test ! -s "$td/tcp4.stderr"
 }
 
 # check if TCP on IPv6 is available on host
 runstcp6 () {
+    runsip6 || return 1
+    $SOCAT -h |grep '\<tcp6-' >/dev/null || return 1
     return 0;
-#    PORT="$1"
-    $TRACE $SOCAT $opts /dev/null TCP6-LISTEN:$PORT 2>"$td/tcp6.stderr" &
-    pid=$!
-    kill "$pid" 2>/dev/null
-    wait
-    usleep $MICROS
-    test ! -s "$td/tcp6.stderr"
 }
 
 # check if UDP on IPv4 is available on host
 runsudp4 () {
+    runsip4 || return 1
+    $SOCAT -h |grep '\<udp4-' >/dev/null || return 1
     return 0;
-#    PORT="$1"
-    $TRACE $SOCAT $opts /dev/null UDP4-LISTEN:$PORT 2>"$td/udp4.stderr" &
-    pid=$!
-    usleep $MICROS
-    kill "$pid" 2>/dev/null
-    wait
-    usleep $MICROS
-    test ! -s "$td/udp4.stderr"
 }
 
 # check if UDP on IPv6 is available on host
 runsudp6 () {
+    runsip6 || return 1
+    $SOCAT -h |grep '\<udp6-' >/dev/null || return 1
     return 0;
-#    PORT="$1"
-    $TRACE $SOCAT $opts /dev/null UDP6-LISTEN:$PORT 2>"$td/udp6.stderr" &
-    pid=$!
-    usleep $MICROS
-    kill "$pid" 2>/dev/null
-    wait
-    usleep $MICROS
-    test ! -s "$td/udp6.stderr"
 }
 
 # check if SCTP on IPv4 is available on host
 runssctp4 () {
-#    PORT="$1"
-    $TRACE $SOCAT $opts /dev/null SCTP4-LISTEN:$PORT 2>"$td/sctp4.stderr" &
-    pid=$!
-    usleep $MICROS
-    kill "$pid" 2>/dev/null
-    wait
-    usleep $MICROS
-    test ! -s "$td/sctp4.stderr"
+    runsip4 || return 1
+    $SOCAT -h |grep '\<sctp4-' >/dev/null || return 1
+    return 0;
 }
 
 # check if SCTP on IPv6 is available on host
 runssctp6 () {
-    #PORT="$1"
-    $TRACE $SOCAT $opts /dev/null SCTP6-LISTEN:$PORT 2>"$td/sctp6.stderr" &
-    pid=$!
-    usleep $MICROS
-    kill "$pid" 2>/dev/null
-    wait
-    usleep $MICROS
-    test ! -s "$td/sctp6.stderr"
+    runsip6 || return 1
+    $SOCAT -h |grep '\<sctp6-' >/dev/null || return 1
+    return 0;
 }
 
 # wait until an IP4 protocol is ready
@@ -12460,6 +12427,7 @@ fi # NUMCOND, SO_REUSEPORT
  ;;
 esac
 PORT=$((PORT+1))
+N=$((N+1))
 
 
 # Programs invoked with EXEC, nofork, and -u or -U had stdin and stdout assignment swapped. 
@@ -12474,9 +12442,9 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD0="$TRACE $SOCAT $opts -u /dev/null EXEC:\"echo \\\"$da\\\"\",nofork"
+CMD0="$TRACE $SOCAT $opts -u /dev/null EXEC:\"echo \\\\\\\"\\\"$da\\\"\\\\\\\"\",nofork"
 printf "test $F_n $TEST... " $N
-eval $CMD0 >"${tf}0" 2>"${te}0"
+eval "$CMD0" >"${tf}0" 2>"${te}0"
 rc1=$?
 if echo "$da" |diff - "${tf}0" >"$tdiff"; then
     $PRINTF "$OK\n"
