@@ -35,6 +35,10 @@ corrections:
 	Test: USE_IPV6_JOIN_GROUP
 	Thanks to Linux Lüssing for sending a patch.
 
+	UDP-LISTEN did not honor the max-children option.
+	Test: UDP4MAXCHILDREN UDP6MAXCHILDREN
+	Thanks to Leander Berwers for reporting this issue.
+
 porting:
 	Type conflict between int and sig_atomic_t between declaration and
 	definition of diag_immediate_type and diag_immediate_exit broke

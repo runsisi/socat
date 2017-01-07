@@ -86,6 +86,7 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
    int socktype = SOCK_DGRAM;
    struct pollfd readfd;
    bool dofork = false;
+   int maxchildren = 0;
    pid_t pid;
    char *rangename;
    char infobuff[256];
@@ -140,6 +141,13 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
 	 Error("option fork not allowed here");
 	 return STAT_NORETRY;
       }
+   }
+
+   retropt_int(opts, OPT_MAX_CHILDREN, &maxchildren);
+
+   if (! dofork && maxchildren) {
+       Error("option max-children not allowed without option fork");
+       return STAT_NORETRY;
    }
 
 #if WITH_IP4 /*|| WITH_IP6*/
@@ -248,6 +256,8 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
 	 }
 
 	 if (pid == 0) {	/* child */
+	    pid_t cpid = Getpid();
+	    xiosetenvulong("PID", cpid, 1);
 	    break;
 	 }
 
@@ -258,6 +268,14 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
 	    Info2("close(%d): %s", fd->stream.fd, strerror(errno));
 	 }
 
+	 while (maxchildren) {
+	    if (num_child < maxchildren) break;
+	    Notice("maxchildren are active, waiting");
+	    /* UINT_MAX would even be nicer, but Openindiana works only
+	       with 31 bits */
+	    while (!Sleep(INT_MAX)) ;	/* any signal lets us continue */
+	 }
+	 Info("still listening");
 	 continue;
       }
       break;

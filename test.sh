@@ -9884,7 +9884,7 @@ elif [ "$KEYW" = "TCP6" -o "$KEYW" = "UDP6" -o "$KEYW" = "SCTP6" ] && \
     numCANT=$((numCANT+1))
 elif [ "$KEYW" = "SCTP4" ] && ! runssctp4 "$((PORT))"; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$KEYW not available${NORMAL}\n" $N
-elif [ "$KEYW" = "SCTP6" ] && ! runssctp4 "$((PORT))"; then
+elif [ "$KEYW" = "SCTP6" ] && ! runssctp6 "$((PORT))"; then
     #!!! branch not reached - caught above!
     $PRINTF "test $F_n $TEST... ${YELLOW}$KEYW not available${NORMAL}\n" $N
 else
@@ -11228,41 +11228,55 @@ PORT=$((PORT+1))
 N=$((N+1))
 
 
-# test the max-children option
-NAME=MAXCHILDREN
+while read KEYW FEAT ADDR IPPORT; do
+if [ -z "$KEYW" ]|| [[ "$KEYW" == \#* ]]; then continue; fi
+PROTO=$KEYW
+proto="$(echo "$PROTO" |tr A-Z a-z)"
+# test the max-children option on really connection oriented sockets
+NAME=${KEYW}MAXCHILDREN
 case "$TESTS" in
-*%$N%*|*%functions%*|*%socket%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%maxchildren%*|*%socket%*|*%$NAME%*)
 TEST="$NAME: max-children option"
 # start a listen process with max-children=1; connect with a client, let it
 # sleep some time before sending data; connect with second client that sends
 # data immediately. If max-children is working correctly the first data should
 # arrive first because the second process has to wait.
 if ! eval $NUMCOND; then :; else
-ts="$td/test$N.sock"
+case "X$IPPORT" in
+    "XPORT")
+    tsl=$PORT 		# test socket listen address
+    tsc="$ADDR:$PORT"	# test socket connect address
+    PORT=$((PORT+1)) ;;
+    *)
+    tsl="$(eval echo "$ADDR")"	# resolve $N
+    tsc=$tsl
+esac
+#ts="$td/test$N.sock"
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD0="$TRACE $SOCAT $opts -U FILE:$tf,o-trunc,o-creat,o-append UNIX-L:$ts,fork,max-children=1"
-CMD1="$TRACE $SOCAT $opts -u - UNIX-CONNECT:$ts"
+CMD0="$TRACE $SOCAT $opts -U FILE:$tf,o-trunc,o-creat,o-append $PROTO-LISTEN:$tsl,fork,max-children=1"
+CMD1="$TRACE $SOCAT $opts -u - $PROTO-CONNECT:$tsc"
 printf "test $F_n $TEST... " $N
 $CMD0 >/dev/null 2>"${te}0" &
 pid0=$!
-waitunixport $ts 1
-(sleep 2; echo "$da 1") |$CMD1 >"${tf}1" 2>"${te}1" &
+wait${proto}port $tsl 1
+(echo "$da 1"; sleep 2) |$CMD1 >"${tf}1" 2>"${te}1" &
 pid1=$!
 sleep 1
-echo "$da 2" |$CMD1 >"${tf}2" 2>"${te}2"
-rc2=$?
+echo "$da 2" |$CMD1 >"${tf}2" 2>"${te}2" &
+pid2=$!
+rc2=$!
 sleep 2
-kill $pid0 $pid1 2>/dev/null; wait
-if echo -e "$da 1\n$da 2" |diff $tf - >$tdiff; then
+kill $pid1 $pid2 $pid0 2>/dev/null; wait
+if echo -e "$da 1\n$da 2" |diff - $tf >$tdiff; then
     $PRINTF "$OK\n"
     numOK=$((numOK+1))
 else
     $PRINTF "$FAILED\n"
     echo "$CMD0 &"
-    echo "(sleep 2; echo \"$da 1\") |$CMD1"
+    echo "(echo \"$da 1\"; sleep 2) |$CMD1"
     echo "echo \"$da 2\" |$CMD1"
     cat "${te}0"
     cat "${te}1"
@@ -11275,6 +11289,86 @@ fi # NUMCOND
  ;;
 esac
 N=$((N+1))
+done <<<"
+TCP4  TCP  127.0.0.1 PORT
+TCP6  TCP  127.0.0.1 PORT
+SCTP4 TCP  127.0.0.1 PORT
+SCTP6 TCP  127.0.0.1 PORT
+UNIX  UNIX $td/test\$N.server -
+"
+# debugging this hanging test was difficult - following lessons learned:
+# kill <parent> had no effect when child process existed
+# strace -f (on Fedora-23) sometimes writes/pads? blocks with \0, overwriting client traces
+# using the TRACE feature lets above kill command kill strace, not socat
+# care for timing, understand what you want :-)
+
+
+while read KEYW FEAT ADDR IPPORT; do
+if [ -z "$KEYW" ]|| [[ "$KEYW" == \#* ]]; then continue; fi
+PROTO=$KEYW
+proto="$(echo "$PROTO" |tr A-Z a-z)"
+# test the max-children option on pseudo connected sockets
+NAME=${KEYW}MAXCHILDREN
+case "$TESTS" in
+*%$N%*|*%functions%*|*%maxchildren%*|*%socket%*|*%dgram%*|*%udp%*|*%$NAME%*)
+TEST="$NAME: max-children option"
+# start a listen process with max-children=1; connect with a client, let it
+# send data and then sleep; connect with second client that wants to send
+# data immediately, but keep first client active until server terminates.
+#If max-children is working correctly only the first data should
+# arrive.
+if ! eval $NUMCOND; then :; else
+case "X$IPPORT" in
+    "XPORT")
+    tsl=$PORT 		# test socket listen address
+    tsc="$ADDR:$PORT"	# test socket connect address
+    PORT=$((PORT+1)) ;;
+    *)
+    tsl="$(eval echo "$ADDR")"	# resolve $N
+    tsc=$tsl
+esac
+#ts="$td/test$N.sock"
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts -U FILE:$tf,o-trunc,o-creat,o-append $PROTO-LISTEN:$tsl,fork,max-children=1"
+CMD1="$TRACE $SOCAT $opts -u - $PROTO-CONNECT:$tsc"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+wait${proto}port $tsl 1
+(echo "$da 1"; sleep 3) |$CMD1 >"${tf}1" 2>"${te}1" &
+pid1=$!
+sleep 1
+echo "$da 2" |$CMD1 >"${tf}2" 2>"${te}2" &
+pid2=$!
+rc2=$!
+sleep 1
+kill -QUIT $pid1 $pid2 $pid0 2>/dev/null; wait
+if echo -e "$da 1" |diff - $tf >$tdiff; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "(echo \"$da 1\"; sleep 2) |$CMD1"
+    echo "echo \"$da 2\" |$CMD1"
+    cat "${te}0"
+    cat "${te}1"
+    cat "${te}2"
+    cat "$tdiff"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
+esac
+N=$((N+1))
+done <<<"
+UDP4  UDP  127.0.0.1 PORT
+UDP6  UDP  127.0.0.1 PORT
+"
 
 
 # socat up to 1.7.2.0 had a bug in xioscan_readline() that could be exploited
