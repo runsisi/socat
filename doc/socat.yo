@@ -469,7 +469,7 @@ label(ADDRESS_OPEN)dit(bf(tt(OPEN:<filename>)))
    Opens link(<filename>)(TYPE_FILENAME) using the code(open()) system call
    (link(example)(EXAMPLE_ADDRESS_OPEN)).
    This operation fails on unixdomain() sockets. nl()
-   Note: This address type is rarly useful in bidirectional mode.nl()
+   Note: This address type is rarely useful in bidirectional mode.nl()
    Option groups: link(FD)(GROUP_FD),link(REG)(GROUP_REG),link(NAMED)(GROUP_NAMED),link(OPEN)(GROUP_OPEN) nl()
    Useful options:
    link(creat)(OPTION_O_CREAT),
@@ -1222,7 +1222,7 @@ label(ADDRESS_UNIX_LISTEN)dit(bf(tt(UNIX-LISTEN:<filename>)))
 label(ADDRESS_UNIX_SENDTO)dit(bf(tt(UNIX-SENDTO:<filename>)))
    Communicates with the specified peer socket, defined by [link(<filename>)(TYPE_FILENAME)] assuming it is a unixdomain() datagram socket.
    It sends packets to and receives packets from that peer socket only.
-   Please note that it might be neccessary to link(bind)(OPTION_BIND) the
+   Please note that it might be necessary to link(bind)(OPTION_BIND) the
    local socket to an address (e.g. tt(/tmp/sock1), which must not exist
    before).
    This address type works well with socat UNIX-RECVFROM and UNIX-RECV address
@@ -1357,7 +1357,7 @@ style file descriptor, no matter how it was generated.
 Because all current socat() address types are file descriptor based, these
 options may be applied to any address. nl()
 Note: Some of these options are also member of another option group, that
-provides an other, non-fd based mechanism.
+provides another, non-fd based mechanism.
 For these options, it depends on the actual address type and its option groups 
 which mechanism is used. The second, non-fd based mechanism is prioritized.
 startdit()
@@ -1496,7 +1496,7 @@ label(OPTION_END_CLOSE)dit(bf(tt(end-close)))
    tt(close(2)) "unlinks" the socket from the process but keeps it active as
    long as there are still links from other processes.nl()
    Similarly, when an address of type EXEC or SYSTEM is ended, socat usually
-   will explicitely kill the sub process. With this option, it will just close
+   will explicitly kill the sub process. With this option, it will just close
    the file descriptors.
 label(OPTION_SHUT_NONE)dit(bf(tt(shut-none)))
    Changes the (address dependent) method of shutting down the write part of a
@@ -1519,8 +1519,8 @@ label(OPTION_NULL_EOF)dit(bf(tt(null-eof)))
    link(shut-null)(OPTION_SHUT_NULL)).
 label(OPTION_IOCTL_VOID)dit(bf(tt(ioctl-void=<request>)))
    Calls tt(ioctl()) with the request value as second argument and NULL as
-   third argument. This option allows to utilize ioctls that are not
-   explicitely implemented in socat.
+   third argument. This option allows utilizing ioctls that are not
+   explicitly implemented in socat.
 label(OPTION_IOCTL_INT)dit(bf(tt(ioctl-int=<request>:<value>)))
    Calls tt(ioctl()) with the request value as second argument and the integer
    value as third argument.
@@ -1590,7 +1590,7 @@ startdit()enddit()nl()
 
 label(GROUP_OPEN)em(bf(OPEN option group))
 
-The OPEN group options allow to set flags with the code(open()) system call. 
+The OPEN group options allow setting flags with the code(open()) system call. 
 E.g., option `creat' sets the code(O_CREAT) flag.nl()
 See also options link(append)(OPTION_APPEND) and
 link(nonblock)(OPTION_NONBLOCK).
@@ -1610,7 +1610,7 @@ label(OPTION_NOCTTY)dit(bf(tt(noctty=<bool>)))
 label(OPTION_NOFOLLOW)dit(bf(tt(nofollow=<bool>)))
    Does not follow symbolic links.
 label(OPTION_NSHARE)dit(bf(tt(nshare=<bool>)))
-   Does not allow to share this file with other processes.
+   Does not allow sharing this file with other processes.
 label(OPTION_RSHARE)dit(bf(tt(rshare=<bool>)))
    Does not allow other processes to open this file for writing.
 label(OPTION_RSYNC)dit(bf(tt(rsync=<bool>)))
@@ -1999,7 +1999,7 @@ COMMENT(label(OPTION_PKTOPTS)dit(bf(tt(ip-pktopts)))
    Set the IP_PKTOPTIONS socket option.)
 label(OPTION_IP_RECVERR)dit(bf(tt(ip-recverr)))
    Sets the IP_RECVERR socket option. This enables receiving and logging of
-   ancillary messages containing detailled error information.
+   ancillary messages containing detailed error information.
 label(OPTION_IP_RECVOPTS)dit(bf(tt(ip-recvopts)))
    Sets the IP_RECVOPTS socket option. This enables receiving and logging of IP
    options ancillary messages (Linux, *BSD).
@@ -2695,7 +2695,7 @@ label(OPTION_OPENSSL_COMMONNAME)dit(bf(tt(commonname=<string>)))
    given hostname or IP target address; with
    link(OPENSSL-LISTEN)(ADDRESS_OPENSSL_LISTEN) this turns on check of peer
    certificates commonname. This option has only meaning when option
-   link(verify)(OPTION_OPENSSL_VERIFY) is not disabled and the choosen cipher
+   link(verify)(OPTION_OPENSSL_VERIFY) is not disabled and the chosen cipher
    provides a peer certificate.
 label(OPTION_OPENSSL_FIPS)dit(bf(tt(fips)))
    Enables FIPS mode if compiled in. For info about the FIPS encryption
@@ -3029,8 +3029,8 @@ dit(bf(tt(socat -,escape=0x0f /dev/ttyS0,rawer,crnl)))
 opens an interactive connection via the serial line, e.g. for talking with a
 modem. link(rawer)(OPTION_TERMIOS_RAWER) sets the console's and
 ttyS0's terminal parameters to practicable values, link(crnl)(OPTION_CRNL) 
-converts to correct newline characters. link(escape)(OPTION_ESCAPE) allows to
-terminate the socat process with character control-O. 
+converts to correct newline characters. link(escape)(OPTION_ESCAPE) allows
+terminating the socat process with character control-O. 
 Consider using link(READLINE)(ADDRESS_READLINE) instead of the first address.
 
 
@@ -3332,7 +3332,7 @@ enddit()
 label(DIAGNOSTICS)
 manpagediagnostics()
 
-Socat() uses a logging mechanism that allows to filter messages by severity. The
+Socat() uses a logging mechanism that allows filtering messages by severity. The
 severities provided are more or less compatible to the appropriate syslog
 priority. With one or up to four occurrences of the -d command line option, the
 lowest priority of messages that are issued can be selected. Each message
@@ -3347,7 +3347,7 @@ dit(WARNING:) Something did not function correctly or is in a state where
 correct further processing cannot be guaranteed, but might be possible.
 dit(NOTICE:) Interesting actions of the program, e.g. for supervising socat() in some kind of server mode.
 dit(INFO:) Description of what the program does, and maybe why it
-happens. Allows to monitor the lifecycles of file descriptors.
+happens. Allows monitoring the lifecycles of file descriptors.
 dit(DEBUG:) Description of how the program works, all system or library calls and their results.
 )
 
