@@ -375,6 +375,7 @@ const struct optname optionnames[] = {
 #endif
 	IF_OPENSSL("dh",	&opt_openssl_dhparam)
 	IF_OPENSSL("dhparam",	&opt_openssl_dhparam)
+	IF_OPENSSL("dhparams",	&opt_openssl_dhparam)
 #ifdef O_DIRECT
 	IF_OPEN   ("direct",	&opt_o_direct)
 #endif
@@ -1102,6 +1103,7 @@ const struct optname optionnames[] = {
 	IF_OPENSSL("openssl-compress",	&opt_openssl_compress)
 #endif
 	IF_OPENSSL("openssl-dhparam",	&opt_openssl_dhparam)
+	IF_OPENSSL("openssl-dhparams",	&opt_openssl_dhparam)
 	IF_OPENSSL("openssl-egd",	&opt_openssl_egd)
 #if WITH_FIPS
 	IF_OPENSSL("openssl-fips",	&opt_openssl_fips)

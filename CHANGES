@@ -43,6 +43,10 @@ corrections:
 	and therefore were useless.
 	Thanks to Steve Borenstein for reporting this issue.
 
+	Option dhparam was documented as dhparams. Added the alias name
+	dhparams to fix this.
+	Thanks to Alexander Neumann for sending a patch.
+
 porting:
 	Type conflict between int and sig_atomic_t between declaration and
 	definition of diag_immediate_type and diag_immediate_exit broke
