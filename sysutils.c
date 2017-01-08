@@ -695,7 +695,6 @@ int _xiosetenv(const char *envname, const char *value, int overwrite, const char
    0: keep old value
    1: overwrite with new value
    2: append to old value, separated by *sep
-a non zero value of overwrite lets the old value be overwritten.
    returns 0 on success or <0 if an error occurred. */
 int xiosetenv(const char *varname, const char *value, int overwrite, const char *sep) {
 #  define XIO_ENVNAMELEN 256

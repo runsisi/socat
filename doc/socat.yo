@@ -1909,7 +1909,7 @@ COMMENT(label(OPTION_PEERCRED)dit(bf(tt(peercred)))
    This is a read-only socket option.)
 label(OPTION_REUSEPORT)dit(bf(tt(reuseport)))
    Set the code(SO_REUSEPORT) socket option.
-COMMENT(label(OPTION_SECUTIYAUTHENTICATION)dit(bf(tt(securityauthentication)))
+COMMENT(label(OPTION_SECURITYAUTHENTICATION)dit(bf(tt(securityauthentication)))
    Set the code(SO_SECURITY_AUTHENTICATION) socket option.)
 COMMENT(label(OPTION_SECURITYENCRYPTIONNETWORK)dit(bf(tt(securityencryptionnetwork)))
    Set the code(SO_SECURITY_ENCRYPTION_NETWORK) socket option.)
@@ -2313,9 +2313,10 @@ label(OPTION_FORK)dit(bf(tt(fork)))
    After establishing a connection, handles its channel in a child process and
    keeps the parent process attempting to produce more connections, either by
    listening or by connecting in a loop (link(example)(EXAMPLE_OPTION_FORK)).nl()
-   SSL-CONNECT and SSL-LISTEN differ in when they actually fork off the child:
-SSL-LISTEN forks em(before) the SSL handshake, while SSL-CONNECT forks
-em(afterwards).
+   OPENSSL-CONNECT and OPENSSL-LISTEN differ in when they actually fork off the
+   child:
+   OPENSSL-LISTEN forks em(before) the SSL handshake, while OPENSSL-CONNECT
+   forks em(afterwards).
    RETRY and FOREVER options are not inherited by the child process.nl()
    On some operating systems (e.g. FreeBSD) this option does not work for
    UDP-LISTEN addresses.nl()
@@ -3196,7 +3197,7 @@ The first address ('-') can be replaced by almost any other socat address.
 
 
 label(EXAMPLE_ADDRESS_OPENSSL_LISTEN)
-dit(bf(tt(socat SSL-LISTEN:4443,reuseaddr,pf=ip4,fork,cert=server.pem,cafile=client.crt PIPE)))
+dit(bf(tt(socat OPENSSL-LISTEN:4443,reuseaddr,pf=ip4,fork,cert=server.pem,cafile=client.crt PIPE)))
 
 is an OpenSSL server that accepts TCP connections, presents the certificate
 from the file server.pem and forces the client to present a certificate that is
@@ -3465,7 +3466,7 @@ packet.
 
 dit(bf(SOCAT_IPV6_TCLASS) (output)) With all IPv6 based RECVFROM addresses
 where address option link(ipv6-recvtclass)(OPTION_IPV6_RECVTCLASS) is applied,
-socat sets this variable to the transfer class of the received packet.
+socat() sets this variable to the transfer class of the received packet.
 
 dit(bf(SOCAT_OPENSSL_X509_ISSUER) (output)) Issuer field from peer certificate
 

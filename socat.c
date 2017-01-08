@@ -290,7 +290,7 @@ int main(int argc, const char *argv[]) {
       sigfillset(&act.sa_mask);
       act.sa_flags = 0;
       act.sa_handler = socat_signal;
-      /* not sure which signals should be cauhgt and print a message */
+      /* not sure which signals should be caught and print a message */
       Sigaction(SIGHUP,  &act, NULL);
       Sigaction(SIGINT,  &act, NULL);
       Sigaction(SIGQUIT, &act, NULL);

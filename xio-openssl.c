@@ -1080,7 +1080,7 @@ cont_out:
       }
    }
 
-   /* set pre ssl-connect options */
+   /* set pre openssl-connect options */
    /* SSL_CIPHERS */
    if (ci_str != NULL) {
       if (sycSSL_CTX_set_cipher_list(*ctx, ci_str) <= 0) {

@@ -100,6 +100,13 @@ docu:
 	Corrected source of socat man page to correctly show man references
 	like socket(2); removed obseolete entries from See Also
 
+	Docu and some comments mentioned addresses SSL-LISTEN and SSL-CONNECT
+	that do not exist (OPENSSL-LISTEN, SSL-L; and OPENNSSL-CONNECT, SSL
+	are correct).
+	Thanks to Zhigang Wang for reporting this issue.
+
+	More minor docu corrections
+
 legal:
 	Added contributors to copyright notices. Suggested by Matt Braithwaite.
 
@@ -294,7 +301,7 @@ corrections:
 
 	In xioshutdown() a wrong branch was chosen after RECVFROM type addresses.
 	Probably no impact.
-	Thanks to David Binderman for reproting this issue.
+	Thanks to David Binderman for reporting this issue.
 
 	procan could not cleanly format ulimit values longer than 16 decimal
 	digits. Thanks to Frank Dana for providing a patch that increases field
@@ -837,7 +844,7 @@ new features:
 
 	range option supports form address:mask with IPv4
 
-	changed behaviour of SSL-LISTEN to require and verify client
+	changed behaviour of OPENSSL-LISTEN to require and verify client
 	certificate per default
 
 	options f-setlkw-rd, f-setlkw-wr, f-setlk-rd, f-setlk-wr allow finer

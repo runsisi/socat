@@ -10943,7 +10943,7 @@ NAME=FILENAMEOVFL
 case "$TESTS" in
 *%$N%*|*%functions%*|*%bugs%*|*%security%*|*%openssl%*|*%$NAME%*)
 TEST="$NAME: stack overflow on overly long file name"
-# provide a 600 bytes long key file option to SSL-CONNECT and check socats exit code
+# provide a 600 bytes long key file option to OPENSSL-CONNECT and check socats exit code
 if ! eval $NUMCOND; then :; else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
