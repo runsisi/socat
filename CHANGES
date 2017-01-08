@@ -47,6 +47,9 @@ corrections:
 	dhparams to fix this.
 	Thanks to Alexander Neumann for sending a patch.
 
+	Options shut-down and shut-close did not work.
+	Thanks to Stefan Schimanski for providing a patch.
+
 porting:
 	Type conflict between int and sig_atomic_t between declaration and
 	definition of diag_immediate_type and diag_immediate_exit broke
