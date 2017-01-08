@@ -1850,8 +1850,6 @@ label(OPTION_RCVBUF_LATE)dit(bf(tt(rcvbuf-late=<bytes>)))
 label(OPTION_RCVLOWAT)dit(bf(tt(rcvlowat=<bytes>)))
    Specifies the minimum number of received bytes [link(int)(TYPE_INT)] until
    the socket layer will pass the buffered data to socat(). 
-label(OPTION_RCVTIMEO)dit(bf(tt(rcvtimeo=<seconds>)))
-   Sets the receive timeout [link(timeval)(TYPE_TIMEVAL)]. 
 label(OPTION_REUSEADDR)dit(bf(tt(reuseaddr)))
    Allows other sockets to bind to an address even if parts of it (e.g. the
    local port) are already in use by socat() (link(example)(EXAMPLE_OPTION_REUSEADDR)). 
@@ -1864,8 +1862,6 @@ label(OPTION_SNDBUF_LATE)dit(bf(tt(sndbuf-late=<bytes>)))
 label(OPTION_SNDLOWAT)dit(bf(tt(sndlowat=<bytes>)))
    Specifies the minimum number of bytes in the send buffer until the socket
    layer will send the data to <bytes> [link(int)(TYPE_INT)].
-label(OPTION_SNDTIMEO)dit(bf(tt(sndtimeo=<seconds>)))
-   Sets the send timeout to seconds [link(timeval)(TYPE_TIMEVAL)].
 label(OPTION_PROTOCOL_FAMILY)dit(bf(tt(pf=<string>)))
    Forces the use of the specified IP version or protocol. <string> can be
    something like "ip4" or "ip6". The resulting value is

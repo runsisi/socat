@@ -103,14 +103,8 @@ const struct optdesc opt_so_dontroute= { "so-dontroute", "dontroute", OPT_SO_DON
 #ifdef SO_RCVLOWAT
 const struct optdesc opt_so_rcvlowat = { "so-rcvlowat",  "rcvlowat", OPT_SO_RCVLOWAT, GROUP_SOCKET, PH_PASTSOCKET, TYPE_INT,  OFUNC_SOCKOPT, SOL_SOCKET, SO_RCVLOWAT };
 #endif
-#ifdef SO_RCVTIMEO
-const struct optdesc opt_so_rcvtimeo = { "so-rcvtimeo",  "rcvtimeo", OPT_SO_RCVTIMEO, GROUP_SOCKET, PH_PASTSOCKET, TYPE_TIMEVAL,OFUNC_SOCKOPT,SOL_SOCKET,SO_RCVTIMEO };
-#endif
 #ifdef SO_SNDLOWAT
 const struct optdesc opt_so_sndlowat = { "so-sndlowat",  "sndlowat", OPT_SO_SNDLOWAT, GROUP_SOCKET, PH_PASTSOCKET, TYPE_INT,  OFUNC_SOCKOPT, SOL_SOCKET, SO_SNDLOWAT };
-#endif
-#ifdef SO_SNDTIMEO
-const struct optdesc opt_so_sndtimeo = { "so-sndtimeo",  "sndtimeo", OPT_SO_SNDTIMEO, GROUP_SOCKET, PH_PASTSOCKET, TYPE_TIMEVAL,OFUNC_SOCKOPT,SOL_SOCKET,SO_SNDTIMEO };
 #endif
 /* end of setsockopt options of UNIX98 standard */
 

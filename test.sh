@@ -512,12 +512,6 @@ filloptionvalues() {
     *,linger,*) OPTS=$(echo "$OPTS" |sed "s/,linger,/,linger=2,/g");;
     esac
     case "$OPTS" in
-    *,rcvtimeo,*) OPTS=$(echo "$OPTS" |sed "s/,rcvtimeo,/,rcvtimeo=1,/g");;
-    esac
-    case "$OPTS" in
-    *,sndtimeo,*) OPTS=$(echo "$OPTS" |sed "s/,sndtimeo,/,sndtimeo=1,/g");;
-    esac
-    case "$OPTS" in
     *,connect-timeout,*) OPTS=$(echo "$OPTS" |sed "s/,connect-timeout,/,connect-timeout=1,/g");;
     esac
     # IP

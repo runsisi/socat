@@ -39,6 +39,10 @@ corrections:
 	Test: UDP4MAXCHILDREN UDP6MAXCHILDREN
 	Thanks to Leander Berwers for reporting this issue.
 
+	Options so-rcvtimeo and so-sndtimeo do not work with poll()/select()
+	and therefore were useless.
+	Thanks to Steve Borenstein for reporting this issue.
+
 porting:
 	Type conflict between int and sig_atomic_t between declaration and
 	definition of diag_immediate_type and diag_immediate_exit broke
