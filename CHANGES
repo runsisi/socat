@@ -50,6 +50,10 @@ corrections:
 	Options shut-down and shut-close did not work.
 	Thanks to Stefan Schimanski for providing a patch.
 
+	There was a bug in printing readline log message caused by a misleading
+	indentation.
+	Thanks to Paul Wouters for reporting.
+
 porting:
 	Type conflict between int and sig_atomic_t between declaration and
 	definition of diag_immediate_type and diag_immediate_exit broke

@@ -61,8 +61,10 @@ static int xioopen_readline(int argc, const char *argv[], struct opt *opts,
    if ((rw+1)&1) {
       strcpy(cp, "readline on stdin for reading"); cp = strchr(cp, '\0');
 
-      if ((rw+1)&2)
-	 strcpy(cp, " and ");  cp = strchr(cp, '\0');
+      if ((rw+1)&2) {
+	 strcpy(cp, " and ");
+	 cp = strchr(cp, '\0');
+      }
    }
    if ((rw+1)&2) {
       strcpy(cp, "stdio for writing"); cp = strchr(cp, '\0');
