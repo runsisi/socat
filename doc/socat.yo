@@ -1503,10 +1503,10 @@ label(OPTION_SHUT_NONE)dit(bf(tt(shut-none)))
    connection to not do anything.
 label(OPTION_SHUT_DOWN)dit(bf(tt(shut-down)))
    Changes the (address dependent) method of shutting down the write part of a
-   connection to tt(NOEXPAND(shutdown(fd, SHUT_WR))). Is only useful with sockets.
+   connection to NOEXPAND(shutdown(fd, SHUT_WR)). Is only useful with sockets.
 label(OPTION_SHUT_CLOSE)dit(bf(tt(shut-close)))
    Changes the (address dependent) method of shutting down the write part of a
-   connection to tt(NOEXPAND(close(fd))).
+   connection to NOEXPAND(close(fd)).
 label(OPTION_SHUT_NULL)dit(bf(tt(shut-null)))
    When one address indicates EOF, socat() will send a zero sized packet to the
    write channel of the other address to transfer the EOF condition. This is

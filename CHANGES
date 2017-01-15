@@ -99,6 +99,9 @@ testing:
 
 	A few corrections in test.sh
 
+	DTLS1 test hangs on some distributions. Test is now only performed
+	with OpenSSL 1.0.2 or higher.
+
 docu:
 	Corrected source of socat man page to correctly show man references
 	like socket(2); removed obseolete entries from See Also
@@ -110,6 +113,8 @@ docu:
 
 	Fixed a couple of English spelling and grammar mistakes.
 	Thanks to Jakub Wild for sending the patches.
+
+	NOEXPAND() was not resolved 2 times.
 
 	More minor docu corrections
 

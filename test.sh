@@ -47,6 +47,7 @@ _MICROS=$((MICROS+999999)); SECONDs="${_MICROS%??????}"
 withroot=0	# perform privileged tests even if not run by root
 #PATH=$PATH:/opt/freeware/bin
 #PATH=$PATH:/usr/local/ssl/bin
+PATH=$PATH:/sbin 	# RHEL6:ip
 case "$0" in
     */*) PATH="${0%/*}:$PATH"
 esac
@@ -4938,7 +4939,7 @@ N=$((N+1))
 NAME=READLINE
 #set -vx
 case "$TESTS" in
-*%$N%*|*%functions%*|*%pty%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%pty%*|*%readline%*|*%$NAME%*)
 TEST="$NAME: readline with password and sigint"
 if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs readline pty); then
@@ -11261,7 +11262,6 @@ pid1=$!
 sleep 1
 echo "$da 2" |$CMD1 >"${tf}2" 2>"${te}2" &
 pid2=$!
-rc2=$!
 sleep 2
 kill $pid1 $pid2 $pid0 2>/dev/null; wait
 if echo -e "$da 1\n$da 2" |diff - $tf >$tdiff; then
@@ -11297,14 +11297,14 @@ UNIX  UNIX $td/test\$N.server -
 # care for timing, understand what you want :-)
 
 
-while read KEYW FEAT ADDR IPPORT; do
+while read KEYW FEAT ADDR IPPORT SHUT; do
 if [ -z "$KEYW" ]|| [[ "$KEYW" == \#* ]]; then continue; fi
 PROTO=$KEYW
 proto="$(echo "$PROTO" |tr A-Z a-z)"
 # test the max-children option on pseudo connected sockets
 NAME=${KEYW}MAXCHILDREN
 case "$TESTS" in
-*%$N%*|*%functions%*|*%maxchildren%*|*%socket%*|*%dgram%*|*%udp%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%maxchildren%*|*%socket%*|*%$NAME%*)
 TEST="$NAME: max-children option"
 # start a listen process with max-children=1; connect with a client, let it
 # send data and then sleep; connect with second client that wants to send
@@ -11327,7 +11327,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
 CMD0="$TRACE $SOCAT $opts -U FILE:$tf,o-trunc,o-creat,o-append $PROTO-LISTEN:$tsl,fork,max-children=1"
-CMD1="$TRACE $SOCAT $opts -u - $PROTO-CONNECT:$tsc"
+CMD1="$TRACE $SOCAT $opts -u - $PROTO-CONNECT:$tsc,$SHUT"
 printf "test $F_n $TEST... " $N
 $CMD0 >/dev/null 2>"${te}0" &
 pid0=$!
@@ -11337,7 +11337,6 @@ pid1=$!
 sleep 1
 echo "$da 2" |$CMD1 >"${tf}2" 2>"${te}2" &
 pid2=$!
-rc2=$!
 sleep 1
 kill -QUIT $pid1 $pid2 $pid0 2>/dev/null; wait
 if echo -e "$da 1" |diff - $tf >$tdiff; then
@@ -11360,9 +11359,15 @@ fi # NUMCOND
 esac
 N=$((N+1))
 done <<<"
-UDP4  UDP  127.0.0.1 PORT
-UDP6  UDP  127.0.0.1 PORT
+UDP4  UDP  127.0.0.1 PORT shut-null
+UDP6  UDP  127.0.0.1 PORT shut-null
+UNIX  UNIX $td/test\$N.server -
 "
+# debugging this hanging test was difficult - following lessons learned:
+# kill <parent> had no effect when child process existed
+# strace -f (on Fedora-23) sometimes writes/pads? blocks with \0, overwriting client traces
+# using the TRACE feature lets above kill command kill strace, not socat
+# care for timing, understand what you want :-)
 
 
 # socat up to 1.7.2.0 had a bug in xioscan_readline() that could be exploited
@@ -11370,12 +11375,16 @@ UDP6  UDP  127.0.0.1 PORT
 # problem reported by Johan Thillemann
 NAME=READLINE_OVFL
 case "$TESTS" in
-*%$N%*|*%functions%*|*%bugs%*|*%security%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%bugs%*|*%security%*|*%readline%*|*%$NAME%*)
 TEST="$NAME: test for buffer overflow in readline prompt handling"
 # address 1 is the readline where write data was handled erroneous
 # address 2 provides data to trigger the buffer overflow
 # when no SIGSEGV or so occurs the test succeeded (bug fixed)
-if ! eval $NUMCOND; then :; else
+if ! eval $NUMCOND; then :;
+elif ! feat=$(testaddrs readline pty); then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 ti="$td/test$N.data"
@@ -11579,7 +11588,11 @@ TEST="$NAME: test OPENSSL-CONNECT with bind option"
 # have a simple SSL server that just echoes data.
 # connect with socat using OPENSSL-CONNECT with bind, send data and check if the
 # reply is identical.
-if ! eval $NUMCOND; then :; else
+if ! eval $NUMCOND; then :;
+elif ! testaddrs openssl >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
 tf0="$td/test$N.0.stdout"
 te0="$td/test$N.0.stderr"
 tf1="$td/test$N.1.stdout"
@@ -11687,9 +11700,10 @@ TEST="$NAME: $SSLDIST sets env SOCAT_${SSLDIST}_${MODULE}_${FIELD}"
 # code extracts and prints the SOCAT related environment vars.
 # outside code then checks if the environment contains the variables correctly
 # describing the desired field.
+FEAT=$(echo "$ssldist" |tr a-z A-Z)
 if ! eval $NUMCOND; then :;
-elif ! feat=$(testaddrs $FEAT); then
-    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat" |tr a-z A-Z) not available${NORMAL}\n" $N
+elif ! testaddrs $FEAT >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$FEAT not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
 tf="$td/test$N.stdout"
@@ -12135,7 +12149,11 @@ TEST="$NAME: SYSTEM address does not shutdown its parents addresses"
 # when the client recieves its data and terminates without error the test succeeded
 # in case of the bug the client issues an error like:
 # SSL_connect(): error:1408F119:SSL routines:SSL3_GET_RECORD:decryption failed or bad record mac
-if ! eval $NUMCOND; then :; else
+if ! eval $NUMCOND; then :;
+elif ! testaddrs openssl >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
@@ -12222,6 +12240,14 @@ esac
 PORT=$((PORT+1))
 N=$((N+1))
 
+# the OPENSSL_METHOD_DTLS1 test hangs sometimes, probably depending on the openssl version.
+OPENSSL_VERSION="$(openssl version)"
+OPENSSL_VERSION="${OPENSSL_VERSION#* }"
+OPENSSL_VERSION="${OPENSSL_VERSION%%-*}"
+OPENSSL_VERSION_GOOD=1.0.2 	# this is just a guess.
+				# known bad:  1.0.1e
+				# known good: 1.0.2j
+
 # test if the various SSL methods can be used with OpenSSL
 for method in SSL3 SSL23 TLS1 TLS1.1 TLS1.2 DTLS1; do
 
@@ -12234,7 +12260,11 @@ TEST="$NAME: test OpenSSL method $method"
 # Start a second socat process connecting to the listener using
 # the same method, send some data and catch the reply.
 # If the reply is identical to the sent data the test succeeded.
-if ! eval $NUMCOND; then :; else
+if ! eval $NUMCOND; then :;
+elif ! testaddrs openssl >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
@@ -12242,6 +12272,10 @@ da="test$N $(date) $RANDOM"
 CMD0="$SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,method=$method,cipher=aNULL,verify=0 PIPE"
 CMD1="$SOCAT $opts - OPENSSL-CONNECT:$LOCALHOST:$PORT,method=$method,cipher=aNULL,verify=0"
 printf "test $F_n $TEST... " $N
+if [ "$method" = DTLS1 -a "$(echo -e "$OPENSSL_VERSION\n1.0.2" |sort -V |tail -n 1)" = "$OPENSSL_VERSION_GOOD" ]; then
+    $PRINTF "${YELLOW}might hang, skipping${NORMAL}\n"
+    numCANT=$((numCANT+1))
+else
 $CMD0 >/dev/null 2>"${te}0" &
 pid0=$!
 waittcp4port $PORT 1
@@ -12264,6 +12298,7 @@ else
     numFAIL=$((numFAIL+1))
     listFAIL="$listFAIL $N"
 fi
+fi # !DTLS1 hang
 fi # NUMCOND
  ;;
 esac
@@ -12563,7 +12598,11 @@ case "$TESTS" in
 TEST="$NAME: test OpenSSL ECDHE"
 # generate a ECDHE key, start an OpenSSL server, connect with a client and try to
 # pass data
-if ! eval $NUMCOND; then :; else
+if ! eval $NUMCOND; then :;
+elif ! testaddrs openssl >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
