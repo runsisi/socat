@@ -296,7 +296,7 @@ static char *diag_longlong_to_dec(char *field, size_t n, long long ll, int leadi
  */
 static char *diag_ulonglong_to_hex(char *field, size_t n, unsigned long long ull, int leading0, size_t size) {
    char *np = field+n;	/* point to the end */
-   unsigned int i;
+   ptrdiff_t i;
    char c;
 
    if (n == 0)  return NULL;
@@ -313,7 +313,7 @@ static char *diag_ulonglong_to_hex(char *field, size_t n, unsigned long long ull
 	 c = ' ';
       }
       i = size - strlen(np);
-      while (--i >= 0) {
+      while (i-- > 0) {
 	 *--np = c;
       }
    }	     

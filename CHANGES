@@ -54,6 +54,9 @@ corrections:
 	indentation.
 	Thanks to Paul Wouters for reporting.
 
+	The internal vsnprintf_r function looped or crashed on size parameter
+	with hexadecimal output.
+
 porting:
 	Type conflict between int and sig_atomic_t between declaration and
 	definition of diag_immediate_type and diag_immediate_exit broke
