@@ -60,6 +60,9 @@ corrections:
 	Ignore exit code of child process when it was killed by master due to
 	EOF
 
+	Corrected byte order on read of IPV6_TCLASS value from ancillary
+	message
+
 porting:
 	Type conflict between int and sig_atomic_t between declaration and
 	definition of diag_immediate_type and diag_immediate_exit broke

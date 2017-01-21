@@ -292,11 +292,14 @@ int xiolog_ancillary_ip6(struct cmsghdr *cmsg, int *num,
       return STAT_OK;
 #endif
 #ifdef IPV6_TCLASS
-   case IPV6_TCLASS:
+   case IPV6_TCLASS: {
+      unsigned int u;
       typbuff[0] = '\0'; strncat(typbuff, "IPV6_TCLASS", typlen-1);
       nambuff[0] = '\0'; strncat(nambuff, "tclass", namlen-1);
-      xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0);
+      u = ntohl(*(unsigned int *)CMSG_DATA(cmsg));
+      xiodump((const unsigned char *)&u, msglen, valbuff, vallen, 0);
       return STAT_OK;
+   }
 #endif
    default:
       snprintf(typbuff, typlen, "IPV6.%u", cmsg->cmsg_type);
