@@ -54,9 +54,14 @@ int xioclose1(struct single *pipe) {
       switch (pipe->howtoend) {
       case END_KILL: case END_SHUTDOWN_KILL: case END_CLOSE_KILL:
 	 if (pipe->para.exec.pid > 0) {
-	    if (Kill(pipe->para.exec.pid, SIGTERM) < 0) {
+	    pid_t pid;
+
+	    /* first unregister child pid, so our sigchld handler will not throw an error */
+	    pid = pipe->para.exec.pid;
+	    pipe->para.exec.pid = 0;
+	    if (Kill(pid, SIGTERM) < 0) {
 	       Msg2(errno==ESRCH?E_INFO:E_WARN, "kill(%d, SIGTERM): %s",
-		    pipe->para.exec.pid, strerror(errno));
+		    pid, strerror(errno));
 	    }
 	 }
       default:

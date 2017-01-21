@@ -57,6 +57,9 @@ corrections:
 	The internal vsnprintf_r function looped or crashed on size parameter
 	with hexadecimal output.
 
+	Ignore exit code of child process when it was killed by master due to
+	EOF
+
 porting:
 	Type conflict between int and sig_atomic_t between declaration and
 	definition of diag_immediate_type and diag_immediate_exit broke
