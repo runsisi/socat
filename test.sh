@@ -1677,6 +1677,10 @@ testaddrs () {
 	A=$(echo "$a" |tr 'a-z-' 'A-Z_')
 	if $TRACE $SOCAT -V |grep "#define WITH_$A 1\$" >/dev/null; then
 	    shift
+	    if [[ "$FEAT" =~ OPENSSL.* ]]; then
+		gentestcert testsrv
+		gentestcert testcli
+	    fi
 	    continue
 	fi
 	echo "$a"
@@ -1718,6 +1722,27 @@ childprocess () {
     DragonFly)l="$(ps -faje |grep "^[^ ][^ ]*[ ][ ]*..... $(printf %5u $1)")" ;;
     CYGWIN*)  l="$(ps -pafe |grep "^[^ ]*[ ][ ]*[^ ][^ ]*[ ][ ]*$1[ ]")" ;;
     *)       l="$(ps -fade |grep "^[^ ][^ ]*[ ][ ]*[0-9][0-9]**[ ][ ]*$(printf %5u $1) ")" ;;    esac
+    if [ -z "$l" ]; then
+	return 1;
+    fi
+    echo "$l"
+    return 0
+}
+
+# return a list of child process pids
+childpids () {
+    case "$UNAME" in
+    AIX)     l="$(ps -fade |grep "^........ ...... $(printf %6u $1)" |awk '{print($2);}')" ;;
+    FreeBSD) l="$(ps -faje |grep "^........ ..... $(printf %5u $1)" |awk '{print($2);}')" ;;
+    HP-UX)   l="$(ps -fade |grep "^........ ..... $(printf %5u $1)" |awk '{print($2);}')" ;;
+    Linux)   l="$(ps -fade |grep "^........ ..... $(printf %5u $1)" |awk '{print($2);}')" ;;
+#    NetBSD)  l="$(ps -aj   |grep "^........ ..... $(printf %4u $1)" |awk '{print($2);}')" ;;
+    NetBSD)  l="$(ps -aj   |grep "^[^ ][^ ]*[ ][ ]*..... $(printf %5u $1)" |awk '{print($2);}')" ;;
+    OpenBSD) l="$(ps -aj   |grep "^........ ..... $(printf %5u $1)" |awk '{print($2);}')" ;;
+    SunOS)   l="$(ps -fade |grep "^........ ..... $(printf %5u $1)" |awk '{print($2);}')" ;;
+    DragonFly)l="$(ps -faje |grep "^[^ ][^ ]*[ ][ ]*..... $(printf %5u $1)" |awk '{print($2);}')" ;;
+    CYGWIN*)  l="$(ps -pafe |grep "^[^ ]*[ ][ ]*[^ ][^ ]*[ ][ ]*$1[ ]" |awk '{print($2)';})" ;;
+    *)       l="$(ps -fade |grep "^[^ ][^ ]*[ ][ ]*[0-9][0-9]**[ ][ ]*$(printf %5u $1) " |awk '{print($2)';})" ;;    esac
     if [ -z "$l" ]; then
 	return 1;
     fi
@@ -8767,6 +8792,8 @@ if [ $? -ne 0 ]; then
     listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
     $PRINTF "$FAILED\n"
+    echo "$CMD &"
+    echo "$CMD1"
     cat "$tdiff"
     cat "${te}" "${te}1"
     numFAIL=$((numFAIL+1))
@@ -8825,6 +8852,8 @@ if [ $? -ne 0 ]; then
     listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
     $PRINTF "$FAILED\n"
+    echo "$CMD &"
+    echo "$CMD1"
     cat "$tdiff"
     cat "${te}" "${te}1"
     numFAIL=$((numFAIL+1))
@@ -9722,7 +9751,7 @@ pf="$(echo "$PF" |tr A-Z a-z)"
 proto="$(echo "$KEYW" |tr A-Z a-z)"
 NAME=${KEYW}SCM_$SCM_TYPE
 case "$TESTS" in
-*%$N%*|*%functions%*|*%$pf%*|*%dgram%*|*%udp%*|*%$proto%*|*%recv%*|*%ancillary%*|*%$ROOT%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%socket%*|*%$pf%*|*%dgram%*|*%udp%*|*%$proto%*|*%recv%*|*%ancillary%*|*%$ROOT%*|*%$NAME%*)
 TEST="$NAME: $KEYW log ancillary message $SCM_TYPE $SCM_NAME"
 # idea: start a socat process with *-RECV:..,... , ev. with ancillary message
 # enabling option and send it a packet, ev. with some option. check the info log
@@ -9776,7 +9805,7 @@ case "$opts" in
 *)             LEVELS="[E]" ;;
 esac
 if [ "$SCM_VALUE" = "timestamp" ]; then
-    SCM_VALUE="$(date '+%a %b %e %H:%M:.. %Y')"
+    SCM_VALUE="$(date '+%a %b %e %H:%M:.. %Y'), ...... usecs"
 fi
 if [ "$rc1" -ne 0 ]; then
     $PRINTF "$NO_RESULT: $TRACE $SOCAT:\n"
@@ -9794,7 +9823,7 @@ elif ! grep "ancillary message: $SCM_TYPE: $SCM_NAME=" ${te}0 >/dev/null; then
     grep " $LEVELS " "${te}1"
     numFAIL=$((numFAIL+1))
     listFAIL="$listFAIL $N"
-elif ! grep "ancillary message: $SCM_TYPE: $SCM_NAME=$SCM_VALUE" ${te}0 >/dev/null; then
+elif ! grep "ancillary message: $SCM_TYPE: $SCM_NAME=$SCM_VALUE\$" ${te}0 >/dev/null; then
     $PRINTF "$FAILED\n"
     badval="$(grep "ancillary message: $SCM_TYPE: $SCM_NAME" ${te}0 |sed 's/.*=//g')"
     echo "variable $SCM_TYPE: $SCM_NAME has value \"$badval\" instead of pattern \"$SCM_VALUE\"" >&2
@@ -9811,7 +9840,6 @@ else
     fi
     numOK=$((numOK+1))
 fi
-#set +vx
 else # option is not supported
     $PRINTF "${YELLOW}$SCM_RECV not available${NORMAL}\n"
     numCANT=$((numCANT+1))
@@ -9843,11 +9871,11 @@ IP4  IP4  127.0.0.1 PROTO ,                    ip-recvdstaddr    IP_RECVDSTADDR 
 IP6  UDP6 [::1]     PORT  ,                    so-timestamp      SCM_TIMESTAMP  timestamp user timestamp
 IP6  UDP6 [::1]     PORT  ,                    ipv6-recvpktinfo  IPV6_PKTINFO   dstaddr   user [[]0000:0000:0000:0000:0000:0000:0000:0001[]]
 IP6  UDP6 [::1]     PORT  ipv6-unicast-hops=35 ipv6-recvhoplimit IPV6_HOPLIMIT  hoplimit  user 35
-IP6  UDP6 [::1]     PORT  ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    tclass    user xaa000000
+IP6  UDP6 [::1]     PORT  ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    tclass    user x000000aa
 IP6  IP6  [::1]     PROTO ,                    so-timestamp      SCM_TIMESTAMP  timestamp root timestamp
 IP6  IP6  [::1]     PROTO ,                    ipv6-recvpktinfo  IPV6_PKTINFO   dstaddr   root [[]0000:0000:0000:0000:0000:0000:0000:0001[]]
 IP6  IP6  [::1]     PROTO ipv6-unicast-hops=35 ipv6-recvhoplimit IPV6_HOPLIMIT  hoplimit  root 35
-IP6  IP6  [::1]     PROTO ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    tclass    root xaa000000
+IP6  IP6  [::1]     PROTO ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    tclass    root x000000aa
 #UNIX UNIX $td/test\$N.server - ,               so-timestamp      SCM_TIMESTAMP  timestamp user timestamp
 "
 # this one fails, appearently due to a Linux weakness:
@@ -9969,7 +9997,7 @@ pf="$(echo "$PF" |tr A-Z a-z)"
 proto="$(echo "$KEYW" |tr A-Z a-z)"
 NAME=${KEYW}ENV_$SCM_ENVNAME
 case "$TESTS" in
-*%$N%*|*%functions%*|*%$pf%*|*%dgram%*|*%udp%*|*%$proto%*|*%recv%*|*%ancillary%*|*%envvar%*|*%$ROOT%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%socket%*|*%$pf%*|*%dgram%*|*%udp%*|*%$proto%*|*%recv%*|*%ancillary%*|*%envvar%*|*%$ROOT%*|*%$NAME%*)
 #set -vx
 TEST="$NAME: $KEYW ancillary message sets env SOCAT_$SCM_ENVNAME"
 # idea: start a socat process with *-RECVFROM:..,... , ev. with ancillary
@@ -10026,8 +10054,9 @@ if [ "$rc1" -ne 0 ]; then
     numCANT=$((numCANT+1))
 #elif ! egrep "^export SOCAT_$SCM_ENVNAME=[\"']?$SCM_VALUE[\"']?\$" ${tf} >/dev/null; then
 #elif ! eval echo "$TRACE $SOCAT_\$SCM_VALUE" |diff - "${tf}" >/dev/null; then
-elif ! expr "$(cat "$tf")" : "$(eval echo "\$SCM_VALUE")" >/dev/null; then
+elif ! expr "$(cat "$tf")" : "$(eval echo "\$SCM_VALUE")\$" >/dev/null; then
     $PRINTF "$FAILED\n"
+    echo "logged value \"$(cat "$tf")\" instead of \"$(eval echo "\$SCM_VALUE")\""
     echo "$CMD0 &"
     echo "$CMD1"
     cat "${te}0"
@@ -10070,10 +10099,10 @@ IP4  IP4  127.0.0.1 PROTO ,                    ip-recvif         IP_IF          
 IP4  IP4  127.0.0.1 PROTO ,                    ip-recvdstaddr    IP_DSTADDR     root 127.0.0.1
 IP6  UDP6 [::1]     PORT  ,                    ipv6-recvpktinfo  IPV6_DSTADDR   user [[]0000:0000:0000:0000:0000:0000:0000:0001[]]
 IP6  UDP6 [::1]     PORT  ipv6-unicast-hops=35 ipv6-recvhoplimit IPV6_HOPLIMIT  user 35
-IP6  UDP6 [::1]     PORT  ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    user xaa000000
+IP6  UDP6 [::1]     PORT  ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    user x000000aa
 IP6  IP6  [::1]     PROTO ,                    ipv6-recvpktinfo  IPV6_DSTADDR   root [[]0000:0000:0000:0000:0000:0000:0000:0001[]]
 IP6  IP6  [::1]     PROTO ipv6-unicast-hops=35 ipv6-recvhoplimit IPV6_HOPLIMIT  root 35
-IP6  IP6  [::1]     PROTO ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    root xaa000000
+IP6  IP6  [::1]     PROTO ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    root x000000aa
 #UNIX UNIX $td/test\$N.server - ,               so-timestamp      TIMESTAMP      user timestamp
 "
 
@@ -11252,7 +11281,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
 CMD0="$TRACE $SOCAT $opts -U FILE:$tf,o-trunc,o-creat,o-append $PROTO-LISTEN:$tsl,fork,max-children=1"
-CMD1="$TRACE $SOCAT $opts -u - $PROTO-CONNECT:$tsc"
+CMD1="$TRACE $SOCAT $opts -u - $PROTO-CONNECT:$tsc,shut-null"
 printf "test $F_n $TEST... " $N
 $CMD0 >/dev/null 2>"${te}0" &
 pid0=$!
@@ -11338,7 +11367,8 @@ sleep 1
 echo "$da 2" |$CMD1 >"${tf}2" 2>"${te}2" &
 pid2=$!
 sleep 1
-kill -QUIT $pid1 $pid2 $pid0 2>/dev/null; wait
+cpids="$(childpids $pid0)"
+kill $pid1 $pid2 $pid0 $cpids 2>/dev/null; wait
 if echo -e "$da 1" |diff - $tf >$tdiff; then
     $PRINTF "$OK\n"
     numOK=$((numOK+1))
@@ -11361,7 +11391,6 @@ N=$((N+1))
 done <<<"
 UDP4  UDP  127.0.0.1 PORT shut-null
 UDP6  UDP  127.0.0.1 PORT shut-null
-UNIX  UNIX $td/test\$N.server -
 "
 # debugging this hanging test was difficult - following lessons learned:
 # kill <parent> had no effect when child process existed
@@ -12354,9 +12383,10 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD0="$TRACE $SOCAT $opts /dev/null SYSTEM:false"
+# shut-none makes sure that the child is not killed by parent
+CMD0="$TRACE $SOCAT $opts - SYSTEM:false,shut-none"
 printf "test $F_n $TEST... " $N
-$CMD0 >/dev/null 2>"${te}0"
+sleep 1 |$CMD0 >/dev/null 2>"${te}0"
 rc0=$?
 if [ $rc0 -eq 0 ]; then
     $PRINTF "$FAILED\n"
@@ -12387,9 +12417,10 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD0="$TRACE $SOCAT $opts EXEC:false /dev/null"
+# shut-none makes sure that the child is not killed by parent
+CMD0="$TRACE $SOCAT $opts - EXEC:false,shut-none"
 printf "test $F_n $TEST... " $N
-$CMD0 >/dev/null 2>"${te}0"
+sleep 1 |$CMD0 >/dev/null 2>"${te}0"
 rc0=$?
 if [ $rc0 -eq 0 ]; then
     $PRINTF "$FAILED\n"
@@ -12419,7 +12450,11 @@ TEST="$NAME: test the so-reuseaddr option"
 # process 2 tries to listen on this port with SO_REUSEADDR, will fail if the
 # SO_REUSEADDR socket options did not work
 # process 3 connects to this port; only if it is successful the test is ok
-if ! eval $NUMCOND; then :; else
+if ! eval $NUMCOND; then :;
+elif ! feat=$(testoptions so-reuseaddr); then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
 tp="$PORT"
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -12486,7 +12521,11 @@ TEST="$NAME: test the so-reuseport option"
 # process 2 connects to this port and transfers data
 # process 3 connects to this port and transfers data
 # test succeeds when both data transfers work
-if ! eval $NUMCOND; then :; else
+if ! eval $NUMCOND; then :;
+elif ! feat=$(testoptions so-reuseport); then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
 tp="$PORT"
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"

@@ -109,6 +109,8 @@ testing:
 	DTLS1 test hangs on some distributions. Test is now only performed
 	with OpenSSL 1.0.2 or higher.
 
+	More corrections to test.sh that reveal a mistake with IPV6_TCLASS
+
 docu:
 	Corrected source of socat man page to correctly show man references
 	like socket(2); removed obseolete entries from See Also
