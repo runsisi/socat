@@ -73,6 +73,9 @@ corrections:
 	TTL: 4 bytes), the old implementation failed for TTL on big-endian
 	hosts.
 
+	Fixed an issue in options processing: TUN and DNS flags had failed on
+	big-endian systems and the NO- forms had probable never worked.
+
 porting:
 	Type conflict between int and sig_atomic_t between declaration and
 	definition of diag_immediate_type and diag_immediate_exit broke

@@ -4002,7 +4002,7 @@ int applyopts_single(struct single *xfd, struct opt *opts, enum e_phase phase) {
 	   void *masks = (char *)xfd + opt->desc->major;
 	   size_t masksize = opt->desc->minor;
 	   unsigned long bit = opt->desc->arg3;
-	   switch (masksize) {
+	   switch (masksize>>1) {
 	   case sizeof(uint16_t):
 	      if (opt->value.u_bool) {
 		 ((uint16_t *)masks)[0] |= bit;
