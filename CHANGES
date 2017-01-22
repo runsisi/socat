@@ -69,6 +69,10 @@ corrections:
 	On systems with predefined bool type whose size differs from int some
 	IPv6 and TCP options (per setsockopt()) failed.
 
+	Length of integral data in ancillary messages varies (TOS: 1 byte,
+	TTL: 4 bytes), the old implementation failed for TTL on big-endian
+	hosts.
+
 porting:
 	Type conflict between int and sig_atomic_t between declaration and
 	definition of diag_immediate_type and diag_immediate_exit broke

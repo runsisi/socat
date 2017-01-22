@@ -465,7 +465,8 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
 			char *nambuff, int namlen,
 			char *envbuff, int envlen,
 			char *valbuff, int vallen) {
-   const char *cmsgtype, *cmsgname = NULL, *cmsgenvn = NULL, *cmsgfmt = NULL;
+   int cmsgctr = 0;
+   const char *cmsgtype, *cmsgname = NULL, *cmsgenvn = NULL;
    size_t msglen;
    char scratch1[16];	/* can hold an IPv4 address in ASCII */
 #if WITH_IP4 && defined(IP_PKTINFO) && HAVE_STRUCT_IN_PKTINFO
@@ -555,17 +556,17 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
 #ifdef IP_RECVOPTS
    case IP_RECVOPTS:
 #endif
-      cmsgtype = "IP_OPTIONS"; cmsgname = "options"; cmsgfmt = NULL; break;
+      cmsgtype = "IP_OPTIONS"; cmsgname = "options"; cmsgctr = -1; break;
    case IP_TOS:
-      cmsgtype = "IP_TOS";     cmsgname = "tos"; cmsgfmt = "%u"; break;
+      cmsgtype = "IP_TOS";     cmsgname = "tos"; cmsgctr = msglen; break;
    case IP_TTL: /* Linux */
 #ifdef IP_RECVTTL
    case IP_RECVTTL: /* FreeBSD */
 #endif
-      cmsgtype = "IP_TTL";     cmsgname = "ttl"; cmsgfmt = "%u"; break;
+      cmsgtype = "IP_TTL";     cmsgname = "ttl"; cmsgctr = msglen; break;
    }
    /* when we come here we provide a single parameter
-      with type in cmsgtype, name in cmsgname, printf format in cmsgfmt */
+      with type in cmsgtype, name in cmsgname, value length in msglen */
    *num = 1;
    if (strlen(cmsgtype) >= typlen)  rc = STAT_WARNING;
    typbuff[0] = '\0'; strncat(typbuff, cmsgtype, typlen-1);
@@ -577,10 +578,14 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
    } else {
       envbuff[0] = '\0';
    }
-   if (cmsgfmt != NULL) {
-      snprintf(valbuff, vallen, cmsgfmt, *(unsigned char *)CMSG_DATA(cmsg));
-   } else {
-      xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0);
+   switch (cmsgctr) {
+   case sizeof(char):
+      snprintf(valbuff, vallen, "%u", *(unsigned char *)CMSG_DATA(cmsg)); break;
+   case sizeof(int):
+      snprintf(valbuff, vallen, "%u",    (*(unsigned int *)CMSG_DATA(cmsg))); break;
+   case 0:
+      xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0); break;
+   default: break;
    }
    return rc;
 }
