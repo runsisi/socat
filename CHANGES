@@ -63,6 +63,12 @@ corrections:
 	Corrected byte order on read of IPV6_TCLASS value from ancillary
 	message
 
+	Fixed type of the bool element in options. This had bug caused failures
+	e.g. of ignoreeof on big-endian systems when bool was not based on int.
+
+	On systems with predefined bool type whose size differs from int some
+	IPv6 and TCP options (per setsockopt()) failed.
+
 porting:
 	Type conflict between int and sig_atomic_t between declaration and
 	definition of diag_immediate_type and diag_immediate_exit broke

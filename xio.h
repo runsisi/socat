@@ -304,7 +304,7 @@ struct addrdesc {
 typedef unsigned long flags_t;
 
 union integral {
-   int            u_bool;
+   bool           u_bool;
    uint8_t        u_byte;
    gid_t          u_gidt;
    int	          u_int;

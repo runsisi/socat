@@ -107,13 +107,13 @@ const struct optdesc opt_tcp_conn_abort_threshold = { "tcp-conn-abort-threshold"
 const struct optdesc opt_tcp_keepinit = { "tcp-keepinit", "keepinit", OPT_TCP_KEEPINIT, GROUP_IP_TCP, PH_PASTSOCKET, TYPE_INT, OFUNC_SOCKOPT, SOL_TCP, TCP_KEEPINIT };
 #endif
 #ifdef TCP_PAWS	/* OSF1 aka Tru64 */
-const struct optdesc opt_tcp_paws = { "tcp-paws", "paws", OPT_TCP_PAWS, GROUP_IP_TCP, PH_PASTSOCKET, TYPE_BOOL, OFUNC_SOCKOPT, SOL_TCP, TCP_PAWS };
+const struct optdesc opt_tcp_paws = { "tcp-paws", "paws", OPT_TCP_PAWS, GROUP_IP_TCP, PH_PASTSOCKET, TYPE_INT, OFUNC_SOCKOPT, SOL_TCP, TCP_PAWS };
 #endif
 #ifdef TCP_SACKENA	/* OSF1 aka Tru64 */
-const struct optdesc opt_tcp_sackena = { "tcp-sackena", "sackena", OPT_TCP_SACKENA, GROUP_IP_TCP, PH_PASTSOCKET, TYPE_BOOL, OFUNC_SOCKOPT, SOL_TCP, TCP_SACKENA };
+const struct optdesc opt_tcp_sackena = { "tcp-sackena", "sackena", OPT_TCP_SACKENA, GROUP_IP_TCP, PH_PASTSOCKET, TYPE_INT, OFUNC_SOCKOPT, SOL_TCP, TCP_SACKENA };
 #endif
 #ifdef TCP_TSOPTENA	/* OSF1 aka Tru64 */
-const struct optdesc opt_tcp_tsoptena = { "tcp-tsoptena", "tsoptena", OPT_TCP_TSOPTENA, GROUP_IP_TCP, PH_PASTSOCKET, TYPE_BOOL, OFUNC_SOCKOPT, SOL_TCP, TCP_TSOPTENA };
+const struct optdesc opt_tcp_tsoptena = { "tcp-tsoptena", "tsoptena", OPT_TCP_TSOPTENA, GROUP_IP_TCP, PH_PASTSOCKET, TYPE_INT, OFUNC_SOCKOPT, SOL_TCP, TCP_TSOPTENA };
 #endif
 
 #endif /* WITH_TCP */
