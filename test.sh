@@ -31,6 +31,7 @@ done
 
 opt_t="-t $val_t"
 
+UNAME=`uname`
 
 #MICROS=100000
 case "X$val_t" in
@@ -69,7 +70,11 @@ TESTS="$@"; export TESTS
 if type ip >/dev/null 2>&1; then
     INTERFACE=$(ip r get 8.8.8.8 |grep ' dev ' |head -n 1 |sed "s/.*dev[[:space:]][[:space:]]*\([^[:space:]][^[:space:]]*\).*/\1/")
 else
-    INTERFACE=eth0
+    case "$UNAME" in
+	Linux)   INTERFACE="$(netstat -rn |grep -e "^default" -e "^0\.0\.0\.0" |awk '{print($8);}')" ;;
+	FreeBSD) INTERFACE="$(netstat -rn |grep -e "^default" -e "^0\.0\.0\.0" |awk '{print($4);}')" ;;
+	*)       INTERFACE="$(netstat -rn |grep -e "^default" -e "^0\.0\.0\.0" |awk '{print($4);}')" ;;
+    esac
 fi
 MCINTERFACE=lo	# !!! Linux only
 #LOCALHOST=192.168.58.1
@@ -156,7 +161,6 @@ F_n="%3d"	# format string for test numbers
 LC_ALL=C	# for timestamps format...
 LANG=C
 LANGUAGE=C	# knoppix
-UNAME=`uname`
 case "$UNAME" in
 HP-UX|OSF1)
     echo "$SOCAT -u stdin stdout" >cat.sh
@@ -1695,7 +1699,7 @@ testoptions () {
     local a A;
     for a in $@; do
 	A=$(echo "$a" |tr 'a-z' 'A-Z')
-	if $TRACE $SOCAT -??? |grep "[^a-z0-9-]$a[^a-z0-9-]" >/dev/null; then
+	if $SOCAT -??? |grep "[^a-z0-9-]$a[^a-z0-9-]" >/dev/null; then
 	    shift
 	    continue
 	fi
@@ -1733,7 +1737,7 @@ childprocess () {
 childpids () {
     case "$UNAME" in
     AIX)     l="$(ps -fade |grep "^........ ...... $(printf %6u $1)" |awk '{print($2);}')" ;;
-    FreeBSD) l="$(ps -faje |grep "^........ ..... $(printf %5u $1)" |awk '{print($2);}')" ;;
+    FreeBSD) l="$(ps -fl   |grep "^[^ ][^ ]*[ ][ ]*[0-9][0-9]*[ ][ ]*$(printf %5u $1)" |awk '{print($2);}')" ;;
     HP-UX)   l="$(ps -fade |grep "^........ ..... $(printf %5u $1)" |awk '{print($2);}')" ;;
     Linux)   l="$(ps -fade |grep "^........ ..... $(printf %5u $1)" |awk '{print($2);}')" ;;
 #    NetBSD)  l="$(ps -aj   |grep "^........ ..... $(printf %4u $1)" |awk '{print($2);}')" ;;
@@ -1742,7 +1746,7 @@ childpids () {
     SunOS)   l="$(ps -fade |grep "^........ ..... $(printf %5u $1)" |awk '{print($2);}')" ;;
     DragonFly)l="$(ps -faje |grep "^[^ ][^ ]*[ ][ ]*..... $(printf %5u $1)" |awk '{print($2);}')" ;;
     CYGWIN*)  l="$(ps -pafe |grep "^[^ ]*[ ][ ]*[^ ][^ ]*[ ][ ]*$1[ ]" |awk '{print($2)';})" ;;
-    *)       l="$(ps -fade |grep "^[^ ][^ ]*[ ][ ]*[0-9][0-9]**[ ][ ]*$(printf %5u $1) " |awk '{print($2)';})" ;;    esac
+    *)       l="$(ps -fade |grep "^[^ ][^ ]*[ ][ ]*[0-9][0-9]*[ ][ ]*$(printf %5u $1) " |awk '{print($2)';})" ;;    esac
     if [ -z "$l" ]; then
 	return 1;
     fi
@@ -11314,9 +11318,9 @@ esac
 N=$((N+1))
 done <<<"
 TCP4  TCP  127.0.0.1 PORT
-TCP6  TCP  127.0.0.1 PORT
+TCP6  TCP  [::1]     PORT
 SCTP4 TCP  127.0.0.1 PORT
-SCTP6 TCP  127.0.0.1 PORT
+SCTP6 TCP  [::1]     PORT
 UNIX  UNIX $td/test\$N.server -
 "
 # debugging this hanging test was difficult - following lessons learned:
@@ -11390,7 +11394,7 @@ esac
 N=$((N+1))
 done <<<"
 UDP4  UDP  127.0.0.1 PORT shut-null
-UDP6  UDP  127.0.0.1 PORT shut-null
+UDP6  UDP  [::1]     PORT shut-null
 "
 # debugging this hanging test was difficult - following lessons learned:
 # kill <parent> had no effect when child process existed
