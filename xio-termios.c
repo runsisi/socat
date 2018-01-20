@@ -14,6 +14,7 @@
 #if WITH_TERMIOS
 const struct optdesc opt_tiocsctty={ "tiocsctty", "ctty",OPT_TIOCSCTTY,  GROUP_TERMIOS,   PH_LATE2, TYPE_BOOL,     OFUNC_SPEC };
 
+/* it is important for handling of these options that they have PH_FD */
 const struct optdesc opt_brkint  = { "brkint",  NULL, OPT_BRKINT,  GROUP_TERMIOS, PH_FD, TYPE_BOOL, OFUNC_TERMIOS_FLAG, 0, BRKINT };
 const struct optdesc opt_icrnl   = { "icrnl",   NULL, OPT_ICRNL,   GROUP_TERMIOS, PH_FD, TYPE_BOOL, OFUNC_TERMIOS_FLAG, 0, ICRNL };
 const struct optdesc opt_ignbrk  = { "ignbrk",  NULL, OPT_IGNBRK,  GROUP_TERMIOS, PH_FD, TYPE_BOOL, OFUNC_TERMIOS_FLAG, 0, IGNBRK };
@@ -297,42 +298,237 @@ int xiotermiosflag_applyopt(int fd, struct opt *opt) {
 
 #endif /* WITH_TERMIOS */
 
-int xiotermios_setflag(int fd, int word, tcflag_t mask) {
-   union {
-      struct termios termarg;
-      tcflag_t flags[4];
-   } tdata;
+bool _xiotermios_doit = false;	/* _data has been retrieved and manipulated, set it later */
+union {
+   struct termios termarg;
+   tcflag_t flags[4];
+#ifdef HAVE_TERMIOS_ISPEED
+   speed_t speeds[sizeof(struct termios)/sizeof(speed_t)];
+#endif
+} _xiotermios_data;
 
-   if (Tcgetattr(fd, &tdata.termarg) < 0) {
-      Error3("tcgetattr(%d, %p): %s",
-	     fd, &tdata.termarg, strerror(errno));
-      return -1;
+int xiotermios_setflag(int fd, int word, tcflag_t mask) {
+   if (!_xiotermios_doit) {
+      if (Tcgetattr(fd, &_xiotermios_data.termarg) < 0) {
+	 Error3("tcgetattr(%d, %p): %s",
+		fd, &_xiotermios_data.termarg, strerror(errno));
+	 return -1;
+      }
+      _xiotermios_doit = true;
    }
-   tdata.flags[word] |= mask;
-   if (Tcsetattr(fd, TCSADRAIN, &tdata.termarg) < 0) {
-      Error3("tcsetattr(%d, TCSADRAIN, %p): %s",
-	     fd, &tdata.termarg, strerror(errno));
+   _xiotermios_data.flags[word] |= mask;
+   return 0;
+}
+
+int xiotermios_clrflag(int fd, int word, tcflag_t mask) {
+   if (!_xiotermios_doit) {
+      if (Tcgetattr(fd, &_xiotermios_data.termarg) < 0) {
+	 Error3("tcgetattr(%d, %p): %s",
+		fd, &_xiotermios_data.termarg, strerror(errno));
+	 return -1;
+      }
+      _xiotermios_doit = true;
+   }
+   _xiotermios_data.flags[word] &= ~mask;
+   return 0;
+}
+
+int xiotermios_value(int fd, int word, tcflag_t mask, tcflag_t value) {
+   if (!_xiotermios_doit) {
+      if (Tcgetattr(fd, &_xiotermios_data.termarg) < 0) {
+	 Error3("tcgetattr(%d, %p): %s",
+		fd, &_xiotermios_data.termarg, strerror(errno));
+	 return -1;
+      }
+      _xiotermios_doit = true;
+   }
+   _xiotermios_data.flags[word] &= ~mask;
+   _xiotermios_data.flags[word] |= value;
+   return 0;
+}
+
+int xiotermios_char(int fd, int n, unsigned char c) {
+   if (!_xiotermios_doit) {
+      if (Tcgetattr(fd, &_xiotermios_data.termarg) < 0) {
+	 Error3("tcgetattr(%d, %p): %s",
+		fd, &_xiotermios_data.termarg, strerror(errno));
+	 return -1;
+      }
+      _xiotermios_doit = true;
+   }
+   _xiotermios_data.termarg.c_cc[n] = c;
+   return 0;
+}
+
+#ifdef HAVE_TERMIOS_ISPEED
+int xiotermios_speed(int fd, int n, unsigned int speed) {
+   if (!_xiotermios_doit) {
+      if (Tcgetattr(fd, &_xiotermios_data.termarg) < 0) {
+	 Error3("tcgetattr(%d, %p): %s",
+		fd, &_xiotermios_data.termarg, strerror(errno));
+	 return -1;
+      }
+      _xiotermios_doit = true;
+   }
+   _xiotermios_data.speeds[n] = speed;
+   return 0;
+}
+#endif /* HAVE_TERMIOS_ISPEED */
+
+int xiotermios_spec(int fd, int optcode) {
+   if (!_xiotermios_doit) {
+      if (Tcgetattr(fd, &_xiotermios_data.termarg) < 0) {
+	 Error3("tcgetattr(%d, %p): %s",
+		fd, &_xiotermios_data.termarg, strerror(errno));
+	 return -1;
+      }
+      _xiotermios_doit = true;
+   }
+   switch (optcode) {
+   case OPT_RAW:
+      _xiotermios_data.termarg.c_iflag &=
+	 ~(IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK|ISTRIP|INLCR|IGNCR|ICRNL|IXON|IXOFF
+#ifdef IUCLC
+	   |IUCLC
+#endif
+	   |IXANY|IMAXBEL);
+      _xiotermios_data.termarg.c_iflag |= (0);
+      _xiotermios_data.termarg.c_oflag &= ~(OPOST);
+      _xiotermios_data.termarg.c_oflag |= (0);
+      _xiotermios_data.termarg.c_cflag &= ~(0);
+      _xiotermios_data.termarg.c_cflag |= (0);
+      _xiotermios_data.termarg.c_lflag &= ~(ISIG|ICANON
+#ifdef XCASE
+			   |XCASE
+#endif
+			   );
+      _xiotermios_data.termarg.c_lflag |= (0);
+      _xiotermios_data.termarg.c_cc[VMIN] = 1;
+      _xiotermios_data.termarg.c_cc[VTIME] = 0;
+      break;
+   case OPT_TERMIOS_RAWER:
+      _xiotermios_data.termarg.c_iflag = 0;
+      _xiotermios_data.termarg.c_oflag = 0;
+      _xiotermios_data.termarg.c_lflag = 0;
+      _xiotermios_data.termarg.c_cflag = (CS8);
+      _xiotermios_data.termarg.c_cc[VMIN] = 1;
+      _xiotermios_data.termarg.c_cc[VTIME] = 0;
+      break;
+   case OPT_SANE:
+      /* cread -ignbrk brkint  -inlcr  -igncr  icrnl
+	 -ixoff  -iuclc  -ixany  imaxbel opost -olcuc -ocrnl
+	 onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0
+	 vt0 ff0 isig icanon iexten echo echoe echok -echonl
+	 -noflsh -xcase -tostop -echoprt echoctl echoke, and
+	 also  sets  all special characters to their default
+	 values.
+      */
+      _xiotermios_data.termarg.c_iflag &= ~(IGNBRK|INLCR|IGNCR|IXOFF
+#ifdef IUCLC
+			   |IUCLC
+#endif
+			   |IXANY);
+      _xiotermios_data.termarg.c_iflag |= (BRKINT|ICRNL|IMAXBEL);
+      _xiotermios_data.termarg.c_oflag &= ~(0	/* for canonical reasons */
+#ifdef OLCUC
+			   |OLCUC
+#endif
+#ifdef OCRNL
+			   |OCRNL
+#endif
+#ifdef ONOCR
+			   |ONOCR
+#endif
+#ifdef ONLRET
+			   |ONLRET
+#endif
+#ifdef OFILL
+			   |OFILL
+#endif
+#ifdef OFDEL
+			   |OFDEL
+#endif
+#ifdef NLDLY
+			   |NLDLY
+#endif
+#ifdef CRDLY
+			   |CRDLY
+#endif
+#ifdef TABDLY
+			   |TABDLY
+#endif
+#ifdef BSDLY
+			   |BSDLY
+#endif
+#ifdef VTDLY
+			   |VTDLY
+#endif
+#ifdef FFDLY
+			   |FFDLY
+#endif
+			   );
+      _xiotermios_data.termarg.c_oflag |= (OPOST|ONLCR
+#ifdef NL0
+			  |NL0
+#endif
+#ifdef CR0
+			  |CR0
+#endif
+#ifdef TAB0
+			  |TAB0
+#endif
+#ifdef BS0
+			  |BS0
+#endif
+#ifdef VT0
+			  |VT0
+#endif
+#ifdef FF0
+			  |FF0
+#endif
+			  );
+      _xiotermios_data.termarg.c_cflag &= ~(0);
+      _xiotermios_data.termarg.c_cflag |= (CREAD);
+      _xiotermios_data.termarg.c_lflag &= ~(ECHONL|NOFLSH
+#ifdef XCASE
+			   |XCASE
+#endif
+			   |TOSTOP
+#ifdef ECHOPRT
+			   |ECHOPRT
+#endif
+			   );
+      _xiotermios_data.termarg.c_lflag |= (ISIG|ICANON|IEXTEN|ECHO|ECHOE|ECHOK|ECHOCTL|ECHOKE);
+      /*! "sets characters to their default values... - which? */
+      break;
+   case OPT_TERMIOS_CFMAKERAW:
+#if HAVE_CFMAKERAW
+      cfmakeraw(&_xiotermios_data.termarg);
+#else
+      /* these setting follow the Linux documenation of cfmakeraw */
+      _xiotermios_data.termarg.c_iflag &=
+	 ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
+      _xiotermios_data.termarg.c_oflag &= ~(OPOST);
+      _xiotermios_data.termarg.c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
+      _xiotermios_data.termarg.c_cflag &= ~(CSIZE|PARENB);
+      _xiotermios_data.termarg.c_cflag |= (CS8);
+#endif
+      break;
+   default:
+      Error("TERMIOS option not handled - internal error?");
       return -1;
    }
    return 0;
 }
 
-int xiotermios_clrflag(int fd, int word, tcflag_t mask) {
-   union {
-      struct termios termarg;
-      tcflag_t flags[4];
-   } tdata;
-
-   if (Tcgetattr(fd, &tdata.termarg) < 0) {
-      Error3("tcgetattr(%d, %p): %s",
-	     fd, &tdata.termarg, strerror(errno));
-      return -1;
-   }
-   tdata.flags[word] &= ~mask;
-   if (Tcsetattr(fd, TCSADRAIN, &tdata.termarg) < 0) {
-      Error3("tcsetattr(%d, TCSADRAIN, %p): %s",
-	     fd, &tdata.termarg, strerror(errno));
-      return -1;
+int xiotermios_flush(int fd) {
+   if (_xiotermios_doit) {
+      if (Tcsetattr(fd, TCSADRAIN, &_xiotermios_data.termarg) < 0) {
+	 Error3("tcsetattr(%d, TCSADRAIN, %p): %s",
+		fd, &_xiotermios_data.termarg, strerror(errno));
+	 return -1;
+      }
+      _xiotermios_doit = false;
    }
    return 0;
 }

@@ -145,6 +145,13 @@ extern const struct optdesc opt_termios_cfmakeraw;
 extern int xiotermios_setflag(int fd, int word, tcflag_t mask);
 extern int xiotermios_clrflag(int fd, int word, tcflag_t mask);
 extern int xiotermiosflag_applyopt(int fd, struct opt *opt);
+extern int xiotermios_value(int fd, int word, tcflag_t mask, tcflag_t value);
+extern int xiotermios_char(int fd, int n, unsigned char c);
+#ifdef HAVE_TERMIOS_ISPEED
+extern int xiotermios_speed(int fd, int n, unsigned int speed);
+#endif
+extern int xiotermios_spec(int fd, int optcode);
+extern int xiotermios_flush(int fd);
 #endif /* _WITH_TERMIOS */
 
 #endif /* !defined(__xio_termios_h_included) */

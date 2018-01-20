@@ -31,6 +31,12 @@ corrections:
 	Test: UDP6MULTICAST_UNIDIR
 	Thanks to Angus Gratton for sending a patch.
 
+	Setting ispeed and ospeed failed for some serial devices because the
+	two settings were applied with two different get/set cycles, Thanks to
+	Alexandre Fenyo for providing an initial patch.
+	However, the actual fix is part of a conceptual change of the termios
+	module that aims for applying all changes in a single tcsetaddr call.
+
 testing:
 	test.sh: Show a warning when phase-1 (insecure phase) of a security
 	test fails
