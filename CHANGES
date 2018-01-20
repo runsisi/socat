@@ -36,6 +36,10 @@ corrections:
 	Alexandre Fenyo for providing an initial patch.
 	However, the actual fix is part of a conceptual change of the termios
 	module that aims for applying all changes in a single tcsetaddr call.
+	Fixes FreeBSD Bug 198441
+
+	Termios options TAB0,TAB1,TAB2,TAB3, and XTABS did not have an effect.
+	Thanks to Alan Walters for reporting this bug.
 
 testing:
 	test.sh: Show a warning when phase-1 (insecure phase) of a security

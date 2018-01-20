@@ -80,19 +80,19 @@ const struct optdesc opt_onocr   = { "onocr",   NULL, OPT_ONOCR,   GROUP_TERMIOS
 #endif
 #ifdef TABDLY
 #  ifdef TAB0
-const struct optdesc opt_tab0    = { "tab0",    NULL, OPT_TAB0,    GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_FLAG, 1, TAB0, TABDLY };
+const struct optdesc opt_tab0    = { "tab0",    NULL, OPT_TAB0,    GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_PATTERN, 1, TAB0, TABDLY };
 #  endif
 #  ifdef TAB1
-const struct optdesc opt_tab1    = { "tab1",    NULL, OPT_TAB1,    GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_FLAG, 1, TAB1, TABDLY };
+const struct optdesc opt_tab1    = { "tab1",    NULL, OPT_TAB1,    GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_PATTERN, 1, TAB1, TABDLY };
 #  endif
 #  ifdef TAB2
-const struct optdesc opt_tab2    = { "tab2",    NULL, OPT_TAB2,    GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_FLAG, 1, TAB2, TABDLY };
+const struct optdesc opt_tab2    = { "tab2",    NULL, OPT_TAB2,    GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_PATTERN, 1, TAB2, TABDLY };
 #  endif
 #  ifdef TAB3
-const struct optdesc opt_tab3    = { "tab3",    NULL, OPT_TAB3,    GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_FLAG, 1, TAB3, TABDLY };
+const struct optdesc opt_tab3    = { "tab3",    NULL, OPT_TAB3,    GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_PATTERN, 1, TAB3, TABDLY };
 #  endif
 #  ifdef XTABS
-const struct optdesc opt_xtabs   = { "xtabs",   NULL, OPT_XTABS,   GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_FLAG, 1, XTABS, TABDLY };
+const struct optdesc opt_xtabs   = { "xtabs",   NULL, OPT_XTABS,   GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_PATTERN, 1, XTABS, TABDLY };
 #  endif
 #  if TABDLY_SHIFT >= 0
 const struct optdesc opt_tabdly  = { "tabdly",  NULL, OPT_TABDLY,  GROUP_TERMIOS, PH_FD, TYPE_UINT, OFUNC_TERMIOS_VALUE, 1, TABDLY, TABDLY_SHIFT };
