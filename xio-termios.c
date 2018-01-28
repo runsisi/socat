@@ -381,6 +381,73 @@ int xiotermios_speed(int fd, int n, speed_t speed) {
 }
 #endif /* HAVE_TERMIOS_ISPEED */
 
+/* those termios parameters that are undefined (system dependent) we define
+   to a neutral form so we may use them in the complex patterns */
+
+#ifndef BS0
+#  define BS0 0
+#endif
+#ifndef BSDLY
+#  define BSDLY 0
+#endif
+#ifndef CR0
+#  define CR0 0
+#endif
+#ifndef CRDLY
+#  define CRDLY 0
+#endif
+#ifndef ECHOPRT
+#  define ECHOPRT 0
+#endif
+#ifndef FF0
+#  define FF0 0
+#endif
+#ifndef FFDLY
+#  define FFDLY 0
+#endif
+#ifndef IUCLC
+#  define IUCLC 0
+#endif
+#ifndef NL0
+#  define NL0 0
+#endif
+#ifndef NLDLY
+#  define NLDLY 0
+#endif
+#ifndef OCRNL
+#  define OCRNL 0
+#endif
+#ifndef OFDEL
+#  define OFDEL 0
+#endif
+#ifndef OFILL
+#  define OFILL 0
+#endif
+#ifndef OLCUC
+#  define OLCUC 0
+#endif
+#ifndef ONLRET
+#  define ONLRET 0
+#endif
+#ifndef ONOCR
+#  define ONOCR 0
+#endif
+#ifndef TAB0
+#  define TAB0 0
+#endif
+#ifndef TABDLY
+#  define TABDLY 0
+#endif
+#ifndef VT0
+#  define VT0 0
+#endif
+#ifndef VTDLY
+#  define VTDLY 0
+#endif
+#ifndef XCASE
+#  define XCASE 0
+#endif
+
 int xiotermios_spec(int fd, int optcode) {
    if (!_xiotermios_doit) {
       if (Tcgetattr(fd, &_xiotermios_data.termarg) < 0) {
@@ -393,21 +460,13 @@ int xiotermios_spec(int fd, int optcode) {
    switch (optcode) {
    case OPT_RAW:
       _xiotermios_data.termarg.c_iflag &=
-	 ~(IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK|ISTRIP|INLCR|IGNCR|ICRNL|IXON|IXOFF
-#ifdef IUCLC
-	   |IUCLC
-#endif
-	   |IXANY|IMAXBEL);
+	 ~(IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK|ISTRIP|INLCR|IGNCR|ICRNL|IXON|IXOFF|IUCLC|IXANY|IMAXBEL);
       _xiotermios_data.termarg.c_iflag |= (0);
       _xiotermios_data.termarg.c_oflag &= ~(OPOST);
       _xiotermios_data.termarg.c_oflag |= (0);
       _xiotermios_data.termarg.c_cflag &= ~(0);
       _xiotermios_data.termarg.c_cflag |= (0);
-      _xiotermios_data.termarg.c_lflag &= ~(ISIG|ICANON
-#ifdef XCASE
-			   |XCASE
-#endif
-			   );
+      _xiotermios_data.termarg.c_lflag &= ~(ISIG|ICANON|XCASE);
       _xiotermios_data.termarg.c_lflag |= (0);
       _xiotermios_data.termarg.c_cc[VMIN] = 1;
       _xiotermios_data.termarg.c_cc[VTIME] = 0;
@@ -429,81 +488,13 @@ int xiotermios_spec(int fd, int optcode) {
 	 also  sets  all special characters to their default
 	 values.
       */
-      _xiotermios_data.termarg.c_iflag &= ~(IGNBRK|INLCR|IGNCR|IXOFF
-#ifdef IUCLC
-			   |IUCLC
-#endif
-			   |IXANY);
+      _xiotermios_data.termarg.c_iflag &= ~(IGNBRK|INLCR|IGNCR|IXOFF|IUCLC|IXANY);
       _xiotermios_data.termarg.c_iflag |= (BRKINT|ICRNL|IMAXBEL);
-      _xiotermios_data.termarg.c_oflag &= ~(0	/* for canonical reasons */
-#ifdef OLCUC
-			   |OLCUC
-#endif
-#ifdef OCRNL
-			   |OCRNL
-#endif
-#ifdef ONOCR
-			   |ONOCR
-#endif
-#ifdef ONLRET
-			   |ONLRET
-#endif
-#ifdef OFILL
-			   |OFILL
-#endif
-#ifdef OFDEL
-			   |OFDEL
-#endif
-#ifdef NLDLY
-			   |NLDLY
-#endif
-#ifdef CRDLY
-			   |CRDLY
-#endif
-#ifdef TABDLY
-			   |TABDLY
-#endif
-#ifdef BSDLY
-			   |BSDLY
-#endif
-#ifdef VTDLY
-			   |VTDLY
-#endif
-#ifdef FFDLY
-			   |FFDLY
-#endif
-			   );
-      _xiotermios_data.termarg.c_oflag |= (OPOST|ONLCR
-#ifdef NL0
-			  |NL0
-#endif
-#ifdef CR0
-			  |CR0
-#endif
-#ifdef TAB0
-			  |TAB0
-#endif
-#ifdef BS0
-			  |BS0
-#endif
-#ifdef VT0
-			  |VT0
-#endif
-#ifdef FF0
-			  |FF0
-#endif
-			  );
+      _xiotermios_data.termarg.c_oflag &= ~(OLCUC|OCRNL|ONOCR|ONLRET|OFILL|OFDEL|NLDLY|CRDLY|TABDLY|BSDLY|VTDLY|FFDLY);
+      _xiotermios_data.termarg.c_oflag |= (OPOST|ONLCR|NL0|CR0|TAB0|BS0|VT0|FF0);
       _xiotermios_data.termarg.c_cflag &= ~(0);
       _xiotermios_data.termarg.c_cflag |= (CREAD);
-      _xiotermios_data.termarg.c_lflag &= ~(ECHONL|NOFLSH
-#ifdef XCASE
-			   |XCASE
-#endif
-			   |TOSTOP
-#ifdef ECHOPRT
-			   |ECHOPRT
-#endif
-			   );
+      _xiotermios_data.termarg.c_lflag &= ~(ECHONL|NOFLSH|XCASE|TOSTOP|ECHOPRT);
       _xiotermios_data.termarg.c_lflag |= (ISIG|ICANON|IEXTEN|ECHO|ECHOE|ECHOK|ECHOCTL|ECHOKE);
       /*! "sets characters to their default values... - which? */
       break;
