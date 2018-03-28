@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 # source: socks4echo.sh
 
 # Copyright Gerhard Rieger and contributors (see file CHANGES)

@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 # source: test.sh
 # Copyright Gerhard Rieger and contributors (see file CHANGES)
 # Published under the GNU General Public License V.2, see file COPYING
@@ -750,7 +750,7 @@ for addr in proxy; do
     done
     echo $OPTS
     # prepare dummy server
-    $SOCAT tcp-l:$PORT,reuseaddr,crlf exec:"/bin/bash proxyecho.sh" || echo "cannot start proxyecho.sh" >&2 &
+    $SOCAT tcp-l:$PORT,reuseaddr,crlf exec:"/usr/bin/env bash proxyecho.sh" || echo "cannot start proxyecho.sh" >&2 &
 	pid=$!
 	sleep 1
     for o in $(filloptionvalues $OPTS|tr ',' ' '); do
@@ -1951,7 +1951,7 @@ waitip4proto () {
     while [ $timeout -gt 0 ]; do
 	case "$UNAME" in
 	Linux) if [ "$SS" ]; then
-		   l=$($SS -n -w -l |grep '^raw .* .*[0-9*]:'$proto' [ ]*0\.0\.0\.0:\*')
+		   l=$($SS -n -w -l |grep '^\(raw\|UNCONN\) .* .*[0-9*]:'$proto' [ ]*0\.0\.0\.0:\*')
 	       else
 		   l=$(netstat -n -w -l |grep '^raw .* .*[0-9*]:'$proto' [ ]*0\.0\.0\.0:\*')
 	       fi ;;
@@ -1997,7 +1997,7 @@ waitip6proto () {
 	case "$UNAME" in
 	Linux)
 		if [ "$SS" ]; then
-		    l=$($SS -n -w -l |grep '^raw .* .*[0-9*]:'$proto' [ ]*0\.0\.0\.0:\*')
+		    l=$($SS -n -w -l |grep '^\(raw\|UNCONN\) .* \*:'$proto' [ ]*\*:\*')
 		else
 		    l=$(netstat -n -w -l |grep '^raw[6 ] .* .*:[0-9*]*:'$proto' [ ]*:::\*')
 		fi ;;
@@ -4648,7 +4648,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"; da="$da$($ECHO '\r')"
 #CMD2="$TRACE $SOCAT tcp4-l:$PORT,crlf SYSTEM:\"read; read; $ECHO \\\"HTTP/1.0 200 OK\n\\\"; cat\""
-CMD2="$TRACE $SOCAT $opts tcp4-l:$PORT,reuseaddr,crlf exec:\"/bin/bash proxyecho.sh\""
+CMD2="$TRACE $SOCAT $opts tcp4-l:$PORT,reuseaddr,crlf exec:\"/usr/bin/env bash proxyecho.sh\""
 CMD="$TRACE $SOCAT $opts - proxy:$LOCALHOST:127.0.0.1:1000,pf=ip4,proxyport=$PORT"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}2\" &"
@@ -4694,7 +4694,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"; da="$da$($ECHO '\r')"
 #CMD2="$TRACE $SOCAT $opts tcp6-l:$PORT,crlf SYSTEM:\"read; read; $ECHO \\\"HTTP/1.0 200 OK\n\\\"; cat\""
-CMD2="$TRACE $SOCAT $opts tcp6-l:$PORT,reuseaddr,crlf exec:\"/bin/bash proxyecho.sh\""
+CMD2="$TRACE $SOCAT $opts tcp6-l:$PORT,reuseaddr,crlf exec:\"/usr/bin/env bash proxyecho.sh\""
 CMD="$TRACE $SOCAT $opts - proxy:$LOCALHOST6:127.0.0.1:1000,proxyport=$PORT"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}2\" &"
@@ -4928,7 +4928,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"; da="$da$($ECHO '\r')"
 #CMD2="$TRACE $SOCAT $opts tcp-l:$PORT,crlf SYSTEM:\"read; read; $ECHO \\\"HTTP/1.0 200 OK\n\\\"; cat\""
-CMD2="$TRACE $SOCAT $opts tcp4-l:$PORT,reuseaddr,crlf exec:\"/bin/bash proxyecho.sh -w 2\""
+CMD2="$TRACE $SOCAT $opts tcp4-l:$PORT,reuseaddr,crlf exec:\"/usr/bin/env bash proxyecho.sh -w 2\""
 CMD="$TRACE $SOCAT $opts - proxy:$LOCALHOST:127.0.0.1:1000,pf=ip4,proxyport=$PORT"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}1\" &"
@@ -6436,10 +6436,10 @@ tp="$td/test$N.pid"
 $PRINTF "test $F_n $TEST... " $N
 (sleep 1; kill -"$SIG" "$(cat "$tpp")") &
 # a simple "system:echo $PPID..." does not work on NetBSD, OpenBSD
-#$TRACE $SOCAT $opts echo SYSTEM:'exec /bin/bash -c "echo \$PPID '">$tpp"'; echo \$$ '">$tp; read x\"",nofork 2>"$te"; stat=$?
+#$TRACE $SOCAT $opts echo SYSTEM:'exec /usr/bin/env bash -c "echo \$PPID '">$tpp"'; echo \$$ '">$tp; read x\"",nofork 2>"$te"; stat=$?
 tsh="$td/test$N.sh"
 cat <<EOF >"$tsh"
-#! /bin/bash
+#! /usr/bin/env bash
 echo \$PPID >"$tpp"
 echo \$\$ >"$tp"
 read x

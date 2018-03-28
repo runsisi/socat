@@ -24,8 +24,7 @@ Q: I succeeded to configure and make socat, but ./test.sh says something
 like:
 ./test.sh: No such file or directory
 
-A: You need a bash shell, and its location must be correctly specified in the
-first line of test.sh, e.g. /usr/local/bin/bash instead of /bin/bash.
+A: You need a bash shell in your executable path (locations in $PATH)
 
 
 Q: configure disables readline / openssl / libwrap support because it does not

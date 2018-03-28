@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 # source: socks4a-echo.sh
 #set -vx
 

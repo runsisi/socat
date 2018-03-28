@@ -61,6 +61,11 @@ porting:
 	functions and dependend option openssl-method can still be
 	used when configuring socat with --enable-openssl-method
 
+	Shell scripts in socat distribution are now headed with:
+	#! /usr/bin/env bash
+	to make them better portable to systems without /bin/bash
+	Thanks to Maya Rashish for sending a patch
+
 testing:
 	test.sh: Show a warning when phase-1 (insecure phase) of a security
 	test fails

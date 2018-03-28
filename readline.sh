@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 # source: readline.sh
 # Copyright Gerhard Rieger and contributors (see file CHANGES)
 # Published under the GNU General Public License V.2, see file COPYING
