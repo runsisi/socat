@@ -6761,6 +6761,8 @@ case "$TESTS" in
 *%$N%*|*%functions%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%$NAME%*)
 TEST="$NAME: TCP4 mapped into TCP6 address space"
 if ! eval $NUMCOND; then :;
+elif true; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}Feature reoved${NORMAL}\n" $N
 elif ! testaddrs tcp ip6 >/dev/null || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))

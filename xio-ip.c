@@ -167,30 +167,8 @@ int xiogetaddrinfo(const char *node, const char *service,
    /* the resolver functions might handle numeric forms of node names by
       reverse lookup, that's not what we want.
       So we detect these and handle them specially */
-   if (node && isdigit(node[0]&0xff)) {
-#if HAVE_GETADDRINFO
-      hints.ai_flags |= AI_NUMERICHOST;
-#endif /* HAVE_GETADDRINFO */
-      if (family == PF_UNSPEC) {
-	 family = PF_INET;
-#if HAVE_GETADDRINFO
-      } else if (family == PF_INET6) {
-	 /* map "explicitely" into IPv6 address space; getipnodebyname() does
-	    this with AI_V4MAPPED, but not getaddrinfo() */
-	 if ((numnode = Malloc(strlen(node)+7+1)) == NULL) {
-#if HAVE_RESOLV_H
-	    if (res_opts0 | res_opts1) {
-	       _res.options = (_res.options & (~res_opts0&~res_opts1) |
-			       save_res_opts& ( res_opts0| res_opts1));
-	    }
-#endif
-	    return STAT_NORETRY;
-	 }
-	 sprintf(numnode, "::ffff:%s", node);
-	 node = numnode;
-	 hints.ai_flags |= AI_NUMERICHOST;
-#endif /* HAVE_GETADDRINFO */
-      }
+   if (0) { 	/* for canonical reasons */
+      ;
 #if WITH_IP6
    } else if (node && node[0] == '[' && node[(nodelen=strlen(node))-1]==']') {
       if ((numnode = Malloc(nodelen-1)) == NULL) {

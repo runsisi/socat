@@ -49,6 +49,12 @@ corrections:
 	The syntax has now been changed from "[::1/128]" to "[::1]/128"!
 	Thanks Leah Neukirchen for sending an initial fix.
 
+	For name resolution Socat only checked the first character of the host
+	name to decide if it is an IPv4 address. This was not RFC conform. This
+	fix removes the possibility for use of IPv4 addresses with IPv6, e.g.
+	TCP6:127.0.0.1:80
+	Thanks to Nicolas Fournil for reporting this issue.
+
 testing:
 	test.sh: Show a warning when phase-1 (insecure phase) of a security
 	test fails
