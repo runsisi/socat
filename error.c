@@ -210,6 +210,19 @@ const char *diag_get_string(char what) {
    return NULL;
 }
 
+/* make sure that the diag_sock fds do not have this num */
+int diag_reserve_fd(int fd) {
+   DIAG_INIT;
+   if (diag_sock_send == fd) {
+      diag_sock_send = Dup(fd);
+      Close(fd);
+   }
+   if (diag_sock_recv == fd) {
+      diag_sock_recv = Dup(fd);
+      Close(fd);
+   }
+   return 0;
+}
 
 /* Linux and AIX syslog format:
 Oct  4 17:10:37 hostname socat[52798]: D signal(13, 1)

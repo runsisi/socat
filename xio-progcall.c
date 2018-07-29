@@ -168,7 +168,7 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
       }
 #endif
 
-      /* remember: fdin is the fs where the sub program reads from, thus it is
+      /* remember: fdin is the fd where the sub program reads from, thus it is
 	 sock0[]'s read fd */
       /*! problem: when fdi==WRFD(sock[0]) or fdo==RDFD(sock[0]) */
       if (rw != XIO_WRONLY) {
@@ -177,6 +177,9 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 	       Warn2("fcntl(%d, F_SETFD, 0): %s", fdo, strerror(errno));
 	    }
 	 } else {
+	    /* make sure that the internal diagnostic socket pair fds do not conflict
+	       with our choices */
+	    diag_reserve_fd(fdo);
 	    if (Dup2(XIO_GETWRFD(sock[0]), fdo) < 0) {
 	       Error3("dup2(%d, %d): %s",
 		      XIO_GETWRFD(sock[0]), fdo, strerror(errno));
@@ -190,6 +193,9 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 	       Warn2("fcntl(%d, F_SETFD, 0): %s", fdi, strerror(errno));
 	    }
 	 } else {
+	    /* make sure that the internal diagnostic socket pair fds do not conflict
+	       with our choices */
+	    diag_reserve_fd(fdi);
 	    if (Dup2(XIO_GETRDFD(sock[0]), fdi) < 0) {
 	       Error3("dup2(%d, %d): %s)",
 		      XIO_GETRDFD(sock[0]), fdi, strerror(errno));
@@ -425,12 +431,18 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 	 if (usepty) {
 	    Close(ptyfd);
 	    if (rw != XIO_RDONLY && fdi != ttyfd) {
+	       /* make sure that the internal diagnostic socket pair fds do not conflict
+		  with our choices */
+	       diag_reserve_fd(fdi);
 	       if (Dup2(ttyfd, fdi) < 0) {
 		  Error3("dup2(%d, %d): %s", ttyfd, fdi, strerror(errno));
 		  return -1; }
 	       /*0 Info2("dup2(%d, %d)", ttyfd, fdi);*/
 	    }
 	    if (rw != XIO_WRONLY && fdo != ttyfd) {
+	       /* make sure that the internal diagnostic socket pair fds do not conflict
+		  with our choices */
+	       diag_reserve_fd(fdo);
 	       if (Dup2(ttyfd, fdo) < 0) {
 		  Error3("dup2(%d, %d): %s", ttyfd, fdo, strerror(errno));
 		  return -1; }
@@ -472,6 +484,9 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 	       }
 	       
 	       if (rw != XIO_WRONLY && rdpip[1] != fdo) {
+		  /* make sure that the internal diagnostic socket pair fds do not conflict
+		     with our choices */
+		  diag_reserve_fd(fdo);
 		  if (Dup2(rdpip[1], fdo) < 0) {
 		     Error3("dup2(%d, %d): %s", rdpip[1], fdo, strerror(errno));
 		     return -1;
@@ -481,6 +496,9 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 		  /*0 applyopts_cloexec(fdo, *copts);*/
 	       }
 	       if (rw != XIO_RDONLY && wrpip[0] != fdi) {
+		  /* make sure that the internal diagnostic socket pair fds do not conflict
+		     with our choices */
+		  diag_reserve_fd(fdi);
 		  if (Dup2(wrpip[0], fdi) < 0) {
 		     Error3("dup2(%d, %d): %s", wrpip[0], fdi, strerror(errno));
 		     return -1;
@@ -499,12 +517,18 @@ int _xioopen_foxec(int xioflags,	/* XIO_RDONLY etc. */
 	    } else {	/* socketpair */
 	       Close(sv[0]);
 	       if (rw != XIO_RDONLY && fdi != sv[1]) {
+		  /* make sure that the internal diagnostic socket pair fds do not conflict
+		     with our choices */
+		  diag_reserve_fd(fdi);
 		  if (Dup2(sv[1], fdi) < 0) {
 		     Error3("dup2(%d, %d): %s", sv[1], fdi, strerror(errno));
 		     return -1; }
 		  /*0 Info2("dup2(%d, %d)", sv[1], fdi);*/
 	       }
 	       if (rw != XIO_WRONLY && fdo != sv[1]) {
+		  /* make sure that the internal diagnostic socket pair fds do not conflict
+		     with our choices */
+		  diag_reserve_fd(fdo);
 		  if (Dup2(sv[1], fdo) < 0) {
 		     Error3("dup2(%d, %d): %s", sv[1], fdo, strerror(errno));
 		     return -1; }

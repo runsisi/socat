@@ -12799,6 +12799,48 @@ esac
 PORT=$((PORT+1))
 N=$((N+1))
 
+
+# The fix to "Make code async-signal-safe" used internally FD 3 and FD 4.
+# Using option fdin=3 did not pass data to executed program.
+NAME=DIAG_FDIN
+case "$TESTS" in
+*%$N%*|*%functions%*|*%bugs%*|*%exec%*|*%$NAME%*)
+TEST="$NAME: test use of fdin=3"
+# Use FD 3 explicitely with fdin and test if Socat passes data to executed
+# program
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts - SYSTEM:\"cat >&3 <&4\",fdin=4,fdout=3"
+printf "test $F_n $TEST... " $N
+echo "$da" |$TRACE $SOCAT $opts - SYSTEM:"cat <&3 >&4",fdin=3,fdout=4 >${tf}0 2>"${te}0"
+rc0=$?
+if [ $rc0 -ne 0 ]; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0"
+    cat "${te}0"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+elif echo "$da" |diff - ${tf}0 >$tdiff; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0"
+    cat "${te}0"
+    cat "$tdiff"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
 ##################################################################################
 #=================================================================================
 # here come tests that might affect your systems integrity. Put normal tests

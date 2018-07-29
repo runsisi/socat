@@ -16,6 +16,11 @@ corrections:
 	compiling with MUSL libc failed.
 	Problem reported by Kennedy33.
 
+	The async signal safe diagnostic system used FDs 3 and 4 internally, so
+	use of appropriate fdin or fdout led to failures.
+	Test: DIAG_FDIN
+	Problem reported by Onur Sentürk.
+
 testing:
 	test.sh: Show a warning when phase-1 (insecure phase) of a security
 	test fails
