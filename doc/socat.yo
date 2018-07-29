@@ -2266,8 +2266,8 @@ startdit()
 label(OPTION_RANGE)dit(bf(tt(range=<address-range>)))
    After accepting a connection, tests if the peer is within em(range). For
    IPv4 addresses, address-range takes the form address/bits, e.g.
-   10.0.0.0/8, or address:mask, e.g. 10.0.0.0:255.0.0.0 (link(example)(EXAMPLE_OPTION_RANGE)); for IPv6, it is [ip6-address/bits], e.g. [::1/128].
-   If the client address does not match, socat() issues a warning and keeps
+   10.0.0.0/8, or address:mask, e.g. 10.0.0.0:255.0.0.0 (link(example)(EXAMPLE_OPTION_RANGE)); for IPv6, it is [ip6-address]/bits, e.g. [::1]/128.
+   If the client address does not match, socat() refuses the connection attempt, issues a warning, and keeps
    listening/receiving.
 label(OPTION_TCPWRAPPERS)dit(bf(tt(tcpwrap[=<name>])))
    Uses Wietse Venema's libwrap (tcpd) library to determine

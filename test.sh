@@ -5576,7 +5576,7 @@ elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
-testserversec "$N" "$TEST" "$opts" "tcp6-l:$PORT,reuseaddr,fork,retry=1" "" "range=[::2/128]" "tcp6:[::1]:$PORT" 6 tcp $PORT 0
+testserversec "$N" "$TEST" "$opts" "tcp6-l:$PORT,reuseaddr,fork,retry=1" "" "range=[::2]/128" "tcp6:[::1]:$PORT" 6 tcp $PORT 0
 fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
@@ -5695,8 +5695,8 @@ elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
-#testserversec "$N" "$TEST" "$opts" "udp6-l:$PORT,reuseaddr,fork" "" "range=[::2/128]" "udp6:[::1]:$PORT" 6 udp $PORT 0
-testserversec "$N" "$TEST" "$opts" "udp6-l:$PORT,reuseaddr" "" "range=[::2/128]" "udp6:[::1]:$PORT" 6 udp $PORT 0
+#testserversec "$N" "$TEST" "$opts" "udp6-l:$PORT,reuseaddr,fork" "" "range=[::2]/128" "udp6:[::1]:$PORT" 6 udp $PORT 0
+testserversec "$N" "$TEST" "$opts" "udp6-l:$PORT,reuseaddr" "" "range=[::2]/128" "udp6:[::1]:$PORT" 6 udp $PORT 0
 fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
@@ -5868,7 +5868,7 @@ elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
     numCANT=$((numCANT+1))
 else
 gentestcert6 testsrv6
-testserversec "$N" "$TEST" "$opts" "ssl-l:$PORT,pf=ip6,reuseaddr,fork,retry=1,$SOCAT_EGD,verify=0,cert=testsrv6.crt,key=testsrv6.key" "" "range=[::2/128]" "ssl:[::1]:$PORT,cafile=testsrv6.crt,$SOCAT_EGD" 6 tcp $PORT -1
+testserversec "$N" "$TEST" "$opts" "ssl-l:$PORT,pf=ip6,reuseaddr,fork,retry=1,$SOCAT_EGD,verify=0,cert=testsrv6.crt,key=testsrv6.key" "" "range=[::2]/128" "ssl:[::1]:$PORT,cafile=testsrv6.crt,$SOCAT_EGD" 6 tcp $PORT -1
 fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
@@ -7483,8 +7483,8 @@ elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
-#testserversec "$N" "$TEST" "$opts" "udp6-recvfrom:$PORT,reuseaddr,fork" "" "range=[::2/128]" "udp6-sendto:[::1]:$PORT" 6 udp $PORT 0
-testserversec "$N" "$TEST" "$opts" "udp6-recvfrom:$PORT,reuseaddr" "" "range=[::2/128]" "udp6-sendto:[::1]:$PORT" 6 udp $PORT 0
+#testserversec "$N" "$TEST" "$opts" "udp6-recvfrom:$PORT,reuseaddr,fork" "" "range=[::2]/128" "udp6-sendto:[::1]:$PORT" 6 udp $PORT 0
+testserversec "$N" "$TEST" "$opts" "udp6-recvfrom:$PORT,reuseaddr" "" "range=[::2]/128" "udp6-sendto:[::1]:$PORT" 6 udp $PORT 0
 fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
@@ -7562,7 +7562,7 @@ PORT1=$PORT; PORT=$((PORT+1))
 PORT2=$PORT
 # we use the forward channel (PORT1) for testing, and have a backward channel
 # (PORT2) to get the data back, so we get the classical echo behaviour
-testserversec "$N" "$TEST" "$opts" "udp6-recv:$PORT1,reuseaddr!!udp6-sendto:[::1]:$PORT2" "" "range=[::2/128]" "udp6-recv:$PORT2!!udp6-sendto:[::1]:$PORT1" 6 udp $PORT1 0
+testserversec "$N" "$TEST" "$opts" "udp6-recv:$PORT1,reuseaddr!!udp6-sendto:[::1]:$PORT2" "" "range=[::2]/128" "udp6-recv:$PORT2!!udp6-sendto:[::1]:$PORT1" 6 udp $PORT1 0
 fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
@@ -7701,8 +7701,8 @@ elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
-#testserversec "$N" "$TEST" "$opts" "ip6-recvfrom:$PROTO,reuseaddr,fork" "" "range=[::2/128]" "ip6-sendto:[::1]:$PROTO" 6 ip $PROTO 0
-testserversec "$N" "$TEST" "$opts" "ip6-recvfrom:$PROTO,reuseaddr!!udp6-sendto:[::1]:$PORT" "" "range=[::2/128]" "udp6-recv:$PORT!!ip6-sendto:[::1]:$PROTO" 6 ip $PROTO 0
+#testserversec "$N" "$TEST" "$opts" "ip6-recvfrom:$PROTO,reuseaddr,fork" "" "range=[::2]/128" "ip6-sendto:[::1]:$PROTO" 6 ip $PROTO 0
+testserversec "$N" "$TEST" "$opts" "ip6-recvfrom:$PROTO,reuseaddr!!udp6-sendto:[::1]:$PORT" "" "range=[::2]/128" "udp6-recv:$PORT!!ip6-sendto:[::1]:$PROTO" 6 ip $PROTO 0
 fi ;; # NUMCOND, feats
 esac
 PROTO=$((PROTO+1))
@@ -7750,7 +7750,7 @@ PROTO1=$PROTO; PROTO=$((PROTO+1))
 PROTO2=$PROTO
 # we use the forward channel (PROTO1) for testing, and have a backward channel
 # (PROTO2) to get the data back, so we get the classical echo behaviour
-testserversec "$N" "$TEST" "$opts" "ip6-recv:$PROTO1,reuseaddr!!ip6-sendto:[::1]:$PROTO2" "" "range=[::2/128]" "ip6-recv:$PROTO2!!ip6-sendto:[::1]:$PROTO1" 6 ip $PROTO1 0
+testserversec "$N" "$TEST" "$opts" "ip6-recv:$PROTO1,reuseaddr!!ip6-sendto:[::1]:$PROTO2" "" "range=[::2]/128" "ip6-recv:$PROTO2!!ip6-sendto:[::1]:$PROTO1" 6 ip $PROTO1 0
 fi ;; # NUMCOND, feats
 esac
 PROTO=$((PROTO+1))

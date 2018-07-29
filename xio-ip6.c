@@ -87,23 +87,23 @@ int xioparsenetwork_ip6(const char *rangename, struct xiorange *range) {
    union xioin6_u *rangemask = (union xioin6_u *)&range->netmask.ip6.sin6_addr;
    union xioin6_u *nameaddr = (union xioin6_u *)&sockaddr.ip6.sin6_addr;
 
-   if (rangename[0] != '[' || rangename[strlen(rangename)-1] != ']') {
-      Error1("missing brackets for IPv6 range definition \"%s\"",
-	     rangename);
-      return STAT_NORETRY;
-   }
    if ((delimpos = strchr(rangename, '/')) == NULL) {
       Error1("xioparsenetwork_ip6(\"%s\",,): missing mask bits delimiter '/'",
 	     rangename);
       return STAT_NORETRY;
    }
    delimind = delimpos - rangename;
+   if (rangename[0] != '[' || rangename[delimind-1] != ']') {
+      Error1("missing brackets for IPv6 range definition \"%s\"",
+	     rangename);
+      return STAT_NORETRY;
+   }
 
-   if ((baseaddr = strdup(rangename+1)) == NULL) {
+   if ((baseaddr = strndup(rangename+1,delimind-2)) == NULL) {
       Error1("strdup(\"%s\"): out of memory", rangename+1);
       return STAT_NORETRY;
    }
-   baseaddr[delimind-1] = '\0';
+   baseaddr[delimind-2] = '\0';
    if (xiogetaddrinfo(baseaddr, NULL, PF_INET6, 0, 0, &sockaddr, &sockaddrlen,
 		      0, 0)
        != STAT_OK) {
@@ -175,7 +175,7 @@ int xiocheckrange_ip6(struct sockaddr_in6 *pa, struct xiorange *range) {
    int i;
    char peername[256];
    union xioin6_u *rangeaddr = (union xioin6_u *)&range->netaddr.ip6.sin6_addr;
-   union xioin6_u *rangemask = (union xioin6_u *)&range->netmask.ip6;
+   union xioin6_u *rangemask = (union xioin6_u *)&range->netmask.ip6.sin6_addr;
 
    Debug16("permitted client subnet: [%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x]:[%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x]",
 	   htons(rangeaddr->u6_addr16[0]),  htons(rangeaddr->u6_addr16[1]),
@@ -190,7 +190,7 @@ int xiocheckrange_ip6(struct sockaddr_in6 *pa, struct xiorange *range) {
 	  sockaddr_inet6_info(pa, peername, sizeof(peername)));
 
    for (i = 0; i < 4; ++i) {
-      masked.u6_addr32[i] = pa->sin6_addr.s6_addr[i] & rangemask->u6_addr16[i];
+      masked.u6_addr32[i] = pa->sin6_addr.s6_addr32[i] & rangemask->u6_addr32[i];
    }
    Debug8("masked address is [%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x]",
 	   htons(masked.u6_addr16[0]),  htons(masked.u6_addr16[1]),

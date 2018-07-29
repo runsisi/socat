@@ -43,6 +43,12 @@ corrections:
 
 	Substituted cumbersom ISPEED_OFFSET mechanism for cfsetispeed() calls
 
+	With TCP6-LISTEN and the other passive IPv6 addresses the range option
+	just failed: due to a bug in the syntax parser and two more bugs in
+	the xiocheckrange_ip6() function.
+	The syntax has now been changed from "[::1/128]" to "[::1]/128"!
+	Thanks Leah Neukirchen for sending an initial fix.
+
 testing:
 	test.sh: Show a warning when phase-1 (insecure phase) of a security
 	test fails
