@@ -72,13 +72,18 @@ if type ip >/dev/null 2>&1; then
     INTERFACE=$(ip r get 8.8.8.8 |grep ' dev ' |head -n 1 |sed "s/.*dev[[:space:]][[:space:]]*\([^[:space:]][^[:space:]]*\).*/\1/")
 else
     case "$UNAME" in
-	Linux)   INTERFACE="$(netstat -rn |grep -e "^default" -e "^0\.0\.0\.0" |awk '{print($8);}')" ;;
+	Linux)
+	    if [ "$IP" ]; then
+		INTERFACE="$($IP route get 8.8.8.8 |grep ' dev ' |sed -e 's/.* dev //' -e 's/ .*//')"
+	    else
+		INTERFACE="$(netstat -rn |grep -e "^default" -e "^0\.0\.0\.0" |awk '{print($8);}')"
+	    fi ;;
 	FreeBSD) INTERFACE="$(netstat -rn |grep -e "^default" -e "^0\.0\.0\.0" |awk '{print($4);}')" ;;
 	*)       INTERFACE="$(netstat -rn |grep -e "^default" -e "^0\.0\.0\.0" |awk '{print($4);}')" ;;
     esac
 fi
-MCINTERFACE=lo	# !!! Linux only - and not always
 MCINTERFACE=$INTERFACE
+[ -z "$MCINTERFACE" ] && MCINTERFACE=lo	# !!! Linux only - and not always
 #LOCALHOST=192.168.58.1
 LOCALHOST=localhost
 #LOCALHOST=127.0.0.1
@@ -201,6 +206,23 @@ else
     SUBSTUSER="$(grep -v '^[^:]*:^[^:]*:0:' /etc/passwd |tail -n 1 |cut -d: -f1)"
 fi
 
+if type ip; then
+    if ip -V |grep -q "^ip utility, iproute2-ss"; then
+	IP=$(which ip)
+    else
+	unset IP
+    fi
+fi
+
+if type ss; then
+    if ss -V |grep -q "^ss utility, iproute2-ss"; then
+	SS=$(which ss)
+    else
+	unset SS
+    fi
+fi
+
+if [ -z "$SS" ]; then
 # non-root users might miss ifconfig in their path
 case "$UNAME" in
 AIX)   IFCONFIG=/usr/sbin/ifconfig ;;
@@ -215,6 +237,7 @@ Darwin)IFCONFIG=/sbin/ifconfig ;;
 DragonFly) IFCONFIG=/sbin/ifconfig ;;
 *)     IFCONFIG=/sbin/ifconfig ;;
 esac
+fi
 
 # need output like "644"
 case "$UNAME" in
@@ -236,16 +259,37 @@ case "$UNAME" in
     *) fileuser() { ls -l test.sh |awk '{print($3);}'; } ;;
 esac
 
+if2addr4() {
+    local IF="$1"
+    if [ "$IP" ]; then
+	$IP address show dev $IF |grep "inet " |sed -e "s/.*inet //" -e "s/ .*//"
+    else
+	$IFCONFIG $BROADCASTIF |grep 'inet ' |awk '{print($2);}' |cut -d: -f2
+    fi
+}
+
+if2bc4() {
+    local IF="$1"
+    if [ "$IP" ]; then
+	$IP address show dev $IF |grep ' inet .* brd ' |awk '{print($4);}'
+    else
+	$IFCONFIG $IF |grep 'broadcast ' |sed 's/.*broadcast/broadcast/' |awk '{print($2);}'
+    fi
+}
 
 # for some tests we need a second local IPv4 address
 case "$UNAME" in
 Linux)
-    BROADCASTIF=$(ip r get 8.8.8.8 |grep ' dev ' |sed 's/.*\<dev[[:space:]][[:space:]]*\([a-z0-9][a-z0-9]*\).*/\1/')
+  if [ "$IP" ]; then
+    BROADCASTIF=$($IP r get 8.8.8.8 |grep ' dev ' |sed 's/.*\<dev[[:space:]][[:space:]]*\([a-z0-9][a-z0-9]*\).*/\1/')
+  else
+    BROADCASTIF=$(route -n |grep '^0.0.0.0 ' |awk '{print($8);}')
+  fi
     [ -z "$BROADCASTIF" ] && BROADCASTIF=eth0
     SECONDADDR=127.1.0.1
     SECONDMASK=255.255.0.0
     BCADDR=127.255.255.255
-    BCIFADDR=$($IFCONFIG $BROADCASTIF |grep 'inet ' |awk '{print($2);}' |cut -d: -f2) ;;
+    BCIFADDR=$(if2addr4 $BROADCASTIF) ;;
 FreeBSD|NetBSD|OpenBSD)
     MAINIF=$($IFCONFIG -a |grep '^[a-z]' |grep -v '^lo0: ' |head -1 |cut -d: -f1)
     BROADCASTIF="$MAINIF"
@@ -286,6 +330,11 @@ fi
 
 # for some tests we need a second local IPv6 address
 case "$UNAME" in
+Linux) if [ "$IP" ]; then
+	   SECONDIP6ADDR=$(expr "$($IP address |grep 'inet6 ' |fgrep -v ' ::1/128 '| head -n 1)" : '.*inet6 \([0-9a-f:][0-9a-f:]*\)/.*') 
+       else
+	   SECONDIP6ADDR=$(expr "$($IFCONFIG -a |grep 'inet6 ' |fgrep -v ' ::1/128 '| head -n 1)" : '.*inet \([0-9.]*\) .*') 
+       fi ;;
 *)
     SECONDIP6ADDR=$(expr "$($IFCONFIG -a |grep 'inet6 ' |fgrep -v ' ::1/128 '| head -n 1)" : '.*inet \([0-9.]*\) .*') 
     ;;
@@ -1793,7 +1842,11 @@ runsip4 () {
     AIX)   l=$($IFCONFIG lo0 |fgrep 'inet 127.0.0.1 ') ;;
     FreeBSD) l=$($IFCONFIG lo0 |fgrep 'inet 127.0.0.1 ') ;;
     HP-UX) l=$($IFCONFIG lo0 |fgrep 'inet 127.0.0.1 ') ;;
-    Linux) l=$($IFCONFIG |egrep 'inet (addr:)?127\.0\.0\.1 ') ;;
+    Linux) if [ "$IP" ]; then
+	       l=$($IP address |egrep ' inet 127.0.0.1/')
+	   else
+	       l=$($IFCONFIG |egrep 'inet (addr:)?127\.0\.0\.1 ')
+	   fi ;;
     NetBSD)l=$($IFCONFIG -a |fgrep 'inet 127.0.0.1 ');;
     OpenBSD)l=$($IFCONFIG -a |fgrep 'inet 127.0.0.1 ');;
     OSF1)  l=$($IFCONFIG -a |grep ' inet ') ;;
@@ -1822,7 +1875,11 @@ runsip6 () {
     case "$UNAME" in
     AIX)   l=$($IFCONFIG lo0 |grep 'inet6 ::1/0') ;;
     HP-UX) l=$($IFCONFIG lo0 |grep ' inet6 ') ;;
-    Linux) l=$($IFCONFIG |egrep 'inet6 (addr: )?::1/?') ;;
+    Linux) if [ "$IP" ]; then
+	       l=$($IP address |egrep 'inet6 ::1/128')
+	   else
+	       l=$($IFCONFIG |egrep 'inet6 (addr: )?::1/?')
+	   fi ;;
     NetBSD)l=$($IFCONFIG -a |grep 'inet6 ::1 ');;
     OSF1)  l=$($IFCONFIG -a |grep ' inet6 ') ;;
     SunOS) l=$($IFCONFIG -a |grep 'inet6 ') ;;
@@ -1893,7 +1950,11 @@ waitip4proto () {
     [ "$timeout" ] || timeout=5
     while [ $timeout -gt 0 ]; do
 	case "$UNAME" in
-	Linux)   l=$(netstat -n -w -l |grep '^raw .* .*[0-9*]:'$proto' [ ]*0\.0\.0\.0:\*') ;;
+	Linux) if [ "$SS" ]; then
+		   l=$($SS -n -w -l |grep '^raw .* .*[0-9*]:'$proto' [ ]*0\.0\.0\.0:\*')
+	       else
+		   l=$(netstat -n -w -l |grep '^raw .* .*[0-9*]:'$proto' [ ]*0\.0\.0\.0:\*')
+	       fi ;;
 #	FreeBSD) l=$(netstat -an |egrep '^raw46? .*[0-9*]\.'$proto' .* \*\.\*') ;;
 #	NetBSD)  l=$(netstat -an |grep '^raw .*[0-9*]\.'$proto' [ ]* \*\.\*') ;;
 #	OpenBSD) l=$(netstat -an |grep '^raw .*[0-9*]\.'$proto' [ ]* \*\.\*') ;;
@@ -1934,7 +1995,12 @@ waitip6proto () {
     [ "$timeout" ] || timeout=5
     while [ $timeout -gt 0 ]; do
 	case "$UNAME" in
-	Linux)   l=$(netstat -n -w -l |grep '^raw[6 ] .* .*:[0-9*]*:'$proto' [ ]*:::\*') ;;
+	Linux)
+		if [ "$SS" ]; then
+		    l=$($SS -n -w -l |grep '^raw .* .*[0-9*]:'$proto' [ ]*0\.0\.0\.0:\*')
+		else
+		    l=$(netstat -n -w -l |grep '^raw[6 ] .* .*:[0-9*]*:'$proto' [ ]*:::\*')
+		fi ;;
 #	FreeBSD) l=$(netstat -an |egrep '^raw46? .*[0-9*]\.'$proto' .* \*\.\*') ;;
 #	NetBSD)  l=$(netstat -an |grep '^raw .*[0-9*]\.'$proto' [ ]* \*\.\*') ;;
 #	OpenBSD) l=$(netstat -an |grep '^raw .*[0-9*]\.'$proto' [ ]* \*\.\*') ;;
@@ -1971,7 +2037,11 @@ checktcp4port () {
     local port="$1"
     local l
     case "$UNAME" in
-    Linux)   l=$(netstat -a -n -t |grep '^tcp .* .*[0-9*]:'$port' .* LISTEN') ;;
+    Linux) if [ "$SS" ]; then
+	       l=$($SS -4 -l -n -t |grep "^LISTEN .*:$port\>")
+	   else
+	       l=$(netstat -a -n -t |grep '^tcp .* .*[0-9*]:'$port' .* LISTEN')
+	   fi ;;
     FreeBSD) l=$(netstat -an |grep '^tcp4.* .*[0-9*]\.'$port' .* \*\.\* .* LISTEN') ;;
     NetBSD)  l=$(netstat -an |grep '^tcp .* .*[0-9*]\.'$port' [ ]* \*\.\* [ ]* LISTEN.*') ;;
     Darwin) case "$(uname -r)" in
@@ -2001,7 +2071,11 @@ waittcp4port () {
     [ "$timeout" ] || timeout=5
     while [ $timeout -gt 0 ]; do
 	case "$UNAME" in
-	Linux)   l=$(netstat -a -n -t -l |grep '^tcp .* .*[0-9*]:'$port' .* LISTEN') ;;
+	Linux) if [ "$SS" ]; then
+	       l=$($SS -l -n -t |grep "^LISTEN .*:$port\>")
+	   else
+	       l=$(netstat -a -n -t |grep '^tcp .* .*[0-9*]:'$port' .* LISTEN')
+	   fi ;;
 	FreeBSD) l=$(netstat -an |grep '^tcp4.* .*[0-9*]\.'$port' .* \*\.\* .* LISTEN') ;;
 	NetBSD)  l=$(netstat -an |grep '^tcp .* .*[0-9*]\.'$port' [ ]* \*\.\* [ ]* LISTEN.*') ;;
 	Darwin) case "$(uname -r)" in
@@ -2041,7 +2115,11 @@ waitudp4port () {
     [ "$timeout" ] || timeout=5
     while [ $timeout -gt 0 ]; do
 	case "$UNAME" in
-	Linux)   l=$(netstat -a -n -u -l |grep '^udp .* .*[0-9*]:'$port' [ ]*0\.0\.0\.0:\*') ;;
+	Linux) if [ "$SS" ]; then
+	       l=$($SS -4 -l -n -u |grep "^UNCONN .*:$port\>")
+	   else
+	       l=$(netstat -a -n -u -l |grep '^udp .* .*[0-9*]:'$port' [ ]*0\.0\.0\.0:\*')
+	   fi ;;
 	FreeBSD) l=$(netstat -an |egrep '^udp46? .*[0-9*]\.'$port' .* \*\.\*') ;;
 	NetBSD)  l=$(netstat -an |grep '^udp .*[0-9*]\.'$port' [ ]* \*\.\*') ;;
 	OpenBSD) l=$(netstat -an |grep '^udp .*[0-9*]\.'$port' [ ]* \*\.\*') ;;
@@ -2081,7 +2159,11 @@ waitsctp4port () {
     [ "$timeout" ] || timeout=5
     while [ $timeout -gt 0 ]; do
 	case "$UNAME" in
-	Linux)   l=$(netstat -n -a |grep '^sctp .* .*[0-9*]:'$port' .* LISTEN') ;;
+	Linux) if [ "$SS" ]; then
+		   l=$($SS -4 -n -A sctp 2>/dev/null |grep "^LISTEN .*:$port\>")
+	       else
+		   l=$(netstat -n -a |grep '^sctp .* .*[0-9*]:'$port' .* LISTEN')
+	       fi ;;
 #	FreeBSD) l=$(netstat -an |grep '^tcp4.* .*[0-9*]\.'$port' .* \*\.\* .* LISTEN') ;;
 #	NetBSD)  l=$(netstat -an |grep '^tcp .* .*[0-9*]\.'$port' [ ]* \*\.\* [ ]* LISTEN.*') ;;
 #	Darwin) case "$(uname -r)" in
@@ -2120,7 +2202,11 @@ waittcp6port () {
     [ "$timeout" ] || timeout=5
     while [ $timeout -gt 0 ]; do
 	case "$UNAME" in
-	Linux)   l=$(netstat -an |grep -E '^tcp6? .* [0-9a-f:%]*:'$port' .* LISTEN') ;;
+	Linux) if [ "$SS" ]; then
+		   l=$($SS -6 -n -t -l |grep "^LISTEN .*:$port\>")
+	       else
+		   l=$(netstat -an |grep -E '^tcp6? .* [0-9a-f:%]*:'$port' .* LISTEN')
+	       fi ;;
 	FreeBSD) l=$(netstat -an |egrep -i 'tcp(6|46) .*[0-9*][:.]'$port' .* listen') ;;
 	NetBSD)  l=$(netstat -an |grep '^tcp6 .*[0-9*]\.'$port' [ ]* \*\.\*') ;;
 	OpenBSD) l=$(netstat -an |grep -i 'tcp6 .*[0-9*][:.]'$port' .* listen') ;;
@@ -2157,7 +2243,11 @@ waitudp6port () {
     [ "$timeout" ] || timeout=5
     while [ $timeout -gt 0 ]; do
 	case "$UNAME" in
-	Linux)   l=$(netstat -an |grep -E '^udp6? .* .*[0-9*:%]:'$port' [ ]*:::\*') ;;
+	Linux) if [ "$SS" ]; then
+	       l=$($SS -6 -u -l -n |grep "^UNCONN .*:$port\>")
+	   else
+	       l=$(netstat -an |grep -E '^udp6? .* .*[0-9*:%]:'$port' [ ]*:::\*')
+	   fi ;;
 	FreeBSD) l=$(netstat -an |egrep '^udp(6|46) .*[0-9*]\.'$port' .* \*\.\*') ;;
 	NetBSD)  l=$(netstat -an |grep '^udp6 .* \*\.'$port' [ ]* \*\.\*') ;;
     	OpenBSD) l=$(netstat -an |grep '^udp6 .*[0-9*]\.'$port' [ ]* \*\.\*') ;;
@@ -2195,7 +2285,11 @@ waitsctp6port () {
     [ "$timeout" ] || timeout=5
     while [ $timeout -gt 0 ]; do
 	case "$UNAME" in
-	Linux)   l=$(netstat -an |grep '^sctp[6 ] .* [0-9a-f:]*:'$port' .* LISTEN') ;;
+	Linux) if [ "$SS" ]; then
+		   l=$($SS -6 -n -A sctp 2>/dev/null |grep "^LISTEN .*:$port\>")
+	       else
+		   l=$(netstat -an |grep '^sctp[6 ] .* [0-9a-f:]*:'$port' .* LISTEN')
+	       fi ;;
 #	FreeBSD) l=$(netstat -an |grep -i 'tcp[46][6 ] .*[0-9*][:.]'$port' .* listen') ;;
 #	NetBSD)  l=$(netstat -an |grep '^tcp6 .*[0-9*]\.'$port' [ ]* \*\.\*') ;;
 #	OpenBSD) l=$(netstat -an |grep -i 'tcp6 .*[0-9*][:.]'$port' .* listen') ;;
@@ -12788,7 +12882,7 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD0="$TRACE $SOCAT $opts UDP6-RECV:$PORT,ipv6-join-group=[ff02::2]:$INTERFACE /dev/null"
+CMD0="$TRACE $SOCAT $opts UDP6-RECV:$PORT,ipv6-join-group=[ff02::2]:$MCINTERFACE /dev/null"
 printf "test $F_n $TEST... " $N
 $CMD0 >/dev/null 2>"${te}0"
 rc0=$?

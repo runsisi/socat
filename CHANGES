@@ -68,6 +68,11 @@ testing:
 	Failure of cipher aNULL is not a failure
 	Failure of methods SSL3 and SSL23 is desired
 
+	test.sh depended on ifconfig and netstat utilities which are no longer
+	availabie in some distributions. test.sh now checks for and prefers
+	ip and ss.
+	Thanks to Ruediger Meier for reporting this problem.
+
 git:
 	Added missing Config/Makefile.DragonFly-2-8-2,
 	Config/config.DragonFly-2-8-2.h
