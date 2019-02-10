@@ -16,6 +16,15 @@ testing:
 	test.sh: Show a warning when phase-1 (insecure phase) of a security
 	test fails
 
+	OpenSSL tests failed on actual Linux distributions. Measures:
+	Increased key lengths from 768 to 1024 bits
+	Added test.sh option -C to delete temp certs from prevsious runs
+	Provide DH-parameter in certificate in PEM
+	OpenSSL s_server option -verify 0 must be omitted
+	OpenSSL authentication method aNULL no longer works
+	Failure of cipher aNULL is not a failure
+	Failure of methods SSL3 and SSL23 is desired
+
 git:
 	Added missing Config/Makefile.DragonFly-2-8-2,
 	Config/config.DragonFly-2-8-2.h
