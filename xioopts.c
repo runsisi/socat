@@ -879,7 +879,9 @@ const struct optname optionnames[] = {
 #ifdef IP_ADD_MEMBERSHIP
 	IF_IP     ("membership",	&opt_ip_add_membership)
 #endif
+#if WITH_OPENSSL_METHOD
 	IF_OPENSSL("method",	&opt_openssl_method)
+#endif
 	IF_TERMIOS("min",	&opt_vmin)
 	IF_ANY    ("mode",	&opt_perm)
 #ifdef TCP_MAXSEG
@@ -1109,7 +1111,9 @@ const struct optname optionnames[] = {
 	IF_OPENSSL("openssl-fips",	&opt_openssl_fips)
 #endif
 	IF_OPENSSL("openssl-key",	&opt_openssl_key)
+#if WITH_OPENSSL_METHOD
 	IF_OPENSSL("openssl-method",	&opt_openssl_method)
+#endif
 	IF_OPENSSL("openssl-pseudo",	&opt_openssl_pseudo)
 	IF_OPENSSL("openssl-verify",	&opt_openssl_verify)
 	IF_TERMIOS("opost",	&opt_opost)

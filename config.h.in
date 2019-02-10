@@ -433,6 +433,10 @@
 /* Define if you have the HAVE_SSL_CTX_set_default_verify_paths function */
 #undef HAVE_SSL_CTX_set_default_verify_paths
 
+/* Define if you have the TLS client and server method functions. not in old openssl? */
+#undef HAVE_TLS_client_method
+#undef HAVE_TLS_server_method
+
 /* Define if you have the SSLv3 client and server method functions. not in new openssl */
 #undef HAVE_SSLv3_client_method
 #undef HAVE_SSLv3_server_method
@@ -625,6 +629,7 @@
 #undef WITH_PTY
 #undef WITH_EXT2
 #undef WITH_OPENSSL
+#undef WITH_OPENSSL_METHOD
 #define WITH_STREAMS 1
 #undef WITH_FIPS
 #undef OPENSSL_FIPS

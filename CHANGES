@@ -55,6 +55,12 @@ corrections:
 	TCP6:127.0.0.1:80
 	Thanks to Nicolas Fournil for reporting this issue.
 
+porting:
+	OpenSSL functions TLS1_client_method() and similar are 
+	deprecated. Socat now uses recommended TLS_client_method(). The old
+	functions and dependend option openssl-method can still be
+	used when configuring socat with --enable-openssl-method
+
 testing:
 	test.sh: Show a warning when phase-1 (insecure phase) of a security
 	test fails

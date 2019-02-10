@@ -91,6 +91,7 @@ const SSL_METHOD *sycSSLv23_server_method(void) {
    return result;
 }
 
+#if HAVE_TLSv1_client_method
 const SSL_METHOD *sycTLSv1_client_method(void) {
    const SSL_METHOD *result;
    Debug("TLSv1_client_method()");
@@ -98,7 +99,9 @@ const SSL_METHOD *sycTLSv1_client_method(void) {
    Debug1("TLSv1_client_method() -> %p", result);
    return result;
 }
+#endif
 
+#if HAVE_TLSv1_server_method
 const SSL_METHOD *sycTLSv1_server_method(void) {
    const SSL_METHOD *result;
    Debug("TLSv1_server_method()");
@@ -106,6 +109,7 @@ const SSL_METHOD *sycTLSv1_server_method(void) {
    Debug1("TLSv1_server_method() -> %p", result);
    return result;
 }
+#endif
 
 #if HAVE_TLSv1_1_client_method
 const SSL_METHOD *sycTLSv1_1_client_method(void) {

@@ -12411,14 +12411,17 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+elif ! socat -hhh |grep -q "^[[:space:]]*openssl-method[[:space:]]"; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}Option openssl-method not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
 else
 gentestcert testsrv
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD0="$SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,method=$method,cert=testsrv.pem,verify=0 PIPE"
-CMD1="$SOCAT $opts - OPENSSL-CONNECT:$LOCALHOST:$PORT,method=$method,verify=0"
+CMD0="$SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,openssl-method=$method,cert=testsrv.pem,verify=0 PIPE"
+CMD1="$SOCAT $opts - OPENSSL-CONNECT:$LOCALHOST:$PORT,opensslmethod=$method,verify=0"
 printf "test $F_n $TEST... " $N
 if [ "$method" = DTLS1 -a "$(echo -e "$OPENSSL_VERSION\n1.0.2" |sort -V |tail -n 1)" = "$OPENSSL_VERSION_GOOD" ]; then
     $PRINTF "${YELLOW}might hang, skipping${NORMAL}\n"
@@ -12468,14 +12471,17 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+elif ! socat -hhh |grep -q "^[[:space:]]*openssl-method[[:space:]]"; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}Option openssl-method not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
 else
 gentestcert testsrv
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD0="$SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,method=$method,cert=testsrv.pem,verify=0 PIPE"
-CMD1="$SOCAT $opts - OPENSSL-CONNECT:$LOCALHOST:$PORT,method=$method,verify=0"
+CMD0="$SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,openssl-method=$method,cert=testsrv.pem,verify=0 PIPE"
+CMD1="$SOCAT $opts - OPENSSL-CONNECT:$LOCALHOST:$PORT,openssl-method=$method,verify=0"
 printf "test $F_n $TEST... " $N
 if [ "$method" = DTLS1 -a "$(echo -e "$OPENSSL_VERSION\n1.0.2" |sort -V |tail -n 1)" = "$OPENSSL_VERSION_GOOD" ]; then
     $PRINTF "${YELLOW}might hang, skipping${NORMAL}\n"

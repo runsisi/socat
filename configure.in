@@ -568,6 +568,16 @@ if test -n "$WITH_OPENSSL"; then
   fi
 fi
 
+if test -n "$WITH_OPENSSL"; then
+AC_MSG_CHECKING(whether to include OpenSSL method option)
+AC_ARG_ENABLE(openssl-method, [  --enable-openssl-method       enable OpenSSL method option],
+	      [case "$enableval" in
+	       no) AC_MSG_RESULT(no);;
+	       *) AC_DEFINE(WITH_OPENSSL_METHOD) WITH_OPENSSL_METHOD=1; AC_MSG_RESULT(yes);;
+	       esac],
+	       [AC_MSG_RESULT(no)])
+fi
+
 # check for fips support
 AC_MSG_CHECKING(whether to include openssl fips support)
 AC_ARG_ENABLE(fips, [  --enable-fips          enable OpenSSL FIPS support],
@@ -1425,6 +1435,9 @@ AC_CHECK_FUNC(SSLv2_server_method, AC_DEFINE(HAVE_SSLv2_server_method), AC_CHECK
 dnl 
 AC_CHECK_FUNC(SSL_CTX_set_default_verify_paths, AC_DEFINE(HAVE_SSL_CTX_set_default_verify_paths))
 
+AC_CHECK_FUNC(TLS_client_method, AC_DEFINE(HAVE_TLS_client_method), AC_CHECK_LIB(crypt, TLS_client_method, [LIBS=-lcrypt $LIBS]))
+AC_CHECK_FUNC(TLS_server_method, AC_DEFINE(HAVE_TLS_server_method), AC_CHECK_LIB(crypt, TLS_server_method, [LIBS=-lcrypt $LIBS]))
+if test -n "$WITH_OPENSSL_METHOD"; then
 AC_CHECK_FUNC(SSLv3_client_method, AC_DEFINE(HAVE_SSLv3_client_method), AC_CHECK_LIB(crypt, SSLv3_client_method, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(SSLv3_server_method, AC_DEFINE(HAVE_SSLv3_server_method), AC_CHECK_LIB(crypt, SSLv3_server_method, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(SSLv23_client_method, AC_DEFINE(HAVE_SSLv23_client_method), AC_CHECK_LIB(crypt, SSLv23_client_method, [LIBS=-lcrypt $LIBS]))
@@ -1437,6 +1450,7 @@ AC_CHECK_FUNC(TLSv1_2_client_method, AC_DEFINE(HAVE_TLSv1_2_client_method), AC_C
 AC_CHECK_FUNC(TLSv1_2_server_method, AC_DEFINE(HAVE_TLSv1_2_server_method), AC_CHECK_LIB(crypt, TLSv1_2_server_method, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(DTLSv1_client_method, AC_DEFINE(HAVE_DTLSv1_client_method), AC_CHECK_LIB(crypt, DTLSv1_client_method, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(DTLSv1_server_method, AC_DEFINE(HAVE_DTLSv1_server_method), AC_CHECK_LIB(crypt, DTLSv1_server_method, [LIBS=-lcrypt $LIBS]))
+fi # $WITH_OPENSSL_METHOD
 AC_CHECK_FUNC(RAND_egd, AC_DEFINE(HAVE_RAND_egd), AC_CHECK_LIB(crypt, RAND_egd, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(DH_set0_pqg, AC_DEFINE(HAVE_DH_set0_pqg), AC_CHECK_LIB(crypt, DH_set0_pqg, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(ASN1_STRING_get0_data, AC_DEFINE(HAVE_ASN1_STRING_get0_data), AC_CHECK_LIB(crypt, ASN1_STRING_get0_data, [LIBS=-lcrypt $LIBS]))

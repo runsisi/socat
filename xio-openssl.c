@@ -101,7 +101,9 @@ const struct addrdesc addr_openssl_listen = {
 
 /* both client and server */
 const struct optdesc opt_openssl_cipherlist = { "openssl-cipherlist", "ciphers", OPT_OPENSSL_CIPHERLIST, GROUP_OPENSSL, PH_SPEC, TYPE_STRING, OFUNC_SPEC };
+#if WITH_OPENSSL_METHOD
 const struct optdesc opt_openssl_method     = { "openssl-method",     "method",  OPT_OPENSSL_METHOD,     GROUP_OPENSSL, PH_SPEC, TYPE_STRING, OFUNC_SPEC };
+#endif
 const struct optdesc opt_openssl_verify     = { "openssl-verify",     "verify",  OPT_OPENSSL_VERIFY,     GROUP_OPENSSL, PH_SPEC, TYPE_BOOL,   OFUNC_SPEC };
 const struct optdesc opt_openssl_certificate = { "openssl-certificate", "cert",  OPT_OPENSSL_CERTIFICATE, GROUP_OPENSSL, PH_SPEC, TYPE_FILENAME, OFUNC_SPEC };
 const struct optdesc opt_openssl_key         = { "openssl-key",         "key",   OPT_OPENSSL_KEY,         GROUP_OPENSSL, PH_SPEC, TYPE_FILENAME, OFUNC_SPEC };
@@ -806,7 +808,9 @@ int
 	    Error1("openssl-method=\"%s\": method unknown or not provided by library", me_str);
 	 }
       } else {
-#if   HAVE_SSLv23_client_method
+#if   HAVE_TLS_client_method
+	 method = TLS_client_method();
+#elif HAVE_SSLv23_client_method
 	 method = sycSSLv23_client_method();
 #elif HAVE_TLSv1_2_client_method
 	 method = sycTLSv1_2_client_method();
@@ -826,7 +830,6 @@ int
       if (me_str != 0) {
 	 if (false) {
 	    ;	/* for canonical reasons */
-
 #if HAVE_SSLv2_server_method
 	 } else if (!strcasecmp(me_str, "SSL2")) {
 	    method = sycSSLv2_server_method();
@@ -859,7 +862,9 @@ int
 	    Error1("openssl-method=\"%s\": method unknown or not provided by library", me_str);
 	 }
       } else {
-#if   HAVE_SSLv23_server_method
+#if   HAVE_TLS_server_method
+	 method = TLS_server_method();
+#elif HAVE_SSLv23_server_method
 	 method = sycSSLv23_server_method();
 #elif HAVE_TLSv1_2_server_method
 	 method = sycTLSv1_2_server_method();

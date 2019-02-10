@@ -506,7 +506,6 @@ label(ADDRESS_OPENSSL_CONNECT)dit(bf(tt(OPENSSL:<host>:<port>)))
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4),link(IP6)(GROUP_IP6),link(TCP)(GROUP_TCP),link(OPENSSL)(GROUP_OPENSSL),link(RETRY)(GROUP_RETRY) nl()
    Useful options:
    link(cipher)(OPTION_OPENSSL_CIPHERLIST),
-   link(method)(OPTION_OPENSSL_METHOD),
    link(verify)(OPTION_OPENSSL_VERIFY),
    link(commonname)(OPTION_OPENSSL_COMMONNAME)
    link(cafile)(OPTION_OPENSSL_CAFILE),
@@ -535,7 +534,6 @@ label(ADDRESS_OPENSSL_LISTEN)dit(bf(tt(OPENSSL-LISTEN:<port>)))
    Useful options:
    link(pf)(OPTION_PROTOCOL_FAMILY),
    link(cipher)(OPTION_OPENSSL_CIPHERLIST),
-   link(method)(OPTION_OPENSSL_METHOD),
    link(verify)(OPTION_OPENSSL_VERIFY),
    link(commonname)(OPTION_OPENSSL_COMMONNAME)
    link(cafile)(OPTION_OPENSSL_CAFILE),
@@ -2633,17 +2631,19 @@ label(OPTION_OPENSSL_CIPHERLIST)dit(bf(tt(cipher=<cipherlist>)))
    Note that the peer must support the selected property, or the negotiation
    will fail.
 label(OPTION_OPENSSL_METHOD)dit(bf(tt(method=<ssl-method>)))
+   This option is based on deprecated functions and is only available when
+   socat() was build with option tt(--with-openssl-method).
    Sets the protocol version to be used. Valid strings (not case sensitive)
    are:  
    startdit()
    dit(tt(SSL2)) Select SSL protocol version 2.
    dit(tt(SSL3)) Select SSL protocol version 3.
-   dit(tt(SSL23)) Select the best available SSL or TLS protocol. This is the default when
-   this option is not provided.
+   dit(tt(SSL23)) Select the best available SSL or TLS protocol.
    dit(tt(TLS1)) Select TLS protocol version 1.
    dit(tt(TLS1.1)) Select TLS protocol version 1.1.
    dit(tt(TLS1.2)) Select TLS protocol version 1.2.
-   dit(tt(DTLS1)) Select DTLS protocol version 1.
+   When this option is not provided OpenSSL negotiates the mothod with its
+   peer.
    enddit()
 label(OPTION_OPENSSL_VERIFY)dit(bf(tt(verify=<bool>)))
    Controls check of the peer's certificate. Default is 1 (true). Disabling
