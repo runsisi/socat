@@ -1,3 +1,11 @@
+
+corrections:
+	Makefile.in did not specify dependencies of filan on vsnprintf_r.o
+	and snprinterr.o
+	Added definition of FILAN_OBJS
+	Thanks to Craig Leres, Clayton Shotwell, and Chris Packham for
+	providing patches.
+
 git:
 	Added missing Config/Makefile.DragonFly-2-8-2,
 	Config/config.DragonFly-2-8-2.h
