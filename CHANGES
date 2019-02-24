@@ -12,6 +12,10 @@ corrections:
 	cross compiling.
 	Thanks to Max Freisinger from Gentoo for seinding a patch.
 
+testing:
+	test.sh: Show a warning when phase-1 (insecure phase) of a security
+	test fails
+
 git:
 	Added missing Config/Makefile.DragonFly-2-8-2,
 	Config/config.DragonFly-2-8-2.h
