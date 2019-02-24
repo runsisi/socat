@@ -6,6 +6,8 @@ corrections:
 	Thanks to Craig Leres, Clayton Shotwell, and Chris Packham for
 	providing patches.
 
+	configure option --enable-msglevel did not work with numbers
+
 git:
 	Added missing Config/Makefile.DragonFly-2-8-2,
 	Config/config.DragonFly-2-8-2.h
