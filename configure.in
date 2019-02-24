@@ -740,7 +740,7 @@ AC_FUNC_MEMCMP
 AC_TYPE_SIGNAL
 AC_FUNC_STRFTIME
 AC_CHECK_FUNCS(putenv select poll socket strtod strtol)
-AC_CHECK_FUNCS(strtoul uname getpgid getsid getaddrinfo)
+AC_CHECK_FUNCS(strtoul uname getpgid getsid gethostbyname getaddrinfo)
 AC_CHECK_FUNCS(setgroups inet_aton)
 AC_CHECK_FUNCS()
 

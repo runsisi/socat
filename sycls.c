@@ -1364,7 +1364,7 @@ int Pause(void) {
    return retval;
 }
 
-#if WITH_IP4 || WITH_IP6
+#if ( _WITH_IP4 || _WITH_IP6 ) && HAVE_GETHOSTBYNAME
 struct hostent *Gethostbyname(const char *name) {
    struct hostent *hent;
    Debug1("gethostbyname(\"%s\")", name);
@@ -1380,7 +1380,7 @@ struct hostent *Gethostbyname(const char *name) {
    }
    return hent;
 }
-#endif /* WITH_IP4 || WITH_IP6 */
+#endif /* ( _WITH_IP4 || _WITH_IP6 ) && HAVE_GETHOSTBYNAME */
 
 #if (_WITH_IP4 || _WITH_IP6) && HAVE_GETADDRINFO
 int Getaddrinfo(const char *node, const char *service,

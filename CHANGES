@@ -12,6 +12,10 @@ corrections:
 	cross compiling.
 	Thanks to Max Freisinger from Gentoo for seinding a patch.
 
+	Socat still depended on obsolete gethostbyname() function, thus
+	compiling with MUSL libc failed.
+	Problem reported by Kennedy33.
+
 testing:
 	test.sh: Show a warning when phase-1 (insecure phase) of a security
 	test fails

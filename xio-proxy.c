@@ -11,6 +11,7 @@
 
 #include "xioopen.h"
 #include "xio-socket.h"
+#include "xio-ip.h"
 #include "xio-ipapp.h"
 #include "xio-ascii.h"	/* for base64 encoding of authentication */
 
@@ -231,7 +232,9 @@ static int xioopen_proxy_connect(int argc, const char *argv[], struct opt *opts,
 
 int _xioopen_proxy_prepare(struct proxyvars *proxyvars, struct opt *opts,
 			   const char *targetname, const char *targetport) {
-   struct hostent *host;
+   union sockaddr_union host;
+   socklen_t socklen = sizeof(host);
+   int rc;
 
    retropt_bool(opts, OPT_IGNORECR, &proxyvars->ignorecr);
    retropt_bool(opts, OPT_PROXY_RESOLVE, &proxyvars->doresolve);
@@ -241,14 +244,10 @@ int _xioopen_proxy_prepare(struct proxyvars *proxyvars, struct opt *opts,
       /* currently we only resolve to IPv4 addresses. This is in accordance to
 	 RFC 2396; however once it becomes clear how IPv6 addresses should be
 	 represented in CONNECT commands this code might be extended */
-      host = Gethostbyname(targetname);
-      if (host == NULL) {
-	 int level = E_WARN;
-	 /* note: cast is req on AIX: */
-	 Msg2(level, "gethostbyname(\"%s\"): %s", targetname,
-	      h_errno == NETDB_INTERNAL ? strerror(errno) :
-	      (char *)hstrerror(h_errno)/*0 h_messages[h_errno-1]*/);
-
+      rc = xiogetaddrinfo(targetname, targetport, PF_UNSPEC,
+			  SOCK_STREAM, IPPROTO_TCP,
+			  &host, &socklen, 0, 0);
+      if (rc != STAT_OK) {
 	 proxyvars->targetaddr = strdup(targetname);
       } else {
 #define LEN 16	/* www.xxx.yyy.zzz\0 */
@@ -256,10 +255,10 @@ int _xioopen_proxy_prepare(struct proxyvars *proxyvars, struct opt *opts,
 	    return STAT_RETRYLATER;
 	 }
 	 snprintf(proxyvars->targetaddr, LEN, "%u.%u.%u.%u",
-		  (unsigned char)host->h_addr_list[0][0],
-		  (unsigned char)host->h_addr_list[0][1],
-		  (unsigned char)host->h_addr_list[0][2],
-		  (unsigned char)host->h_addr_list[0][3]);
+		  ((unsigned char *)&host.ip4.sin_addr.s_addr)[0],
+		  ((unsigned char *)&host.ip4.sin_addr.s_addr)[1],
+		  ((unsigned char *)&host.ip4.sin_addr.s_addr)[2],
+		  ((unsigned char *)&host.ip4.sin_addr.s_addr)[3]);
 #undef LEN
       }
    } else {
