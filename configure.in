@@ -998,11 +998,11 @@ AC_CACHE_VAL(ac_cv_ispeed_offset,
  ],
  [ac_cv_ispeed_offset=`cat $conftestspeedoff`],
  [ac_cv_ispeed_offset=-1],
- [ac_cv_ispeed_offset=-1]	#!
+ [ac_cv_ispeed_offset="((unsigned long)&((struct termios *)0)->c_ispeed / sizeof(speed_t))"]
 )])
 LIBS="$LIBS1"
 AC_MSG_RESULT($ac_cv_ispeed_offset)
- if test $ac_cv_ispeed_offset -ge 0; then
+ if test "$ac_cv_ispeed_offset" != -1; then
    AC_DEFINE_UNQUOTED(ISPEED_OFFSET, $ac_cv_ispeed_offset)
  fi
 fi

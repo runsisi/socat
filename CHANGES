@@ -8,6 +8,10 @@ corrections:
 
 	configure option --enable-msglevel did not work with numbers
 
+	The autoconf mechanism for determining SHIFT_OFFSET did not work when
+	cross compiling.
+	Thanks to Max Freisinger from Gentoo for seinding a patch.
+
 git:
 	Added missing Config/Makefile.DragonFly-2-8-2,
 	Config/config.DragonFly-2-8-2.h
