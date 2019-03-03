@@ -77,7 +77,8 @@ else
 	*)       INTERFACE="$(netstat -rn |grep -e "^default" -e "^0\.0\.0\.0" |awk '{print($4);}')" ;;
     esac
 fi
-MCINTERFACE=lo	# !!! Linux only
+MCINTERFACE=lo	# !!! Linux only - and not always
+MCINTERFACE=$INTERFACE
 #LOCALHOST=192.168.58.1
 LOCALHOST=localhost
 #LOCALHOST=127.0.0.1
@@ -8606,7 +8607,7 @@ esac
 PROTO=$((PROTO+1))
 N=$((N+1))
 
-if false; then
+if true; then
 NAME=UDP6MULTICAST_UNIDIR
 case "$TESTS" in
 *%$N%*|*%functions%*|*%udp%*|*%udp6%*|*%ip6%*|*%dgram%*|*%multicast%*|*%$NAME%*)
@@ -8624,7 +8625,8 @@ if1="$MCINTERFACE"
 ts1a="[::1]"
 da="test$N $(date) $RANDOM"
 CMD1="$TRACE $SOCAT -u $opts UDP6-RECV:$ts1p,reuseaddr,ipv6-join-group=[ff02::2]:$if1 -"
-CMD2="$TRACE $SOCAT -u $opts - UDP6-SENDTO:[ff02::2]:$ts1p,bind=$ts1a"
+#CMD2="$TRACE $SOCAT -u $opts - UDP6-SENDTO:[ff02::2]:$ts1p,bind=$ts1a"
+CMD2="$TRACE $SOCAT -u $opts - UDP6-SENDTO:[ff02::2]:$ts1p"
 printf "test $F_n $TEST... " $N
 $CMD1 2>"${te}1"  >"${tf}" &
 pid1="$!"
@@ -8635,19 +8637,21 @@ usleep $MICROS
 kill "$pid1" 2>/dev/null; wait;
 if [ "$rc2" -ne 0 ]; then
    $PRINTF "$FAILED: $TRACE $SOCAT:\n"
-   echo "$CMD1 &"
-   echo "$CMD2"
+   echo -e "$CMD1 &\n$CMD2"
    cat "${te}1"
    cat "${te}2"
    numFAIL=$((numFAIL+1))
     listFAIL="$listFAIL $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
    $PRINTF "$FAILED\n"
+   echo "$CMD1 &"
+   echo "$CMD2"
    cat "$tdiff"
    numFAIL=$((numFAIL+1))
     listFAIL="$listFAIL $N"
 else
-   $PRINTF "$OK\n"
+    $PRINTF "$OK\n"
+   if [ "$VERBOSE" ]; then echo -e "$CMD1 &\n$CMD2"; fi
    if [ -n "$debug" ]; then cat $te; fi
    numOK=$((numOK+1))
 fi
@@ -8695,7 +8699,7 @@ elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
     listFAIL="$listFAIL $N"
 else
     $PRINTF "$OK\n"
-    if [ -n "$tut" ]; then
+    if [ -n "$VERBOSE" ]; then
 	echo "$CMD1 &"
 	echo "$CMD2"
     fi
