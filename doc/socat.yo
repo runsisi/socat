@@ -507,7 +507,7 @@ label(ADDRESS_OPENSSL_CONNECT)dit(bf(tt(OPENSSL:<host>:<port>)))
    Useful options:
    link(cipher)(OPTION_OPENSSL_CIPHERLIST),
    link(verify)(OPTION_OPENSSL_VERIFY),
-   link(commonname)(OPTION_OPENSSL_COMMONNAME)
+   link(commonname)(OPTION_OPENSSL_COMMONNAME),
    link(cafile)(OPTION_OPENSSL_CAFILE),
    link(capath)(OPTION_OPENSSL_CAPATH),
    link(certificate)(OPTION_OPENSSL_CERTIFICATE),
@@ -535,7 +535,7 @@ label(ADDRESS_OPENSSL_LISTEN)dit(bf(tt(OPENSSL-LISTEN:<port>)))
    link(pf)(OPTION_PROTOCOL_FAMILY),
    link(cipher)(OPTION_OPENSSL_CIPHERLIST),
    link(verify)(OPTION_OPENSSL_VERIFY),
-   link(commonname)(OPTION_OPENSSL_COMMONNAME)
+   link(commonname)(OPTION_OPENSSL_COMMONNAME),
    link(cafile)(OPTION_OPENSSL_CAFILE),
    link(capath)(OPTION_OPENSSL_CAPATH),
    link(certificate)(OPTION_OPENSSL_CERTIFICATE),
@@ -632,7 +632,7 @@ label(ADDRESS_READLINE)dit(bf(tt(READLINE)))
 label(ADDRESS_SCTP_CONNECT)dit(bf(tt(SCTP-CONNECT:<host>:<port>)))
    Establishes an SCTP stream connection to the specified <host> [link(IP
    address)(TYPE_IP_ADDRESS)] and <port> [link(TCP service)(TYPE_TCP_SERVICE)]
-   using TCP/IP version 4 or 6 depending on address specification, name
+   using IP version 4 or 6 depending on address specification, name
    resolution, or option link(pf)(OPTION_PROTOCOL_FAMILY).nl()
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4),link(IP6)(GROUP_IP6),link(SCTP)(GROUP_SCTP),link(CHILD)(GROUP_CHILD),link(RETRY)(GROUP_RETRY) nl()
    Useful options:
@@ -659,8 +659,8 @@ label(ADDRESS_SCTP6_CONNECT)dit(bf(tt(SCTP6-CONNECT:<host>:<port>)))
    Like link(SCTP-CONNECT)(ADDRESS_SCTP_CONNECT), but only supports IPv6 protocol.nl()
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP6)(GROUP_IP6),link(SCTP)(GROUP_SCTP),link(CHILD)(GROUP_CHILD),link(RETRY)(GROUP_RETRY) nl()
 label(ADDRESS_SCTP_LISTEN)dit(bf(tt(SCTP-LISTEN:<port>)))
-   Listens on <port> [link(TCP service)(TYPE_TCP_SERVICE)] and accepts a
-   TCP/IP connection. The IP version is 4 or the one specified with
+   Listens on <port> [link(TCP service)(TYPE_TCP_SERVICE)] and accepts an
+   SCTP connection. The IP version is 4 or the one specified with
    address option link(pf)(OPTION_PROTOCOL_FAMILY), socat option
    (link(-4)(option_4), link(-6)(option_6)), or environment variable link(SOCAT_DEFAULT_LISTEN_IP)(ENV_SOCAT_DEFAULT_LISTEN_IP).
    Note that opening
@@ -1284,7 +1284,7 @@ dit(bf(tt(ABSTRACT-RECV:<string>)))
 dit(bf(tt(ABSTRACT-CLIENT:<string>)))
    The ABSTRACT addresses are almost identical to the related UNIX addresses
    except that they do not address file system based sockets but an alternate
-   unixdomain() address space. To archieve this the socket address strings are
+   unixdomain() address space. To achieve this the socket address strings are
    prefixed with "\0" internally. This feature is available (only?) on Linux.
    Option groups are the same as with the related UNIX addresses, except that
    the ABSTRACT addresses are not member of the NAMED group.
@@ -1758,7 +1758,7 @@ label(OPTION_PROMPT)dit(bf(tt(prompt=<string>)))
    Passes the string as prompt to the readline function. readline prints this
    prompt when stepping through the history. If this string matches a constant
    prompt issued by an interactive program on the other socat address,
-   consistent look and feel can be archieved.
+   consistent look and feel can be achieved.
 enddit()
 
 startdit()enddit()nl()
@@ -2678,7 +2678,7 @@ label(OPTION_OPENSSL_EGD)dit(bf(tt(egd=<filename>)))
 label(OPTION_OPENSSL_PSEUDO)dit(bf(tt(pseudo)))
    On systems where openssl cannot find an entropy source and where no entropy
    gathering daemon can be utilized, this option activates a mechanism for
-   providing pseudo entropy. This is archieved by taking the current time in
+   providing pseudo entropy. This is achieved by taking the current time in
    microseconds for feeding the libc pseudo random number generator with an
    initial value. openssl is then feeded with output from NOEXPAND(random()) calls.nl()
    NOTE:This mechanism is not sufficient for generation of secure keys!
@@ -2934,7 +2934,7 @@ installs a simple TCP port forwarder. With
 link(TCP4-LISTEN)(ADDRESS_TCP4_LISTEN) it listens on local port "www" until a
 connection comes in, accepts it, then connects to the remote host
 (link(TCP4)(ADDRESS_TCP4_CONNECT)) and starts data transfer. It will not accept
-a econd connection. 
+a second connection. 
 
 label(EXAMPLE_OPTION_BIND_TCP4)
 label(EXAMPLE_OPTION_REUSEADDR)

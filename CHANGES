@@ -59,6 +59,10 @@ Corrections:
 	merged in Socat invocation
         Test: SOCCAT_OPT_HINT
 
+	Fixed some docu typos.
+	Thanks to Travis Wellman, Thomas <tjps636>, Dan Kenigsberg,
+	Julian Zinn, and Simon Matter
+
 Porting:
 	OpenSSL functions TLS1_client_method() and similar are 
 	deprecated. Socat now uses recommended TLS_client_method(). The old
@@ -135,7 +139,7 @@ corrections:
 
 	Socat did not use option ipv6-join-group.
 	Test: USE_IPV6_JOIN_GROUP
-	Thanks to Linux Lüssing for sending a patch.
+	Thanks to Linus Lüssing for sending a patch.
 
 	UDP-LISTEN did not honor the max-children option.
 	Test: UDP4MAXCHILDREN UDP6MAXCHILDREN
