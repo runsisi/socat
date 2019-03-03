@@ -144,9 +144,9 @@ static int applyopt_offset(struct single *xfd, struct opt *opt);
    binary search! */
 /* NULL terminated */
 const struct optname optionnames[] = {
-#if HAVE_RESOLV_H
+#if HAVE_RESOLV_H && WITH_RES_AAONLY
 	IF_IP     ("aaonly",	&opt_res_aaonly)
-#endif /* HAVE_RESOLV_H */
+#endif
 #ifdef TCP_ABORT_THRESHOLD  /* HP_UX */
 	IF_TCP    ("abort-threshold",	&opt_tcp_abort_threshold)
 #endif
@@ -1156,9 +1156,9 @@ const struct optname optionnames[] = {
 #endif
 	/*IF_IPAPP("port",	&opt_port)*/
 	IF_TUN    ("portsel",	&opt_iff_portsel)
-#if HAVE_RESOLV_H
+#if HAVE_RESOLV_H && WITH_RES_PRIMARY
 	IF_IP     ("primary",	&opt_res_primary)
-#endif /* HAVE_RESOLV_H */
+#endif
 #ifdef SO_PRIORITY
 	IF_SOCKET ("priority",	&opt_so_priority)
 #endif
@@ -1253,12 +1253,16 @@ const struct optname optionnames[] = {
 	IF_TERMIOS("reprint",	&opt_vreprint)
 #endif
 #if HAVE_RESOLV_H
+#  if WITH_AA_ONLY
 	IF_IP     ("res-aaonly",	&opt_res_aaonly)
+#  endif
 	IF_IP     ("res-debug",	&opt_res_debug)
 	IF_IP     ("res-defnames",	&opt_res_defnames)
 	IF_IP     ("res-dnsrch",	&opt_res_dnsrch)
 	IF_IP     ("res-igntc",	&opt_res_igntc)
+#  if WITH_RES_PRIMARY
 	IF_IP     ("res-primary",	&opt_res_primary)
+#  endif
 	IF_IP     ("res-recurse",	&opt_res_recurse)
 	IF_IP     ("res-stayopen",	&opt_res_stayopen)
 	IF_IP     ("res-usevc",	&opt_res_usevc)

@@ -74,6 +74,9 @@ Porting:
 	to make them better portable to systems without /bin/bash
 	Thanks to Maya Rashish for sending a patch
 
+	RES_AAONLY, RES_PRIMARY are deprecated. You can still enable them with
+	configure option --enable-res-deprecated.
+
 Testing:
 	test.sh: Show a warning when phase-1 (insecure phase) of a security
 	test fails

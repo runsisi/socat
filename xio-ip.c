@@ -74,11 +74,19 @@ const struct optdesc opt_ip_recvdstaddr = { "ip-recvdstaddr", "recvdstaddr",OPT_
 const struct optdesc opt_ip_recvif = { "ip-recvif", "recvdstaddrif",OPT_IP_RECVIF, GROUP_SOCK_IP, PH_PASTSOCKET, TYPE_INT, OFUNC_SOCKOPT, SOL_IP, IP_RECVIF };
 #endif
 
+#if WITH_RES_DEPRECATED
+#  define WITH_RES_AAONLY 1
+#  define WITH_RES_PRIMARY 1
+#endif /* WITH_RES_DEPRECATED */
 #if HAVE_RESOLV_H
 const struct optdesc opt_res_debug    = { "res-debug",    NULL,       OPT_RES_DEBUG,    GROUP_SOCK_IP, PH_INIT, TYPE_BOOL, OFUNC_OFFSET_MASKS, XIO_OFFSETOF(para.socket.ip.res_opts), XIO_SIZEOF(para.socket.ip.res_opts), RES_DEBUG };
+#if WITH_RES_AAONLY
 const struct optdesc opt_res_aaonly   = { "res-aaonly",   "aaonly",   OPT_RES_AAONLY,   GROUP_SOCK_IP, PH_INIT, TYPE_BOOL, OFUNC_OFFSET_MASKS, XIO_OFFSETOF(para.socket.ip.res_opts), XIO_SIZEOF(para.socket.ip.res_opts), RES_AAONLY };
+#endif
 const struct optdesc opt_res_usevc    = { "res-usevc",    "usevc",    OPT_RES_USEVC,    GROUP_SOCK_IP, PH_INIT, TYPE_BOOL, OFUNC_OFFSET_MASKS, XIO_OFFSETOF(para.socket.ip.res_opts), XIO_SIZEOF(para.socket.ip.res_opts), RES_USEVC };
+#if WITH_RES_PRIMARY
 const struct optdesc opt_res_primary  = { "res-primary",  "primary",  OPT_RES_PRIMARY,  GROUP_SOCK_IP, PH_INIT, TYPE_BOOL, OFUNC_OFFSET_MASKS, XIO_OFFSETOF(para.socket.ip.res_opts), XIO_SIZEOF(para.socket.ip.res_opts), RES_PRIMARY };
+#endif
 const struct optdesc opt_res_igntc    = { "res-igntc",    "igntc",    OPT_RES_IGNTC,    GROUP_SOCK_IP, PH_INIT, TYPE_BOOL, OFUNC_OFFSET_MASKS, XIO_OFFSETOF(para.socket.ip.res_opts), XIO_SIZEOF(para.socket.ip.res_opts), RES_IGNTC };
 const struct optdesc opt_res_recurse  = { "res-recurse",  "recurse",  OPT_RES_RECURSE,  GROUP_SOCK_IP, PH_INIT, TYPE_BOOL, OFUNC_OFFSET_MASKS, XIO_OFFSETOF(para.socket.ip.res_opts), XIO_SIZEOF(para.socket.ip.res_opts), RES_RECURSE };
 const struct optdesc opt_res_defnames = { "res-defnames", "defnames", OPT_RES_DEFNAMES, GROUP_SOCK_IP, PH_INIT, TYPE_BOOL, OFUNC_OFFSET_MASKS, XIO_OFFSETOF(para.socket.ip.res_opts), XIO_SIZEOF(para.socket.ip.res_opts), RES_DEFNAMES };
