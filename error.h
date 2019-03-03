@@ -237,6 +237,7 @@ extern void diag_set_int(char what, int arg);
 extern int diag_get_int(char what);
 extern const char *diag_get_string(char what);
 extern int diag_reserve_fd(int fd);
+extern int diag_fork(void);
 extern int diag_dup(void);
 extern int diag_dup2(int newfd);
 extern void msg(int level, const char *format, ...);

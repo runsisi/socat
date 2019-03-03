@@ -21,6 +21,11 @@ corrections:
 	Test: DIAG_FDIN
 	Problem reported by Onur Sentürk.
 
+	The socket based mechanism for passing messages and signal information
+	from signal handler to process could reach and kill the wrong process.
+	Introduces functions diag_sock_pair(), diag_fork()
+	Thanks to Darren Zhao for analysing and reporting this problem.
+
 testing:
 	test.sh: Show a warning when phase-1 (insecure phase) of a security
 	test fails

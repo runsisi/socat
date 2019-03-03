@@ -5449,7 +5449,10 @@ testserversec () {
 	esac
     else
 	$PRINTF "$OK\n"
-	if [ -n "$debug" ]; then cat $te; fi
+	[ "$VERBOSE" ] && echo "  $TRACE $SOCAT $opts $arg echo"
+	[ "$debug" ] && cat ${te}3
+	[ "$VERBOSE" ] && echo "  $TRACE $SOCAT $opts - $arg2"
+	[ "$debug" ] && cat ${te}4
 	numOK=$((numOK+1))
     fi
     wait

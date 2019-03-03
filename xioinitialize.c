@@ -178,6 +178,7 @@ int xio_forked_inchild(void) {
    int result = 0;
    int i;
 
+   diag_fork();
    for (i=0; i<NUMUNKNOWN; ++i) {
       diedunknown[i] = 0;
    }
