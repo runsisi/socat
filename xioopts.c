@@ -790,7 +790,7 @@ const struct optname optionnames[] = {
 	IF_IP6    ("ipv6only",	&opt_ipv6_v6only)
 #endif
 	IF_TERMIOS("isig",	&opt_isig)
-#if defined(HAVE_TERMIOS_ISPEED) && defined(ISPEED_OFFSET) && (ISPEED_OFFSET != -1)
+#if HAVE_TERMIOS_ISPEED
 	IF_TERMIOS("ispeed",	&opt_ispeed)
 #endif
 	IF_TERMIOS("istrip",	&opt_istrip)
@@ -1113,7 +1113,7 @@ const struct optname optionnames[] = {
 	IF_OPENSSL("openssl-pseudo",	&opt_openssl_pseudo)
 	IF_OPENSSL("openssl-verify",	&opt_openssl_verify)
 	IF_TERMIOS("opost",	&opt_opost)
-#if defined(HAVE_TERMIOS_ISPEED) && defined(OSPEED_OFFSET) && (OSPEED_OFFSET != -1)
+#if HAVE_TERMIOS_OSPEED
 	IF_TERMIOS("ospeed",	&opt_ospeed)
 #endif
 	IF_ANY    ("owner",	&opt_user)

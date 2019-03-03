@@ -749,6 +749,9 @@ AC_CHECK_FUNCS(grantpt unlockpt)
 # GR AC_CHECK_FUNCS only checks linking, not prototype. This may lead to implicit
 # function declarations and to SIGSEGV on systems with 32bit int and 64bit pointer
 
+dnl Search for cfsetispeed(),cfgetispeed(),cfsetspeed(),cfgetospeed() functions
+AC_CHECK_FUNCS(cfsetispeed cfgetispeed cfsetospeed cfgetospeed)
+
 ###################################
 # check for prototype and existence of functions that return a pointer
 # defines in config.h: HAVE_PROTOTYPE_LIB_$1
@@ -915,7 +918,6 @@ AC_MSG_RESULT($sc_cv_type_uint64)
 
 
 ### fds_bits
-
 AC_MSG_CHECKING(for fdset->fds_bits)
 AC_TRY_COMPILE([#include <sys/types.h>
 #if HAVE_SYS_SELECT_H
@@ -923,6 +925,24 @@ AC_TRY_COMPILE([#include <sys/types.h>
 #endif],
 [fd_set s; s.fds_bits[0]=0;],
 [AC_MSG_RESULT(yes); AC_DEFINE(HAVE_FDS_BITS)],
+[AC_MSG_RESULT(no);])
+
+AC_MSG_CHECKING(for struct termios . c_ispeed)
+AC_TRY_COMPILE([#include <unistd.h>
+#if HAVE_TERMIOS_H
+#include <termios.h>
+#endif],
+[struct termios s; s.c_ispeed=0;],
+[AC_MSG_RESULT(yes); AC_DEFINE(HAVE_STRUCT_TERMIOS_C_ISPEED)],
+[AC_MSG_RESULT(no);])
+
+AC_MSG_CHECKING(for struct termios . c_ospeed)
+AC_TRY_COMPILE([#include <unistd.h>
+#if HAVE_TERMIOS_H
+#include <termios.h>
+#endif],
+[struct termios s; s.c_ospeed=0;],
+[AC_MSG_RESULT(yes); AC_DEFINE(HAVE_STRUCT_TERMIOS_C_OSPEED)],
 [AC_MSG_RESULT(no);])
 
 AC_MSG_CHECKING(for sa_family_t)
@@ -962,50 +982,6 @@ if test $sc_cv_struct_sigaction_sa_sigaction = yes; then
    AC_DEFINE(HAVE_STRUCT_SIGACTION_SA_SIGACTION)
 fi
 AC_MSG_RESULT($sc_cv_struct_sigaction_sa_sigaction)
-
-### struct termios .c_ispeed
-AC_MSG_CHECKING(for termios.c_ispeed)
-AC_CACHE_VAL(sc_cv_termios_ispeed,
-[AC_TRY_COMPILE([#include <termios.h>],
-[struct termios t; t.c_ispeed=0;],
-[sc_cv_termios_ispeed=yes],
-[sc_cv_termios_ispeed=no])])
-if test $sc_cv_termios_ispeed = yes; then
-   AC_DEFINE(HAVE_TERMIOS_ISPEED)
-fi
-AC_MSG_RESULT($sc_cv_termios_ispeed)
-
-if test $sc_cv_termios_ispeed = yes; then
-AC_MSG_CHECKING(for offset of c_ispeed in struct termios)
-LIBS1="$LIBS"; LIBS=""	# avoid libwrap allow_severity undefined
-AC_CACHE_VAL(ac_cv_ispeed_offset,
- [conftestspeedoff="conftestspeedoff.out"
- AC_TRY_RUN([
-  #include <errno.h>
-  #include <stdlib.h>
-  #include <stdio.h>
-  #include <termios.h>
-  #include <string.h>
-  int main(){
-    struct termios t;
-    FILE *f;
-    if ((f=fopen("$conftestspeedoff","w"))==NULL){
-       fprintf(stderr,"\\"$conftestspeedoff\\": %s\n",strerror(errno)); exit(-1);
-    }
-    fprintf(f, "%d", ((char*)&t.c_ispeed-(char*)&t)/sizeof(speed_t));
-    exit(0);
- }
- ],
- [ac_cv_ispeed_offset=`cat $conftestspeedoff`],
- [ac_cv_ispeed_offset=-1],
- [ac_cv_ispeed_offset="((unsigned long)&((struct termios *)0)->c_ispeed / sizeof(speed_t))"]
-)])
-LIBS="$LIBS1"
-AC_MSG_RESULT($ac_cv_ispeed_offset)
- if test "$ac_cv_ispeed_offset" != -1; then
-   AC_DEFINE_UNQUOTED(ISPEED_OFFSET, $ac_cv_ispeed_offset)
- fi
-fi
 
 # there is another issue with termios: OSR requires "#define _SVID3 ..."
 # for reasonable termios support. We check this situation using IMAXBEL
@@ -1816,6 +1792,9 @@ AC_BASIC_TYPE([#include <sys/types.h>
 
 # oh god, __dev_t in Linux 2.4 is struct{int[2];}, not handled here yet.
 AC_BASIC_TYPE([#include <sys/stat.h>], dev_t, HAVE_BASIC_DEV_T, sc_cv_type_dev_basic)
+
+AC_BASIC_TYPE([#include <unistd.h>
+#include <termios.h>], speed_t, HAVE_BASIC_SPEED_T, sc_cv_type_spee_t)
 
 AC_TYPEOF_COMPONENT([#include <sys/stat.h>], struct stat, st_ino, HAVE_TYPEOF_ST_INO, sc_cv_type_stat_stino_basic)
 AC_TYPEOF_COMPONENT([#include <sys/stat.h>], struct stat, st_nlink, HAVE_TYPEOF_ST_NLINK, sc_cv_type_stat_stnlink_basic)

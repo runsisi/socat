@@ -321,6 +321,10 @@
 /* fdset may have component fds_bits or __fds_bits */
 #undef HAVE_FDS_BITS
 
+/* struct termios may have components c_ispeed,c_ospeed */
+#undef HAVE_STRUCT_TERMIOS_C_ISPEED
+#undef HAVE_STRUCT_TERMIOS_C_OSPEED
+
 /* Define if you have the sa_family_t */
 #undef HAVE_TYPE_SA_FAMILY_T
 
@@ -329,20 +333,6 @@
 
 /* define if you have struct sock_extended_err */
 #undef HAVE_STRUCT_SOCK_EXTENDED_ERR
-
-/* Define if your struct termios has component c_ispeed */
-#undef HAVE_TERMIOS_ISPEED
-
-/* the offset of c_ispeed in struct termios - usable in an speed_t array.
-   Applies only when HAVE_TERMIOS_ISPEED is set */
-#undef ISPEED_OFFSET
-
-/* the offset of c_ospeed in struct termios - see ISPEED_OFFSET */
-#ifdef ISPEED_OFFSET
-#  define OSPEED_OFFSET (ISPEED_OFFSET+1)
-#else
-#  undef OSPEED_OFFSET
-#endif
 
 /* Define if your termios.h likes _SVID3 defined */
 #undef _SVID3
@@ -421,6 +411,20 @@
 
 /* Define if you have the unsetenv function. not on HP-UX */
 #undef HAVE_UNSETENV
+
+/* Define if you have the cfsetispeed,cfgetispeed,cfsetspeed,cfgetospeed function */
+#undef HAVE_CFSETISPEED
+#undef HAVE_CFSETOSPEED
+
+#if HAVE_CFSETISPEED
+#  define HAVE_TERMIOS_ISPEED 1
+#endif
+#if HAVE_CFSETOSPEED
+#  define HAVE_TERMIOS_OSPEED 1
+#endif
+#if defined(HAVE_TERMIOS_ISPEED) && defined(HAVE_TERMIOS_OSPEED)
+#  define HAVE_TERMIOS_SPEED 1
+#endif
 
 /* Define if you have the SSLv2 client and server method functions. not in new openssl */
 #undef HAVE_SSLv2_client_method
@@ -558,6 +562,7 @@
 #undef HAVE_BASIC_OFF_T
 #undef HAVE_BASIC_OFF64_T
 #undef HAVE_BASIC_DEV_T
+#undef HAVE_BASIC_SPEED_T
 
 #undef HAVE_BASIC_SOCKLEN_T
 

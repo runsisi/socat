@@ -41,6 +41,8 @@ corrections:
 	Termios options TAB0,TAB1,TAB2,TAB3, and XTABS did not have an effect.
 	Thanks to Alan Walters for reporting this bug.
 
+	Substituted cumbersom ISPEED_OFFSET mechanism for cfsetispeed() calls
+
 testing:
 	test.sh: Show a warning when phase-1 (insecure phase) of a security
 	test fails

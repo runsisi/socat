@@ -350,6 +350,35 @@ typedef int sig_atomic_t;
 #  endif
 #endif
 
+
+#if _WITH_TERMIOS
+#if !defined(HAVE_BASIC_SPEED_T) || !HAVE_BASIC_SPEED_T
+#  undef HAVE_BASIC_SPEED_T
+#  define HAVE_BASIC_SPEED_T 4
+#endif
+#ifndef F_speed
+#  if HAVE_BASIC_SPEED_T==1
+#define F_speed "%hd"
+#  elif HAVE_BASIC_SPEED_T==2
+#define F_speed "%hu"
+#  elif HAVE_BASIC_SPEED_T==3
+#define F_speed "%""d"
+#  elif HAVE_BASIC_SPEED_T==4
+#define F_speed "%u"
+#  elif HAVE_BASIC_SPEED_T==5
+#define F_speed "%ld"
+#  elif HAVE_BASIC_SPEED_T==6
+#define F_speed "%lu"
+#  elif HAVE_BASIC_SPEED_T==7
+#define F_speed "%Ld"
+#  elif HAVE_BASIC_SPEED_T==8
+#define F_speed "%Lu"
+#  else
+#error "HAVE_BASIC_SPEED_T is out of range:" HAVE_BASIC_SPEED_T
+#  endif
+#endif
+#endif /* _WITH_TERMIOS */
+
 /* all unsigned; default; unsigned long */
 #if !defined(HAVE_TYPEOF_ST_INO) || !HAVE_TYPEOF_ST_INO
 #  undef HAVE_TYPEOF_ST_INO

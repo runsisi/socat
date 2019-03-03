@@ -272,14 +272,12 @@ const struct optdesc opt_sane     = { "sane",   NULL,    OPT_SANE,     GROUP_TER
 const struct optdesc opt_termios_cfmakeraw = { "termios-cfmakeraw", "cfmakeraw", OPT_TERMIOS_CFMAKERAW, GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_SPEC };
 const struct optdesc opt_termios_rawer     = { "termios-rawer",     "rawer",     OPT_TERMIOS_RAWER,     GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_SPEC };
 
-#ifdef HAVE_TERMIOS_ISPEED
-#if defined(ISPEED_OFFSET) && (ISPEED_OFFSET != -1)
-#if defined(OSPEED_OFFSET) && (OSPEED_OFFSET != -1)
-const struct optdesc opt_ispeed = { "ispeed", NULL, OPT_ISPEED, GROUP_TERMIOS, PH_FD, TYPE_UINT, OFUNC_TERMIOS_SPEED, ISPEED_OFFSET };
-const struct optdesc opt_ospeed = { "ospeed", NULL, OPT_OSPEED, GROUP_TERMIOS, PH_FD, TYPE_UINT, OFUNC_TERMIOS_SPEED, OSPEED_OFFSET };
+#if HAVE_TERMIOS_ISPEED
+const struct optdesc opt_ispeed = { "ispeed", NULL, OPT_ISPEED, GROUP_TERMIOS, PH_FD, TYPE_UINT, OFUNC_TERMIOS_SPEED, 0/*in*/ };
 #endif
+#if HAVE_TERMIOS_OSPEED
+const struct optdesc opt_ospeed = { "ospeed", NULL, OPT_OSPEED, GROUP_TERMIOS, PH_FD, TYPE_UINT, OFUNC_TERMIOS_SPEED, 1/*out*/ };
 #endif
-#endif /* HAVE_TERMIOS_ISPEED */
 
 
 int xiotermiosflag_applyopt(int fd, struct opt *opt) {
@@ -302,9 +300,6 @@ bool _xiotermios_doit = false;	/* _data has been retrieved and manipulated, set 
 union {
    struct termios termarg;
    tcflag_t flags[4];
-#ifdef HAVE_TERMIOS_ISPEED
-   speed_t speeds[sizeof(struct termios)/sizeof(speed_t)];
-#endif
 } _xiotermios_data;
 
 int xiotermios_setflag(int fd, int word, tcflag_t mask) {
@@ -360,8 +355,8 @@ int xiotermios_char(int fd, int n, unsigned char c) {
    return 0;
 }
 
-#ifdef HAVE_TERMIOS_ISPEED
-int xiotermios_speed(int fd, int n, unsigned int speed) {
+#if HAVE_TERMIOS_ISPEED || HAVE_TERMIOS_OSPEED
+int xiotermios_speed(int fd, int n, speed_t speed) {
    if (!_xiotermios_doit) {
       if (Tcgetattr(fd, &_xiotermios_data.termarg) < 0) {
 	 Error3("tcgetattr(%d, %p): %s",
@@ -370,7 +365,18 @@ int xiotermios_speed(int fd, int n, unsigned int speed) {
       }
       _xiotermios_doit = true;
    }
-   _xiotermios_data.speeds[n] = speed;
+   if (n == 0) {
+      if (cfsetispeed(&_xiotermios_data.termarg, speed) < 0) {
+	 Error3("cfsetispeed(%p, "F_speed"): %s",
+	       &_xiotermios_data.termarg, speed, strerror(errno));
+      }
+   } else {
+      if (cfsetospeed(&_xiotermios_data.termarg, speed) < 0) {
+	 Error3("cfsetospeed(%p, "F_speed"): %s",
+	       &_xiotermios_data.termarg, speed, strerror(errno));
+      }
+   }
+// Tcgetattr(fd, &_xiotermios_data.termarg);
    return 0;
 }
 #endif /* HAVE_TERMIOS_ISPEED */
