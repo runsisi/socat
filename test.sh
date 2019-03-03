@@ -12950,6 +12950,30 @@ PORT=$((PORT+1))
 N=$((N+1))
 
 
+NAME=SOCAT_OPT_HINT
+case "$TESTS" in
+*%$N%*|*%socat%*|*%$NAME%*)
+TEST="$NAME: check if merging single character options is rejected"
+if ! eval $NUMCOND; then :; else
+te="$td/test$N.stderr"
+CMD0="$TRACE $SOCAT $opts -vx FILE:/dev/null ECHO"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0"
+rc0=$?
+if [ "$rc0" = "1" ]; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0" >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi ;; # NUMCOND
+esac
+N=$((N+1))
+
+
 ##################################################################################
 #=================================================================================
 # here come tests that might affect your systems integrity. Put normal tests
