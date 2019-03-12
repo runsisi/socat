@@ -10,7 +10,7 @@ Corrections:
 
 	The autoconf mechanism for determining SHIFT_OFFSET did not work when
 	cross compiling.
-	Thanks to Max Freisinger from Gentoo for seinding a patch.
+	Thanks to Max Freisinger from Gentoo for sending a patch.
 
 	Socat still depended on obsolete gethostbyname() function, thus
 	compiling with MUSL libc failed.
@@ -79,6 +79,11 @@ Porting:
 
 	New versions of OpenSSL preset SSL_MODE_AUTO_RETRY which may hang socat.
 	Solution: clear SSL_MODE_AUTO_RETRY when it is set.
+
+	Renamed configure.in to configure.ac and set an appropriate symlink for
+	older environments.
+	Related Gentoo bug 426262: Warning on configure.in
+	Thanks to Francesco Turco for reporting that warning.
 
 Testing:
 	test.sh: Show a warning when phase-1 (insecure phase) of a security
