@@ -93,6 +93,7 @@ LOCALHOST6=[::1]
 PROTO=$((144+RANDOM/2048))
 PORT=12002
 SOURCEPORT=2002
+REUSEADDR=reuseaddr 	# use this with LISTEN addresses and bind options
 
 # SSL certificate contents
 TESTCERT_CONF=testcert.conf
@@ -154,7 +155,8 @@ psleep () {
     $SOCAT -T "$T" pipe pipe
 }
 # time in microseconds to wait in some situations
-if ! type usleep >/dev/null 2>&1; then
+if ! type usleep >/dev/null 2>&1 ||
+       usleep 0 2>&1 |grep -q deprecated; then
     usleep () {
 	local n="$1"
 	case "$n" in
@@ -165,10 +167,17 @@ if ! type usleep >/dev/null 2>&1; then
     }
 fi
 #USLEEP=usleep
+
+if type ping6; then
+    PING6=ping6
+else
+    PING6="ping -6"
+fi
+
 F_n="%3d"	# format string for test numbers
-LC_ALL=C	# for timestamps format...
-LANG=C
-LANGUAGE=C	# knoppix
+export LC_ALL=C	# for timestamps format...
+export LANG=C
+export LANGUAGE=C	# knoppix
 case "$UNAME" in
 HP-UX|OSF1)
     echo "$SOCAT -u stdin stdout" >cat.sh
@@ -1890,8 +1899,8 @@ runsip6 () {
     [ -z "$l" ] && return 1    
     # existence of interface might not suffice, check for routeability:
     case "$UNAME" in
-    Darwin) ping6 -c 1 ::1 >/dev/null 2>&1; l="$?" ;;
-    Linux)  ping6 -c 1 ::1 >/dev/null 2>&1; l="$?" ;;
+    Darwin) $PING6 -c 1 ::1 >/dev/null 2>&1; l="$?" ;;
+    Linux)  $PING6 -c 1 ::1 >/dev/null 2>&1; l="$?" ;;
     *) if [ -n "$l" ]; then l=0; else l=1; fi ;;
     esac
     HAVENOT_IP6=$l
@@ -2861,7 +2870,7 @@ tdiff="$td/test$N.diff"
 tsl=$PORT
 ts="127.0.0.1:$tsl"
 da="test$N $(date) $RANDOM"
-CMD1="$TRACE $SOCAT $opts TCP4-LISTEN:$tsl,reuseaddr PIPE"
+CMD1="$TRACE $SOCAT $opts TCP4-LISTEN:$tsl,$REUSEADDR PIPE"
 CMD2="$TRACE $SOCAT $opts stdin!!stdout TCP4:$ts"
 printf "test $F_n $TEST... " $N
 $CMD1 >"$tf" 2>"${te}1" &
@@ -2910,7 +2919,7 @@ tdiff="$td/test$N.diff"
 tsl=$PORT
 ts="[::1]:$tsl"
 da="test$N $(date) $RANDOM"
-CMD1="$TRACE $SOCAT $opts TCP6-listen:$tsl,reuseaddr PIPE"
+CMD1="$TRACE $SOCAT $opts TCP6-listen:$tsl,$REUSEADDR PIPE"
 CMD2="$TRACE $SOCAT $opts stdin!!stdout TCP6:$ts"
 printf "test $F_n $TEST... " $N
 $CMD1 >"$tf" 2>"${te}1" &
@@ -2960,7 +2969,7 @@ tdiff="$td/test$N.diff"
 tsl=$PORT
 ts="127.0.0.1:$tsl"
 da="test$N $(date) $RANDOM"
-CMD1="$TRACE $SOCAT $opts TCP-listen:$tsl,pf=ip4,reuseaddr PIPE"
+CMD1="$TRACE $SOCAT $opts TCP-listen:$tsl,pf=ip4,$REUSEADDR PIPE"
 CMD2="$TRACE $SOCAT $opts stdin!!stdout TCP:$ts"
 printf "test $F_n $TEST... " $N
 $CMD1 >"$tf" 2>"${te}1" &
@@ -3009,7 +3018,7 @@ tdiff="$td/test$N.diff"
 tsl=$PORT
 ts="[::1]:$tsl"
 da="test$N $(date) $RANDOM"
-CMD1="$TRACE $SOCAT $opts TCP-listen:$tsl,pf=ip6,reuseaddr PIPE"
+CMD1="$TRACE $SOCAT $opts TCP-listen:$tsl,pf=ip6,$REUSEADDR PIPE"
 CMD2="$TRACE $SOCAT $opts stdin!!stdout TCP:$ts"
 printf "test $F_n $TEST... " $N
 $CMD1 >"$tf" 2>"${te}1" &
@@ -3063,7 +3072,7 @@ tdiff="$td/test$N.diff"
 tsl=$PORT
 ts="127.0.0.1:$tsl"
 da="test$N $(date) $RANDOM"
-CMD1="$TRACE $SOCAT $opts TCP6-LISTEN:$tsl,ipv6-v6only=0,reuseaddr PIPE"
+CMD1="$TRACE $SOCAT $opts TCP6-LISTEN:$tsl,ipv6-v6only=0,$REUSEADDR PIPE"
 CMD2="$TRACE $SOCAT $opts STDIN!!STDOUT TCP4:$ts"
 printf "test $F_n $TEST... " $N
 $CMD1 >"$tf" 2>"${te}1" &
@@ -3117,7 +3126,7 @@ tdiff="$td/test$N.diff"
 tsl=$PORT
 ts="127.0.0.1:$tsl"
 da="test$N $(date) $RANDOM"
-CMD1="$TRACE $SOCAT $opts TCP6-listen:$tsl,ipv6-v6only=1,reuseaddr PIPE"
+CMD1="$TRACE $SOCAT $opts TCP6-listen:$tsl,ipv6-v6only=1,$REUSEADDR PIPE"
 CMD2="$TRACE $SOCAT $opts stdin!!stdout TCP4:$ts"
 printf "test $F_n $TEST... " $N
 $CMD1 >"$tf" 2>"${te}1" &
@@ -3167,7 +3176,7 @@ tdiff="$td/test$N.diff"
 tsl=$PORT
 ts="127.0.0.1:$tsl"
 da="test$N $(date) $RANDOM"
-CMD1="$TRACE $SOCAT $opts TCP-listen:$tsl,reuseaddr PIPE"
+CMD1="$TRACE $SOCAT $opts TCP-LISTEN:$tsl,$REUSEADDR PIPE"
 CMD2="$TRACE $SOCAT $opts stdin!!stdout TCP4:$ts"
 printf "test $F_n $TEST... " $N
 SOCAT_DEFAULT_LISTEN_IP=4 $CMD1 >"$tf" 2>"${te}1" &
@@ -3215,7 +3224,7 @@ tdiff="$td/test$N.diff"
 tsl=$PORT
 ts="[::1]:$tsl"
 da="test$N $(date) $RANDOM"
-CMD1="$TRACE $SOCAT $opts TCP-listen:$tsl,reuseaddr PIPE"
+CMD1="$TRACE $SOCAT $opts TCP-LISTEN:$tsl,$REUSEADDR PIPE"
 CMD2="$TRACE $SOCAT $opts stdin!!stdout TCP6:$ts"
 printf "test $F_n $TEST... " $N
 SOCAT_DEFAULT_LISTEN_IP=6 $CMD1 >"$tf" 2>"${te}1" &
@@ -3266,7 +3275,7 @@ tdiff="$td/test$N.diff"
 tsl=$PORT
 ts="127.0.0.1:$tsl"
 da="test$N $(date) $RANDOM"
-CMD1="$TRACE $SOCAT $opts -4 TCP-listen:$tsl,reuseaddr PIPE"
+CMD1="$TRACE $SOCAT $opts -4 TCP-LISTEN:$tsl,$REUSEADDR PIPE"
 CMD2="$TRACE $SOCAT $opts stdin!!stdout TCP4:$ts"
 printf "test $F_n $TEST... " $N
 SOCAT_DEFAULT_LISTEN_IP=6 $CMD1 >"$tf" 2>"${te}1" &
@@ -3314,7 +3323,7 @@ tdiff="$td/test$N.diff"
 tsl=$PORT
 ts="[::1]:$tsl"
 da="test$N $(date) $RANDOM"
-CMD1="$TRACE $SOCAT $opts -6 TCP-listen:$tsl,reuseaddr PIPE"
+CMD1="$TRACE $SOCAT $opts -6 TCP-listen:$tsl,$REUSEADDR PIPE"
 CMD2="$TRACE $SOCAT $opts stdin!!stdout TCP6:$ts"
 printf "test $F_n $TEST... " $N
 SOCAT_DEFAULT_LISTEN_IP=4 $CMD1 >"$tf" 2>"${te}1" &
@@ -3366,7 +3375,7 @@ tdiff="$td/test$N.diff"
 tsl=$PORT
 ts="127.0.0.1:$tsl"
 da="test$N $(date) $RANDOM"
-CMD1="$TRACE $SOCAT $opts -6 TCP-listen:$tsl,pf=ip4,reuseaddr PIPE"
+CMD1="$TRACE $SOCAT $opts -6 TCP-LISTEN:$tsl,pf=ip4,$REUSEADDR PIPE"
 CMD2="$TRACE $SOCAT $opts stdin!!stdout TCP4:$ts"
 printf "test $F_n $TEST... " $N
 SOCAT_DEFAULT_LISTEN_IP=6 $CMD1 >"$tf" 2>"${te}1" &
@@ -3414,7 +3423,7 @@ tdiff="$td/test$N.diff"
 tsl=$PORT
 ts="[::1]:$tsl"
 da="test$N $(date) $RANDOM"
-CMD1="$TRACE $SOCAT $opts -4 TCP-listen:$tsl,pf=ip6,reuseaddr PIPE"
+CMD1="$TRACE $SOCAT $opts -4 TCP-LISTEN:$tsl,pf=ip6,$REUSEADDR PIPE"
 CMD2="$TRACE $SOCAT $opts stdin!!stdout TCP6:$ts"
 printf "test $F_n $TEST... " $N
 SOCAT_DEFAULT_LISTEN_IP=4 $CMD1 >"$tf" 2>"${te}1" &
@@ -3456,7 +3465,7 @@ tdiff="$td/test$N.diff"
 tsl=$PORT
 ts="$LOCALHOST:$tsl"
 da="test$N $(date) $RANDOM"
-CMD1="$TRACE $SOCAT $opts UDP4-LISTEN:$tsl,reuseaddr PIPE"
+CMD1="$TRACE $SOCAT $opts UDP4-LISTEN:$tsl,$REUSEADDR PIPE"
 CMD2="$TRACE $SOCAT $opts - UDP4:$ts"
 printf "test $F_n $TEST... " $N
 $CMD1 >"$tf" 2>"${te}1" &
@@ -3507,7 +3516,7 @@ tdiff="$td/test$N.diff"
 tsl=$PORT
 ts="$LOCALHOST6:$tsl"
 da="test$N $(date) $RANDOM"
-CMD1="$TRACE $SOCAT $opts UDP6-LISTEN:$tsl,reuseaddr PIPE"
+CMD1="$TRACE $SOCAT $opts UDP6-LISTEN:$tsl,$REUSEADDR PIPE"
 CMD2="$TRACE $SOCAT $opts - UDP6:$ts"
 printf "test $F_n $TEST... " $N
 $CMD1 >"$tf" 2>"${te}1" &
@@ -4102,7 +4111,7 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD2="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,pf=ip4,reuseaddr,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 pipe"
+CMD2="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,pf=ip4,$REUSEADDR,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 pipe"
 CMD="$TRACE $SOCAT $opts - openssl:$LOCALHOST:$PORT,pf=ip4,verify=0,$SOCAT_EGD"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}1\" &"
@@ -4147,7 +4156,7 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD2="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,pf=ip6,reuseaddr,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 pipe"
+CMD2="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,pf=ip6,$REUSEADDR,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 pipe"
 CMD="$TRACE $SOCAT $opts - openssl:$LOCALHOST6:$PORT,verify=0,$SOCAT_EGD"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}1\" &"
@@ -4238,14 +4247,14 @@ UNIXCONNECT      ,       unix UNIX-CONNECT:\$ts UNIX-LISTEN:\$ts waitfile\040\$t
 UNIXCLIENT       ,       unix UNIX-CLIENT:\$ts UNIX-LISTEN:\$ts waitfile\040\$ts
 GOPEN_UNIXSTREAM ,       unix GOPEN:\$ts UNIX-LISTEN:\$ts waitfile\040\$ts
 UNIXLISTEN       ,       unix UNIX-LISTEN:\$ts UNIX-CONNECT:\$ts,retry=3 sleep\040\1
-TCP4CONNECT      ,       tcp4 TCP4-CONNECT:\$LOCALHOST:\$PORT TCP4-LISTEN:\$PORT waittcp4port\040\$PORT
-TCP4LISTEN       ,       tcp4 TCP4-LISTEN:\$PORT TCP4-CONNECT:\$LOCALHOST:\$PORT,retry=3
-TCP6CONNECT      ,       tcp6 TCP6-CONNECT:\$LOCALHOST6:\$PORT TCP6-LISTEN:\$PORT waittcp6port\040\$PORT
-TCP6LISTEN       ,       tcp6 TCP6-LISTEN:\$PORT TCP6-CONNECT:\$LOCALHOST6:\$PORT,retry=3
-OPENSSL4CLIENT   OPENSSL tcp4 OPENSSL:\$LOCALHOST:\$PORT,verify=0 OPENSSL-LISTEN:\$PORT,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 waittcp4port\040\$PORT
-OPENSSL4SERVER   OPENSSL tcp4 OPENSSL-LISTEN:\$PORT,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 OPENSSL:\$LOCALHOST:\$PORT,verify=0,retry=3
-OPENSSL6CLIENT   OPENSSL tcp6 OPENSSL:\$LOCALHOST6:\$PORT,pf=ip6,verify=0 OPENSSL-LISTEN:\$PORT,pf=ip6,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 waittcp6port\040\$PORT
-OPENSSL6SERVER   OPENSSL tcp6 OPENSSL-LISTEN:\$PORT,pf=ip6,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 OPENSSL:\$LOCALHOST6:\$PORT,pf=ip6,verify=0,retry=3
+TCP4CONNECT      ,       tcp4 TCP4-CONNECT:\$LOCALHOST:\$PORT TCP4-LISTEN:\$PORT,$REUSEADDR waittcp4port\040\$PORT
+TCP4LISTEN       ,       tcp4 TCP4-LISTEN:\$PORT,$REUSEADDR TCP4-CONNECT:\$LOCALHOST:\$PORT,retry=3
+TCP6CONNECT      ,       tcp6 TCP6-CONNECT:\$LOCALHOST6:\$PORT TCP6-LISTEN:\$PORT,$REUSEADDR waittcp6port\040\$PORT
+TCP6LISTEN       ,       tcp6 TCP6-LISTEN:\$PORT,$REUSEADDR TCP6-CONNECT:\$LOCALHOST6:\$PORT,retry=3
+OPENSSL4CLIENT   OPENSSL tcp4 OPENSSL:\$LOCALHOST:\$PORT,verify=0 OPENSSL-LISTEN:\$PORT,$REUSEADDR,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 waittcp4port\040\$PORT
+OPENSSL4SERVER   OPENSSL tcp4 OPENSSL-LISTEN:\$PORT,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 OPENSSL:\$LOCALHOST:\$PORT,$REUSEADDR,verify=0,retry=3
+OPENSSL6CLIENT   OPENSSL tcp6 OPENSSL:\$LOCALHOST6:\$PORT,pf=ip6,verify=0 OPENSSL-LISTEN:\$PORT,pf=ip6,$REUSEADDR,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 waittcp6port\040\$PORT
+OPENSSL6SERVER   OPENSSL tcp6 OPENSSL-LISTEN:\$PORT,pf=ip6,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 OPENSSL:\$LOCALHOST6:\$PORT,pf=ip6,$REUSEADDR,verify=0,retry=3
 "
 
 
@@ -4267,7 +4276,7 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD2="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 pipe"
+CMD2="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,$REUSEADDR,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 pipe"
 CMD="$TRACE $SOCAT $opts - openssl:$LOCALHOST:$PORT,verify=1,cafile=testsrv.crt,$SOCAT_EGD"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}1\" &"
@@ -4313,7 +4322,7 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD2="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,verify=1,cert=testsrv.crt,key=testsrv.key,cafile=testcli.crt,$SOCAT_EGD pipe"
+CMD2="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,$REUSEADDR,verify=1,cert=testsrv.crt,key=testsrv.key,cafile=testcli.crt,$SOCAT_EGD pipe"
 CMD="$TRACE $SOCAT $opts - openssl:$LOCALHOST:$PORT,verify=0,cert=testcli.crt,key=testcli.key,$SOCAT_EGD"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}1\" &"
@@ -4362,7 +4371,7 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD2="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,fips,$SOCAT_EGD,cert=testsrvfips.crt,key=testsrvfips.key,cafile=testclifips.crt pipe"
+CMD2="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,$REUSEADDR,fips,$SOCAT_EGD,cert=testsrvfips.crt,key=testsrvfips.key,cafile=testclifips.crt pipe"
 CMD="$TRACE $SOCAT $opts - openssl:$LOCALHOST:$PORT,fips,verify=1,cert=testclifips.crt,key=testclifips.key,cafile=testsrvfips.crt,$SOCAT_EGD"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}1\" &"
@@ -4415,7 +4424,7 @@ else
     success=yes
     for srccompr in '' compress=auto compress=none; do
         for dstcompr in '' compress=auto compress=none; do
-            CMD2="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,pf=ip4,reuseaddr,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0,$dstcompr pipe"
+            CMD2="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,pf=ip4,$REUSEADDR,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0,$dstcompr pipe"
             CMD="$TRACE $SOCAT $opts - openssl:$LOCALHOST:$PORT,pf=ip4,verify=0,$SOCAT_EGD,$srccompr"
             eval "$CMD2 2>\"${te}1\" &"
             pid=$! # background process id
@@ -4465,7 +4474,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"; da="$da$($ECHO '\r')"
 # we have a normal tcp echo listening - so the socks header must appear in answer
-CMD2="$TRACE $SOCAT $opts tcp4-l:$PORT,reuseaddr exec:\"./socks4echo.sh\""
+CMD2="$TRACE $SOCAT $opts TCP4-L:$PORT,$REUSEADDR exec:\"./socks4echo.sh\""
 CMD="$TRACE $SOCAT $opts - socks4:$LOCALHOST:32.98.76.54:32109,pf=ip4,socksport=$PORT",socksuser="nobody"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}1\" &"
@@ -4510,7 +4519,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"; da="$da$($ECHO '\r')"
 # we have a normal tcp echo listening - so the socks header must appear in answer
-CMD2="$TRACE $SOCAT $opts tcp6-l:$PORT,reuseaddr exec:\"./socks4echo.sh\""
+CMD2="$TRACE $SOCAT $opts TCP6-L:$PORT,$REUSEADDR exec:\"./socks4echo.sh\""
 CMD="$TRACE $SOCAT $opts - socks4:$LOCALHOST6:32.98.76.54:32109,socksport=$PORT",socksuser="nobody"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}1\" &"
@@ -4556,7 +4565,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"; da="$da$($ECHO '\r')"
 # we have a normal tcp echo listening - so the socks header must appear in answer
-CMD2="$TRACE $SOCAT $opts tcp4-l:$PORT,reuseaddr exec:\"./socks4a-echo.sh\""
+CMD2="$TRACE $SOCAT $opts TCP4-L:$PORT,$REUSEADDR exec:\"./socks4a-echo.sh\""
 CMD="$TRACE $SOCAT $opts - socks4a:$LOCALHOST:localhost:32109,pf=ip4,socksport=$PORT",socksuser="nobody"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}1\" &"
@@ -4601,7 +4610,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"; da="$da$($ECHO '\r')"
 # we have a normal tcp echo listening - so the socks header must appear in answer
-CMD2="$TRACE $SOCAT $opts tcp6-l:$PORT,reuseaddr exec:\"./socks4a-echo.sh\""
+CMD2="$TRACE $SOCAT $opts TCP6-L:$PORT,$REUSEADDR exec:\"./socks4a-echo.sh\""
 CMD="$TRACE $SOCAT $opts - socks4a:$LOCALHOST6:localhost:32109,socksport=$PORT",socksuser="nobody"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}1\" &"
@@ -4648,7 +4657,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"; da="$da$($ECHO '\r')"
 #CMD2="$TRACE $SOCAT tcp4-l:$PORT,crlf SYSTEM:\"read; read; $ECHO \\\"HTTP/1.0 200 OK\n\\\"; cat\""
-CMD2="$TRACE $SOCAT $opts tcp4-l:$PORT,reuseaddr,crlf exec:\"/usr/bin/env bash proxyecho.sh\""
+CMD2="$TRACE $SOCAT $opts TCP4-L:$PORT,$REUSEADDR,crlf exec:\"/usr/bin/env bash proxyecho.sh\""
 CMD="$TRACE $SOCAT $opts - proxy:$LOCALHOST:127.0.0.1:1000,pf=ip4,proxyport=$PORT"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}2\" &"
@@ -4694,7 +4703,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"; da="$da$($ECHO '\r')"
 #CMD2="$TRACE $SOCAT $opts tcp6-l:$PORT,crlf SYSTEM:\"read; read; $ECHO \\\"HTTP/1.0 200 OK\n\\\"; cat\""
-CMD2="$TRACE $SOCAT $opts tcp6-l:$PORT,reuseaddr,crlf exec:\"/usr/bin/env bash proxyecho.sh\""
+CMD2="$TRACE $SOCAT $opts TCP6-L:$PORT,$REUSEADDR,crlf exec:\"/usr/bin/env bash proxyecho.sh\""
 CMD="$TRACE $SOCAT $opts - proxy:$LOCALHOST6:127.0.0.1:1000,proxyport=$PORT"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}2\" &"
@@ -4734,7 +4743,7 @@ tdiff="$td/test$N.diff"
 tsl=$PORT
 ts="127.0.0.1:$tsl"
 da="test$N $(date) $RANDOM"
-CMD1="$TRACE $SOCAT $opts TCP4-LISTEN:$tsl,reuseaddr exec:$CAT,nofork"
+CMD1="$TRACE $SOCAT $opts TCP4-LISTEN:$tsl,$REUSEADDR exec:$CAT,nofork"
 CMD2="$TRACE $SOCAT $opts stdin!!stdout TCP4:$ts"
 printf "test $F_n $TEST... " $N
 #$CMD1 >"$tf" 2>"${te}1" &
@@ -4799,7 +4808,7 @@ N=$((N+1))
 #tsl=65534
 #ts="127.0.0.1:$tsl"
 #da="test$N $(date) $RANDOM"
-#$TRACE $SOCAT UDP-listen:$tsl PIPE &
+#$TRACE $SOCAT UDP-listen:$tsl,$REUSEADDR PIPE &
 #sleep 2
 #echo "$da" |$TRACE $SOCAT stdin!!stdout UDP:$ts >"$tf"
 #if [ $? -eq 0 ] && echo "$da" |diff "$tf" -; then
@@ -4843,7 +4852,7 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"; da="$da$($ECHO '\r')"
-CMD2="$TRACE $SOCAT $opts -T 1 tcp4-listen:$PORT,reuseaddr pipe"
+CMD2="$TRACE $SOCAT $opts -T 1 TCP4-LISTEN:$PORT,$REUSEADDR pipe"
 CMD="$TRACE $SOCAT $opts - tcp4-connect:$LOCALHOST:$PORT"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>${te}1 &"
@@ -5925,7 +5934,7 @@ elif ! testaddrs openssl >/dev/null; then
 else
 gentestcert testsrv
 gentestcert testcli
-testserversec "$N" "$TEST" "$opts" "SSL-L:$PORT,pf=ip4,reuseaddr,fork,retry=1,$SOCAT_EGD,verify,cert=testsrv.crt,key=testsrv.key" "cafile=testcli.crt" "cafile=testsrv.crt" "SSL:$LOCALHOST:$PORT,cafile=testsrv.crt,cert=testcli.pem,$SOCAT_EGD" 4 tcp $PORT -1
+testserversec "$N" "$TEST" "$opts -4" "SSL-L:$PORT,pf=ip4,reuseaddr,fork,retry=1,$SOCAT_EGD,verify,cert=testsrv.crt,key=testsrv.key" "cafile=testcli.crt" "cafile=testsrv.crt" "SSL:$LOCALHOST:$PORT,cafile=testsrv.crt,cert=testcli.pem,$SOCAT_EGD" 4 tcp $PORT -1
 fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
@@ -6044,7 +6053,7 @@ elif ! testaddrs listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
 else
 gentestcert testsrv
 gentestcert testcli
-testserversec "$N" "$TEST" "$opts" "SSL:127.0.0.1:$PORT,fork,retry=2,verify,cafile=testsrv.crt" "commonname=$LOCALHOST" "" "SSL-L:$PORT,pf=ip4,reuseaddr,cert=testsrv.crt,key=testsrv.key,verify=0" 4 tcp "" 0
+testserversec "$N" "$TEST" "$opts -4" "SSL:127.0.0.1:$PORT,fork,retry=2,verify,cafile=testsrv.crt" "commonname=$LOCALHOST" "" "SSL-L:$PORT,pf=ip4,$REUSEADDR,cert=testsrv.crt,key=testsrv.key,verify=0" 4 tcp "" 0
 fi ;; # testaddrs, NUMCOND
 esac
 PORT=$((PORT+1))
@@ -6068,7 +6077,7 @@ elif ! testaddrs listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
 else
 gentestcert testsrv
 gentestcert testcli
-testserversec "$N" "$TEST" "$opts" "SSL-L:$PORT,pf=ip4,reuseaddr,cert=testsrv.crt,key=testsrv.key,cafile=testcli.crt" "" "commonname=onlyyou" "SSL:$LOCALHOST:$PORT,verify=0,cafile=testsrv.crt,cert=testcli.crt,key=testcli.key" 4 tcp "" 0
+testserversec "$N" "$TEST" "$opts -4" "SSL-L:$PORT,pf=ip4,reuseaddr,cert=testsrv.crt,key=testsrv.key,cafile=testcli.crt" "" "commonname=onlyyou" "SSL:$LOCALHOST:$PORT,$REUSEADDR,verify=0,cafile=testsrv.crt,cert=testcli.crt,key=testcli.key" 4 tcp "" 0
 fi ;; # testaddrs, NUMCOND
 esac
 PORT=$((PORT+1))
@@ -6093,7 +6102,7 @@ else
 gentestcert testsrv
 gentestcert testcli
 # openssl client accepts a "normal" certificate only when not in fips mode
-testserversec "$N" "$TEST" "$opts" "ssl:$LOCALHOST:$PORT,fork,retry=2,verify,cafile=testsrv.crt" "" "fips" "ssl-l:$PORT,pf=ip4,reuseaddr,cert=testsrv.crt,key=testsrv.key" 4 tcp "" -1
+testserversec "$N" "$TEST" "$opts" "ssl:$LOCALHOST:$PORT,fork,retry=2,verify,cafile=testsrv.crt" "" "fips" "SSL-L:$PORT,pf=ip4,$REUSEADDR,cert=testsrv.crt,key=testsrv.key" 4 tcp "" -1
 fi ;; # testaddrs, NUMCOND
 esac
 PORT=$((PORT+1))
@@ -6324,7 +6333,7 @@ tdiff="$td/test$N.diff"
 tsl=$PORT
 ts="127.0.0.1:$tsl"
 da="test$N $(date) $RANDOM"
-CMD1="$TRACE $SOCAT $opts TCP4-LISTEN:$tsl,reuseaddr PIPE"
+CMD1="$TRACE $SOCAT $opts TCP4-LISTEN:$tsl,$REUSEADDR PIPE"
 CMD2="$TRACE $SOCAT $opts STDIO TCP4:$ts,connect-timeout=1"
 printf "test $F_n $TEST... " $N
 $CMD1 >"$tf" 2>"${te}1" &
@@ -6372,7 +6381,7 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD2="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,pf=ip4,reuseaddr,$SOCAT_EGD,cert=$SRVCERT.pem,key=$SRVCERT.key,verify=0 pipe"
+CMD2="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,pf=ip4,$REUSEADDR,$SOCAT_EGD,cert=$SRVCERT.pem,key=$SRVCERT.key,verify=0 pipe"
 CMD="$TRACE $SOCAT $opts - openssl:$LOCALHOST:$PORT,pf=ip4,verify=0,$SOCAT_EGD"
 $PRINTF "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}1\" &"
@@ -6524,7 +6533,7 @@ da1="test$N $(date) $RANDOM"
 da2="test$N $(date) $RANDOM"
 #establish a listening and forking udp socket in background
 #processes hang forever without -T
-SRV="$TRACE $SOCAT -T 5 $opts -lpserver UDP4-LISTEN:$PORT,bind=$LOCALHOST,fork PIPE"
+SRV="$TRACE $SOCAT -T 5 $opts -lpserver UDP4-LISTEN:$PORT,bind=$LOCALHOST,$REUSEADDR,fork PIPE"
 #make a first and a second connection
 CLI="$TRACE $SOCAT $opts -lpclient - UDP4-CONNECT:$LOCALHOST:$PORT"
 $PRINTF "test $F_n $TEST... " $N
@@ -6621,7 +6630,7 @@ esac
 echo -e "$da1a\n$da2\n$da1b" >"$tref"
 # establish a listening and forking listen socket in background
 # UDP processes hang forever without -T
-CMD0="$TRACE $SOCAT -T 5 $opts -lpserver $PROTOV-LISTEN:$tla,fork PIPE"
+CMD0="$TRACE $SOCAT -T 5 $opts -lpserver $PROTOV-LISTEN:$tla,$REUSEADDR,fork PIPE"
 # make a first and a second connection
 CMD1="$TRACE $SOCAT $opts -lpclient - $PROTOV-CONNECT:$tca"
 $PRINTF "test $F_n $TEST... " $N
@@ -6867,7 +6876,7 @@ tdiff="$td/test$N.diff"
 tsl=$PORT
 ts="127.0.0.1:$tsl"
 da="test$N $(date) $RANDOM"
-CMD1="$TRACE $SOCAT $opts TCP6-listen:$tsl,reuseaddr PIPE"
+CMD1="$TRACE $SOCAT $opts TCP6-listen:$tsl,$REUSEADDR PIPE"
 CMD2="$TRACE $SOCAT $opts stdin!!stdout TCP6:$ts"
 printf "test $F_n $TEST... " $N
 $CMD1 >"$tf" 2>"${te}1" &
@@ -8150,8 +8159,8 @@ p2=$PORT
 da1a="$(date) $RANDOM"
 da1b="$(date) $RANDOM"
 CMD1="$TRACE $SOCAT $opts -u - TCP4-CONNECT:$LOCALHOST:$p1"
-CMD="$TRACE $SOCAT $opts -U TCP4:$LOCALHOST:$p2,end-close TCP4-LISTEN:$p1,bind=$LOCALHOST,reuseaddr,fork"
-CMD3="$TRACE $SOCAT $opts -u TCP4-LISTEN:$p2,reuseaddr,bind=$LOCALHOST -"
+CMD="$TRACE $SOCAT $opts -U TCP4:$LOCALHOST:$p2,end-close TCP4-LISTEN:$p1,bind=$LOCALHOST,$REUSEADDR,fork"
+CMD3="$TRACE $SOCAT $opts -u TCP4-LISTEN:$p2,$REUSEADDR,bind=$LOCALHOST -"
 printf "test $F_n $TEST... " $N
 $CMD3 >"$tf" 2>"${te}3" &
 pid3=$!
@@ -8338,7 +8347,7 @@ tdiff="$td/test$N.diff"
 tsl=$PORT
 ts="$LOCALHOST6:$tsl"
 da="test$N $(date) $RANDOM"
-CMD1="$TRACE $SOCAT $opts UDP6-LISTEN:$tsl,reuseaddr,bind=$LOCALHOST6 PIPE"
+CMD1="$TRACE $SOCAT $opts UDP6-LISTEN:$tsl,$REUSEADDR,bind=$LOCALHOST6 PIPE"
 CMD2="$TRACE $SOCAT $opts - UDP6:$ts"
 printf "test $F_n $TEST... " $N
 $CMD1 >"$tf" 2>"${te}1" &
@@ -8387,7 +8396,7 @@ tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
 ha="$td/hosts.allow"
 $ECHO "test : ALL : allow" >"$ha"
-CMD1="$TRACE $SOCAT $opts TCP4-LISTEN:$PORT,reuseaddr,hosts-allow=$ha,tcpwrap=test pipe"
+CMD1="$TRACE $SOCAT $opts TCP4-LISTEN:$PORT,$REUSEADDR,hosts-allow=$ha,tcpwrap=test pipe"
 CMD2="$TRACE $SOCAT $opts - TCP:$LOCALHOST:$PORT"
 printf "test $F_n $TEST... " $N
 $CMD1 2>"${te}1" &
@@ -8436,7 +8445,7 @@ ha="$td/hosts.allow"
 hd="$td/hosts.deny"
 $ECHO "socat : [::1] : allow" >"$ha"
 $ECHO "ALL : ALL : deny" >"$hd"
-CMD1="$TRACE $SOCAT $opts TCP6-LISTEN:$PORT,reuseaddr,tcpwrap-etc=$td,tcpwrappers=socat pipe"
+CMD1="$TRACE $SOCAT $opts TCP6-LISTEN:$PORT,$REUSEADDR,tcpwrap-etc=$td,tcpwrappers=socat pipe"
 CMD2="$TRACE $SOCAT $opts - TCP6:[::1]:$PORT"
 printf "test $F_n $TEST... " $N
 $CMD1 2>"${te}1" &
@@ -8721,8 +8730,8 @@ if1="$MCINTERFACE"
 ts1a="[::1]"
 da="test$N $(date) $RANDOM"
 CMD1="$TRACE $SOCAT -u $opts UDP6-RECV:$ts1p,reuseaddr,ipv6-join-group=[ff02::2]:$if1 -"
-#CMD2="$TRACE $SOCAT -u $opts - UDP6-SENDTO:[ff02::2]:$ts1p,bind=$ts1a"
-CMD2="$TRACE $SOCAT -u $opts - UDP6-SENDTO:[ff02::2]:$ts1p"
+CMD2="$TRACE $SOCAT -u $opts - UDP6-SENDTO:[ff02::2]:$ts1p,bind=$ts1a"
+#CMD2="$TRACE $SOCAT -u $opts - UDP6-SENDTO:[ff02::2]:$ts1p"
 printf "test $F_n $TEST... " $N
 $CMD1 2>"${te}1"  >"${tf}" &
 pid1="$!"
@@ -8997,7 +9006,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da1="test$N $(date) $RANDOM"
 #establish a listening abstract unix socket
-SRV="$TRACE $SOCAT $opts -lpserver ABSTRACT-LISTEN:\"$ts\" PIPE"
+SRV="$TRACE $SOCAT $opts -lpserver ABSTRACT-LISTEN:\"$ts\",$REUSEADDR PIPE"
 #make a connection
 CMD="$TRACE $SOCAT $opts - ABSTRACT-CONNECT:$ts"
 $PRINTF "test $F_n $TEST... " $N
@@ -9211,7 +9220,7 @@ tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
 SRVCERT=testsrv
 gentestcert "$SRVCERT"
-CMD1="$TRACE $SOCAT $opts -u -T 1 -b $($ECHO "$da\c" |wc -c) OPENSSL-LISTEN:$PORT,reuseaddr,cert=$SRVCERT.pem,verify=0 -"
+CMD1="$TRACE $SOCAT $opts -u -T 1 -b $($ECHO "$da\c" |wc -c) OPENSSL-LISTEN:$PORT,$REUSEADDR,cert=$SRVCERT.pem,verify=0 -"
 CMD2="$TRACE $SOCAT $opts -u - OPENSSL-CONNECT:$LOCALHOST:$PORT,verify=0"
 printf "test $F_n $TEST... " $N
 #
@@ -9357,7 +9366,7 @@ PORT="$(echo $SERVENT |sed 's/.* \([1-9][0-9]*\).*/\1/')"
 tsl="$PORT"
 ts="127.0.0.1:$SERVICE"
 da="test$N $(date) $RANDOM"
-CMD1="$TRACE $SOCAT $opts TCP4-LISTEN:$tsl,reuseaddr PIPE"
+CMD1="$TRACE $SOCAT $opts TCP4-LISTEN:$tsl,$REUSEADDR PIPE"
 CMD2="$TRACE $SOCAT $opts stdin!!stdout TCP4:$ts"
 printf "test $F_n $TEST... " $N
 $CMD1 >"$tf" 2>"${te}1" &
@@ -9451,7 +9460,7 @@ tdiff="$td/test$N.diff"
 tsl=$PORT
 ts="$LOCALHOST:$tsl"
 da="test$N $(date) $RANDOM"
-CMD1="$TRACE $SOCAT $opts -T 0.5 UDP4-LISTEN:$tsl,reuseaddr,fork PIPE"
+CMD1="$TRACE $SOCAT $opts -T 0.5 UDP4-LISTEN:$tsl,$REUSEADDR,fork PIPE"
 CMD2="$TRACE $SOCAT $opts - UDP4:$ts"
 printf "test $F_n $TEST... " $N
 $CMD1 >"$tf" 2>"${te}1" &
@@ -9700,15 +9709,21 @@ if ! eval $NUMCOND; then :; else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
-while [ "$(netstat -an |grep "^udp.*127.0.0.1:$PORT" |wc -l)" -ne 0 ]; do
-    PORT=$((PORT+1))
-done
+if [ "$SS" ]; then
+    while [ "$($SS -anu |grep "127\.0\.0\.1:$PORT\>" |wc -l)" -ne 0 ]; do
+	PORT=$((PORT+1))
+    done
+else
+    while [ "$(netstat -an |grep "^udp.*127\.0\.0\.1:$PORT\>" |wc -l)" -ne 0 ]; do
+	PORT=$((PORT+1))
+    done
+fi
 tp=$PORT
 da1="test$N $(date) $RANDOM"
 a1="$LOCALHOST"
 a2="$SECONDADDR"
 #CMD0="$TRACE $SOCAT $opts UDP4-LISTEN:$tp,bind=$a1,range=$a2/32 PIPE"
-CMD0="$TRACE $SOCAT $opts UDP4-LISTEN:$tp,range=$a2/32 PIPE"
+CMD0="$TRACE $SOCAT $opts UDP4-LISTEN:$tp,$REUSEADDR,range=$a2/32 PIPE"
 CMD1="$TRACE $SOCAT $opts - UDP-CONNECT:$a1:$tp"
 printf "test $F_n $TEST... " $N
 $CMD0 >/dev/null 2>"${te}0" &
@@ -9717,7 +9732,11 @@ waitudp4port $tp 1
 echo "$da1" |$CMD1 >"${tf}1" 2>"${te}1"	# this should fail
 rc1=$?
 waitudp4port $tp 1
-nsocks="$(netstat -an |grep "^udp.*[:.]$PORT" |wc -l)"
+if [ "$SS" ]; then
+   nsocks="$($SS -anu |grep ":$PORT\>" |wc -l)"
+else
+   nsocks="$(netstat -an |grep "^udp.*[:.]$PORT\>" |wc -l)"
+fi
 kill $pid1 2>/dev/null; wait
 if [ $rc1 -ne 0 ]; then
     $PRINTF "$NO_RESULT\n"
@@ -10041,7 +10060,7 @@ if [ "$tcp" != ',' ]; then
     tca="$tca:$tcp"
 fi
 #CMD0="$TRACE $SOCAT $opts -u $KEYW-LISTEN:$tsa1 SYSTEM:\"export -p\""
-CMD0="$TRACE $SOCAT $opts -u -lpsocat $KEYW-LISTEN:$tsa1 SYSTEM:\"echo SOCAT_SOCKADDR=\\\$SOCAT_SOCKADDR; echo SOCAT_PEERADDR=\\\$SOCAT_PEERADDR; echo SOCAT_SOCKPORT=\\\$SOCAT_SOCKPORT; echo SOCAT_PEERPORT=\\\$SOCAT_PEERPORT; sleep 1\""
+CMD0="$TRACE $SOCAT $opts -u -lpsocat $KEYW-LISTEN:$tsa1,$REUSEADDR SYSTEM:\"echo SOCAT_SOCKADDR=\\\$SOCAT_SOCKADDR; echo SOCAT_PEERADDR=\\\$SOCAT_PEERADDR; echo SOCAT_SOCKPORT=\\\$SOCAT_SOCKPORT; echo SOCAT_PEERPORT=\\\$SOCAT_PEERPORT; sleep 1\""
 CMD1="$TRACE $SOCAT $opts -u - $KEYW-CONNECT:$tsa,bind=$tca"
 printf "test $F_n $TEST... " $N
 eval "$CMD0 2>\"${te}0\" >\"$tf\" &"
@@ -10238,7 +10257,7 @@ ts1a="7f000001" # "127.0.0.1"
 ts1="x${ts1p}${ts1a}x0000000000000000"
 ts1b=$(printf "%04x" $PORT); PORT=$((PORT+1))
 da="test$N $(date) $RANDOM"
-CMD0="$TRACE $SOCAT $opts TCP4-LISTEN:$ts0p,reuseaddr,bind=$ts0a PIPE"
+CMD0="$TRACE $SOCAT $opts TCP4-LISTEN:$ts0p,$REUSEADDR,bind=$ts0a PIPE"
 CMD1="$TRACE $SOCAT $opts - SOCKET-CONNECT:2:6:$ts1,bind=x${ts1b}00000000x0000000000000000"
 printf "test $F_n $TEST... " $N
 $CMD0 2>"${te}0" &
@@ -10299,7 +10318,7 @@ ts1a="00000000000000000000000000000001" # "[::1]"
 ts1="x${ts1p}x00000000x${ts1a}x00000000"
 ts1b=$(printf "%04x" $PORT); PORT=$((PORT+1))
 da="test$N $(date) $RANDOM"
-CMD0="$TRACE $SOCAT $opts TCP6-LISTEN:$ts0p,reuseaddr,bind=$ts0a PIPE"
+CMD0="$TRACE $SOCAT $opts TCP6-LISTEN:$ts0p,$REUSEADDR,bind=$ts0a PIPE"
 CMD1="$TRACE $SOCAT $opts - SOCKET-CONNECT:$PF_INET6:6:$ts1,bind=x${ts1b}x00000000x00000000000000000000000000000000x00000000"
 printf "test $F_n $TEST... " $N
 $CMD0 2>"${te}0" &
@@ -10349,7 +10368,7 @@ tdiff="$td/test$N.diff"
 ts0="$td/test$N.server"
 ts1="$td/test$N.client"
 da="test$N $(date) $RANDOM"
-CMD0="$TRACE $SOCAT $opts UNIX-LISTEN:$ts0,reuseaddr PIPE"
+CMD0="$TRACE $SOCAT $opts UNIX-LISTEN:$ts0,$REUSEADDR PIPE"
 CMD1="$TRACE $SOCAT $opts - SOCKET-CONNECT:1:0:\\\"$ts0\\\0\\\",bind=\\\"$ts1\\\0\\\""
 printf "test $F_n $TEST... " $N
 $CMD0 2>"${te}0" &
@@ -10403,7 +10422,7 @@ ts0="x${ts0p}${ts0a}x0000000000000000"
 ts1b=$PORT; PORT=$((PORT+1))
 ts1="$ts1a:$ts1p"
 da="test$N $(date) $RANDOM"
-CMD0="$TRACE $SOCAT $opts SOCKET-LISTEN:2:6:$ts0,reuseaddr PIPE"
+CMD0="$TRACE $SOCAT $opts SOCKET-LISTEN:2:6:$ts0,$REUSEADDR PIPE"
 CMD1="$TRACE $SOCAT $opts - TCP4-CONNECT:$ts1,bind=:$ts1b"
 printf "test $F_n $TEST... " $N
 $CMD0 2>"${te}0" &
@@ -10675,7 +10694,7 @@ elif [ -z "$SECONDADDR" ]; then
     numCANT=$((numCANT+1))
 else
 ts1p=$(printf "%04x" $PORT);
-testserversec "$N" "$TEST" "$opts" "SOCKET-LISTEN:2:6:x${ts1p}x00000000x0000000000000000,reuseaddr,fork,retry=1" "" "range=x0000x7f000000:x0000xffffffff" "SOCKET-CONNECT:2:6:x${ts1p}x${SECONDADDRHEX}x0000000000000000" 4 tcp $PORT 0
+testserversec "$N" "$TEST" "$opts" "SOCKET-LISTEN:2:6:x${ts1p}x00000000x0000000000000000,$REUSEADDR,fork,retry=1" "" "range=x0000x7f000000:x0000xffffffff" "SOCKET-CONNECT:2:6:x${ts1p}x${SECONDADDRHEX}x0000000000000000" 4 tcp $PORT 0
 fi ;; # NUMCOND, $SECONDADDR
 esac
 PORT=$((PORT+1))
@@ -10848,7 +10867,7 @@ tdiff="$td/test$N.diff"
 tsl=$PORT
 ts="127.0.0.1:$tsl"
 da=$(date)
-CMD1="$TRACE $SOCAT $opts SCTP4-LISTEN:$tsl,reuseaddr PIPE"
+CMD1="$TRACE $SOCAT $opts SCTP4-LISTEN:$tsl,$REUSEADDR PIPE"
 CMD2="$TRACE $SOCAT $opts stdin!!stdout SCTP4:$ts"
 printf "test $F_n $TEST... " $N
 $CMD1 >"$tf" 2>"${te}1" &
@@ -10901,7 +10920,7 @@ tdiff="$td/test$N.diff"
 tsl=$PORT
 ts="[::1]:$tsl"
 da=$(date)
-CMD1="$TRACE $SOCAT $opts SCTP6-listen:$tsl,reuseaddr PIPE"
+CMD1="$TRACE $SOCAT $opts SCTP6-listen:$tsl,$REUSEADDR PIPE"
 CMD2="$TRACE $SOCAT $opts stdin!!stdout SCTP6:$ts"
 printf "test $F_n $TEST... " $N
 $CMD1 >"$tf" 2>"${te}1" &
@@ -10959,7 +10978,7 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD0="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,cert=testsrv.crt,key=testsrv.key,verify=0 PIPE"
+CMD0="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,$REUSEADDR,cert=testsrv.crt,key=testsrv.key,verify=0 PIPE"
 #CMD1="openssl s_client -port $PORT -verify 0" 	# not with openssl 1.1.0g
 CMD1="openssl s_client -port $PORT"
 printf "test $F_n $TEST... " $N
@@ -11015,7 +11034,7 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD0="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,cert=testsrv.crt,key=testsrv.key,verify=0 SYSTEM:\"sleep 1; echo \\\\\\\"\\\"$da\\\"\\\\\\\"; sleep 1\"!!STDIO"
+CMD0="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,$REUSEADDR,cert=testsrv.crt,key=testsrv.key,verify=0 SYSTEM:\"sleep 1; echo \\\\\\\"\\\"$da\\\"\\\\\\\"; sleep 1\"!!STDIO"
 #CMD1="openssl s_client -port $PORT -verify 0" 	# not with openssl 1.1.0g
 CMD1="openssl s_client -port $PORT"
 printf "test $F_n $TEST... " $N
@@ -11338,7 +11357,7 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD2="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,$SOCAT_EGD,ciphers=aNULL,verify=0 pipe"
+CMD2="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,$REUSEADDR,$SOCAT_EGD,ciphers=aNULL,verify=0 pipe"
 CMD="$TRACE $SOCAT $opts - openssl:$LOCALHOST:$PORT,ciphers=aNULL,verify=0,$SOCAT_EGD"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}1\" &"
@@ -11394,7 +11413,7 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD0="$TRACE $SOCAT $opts -U FILE:$tf,o-trunc,o-creat,o-append $PROTO-LISTEN:$tsl,fork,max-children=1"
+CMD0="$TRACE $SOCAT $opts -U FILE:$tf,o-trunc,o-creat,o-append $PROTO-LISTEN:$tsl,$REUSEADDR,fork,max-children=1"
 CMD1="$TRACE $SOCAT $opts -u - $PROTO-CONNECT:$tsc,shut-null"
 printf "test $F_n $TEST... " $N
 $CMD0 >/dev/null 2>"${te}0" &
@@ -11469,7 +11488,8 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD0="$TRACE $SOCAT $opts -U FILE:$tf,o-trunc,o-creat,o-append $PROTO-LISTEN:$tsl,fork,max-children=1"
+# on some Linux distributions it hangs, thus -T option here
+CMD0="$TRACE $SOCAT $opts -U -T 4 FILE:$tf,o-trunc,o-creat,o-append $PROTO-LISTEN:$tsl,$REUSEADDR,fork,max-children=1"
 CMD1="$TRACE $SOCAT $opts -u - $PROTO-CONNECT:$tsc,$SHUT"
 printf "test $F_n $TEST... " $N
 $CMD0 >/dev/null 2>"${te}0" &
@@ -11578,7 +11598,7 @@ RLIMIT_NOFILE="$(ulimit -n)"
 if ! [[ "$RLIMIT_NOFILE" =~ ^[0-9][0-9]*$ ]]; then
     $PRINTF "${YELLOW}cannot determine ulimit -n"
 else
-CMD0="$TRACE $SOCAT $opts TCP-LISTEN:$PORT,reuseaddr,range=$LOCALHOST:255.255.255.255 PIPE"
+CMD0="$TRACE $SOCAT $opts TCP-LISTEN:$PORT,$REUSEADDR,range=$LOCALHOST:255.255.255.255 PIPE"
 CMD1="$TRACE $SOCAT $opts -t 0 /dev/null TCP:$SECONDADDR:$PORT,bind=$SECONDADDR"
 CMD2="$TRACE $SOCAT $opts - TCP:$LOCALHOST:$PORT,bind=$LOCALHOST"
 printf "test $F_n $TEST... " $N
@@ -11639,7 +11659,7 @@ EF=; for p in ef; do
 	EF="ef "; break
     fi
 done
-CMD0="$TRACE $SOCAT $opts TCP-LISTEN:$PORT,reuseaddr FILE:/dev/null"
+CMD0="$TRACE $SOCAT $opts TCP-LISTEN:$PORT,$REUSEADDR FILE:/dev/null"
 #CMD1="$EF $TRACE $SOCAT $opts FILE:/dev/null PROXY-CONNECT:$(perl -e "print 'A' x 256"):$(perl -e "print 'A' x 256"):80"
 CMD1="$EF $TRACE $SOCAT $opts FILE:/dev/null PROXY-CONNECT:localhost:$(perl -e "print 'A' x 384"):80,proxyport=$PORT"
 printf "test $F_n $TEST... " $N
@@ -11686,7 +11706,7 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 #tdiff="$td/test$N.diff"
 #da="test$N $(date) $RANDOM"
-CMD0="$TRACE $SOCAT $opts TCP4-LISTEN:$PORT,reuseaddr,so-keepalive EXEC:\"$FILAN -i 1\",nofork"
+CMD0="$TRACE $SOCAT $opts TCP4-LISTEN:$PORT,$REUSEADDR,so-keepalive EXEC:\"$FILAN -i 1\",nofork"
 CMD1="$TRACE $SOCAT $opts - TCP4:$LOCALHOST:$PORT"
 printf "test $F_n $TEST... " $N
 eval $CMD0 >/dev/null 2>"${te}0" &
@@ -11743,7 +11763,7 @@ tf1="$td/test$N.1.stdout"
 te1="$td/test$N.1.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD0="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,cert=testsrv.pem,verify=0 PIPE"
+CMD0="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,$REUSEADDR,cert=testsrv.pem,verify=0 PIPE"
 CMD1="$TRACE $SOCAT $opts - OPENSSL-CONNECT:$LOCALHOST:$PORT,bind=$LOCALHOST,verify=0"
 printf "test $F_n $TEST... " $N
 $CMD0 >/dev/null 2>"$te0" &
@@ -11797,7 +11817,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
 #testserversec "$N" "$TEST" "$opts" "tcp4-l:$PORT,reuseaddr,fork,retry=1" "" "range=$SECONDADDR/32" "tcp4:127.0.0.1:$PORT" 4 tcp $PORT 0
-CMD0="$TRACE $SOCAT $opts -u TCP4-LISTEN:$PORT,reuseaddr,range=127.0.0.1/0 CREATE:$tf"
+CMD0="$TRACE $SOCAT $opts -u TCP4-LISTEN:$PORT,$REUSEADDR,range=127.0.0.1/0 CREATE:$tf"
 CMD1="$TRACE $SOCAT $opts -u - TCP4-CONNECT:$SECONDADDR:$PORT,bind=$SECONDADDR"
 printf "test $F_n $TEST... " $N
 $CMD0 2>"${te}0" &
@@ -11914,15 +11934,15 @@ esac
 N=$((N+1))
 #
 done <<<"
-openssl SERVER X509 ISSUER  OPENSSL-LISTEN:$PORT,so-reuseaddr,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1 OPENSSL-CONNECT:$LOCALHOST:$PORT,cert=testcli.pem,cafile=testsrv.crt,verify=1 $TESTCERT_ISSUER
-openssl SERVER X509 SUBJECT OPENSSL-LISTEN:$PORT,so-reuseaddr,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1 OPENSSL-CONNECT:$LOCALHOST:$PORT,cert=testcli.pem,cafile=testsrv.crt,verify=1 $TESTCERT_SUBJECT
-openssl SERVER X509 COMMONNAME             OPENSSL-LISTEN:$PORT,so-reuseaddr,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1 OPENSSL-CONNECT:$LOCALHOST:$PORT,cert=testcli.pem,cafile=testsrv.crt,verify=1 $TESTCERT_COMMONNAME
-openssl SERVER X509 COUNTRYNAME            OPENSSL-LISTEN:$PORT,so-reuseaddr,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1 OPENSSL-CONNECT:$LOCALHOST:$PORT,cert=testcli.pem,cafile=testsrv.crt,verify=1 $TESTCERT_COUNTRYNAME
-openssl SERVER X509 LOCALITYNAME           OPENSSL-LISTEN:$PORT,so-reuseaddr,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1 OPENSSL-CONNECT:$LOCALHOST:$PORT,cert=testcli.pem,cafile=testsrv.crt,verify=1 $TESTCERT_LOCALITYNAME
-openssl SERVER X509 ORGANIZATIONALUNITNAME OPENSSL-LISTEN:$PORT,so-reuseaddr,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1 OPENSSL-CONNECT:$LOCALHOST:$PORT,cert=testcli.pem,cafile=testsrv.crt,verify=1 $TESTCERT_ORGANIZATIONALUNITNAME
-openssl SERVER X509 ORGANIZATIONNAME       OPENSSL-LISTEN:$PORT,so-reuseaddr,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1 OPENSSL-CONNECT:$LOCALHOST:$PORT,cert=testcli.pem,cafile=testsrv.crt,verify=1 $TESTCERT_ORGANIZATIONNAME
-openssl CLIENT X509 SUBJECT OPENSSL-CONNECT:$LOCALHOST:$PORT,cert=testcli.pem,cafile=testsrv.crt,verify=1 OPENSSL-LISTEN:$PORT,so-reuseaddr,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1 $TESTCERT_SUBJECT
-openssl CLIENT X509 ISSUER  OPENSSL-CONNECT:$LOCALHOST:$PORT,cert=testcli.pem,cafile=testsrv.crt,verify=1 OPENSSL-LISTEN:$PORT,so-reuseaddr,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1 $TESTCERT_ISSUER
+openssl SERVER X509 ISSUER  OPENSSL-LISTEN:$PORT,$REUSEADDR,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1 OPENSSL-CONNECT:$LOCALHOST:$PORT,cert=testcli.pem,cafile=testsrv.crt,verify=1 $TESTCERT_ISSUER
+openssl SERVER X509 SUBJECT OPENSSL-LISTEN:$PORT,$REUSEADDR,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1 OPENSSL-CONNECT:$LOCALHOST:$PORT,cert=testcli.pem,cafile=testsrv.crt,verify=1 $TESTCERT_SUBJECT
+openssl SERVER X509 COMMONNAME             OPENSSL-LISTEN:$PORT,$REUSEADDR,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1 OPENSSL-CONNECT:$LOCALHOST:$PORT,cert=testcli.pem,cafile=testsrv.crt,verify=1 $TESTCERT_COMMONNAME
+openssl SERVER X509 COUNTRYNAME            OPENSSL-LISTEN:$PORT,$REUSEADDR,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1 OPENSSL-CONNECT:$LOCALHOST:$PORT,cert=testcli.pem,cafile=testsrv.crt,verify=1 $TESTCERT_COUNTRYNAME
+openssl SERVER X509 LOCALITYNAME           OPENSSL-LISTEN:$PORT,$REUSEADDR,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1 OPENSSL-CONNECT:$LOCALHOST:$PORT,cert=testcli.pem,cafile=testsrv.crt,verify=1 $TESTCERT_LOCALITYNAME
+openssl SERVER X509 ORGANIZATIONALUNITNAME OPENSSL-LISTEN:$PORT,$REUSEADDR,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1 OPENSSL-CONNECT:$LOCALHOST:$PORT,cert=testcli.pem,cafile=testsrv.crt,verify=1 $TESTCERT_ORGANIZATIONALUNITNAME
+openssl SERVER X509 ORGANIZATIONNAME       OPENSSL-LISTEN:$PORT,$REUSEADDR,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1 OPENSSL-CONNECT:$LOCALHOST:$PORT,cert=testcli.pem,cafile=testsrv.crt,verify=1 $TESTCERT_ORGANIZATIONNAME
+openssl CLIENT X509 SUBJECT OPENSSL-CONNECT:$LOCALHOST:$PORT,cert=testcli.pem,cafile=testsrv.crt,verify=1 OPENSSL-LISTEN:$PORT,$REUSEADDR,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1 $TESTCERT_SUBJECT
+openssl CLIENT X509 ISSUER  OPENSSL-CONNECT:$LOCALHOST:$PORT,cert=testcli.pem,cafile=testsrv.crt,verify=1 OPENSSL-LISTEN:$PORT,$REUSEADDR,bind=$LOCALHOST,cert=testsrv.pem,cafile=testcli.crt,verify=1 $TESTCERT_ISSUER
 "
 
 
@@ -12303,7 +12323,7 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD0="$SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,cert=testsrv.pem,verify=0 SYSTEM:cat"
+CMD0="$SOCAT $opts OPENSSL-LISTEN:$PORT,$REUSEADDR,cert=testsrv.pem,verify=0 SYSTEM:cat"
 CMD1="$SOCAT $opts - OPENSSL-CONNECT:$LOCALHOST:$PORT,verify=0"
 printf "test $F_n $TEST... " $N
 $CMD0 >/dev/null 2>"${te}0" &
@@ -12420,7 +12440,7 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD0="$SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,openssl-method=$method,cert=testsrv.pem,verify=0 PIPE"
+CMD0="$SOCAT $opts OPENSSL-LISTEN:$PORT,$REUSEADDR,openssl-method=$method,cert=testsrv.pem,verify=0 PIPE"
 CMD1="$SOCAT $opts - OPENSSL-CONNECT:$LOCALHOST:$PORT,opensslmethod=$method,verify=0"
 printf "test $F_n $TEST... " $N
 if [ "$method" = DTLS1 -a "$(echo -e "$OPENSSL_VERSION\n1.0.2" |sort -V |tail -n 1)" = "$OPENSSL_VERSION_GOOD" ]; then
@@ -12480,7 +12500,7 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD0="$SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,openssl-method=$method,cert=testsrv.pem,verify=0 PIPE"
+CMD0="$SOCAT $opts OPENSSL-LISTEN:$PORT,$REUSEADDR,openssl-method=$method,cert=testsrv.pem,verify=0 PIPE"
 CMD1="$SOCAT $opts - OPENSSL-CONNECT:$LOCALHOST:$PORT,openssl-method=$method,verify=0"
 printf "test $F_n $TEST... " $N
 if [ "$method" = DTLS1 -a "$(echo -e "$OPENSSL_VERSION\n1.0.2" |sort -V |tail -n 1)" = "$OPENSSL_VERSION_GOOD" ]; then
@@ -12643,7 +12663,7 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD0="$TRACE $SOCAT $opts TCP4-L:$tp,so-reuseaddr PIPE"
+CMD0="$TRACE $SOCAT $opts TCP4-L:$tp,$REUSEADDR PIPE"
 CMD1="$TRACE $SOCAT $opts - TCP:localhost:$tp"
 CMD2="$CMD0"
 CMD3="$CMD1"
@@ -12715,7 +12735,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da2="test$N $(date) $RANDOM"
 da3="test$N $(date) $RANDOM"
-CMD0="$TRACE $SOCAT $opts TCP4-L:$tp,so-reuseport PIPE"
+CMD0="$TRACE $SOCAT $opts TCP4-L:$tp,$REUSEADDR,so-reuseport PIPE"
 CMD1="$CMD0"
 CMD2="$TRACE $SOCAT $opts - TCP:localhost:$tp"
 CMD3="$CMD2"
@@ -12832,7 +12852,7 @@ tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
 #TESTSRV=./testsrvec; gentesteccert $TESTSRV
 TESTSRV=./testsrv; gentestcert $TESTSRV
-CMD0="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,reuseaddr,cert=$TESTSRV.crt,key=$TESTSRV.pem,verify=0 PIPE"
+CMD0="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,$REUSEADDR,cert=$TESTSRV.crt,key=$TESTSRV.pem,verify=0 PIPE"
 CMD1="$TRACE $SOCAT $opts - OPENSSL-CONNECT:$LOCALHOST:$PORT,cipher=ECDHE-ECDSA-AES256-GCM-SHA384,cafile=$TESTSRV.crt,verify=0"
 printf "test $F_n $TEST... " $N
 $CMD0 >/dev/null 2>"${te}0" &
