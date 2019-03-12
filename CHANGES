@@ -77,6 +77,9 @@ Porting:
 	RES_AAONLY, RES_PRIMARY are deprecated. You can still enable them with
 	configure option --enable-res-deprecated.
 
+	New versions of OpenSSL preset SSL_MODE_AUTO_RETRY which may hang socat.
+	Solution: clear SSL_MODE_AUTO_RETRY when it is set.
+
 Testing:
 	test.sh: Show a warning when phase-1 (insecure phase) of a security
 	test fails
