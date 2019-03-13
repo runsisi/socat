@@ -85,6 +85,8 @@ Porting:
 	Related Gentoo bug 426262: Warning on configure.in
 	Thanks to Francesco Turco for reporting that warning.
 
+	Fixed new IPv6 range code for platforms without s6_addr32 component.
+
 Testing:
 	test.sh: Show a warning when phase-1 (insecure phase) of a security
 	test fails

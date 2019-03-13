@@ -190,7 +190,7 @@ int xiocheckrange_ip6(struct sockaddr_in6 *pa, struct xiorange *range) {
 	  sockaddr_inet6_info(pa, peername, sizeof(peername)));
 
    for (i = 0; i < 4; ++i) {
-      masked.u6_addr32[i] = pa->sin6_addr.s6_addr32[i] & rangemask->u6_addr32[i];
+      masked.u6_addr32[i] = ((union xioin6_u *)&pa->sin6_addr.s6_addr[0])->u6_addr32[i] & rangemask->u6_addr32[i];
    }
    Debug8("masked address is [%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x]",
 	   htons(masked.u6_addr16[0]),  htons(masked.u6_addr16[1]),

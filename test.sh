@@ -6865,7 +6865,7 @@ case "$TESTS" in
 TEST="$NAME: TCP4 mapped into TCP6 address space"
 if ! eval $NUMCOND; then :;
 elif true; then
-    $PRINTF "test $F_n $TEST... ${YELLOW}Feature reoved${NORMAL}\n" $N
+    $PRINTF "test $F_n $TEST... ${YELLOW}Feature removed${NORMAL}\n" $N
 elif ! testaddrs tcp ip6 >/dev/null || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
