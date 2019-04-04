@@ -215,7 +215,7 @@ else
     SUBSTUSER="$(grep -v '^[^:]*:^[^:]*:0:' /etc/passwd |tail -n 1 |cut -d: -f1)"
 fi
 
-if type ip; then
+if type ip >/dev/null; then
     if ip -V |grep -q "^ip utility, iproute2-ss"; then
 	IP=$(which ip)
     else
@@ -223,7 +223,7 @@ if type ip; then
     fi
 fi
 
-if type ss; then
+if type ss >/dev/null; then
     if ss -V |grep -q "^ss utility, iproute2-ss"; then
 	SS=$(which ss)
     else
@@ -4215,7 +4215,7 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
 CMD2="$TRACE $SOCAT $opts \"$PEERADDR\" EXEC:'$OD_C'"
-CMD="$TRACE $SOCAT -T1 $opts - $TESTADDR"
+CMD="$TRACE $SOCAT -T1 $opts -t 1 - $TESTADDR"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}1\" &"
 pid=$!	# background process id
@@ -5951,7 +5951,7 @@ elif ! testaddrs openssl >/dev/null; then
 else
 gentestcert testsrv
 gentestcert testcli
-testserversec "$N" "$TEST" "$opts -lu -d" "ssl:$LOCALHOST:$PORT,pf=ip4,fork,retry=2,verify,cert=testcli.pem,$SOCAT_EGD" "cafile=testsrv.crt" "cafile=testcli.crt" "ssl-l:$PORT,pf=ip4,reuseaddr,$SOCAT_EGD,cafile=testcli.crt,cert=testsrv.crt,key=testsrv.key" 4 tcp "" -1
+testserversec "$N" "$TEST" "$opts -t 0.5 -lu -d" "ssl:$LOCALHOST:$PORT,pf=ip4,fork,retry=2,verify,cert=testcli.pem,$SOCAT_EGD" "cafile=testsrv.crt" "cafile=testcli.crt" "ssl-l:$PORT,pf=ip4,reuseaddr,$SOCAT_EGD,cafile=testcli.crt,cert=testsrv.crt,key=testsrv.key" 4 tcp "" -1
 fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
@@ -6053,7 +6053,7 @@ elif ! testaddrs listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
 else
 gentestcert testsrv
 gentestcert testcli
-testserversec "$N" "$TEST" "$opts -4" "SSL:127.0.0.1:$PORT,fork,retry=2,verify,cafile=testsrv.crt" "commonname=$LOCALHOST" "" "SSL-L:$PORT,pf=ip4,$REUSEADDR,cert=testsrv.crt,key=testsrv.key,verify=0" 4 tcp "" 0
+testserversec "$N" "$TEST" "$opts -t 0.5 -4" "SSL:127.0.0.1:$PORT,fork,retry=2,verify,cafile=testsrv.crt" "commonname=$LOCALHOST" "" "SSL-L:$PORT,pf=ip4,$REUSEADDR,cert=testsrv.crt,key=testsrv.key,verify=0" 4 tcp "" 0
 fi ;; # testaddrs, NUMCOND
 esac
 PORT=$((PORT+1))
@@ -6077,7 +6077,7 @@ elif ! testaddrs listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
 else
 gentestcert testsrv
 gentestcert testcli
-testserversec "$N" "$TEST" "$opts -4" "SSL-L:$PORT,pf=ip4,reuseaddr,cert=testsrv.crt,key=testsrv.key,cafile=testcli.crt" "" "commonname=onlyyou" "SSL:$LOCALHOST:$PORT,$REUSEADDR,verify=0,cafile=testsrv.crt,cert=testcli.crt,key=testcli.key" 4 tcp "" 0
+testserversec "$N" "$TEST" "$opts -4" "SSL-L:$PORT,pf=ip4,reuseaddr,cert=testsrv.crt,key=testsrv.key,cafile=testcli.crt" "" "commonname=onlyyou" "SSL:$LOCALHOST:$PORT,$REUSEADDR,verify=0,cafile=testsrv.crt,cert=testcli.crt,key=testcli.key" 4 tcp "$PORT" 0
 fi ;; # testaddrs, NUMCOND
 esac
 PORT=$((PORT+1))
@@ -6560,8 +6560,9 @@ rc="$?"; kill "$pids" 2>/dev/null
 if [ $rc -ne 0 ]; then
     $PRINTF "$FAILED:\n"
     echo "$SRV &"
+    cat "${te}s"
     echo "$CLI"
-    cat "${te}s" "${te}2"
+    cat "${te}2"
     numFAIL=$((numFAIL+1))
     listFAIL="$listFAIL $N"
 elif ! echo "$da2" |diff - "${tf}2" >"$tdiff"; then
@@ -12753,36 +12754,47 @@ kill $pid0 $pid1 $pid2 2>/dev/null; wait
 if ! echo "$da2" |diff - "${tf}2"; then
     $PRINTF "${YELLOW}phase 1 failed${NORMAL}\n"
     echo "$CMD0 &"
+    cat "${te}0"
     echo "$CMD1 &"
+    cat "${te}1"
     echo "$CMD2"
-    cat "${te}0" "${te}1" "${te}2"
+    cat "${te}2"
     numCANT=$((numCANT+1))
 elif [ $rc3 -ne 0 ]; then
     $PRINTF "$FAILED:\n"
     echo "$CMD0 &"
+    cat "${te}0"
     echo "$CMD1 &"
+    cat "${te}1"
     echo "$CMD2"
+    cat "${te}2"
     echo "$CMD3"
-    cat "${te}0" "${te}1" "${te}2" "${te}3"
+    cat "${te}3"
     numFAIL=$((numFAIL+1))
     listFAIL="$listFAIL $N"
 elif ! echo "$da2" |diff - "${tf}2"; then
     $PRINTF "$FAILED:\n"
     echo "$CMD0 &"
-    echo "$CMD1"
+    cat "${te}0"
+    echo "$CMD1 &"
+    cat "${te}1"
     echo "$CMD2"
+    cat "${te}2"
     echo "$CMD3"
-    cat "${te}0" "${te}1" "${te}2" "${te}3"
+    cat "${te}3"
     echo "$da2" |diff - "${tf}2"
     numFAIL=$((numFAIL+1))
     listFAIL="$listFAIL $N"
 elif ! echo "$da3" |diff - "${tf}3"; then
     $PRINTF "$FAILED:\n"
     echo "$CMD0 &"
-    echo "$CMD1"
+    cat "${te}0"
+    echo "$CMD1 &"
+    cat "${te}1"
     echo "$CMD2"
+    cat "${te}2"
     echo "$CMD3"
-    cat "${te}0" "${te}1" "${te}2" "${te}3"
+    cat "${te}3"
     echo "$da3" |diff - "${tf}3"
     numFAIL=$((numFAIL+1))
     listFAIL="$listFAIL $N"

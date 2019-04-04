@@ -1437,15 +1437,13 @@ AC_CHECK_FUNC(setenv, AC_DEFINE(HAVE_SETENV),
 dnl Search for unsetenv()
 AC_CHECK_FUNC(unsetenv, AC_DEFINE(HAVE_UNSETENV))
 
+AC_CHECK_FUNC(TLS_client_method, AC_DEFINE(HAVE_TLS_client_method) ac_cv_have_tls_client_method=yes, AC_CHECK_LIB(crypt, TLS_client_method, [LIBS=-lcrypt $LIBS]))
+AC_CHECK_FUNC(TLS_server_method, AC_DEFINE(HAVE_TLS_server_method) ac_cv_have_tls_server_method=yes, AC_CHECK_LIB(crypt, TLS_server_method, [LIBS=-lcrypt $LIBS]))
+if test -n "$WITH_OPENSSL_METHOD" -o -z "$ac_cv_have_tls_client_method" -o -z "$ac_cv_have_tls_server_method" ; then
 dnl Search for SSLv2_client_method, SSLv2_server_method
 AC_CHECK_FUNC(SSLv2_client_method, AC_DEFINE(HAVE_SSLv2_client_method), AC_CHECK_LIB(crypt, SSLv2_client_method, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(SSLv2_server_method, AC_DEFINE(HAVE_SSLv2_server_method), AC_CHECK_LIB(crypt, SSLv2_server_method, [LIBS=-lcrypt $LIBS]))
 dnl 
-AC_CHECK_FUNC(SSL_CTX_set_default_verify_paths, AC_DEFINE(HAVE_SSL_CTX_set_default_verify_paths))
-
-AC_CHECK_FUNC(TLS_client_method, AC_DEFINE(HAVE_TLS_client_method), AC_CHECK_LIB(crypt, TLS_client_method, [LIBS=-lcrypt $LIBS]))
-AC_CHECK_FUNC(TLS_server_method, AC_DEFINE(HAVE_TLS_server_method), AC_CHECK_LIB(crypt, TLS_server_method, [LIBS=-lcrypt $LIBS]))
-if test -n "$WITH_OPENSSL_METHOD"; then
 AC_CHECK_FUNC(SSLv3_client_method, AC_DEFINE(HAVE_SSLv3_client_method), AC_CHECK_LIB(crypt, SSLv3_client_method, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(SSLv3_server_method, AC_DEFINE(HAVE_SSLv3_server_method), AC_CHECK_LIB(crypt, SSLv3_server_method, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(SSLv23_client_method, AC_DEFINE(HAVE_SSLv23_client_method), AC_CHECK_LIB(crypt, SSLv23_client_method, [LIBS=-lcrypt $LIBS]))
@@ -1459,6 +1457,8 @@ AC_CHECK_FUNC(TLSv1_2_server_method, AC_DEFINE(HAVE_TLSv1_2_server_method), AC_C
 AC_CHECK_FUNC(DTLSv1_client_method, AC_DEFINE(HAVE_DTLSv1_client_method), AC_CHECK_LIB(crypt, DTLSv1_client_method, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(DTLSv1_server_method, AC_DEFINE(HAVE_DTLSv1_server_method), AC_CHECK_LIB(crypt, DTLSv1_server_method, [LIBS=-lcrypt $LIBS]))
 fi # $WITH_OPENSSL_METHOD
+
+AC_CHECK_FUNC(SSL_CTX_set_default_verify_paths, AC_DEFINE(HAVE_SSL_CTX_set_default_verify_paths))
 AC_CHECK_FUNC(RAND_egd, AC_DEFINE(HAVE_RAND_egd), AC_CHECK_LIB(crypt, RAND_egd, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(DH_set0_pqg, AC_DEFINE(HAVE_DH_set0_pqg), AC_CHECK_LIB(crypt, DH_set0_pqg, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(ASN1_STRING_get0_data, AC_DEFINE(HAVE_ASN1_STRING_get0_data), AC_CHECK_LIB(crypt, ASN1_STRING_get0_data, [LIBS=-lcrypt $LIBS]))
