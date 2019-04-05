@@ -1873,6 +1873,9 @@ runsip4 () {
     *) if [ -n "$l" ]; then l=0; else l=1; fi ;;
     esac
     HAVENOT_IP4=$l
+    if [ "$HAVENOT_IP4" -ne 0 ]; then
+	echo IP4
+    fi
     return $l;
 }
 
@@ -1904,47 +1907,50 @@ runsip6 () {
     *) if [ -n "$l" ]; then l=0; else l=1; fi ;;
     esac
     HAVENOT_IP6=$l
-    return $l;
+    if [ "$HAVENOT_IP6" -ne 0 ]; then
+	echo IP6
+    fi
+    return "$HAVENOT_IP6"
 }
 
 # check if TCP on IPv4 is available on host
 runstcp4 () {
-    runsip4 || return 1
+    runsip4 >/dev/null || { echo TCP4; return 1; }
     $SOCAT -h |grep '\<tcp4-' >/dev/null || return 1
     return 0;
 }
 
 # check if TCP on IPv6 is available on host
 runstcp6 () {
-    runsip6 || return 1
+    runsip6 >/dev/null || { echo TCP6; return 1; }
     $SOCAT -h |grep '\<tcp6-' >/dev/null || return 1
     return 0;
 }
 
 # check if UDP on IPv4 is available on host
 runsudp4 () {
-    runsip4 || return 1
+    runsip4 >/dev/null || { echo UDP4; return 1; }
     $SOCAT -h |grep '\<udp4-' >/dev/null || return 1
     return 0;
 }
 
 # check if UDP on IPv6 is available on host
 runsudp6 () {
-    runsip6 || return 1
+    runsip6 >/dev/null || { echo UDP6; return 1; }
     $SOCAT -h |grep '\<udp6-' >/dev/null || return 1
     return 0;
 }
 
 # check if SCTP on IPv4 is available on host
 runssctp4 () {
-    runsip4 || return 1
+    runsip4 >/dev/null || { echo SCTP4; return 1; }
     $SOCAT -h |grep '\<sctp4-' >/dev/null || return 1
     return 0;
 }
 
 # check if SCTP on IPv6 is available on host
 runssctp6 () {
-    runsip6 || return 1
+    runsip6 >/dev/null || { echo SCTP6; return 1; }
     $SOCAT -h |grep '\<sctp6-' >/dev/null || return 1
     return 0;
 }
@@ -2784,7 +2790,7 @@ if ! eval $NUMCOND; then :;
 elif [ "$UNAME" != Linux ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}only on Linux${NORMAL}\n" $N
     numCANT=$((numCANT+1))
-elif ! testaddrs udp ip6 >/dev/null || ! runsip6 >/dev/null; then
+elif ! testaddrs udp ip6 >/dev/null || ! runsudp6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}UDP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
@@ -3060,7 +3066,7 @@ elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 elif ! testaddrs ip6 >/dev/null || ! runsip6 >/dev/null; then
-    $PRINTF "test $F_n $TEST... ${YELLOW}IP6 not available${NORMAL}\n" $N
+    $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 elif ! feat=$(testoptions ipv6-v6only); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
@@ -3163,8 +3169,8 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
-elif ! testaddrs ip6 >/dev/null || ! runsip6 >/dev/null; then
-    $PRINTF "test $F_n $TEST... ${YELLOW}IP6 not available${NORMAL}\n" $N
+elif ! testaddrs ip6 >/dev/null || ! runstcp6 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 elif ! feat=$(testoptions ipv6-v6only); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
@@ -4206,7 +4212,7 @@ if ! eval $NUMCOND; then :;
 elif [ "$FEAT" != ',' ] && ! testaddrs "$FEAT" >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$FEAT not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
-elif ! runs$RUNS; then
+elif ! runs$RUNS >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$RUNS not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
@@ -5720,7 +5726,7 @@ case "$TESTS" in
 *%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%tcpwrap%*|*%$NAME%*)
 TEST="$NAME: security of TCP6-L with TCPWRAP option"
 if ! eval $NUMCOND; then :;
-elif ! feat=$(testaddrs tcp ip6 libwrap) || ! runsip6 >/dev/null; then
+elif ! feat=$(testaddrs tcp ip6 libwrap && runstcp6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
@@ -5840,7 +5846,7 @@ case "$TESTS" in
 *%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%tcpwrap%*|*%$NAME%*)
 TEST="$NAME: security of UDP6-L with TCPWRAP option"
 if ! eval $NUMCOND; then :;
-elif ! feat=$(testaddrs tcp ip6 libwrap) || ! runsip6 >/dev/null; then
+elif ! feat=$(testaddrs tcp ip6 libwrap && runsip6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
@@ -5853,7 +5859,6 @@ fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
 N=$((N+1))
-
 
 NAME=OPENSSLTCP4_RANGE
 case "$TESTS" in
@@ -6020,7 +6025,7 @@ case "$TESTS" in
 *%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%openssl%*|*%tcpwrap%*|*%$NAME%*)
 TEST="$NAME: security of SSL-L over TCP/IPv6 with TCPWRAP option"
 if ! eval $NUMCOND; then :;
-elif ! feat=$(testaddrs ip6 tcp libwrap openssl) || ! runsip6 >/dev/null; then
+elif ! feat=$(testaddrs ip6 tcp libwrap openssl && runsip6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
@@ -6601,7 +6606,7 @@ if ! eval $NUMCOND; then :;
 #elif ! feat=$(testaddrs $PROTOV); then
 #    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$PROTOV" |tr a-z A-Z) not available${NORMAL}\n" $N
 #    numCANT=$((numCANT+1))
-elif ! runs$protov; then
+elif ! runs$protov >/dev/null; then
      $PRINTF "test $F_n $TEST... ${YELLOW}$PROTOV not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
@@ -7068,7 +7073,7 @@ case "$TESTS" in
 *%$N%*|*%functions%*|*%ip%*|*%ip6%*|*%rawip%*|*%rawip6%*|*%dgram%*|*%root%*|*%$NAME%*)
 TEST="$NAME: raw IPv6 datagram by self addressing"
 if ! eval $NUMCOND; then :;
-elif ! feat=$(testaddrs ip6 rawip) || ! runsip6 >/dev/null; then
+elif ! feat=$(testaddrs ip6 rawip && runsip6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
@@ -7313,7 +7318,7 @@ case "$TESTS" in
 *%$N%*|*%functions%*|*%ip6%*|*%dgram%*|*%rawip%*|*%rawip6%*|*%recv%*|*%root%*|*%$NAME%*)
 TEST="$NAME: raw IPv6 receive"
 if ! eval $NUMCOND; then :;
-elif ! feat=$(testaddrs ip6 rawip) || ! runsip6 >/dev/null; then
+elif ! feat=$(testaddrs ip6 rawip && runsip6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
@@ -7601,7 +7606,7 @@ case "$TESTS" in
 *%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%tcpwrap%*|*%$NAME%*)
 TEST="$NAME: security of UDP6-RECVFROM with TCPWRAP option"
 if ! eval $NUMCOND; then :;
-elif ! feat=$(testaddrs udp ip6 libwrap) || ! runsip6 >/dev/null; then
+elif ! feat=$(testaddrs udp ip6 libwrap && runsip6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
@@ -7679,7 +7684,7 @@ case "$TESTS" in
 *%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%tcpwrap%*|*%$NAME%*)
 TEST="$NAME: security of UDP6-RECV with TCPWRAP option"
 if ! eval $NUMCOND; then :;
-elif ! feat=$(testaddrs udp ip6 libwrap) || ! runsip6 >/dev/null; then
+elif ! feat=$(testaddrs udp ip6 libwrap && runsip6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
@@ -7800,7 +7805,7 @@ case "$TESTS" in
 *%$N%*|*%functions%*|*%security%*|*%ip%*|*%ip6%*|*%range%*|*%root%*|*%$NAME%*)
 TEST="$NAME: security of IP6-RECVFROM with RANGE option"
 if ! eval $NUMCOND; then :;
-elif ! feat=$(testaddrs ip6 rawip) || ! runsip6 >/dev/null; then
+elif ! feat=$(testaddrs ip6 rawip && runsip6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
@@ -7820,7 +7825,7 @@ case "$TESTS" in
 *%$N%*|*%functions%*|*%security%*|*%ip%*|*%ip6%*|*%tcpwrap%*|*%root%*|*%$NAME%*)
 TEST="$NAME: security of IP6-RECVFROM with TCPWRAP option"
 if ! eval $NUMCOND; then :;
-elif ! feat=$(testaddrs ip6 rawip libwrap) || ! runsip6 >/dev/null; then
+elif ! feat=$(testaddrs ip6 rawip libwrap && runsip6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
@@ -7867,7 +7872,7 @@ case "$TESTS" in
 *%$N%*|*%functions%*|*%security%*|*%ip%*|*%ip6%*|*%tcpwrap%*|*%root%*|*%$NAME%*)
 TEST="$NAME: security of IP6-RECV with TCPWRAP option"
 if ! eval $NUMCOND; then :;
-elif ! feat=$(testaddrs ip6 rawip libwrap) || ! runsip6 >/dev/null; then
+elif ! feat=$(testaddrs ip6 rawip libwrap && runsip6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
@@ -8434,7 +8439,7 @@ case "$TESTS" in
 *%$N%*|*%functions%*|*%bugs%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%tcpwrap%*|*%$NAME%*)
 TEST="$NAME: specification of TCP6 address in hosts.allow"
 if ! eval $NUMCOND; then :;
-elif ! feat=$(testaddrs tcp ip6 libwrap) || ! runsip6 >/dev/null; then
+elif ! feat=$(testaddrs tcp ip6 libwrap && runsip6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
@@ -8719,7 +8724,7 @@ case "$TESTS" in
 *%$N%*|*%functions%*|*%udp%*|*%udp6%*|*%ip6%*|*%dgram%*|*%multicast%*|*%$NAME%*)
 TEST="$NAME: UDP/IPv6 multicast"
 if ! eval $NUMCOND; then :;
-elif ! feat=$(testaddrs ip6 udp) || ! runsip6 >/dev/null; then
+elif ! feat=$(testaddrs ip6 udp && runsip6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
@@ -10038,9 +10043,9 @@ elif [ "$KEYW" = "TCP6" -o "$KEYW" = "UDP6" -o "$KEYW" = "SCTP6" ] && \
     ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}IP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
-elif [ "$KEYW" = "SCTP4" ] && ! runssctp4 "$((PORT))"; then
+elif [ "$KEYW" = "SCTP4" ] && ! runssctp4 "$((PORT))" >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$KEYW not available${NORMAL}\n" $N
-elif [ "$KEYW" = "SCTP6" ] && ! runssctp6 "$((PORT))"; then
+elif [ "$KEYW" = "SCTP6" ] && ! runssctp6 "$((PORT))" >/dev/null; then
     #!!! branch not reached - caught above!
     $PRINTF "test $F_n $TEST... ${YELLOW}$KEYW not available${NORMAL}\n" $N
 else
@@ -11388,6 +11393,7 @@ N=$((N+1))
 
 while read KEYW FEAT ADDR IPPORT; do
 if [ -z "$KEYW" ]|| [[ "$KEYW" == \#* ]]; then continue; fi
+RUNS=${KEYW,,*}
 PROTO=$KEYW
 proto="$(echo "$PROTO" |tr A-Z a-z)"
 # test the max-children option on really connection oriented sockets
@@ -11399,7 +11405,14 @@ TEST="$NAME: max-children option"
 # sleep some time before sending data; connect with second client that sends
 # data immediately. If max-children is working correctly the first data should
 # arrive first because the second process has to wait.
-if ! eval $NUMCOND; then :; else
+if ! eval $NUMCOND; then :;
+elif ! testaddrs "$FEAT" >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$FEAT not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+elif ! runs$RUNS >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}${RUNS^^*} not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
 case "X$IPPORT" in
     "XPORT")
     tsl=$PORT 		# test socket listen address
@@ -11449,9 +11462,9 @@ N=$((N+1))
 done <<<"
 TCP4  TCP  127.0.0.1 PORT
 TCP6  TCP  [::1]     PORT
-SCTP4 TCP  127.0.0.1 PORT
-SCTP6 TCP  [::1]     PORT
-UNIX  UNIX $td/test\$N.server -
+SCTP4 SCTP 127.0.0.1 PORT
+SCTP6 SCTP [::1]     PORT
+UNIX  unix  $td/test\$N.server -
 "
 # debugging this hanging test was difficult - following lessons learned:
 # kill <parent> had no effect when child process existed
@@ -11462,6 +11475,7 @@ UNIX  UNIX $td/test\$N.server -
 
 while read KEYW FEAT ADDR IPPORT SHUT; do
 if [ -z "$KEYW" ]|| [[ "$KEYW" == \#* ]]; then continue; fi
+RUNS=${KEYW,,*}
 PROTO=$KEYW
 proto="$(echo "$PROTO" |tr A-Z a-z)"
 # test the max-children option on pseudo connected sockets
@@ -11474,7 +11488,14 @@ TEST="$NAME: max-children option"
 # data immediately, but keep first client active until server terminates.
 #If max-children is working correctly only the first data should
 # arrive.
-if ! eval $NUMCOND; then :; else
+if ! eval $NUMCOND; then :;
+elif ! testaddrs "$FEAT" >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$FEAT not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+elif ! runs$RUNS >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}${RUNS^^*} not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
 case "X$IPPORT" in
     "XPORT")
     tsl=$PORT 		# test socket listen address
