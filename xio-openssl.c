@@ -1023,6 +1023,7 @@ cont_out:
    }
 #endif
 
+#if defined(HAVE_SSL_CTX_clear_mode) || defined(SSL_CTX_clear_mode)
    /* It seems that OpenSSL-1.1.1 presets the mode differently.
       Without correction socat might hang in SSL_read() */
    {
@@ -1034,6 +1035,7 @@ cont_out:
 	 SSL_CTX_clear_mode(*ctx, SSL_MODE_AUTO_RETRY);
       }
    }
+#endif /* defined(HAVE_SSL_CTX_clear_mode) || defined(SSL_CTX_clear_mode) */
 
    if (opt_cafile != NULL || opt_capath != NULL) {
       if (sycSSL_CTX_load_verify_locations(*ctx, opt_cafile, opt_capath) != 1) {

@@ -15,6 +15,10 @@ Corrections:
 	configure.
 	Thanks to Jason White for sending a patch.
 
+	Due to use of SSL_CTX_clear_mode() Socat failed to compile on old
+	systems with, e.g., OpenSSL-0.9.8. Thanks to Simon Matter and Moritz B.
+	for reporting this problem and sending initial patches.
+
 ####################### V 1.7.3.3:
 
 Corrections:

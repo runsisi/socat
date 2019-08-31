@@ -476,6 +476,9 @@
 /* Define if you have the OpenSSL ASN1_STRING_get0_data function */
 #undef HAVE_ASN1_STRING_get0_data
 
+/* Define if you have the OpenSSL SSL_CTX_clear_mode macro or function */
+#undef HAVE_SSL_CTX_clear_mode
+
 /* Define if you have the flock function */
 #undef HAVE_FLOCK
 
