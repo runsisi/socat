@@ -538,8 +538,8 @@ int xiopoll(struct pollfd fds[], unsigned long nfds, struct timeval *timeout) {
       }
       return result;
    }
-#if HAVE_POLL
    {
+#if HAVE_POLL
       int ms = 0;
       if (timeout == NULL) {
 	 ms = -1;
@@ -549,7 +549,6 @@ int xiopoll(struct pollfd fds[], unsigned long nfds, struct timeval *timeout) {
       /*! timeout */
       return Poll(fds, nfds, ms);
 #else /* HAVE_POLL */
-   } else {
       Error("poll() not available");
       return -1;
 #endif /* !HAVE_POLL */

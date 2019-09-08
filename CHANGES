@@ -11,6 +11,10 @@ Corrections:
 	This affected version 1.7.3.3 only.
 	Thanks to Ivan J. for reporting this issue.
 
+	Socat failed to compile when no poll() system call was found by
+	configure.
+	Thanks to Jason White for sending a patch.
+
 ####################### V 1.7.3.3:
 
 Corrections:
