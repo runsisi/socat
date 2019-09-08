@@ -1,4 +1,10 @@
 
+Corrections:
+	Header of xiotermios_speed() declared parameter unsigned int instead of
+	speed_t, thus compiling failed on MacOS
+	Thanks to Joe Strout and others for reporting this bug.
+	Thanks to Andrew Childs and others for sending a patch.
+
 ####################### V 1.7.3.3:
 
 Corrections:
