@@ -201,8 +201,8 @@ const struct addrname addressnames[] = {
    { "socks4a",	&addr_socks4a_connect },
 #endif
 #if WITH_SOCKS5
-   { "socks5",      &xioaddrs_socks5_client },
-   { "socks5-client",   &xioaddrs_socks5_client },
+   { "socks5",      &addr_socks5_connect },
+   { "socks5-client",   &addr_socks5_connect },
 #endif
 #if WITH_OPENSSL
    { "ssl",		&xioaddr_openssl },
