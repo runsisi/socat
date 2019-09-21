@@ -677,6 +677,7 @@
 #undef WITH_SOCKS4
 #undef WITH_SOCKS4A
 #undef WITH_VSOCK
+#define WITH_SOCKS5 1
 #undef WITH_PROXY
 #undef WITH_EXEC
 #undef WITH_SYSTEM

@@ -139,8 +139,9 @@ enum e_func {
 
 #define GROUP_FD	0x00000001	/* everything applyable to a fd */
 #define GROUP_FIFO	0x00000002
-#define GROUP_CHR	0x00000004
+#define GROUP_SOCKS5	0x00000004
 #define GROUP_BLK	0x00000008
+#define GROUP_CHR	0x00000000	/* currently not used */
 #define GROUP_REG	0x00000010
 #define GROUP_FILE GROUP_REG
 #define GROUP_SOCKET	0x00000020
@@ -708,6 +709,8 @@ enum e_optcode {
 #ifdef SO_USE_IFBUFS
    OPT_SO_USE_IFBUFS,
 #endif /* SO_USE_IFBUFS */
+   OPT_SOCKS5_PASSWORD,
+   OPT_SOCKS5_USERNAME,
 #if 1 || defined(WITH_SOCKS4)
    OPT_SOCKSPORT,
    OPT_SOCKSUSER,

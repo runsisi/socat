@@ -101,6 +101,12 @@ bool xioopts_ignoregroups;
 #  define IF_SOCKS4(a,b) 
 #endif
 
+#if WITH_SOCKS5
+#  define IF_SOCKS5(a,b) {a,b},
+#else
+#  define IF_SOCKS5(a,b)
+#endif
+
 #if WITH_PROXY
 #  define IF_PROXY(a,b) {a,b},
 #else
