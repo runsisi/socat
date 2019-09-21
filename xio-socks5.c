@@ -17,18 +17,16 @@
 #define SOCKSPORT "1080"
 #define SOCKS5_MAXLEN 512
 
-static int 
-   xioopen_socks5_client(int argc, const char *argv[],
-			  struct opt *opts, int xioflags, xiofile_t *xfd,
-			  unsigned groups, int dummy1, int dummy2,
-			  int dummy3);
+static int xioopen_socks5_connect(int argc, const char *argv[],
+                 struct opt *opts, int xioflags,
+                 xiofile_t *xxfd,
+                 unsigned groups, int dummy1, int dummy2,
+                 int dummy3);
 
 const struct optdesc opt_socks5_username  = { "socks5-username",  "socks5user", OPT_SOCKS5_USERNAME,  GROUP_SOCKS5, PH_LATE, TYPE_STRING,  OFUNC_SPEC };
 const struct optdesc opt_socks5_password  = { "socks5-password",  "socks5pass", OPT_SOCKS5_PASSWORD,  GROUP_SOCKS5, PH_LATE, TYPE_STRING,  OFUNC_SPEC };
 
-static const struct xioaddr_inter_desc xiointer_socks5_client = { XIOADDR_PROT, "socks5", 2, XIOBIT_ALL, GROUP_SOCKS5, XIOSHUT_DOWN, XIOCLOSE_CLOSE, xioopen_socks5_client, 0, 0, 0, XIOBIT_RDWR HELP(":<host>:<port>") };
-const union xioaddr_desc *xioaddrs_socks5_client[] = {
-   (union xioaddr_desc *)&xiointer_socks5_client, NULL };
+const struct addrdesc addr_socks5_connect = { "socks5", 3, xioopen_socks5_connect, GROUP_FD|GROUP_SOCKET|GROUP_SOCK_IP4|GROUP_SOCK_IP6|GROUP_IP_TCP|GROUP_IP_SOCKS4|GROUP_CHILD|GROUP_RETRY, 0, 0, 0 HELP(":<socks-server>:<host>:<port>") };
 
 /* read until buflen bytes received or EOF */
 /* returns STAT_OK, STAT_RETRYLATER, or STAT_NOTRETRY */
@@ -42,27 +40,21 @@ static int xiosocks5_recvbytes(struct single *xfd,
       /* receive socks answer */
       Debug("waiting for data from peer");
       do {
-	 result = Read(xfd->rfd, buff+bytes, buflen-bytes);
+	 result = Read(xfd->fd, buff+bytes, buflen-bytes);
       } while (result < 0 && errno == EINTR);
       if (result < 0) {
 	 Msg4(level, "read(%d, %p, "F_Zu"): %s",
-	      xfd->rfd, buff+bytes, buflen-bytes,
+	      xfd->fd, buff+bytes, buflen-bytes,
 	      strerror(errno));
-	 if (Close(xfd->rfd) < 0) {
-	    Warn2("close(%d): %s", xfd->rfd, strerror(errno));
-	 }
-	 if (Close(xfd->wfd) < 0) {
-	    Warn2("close(%d): %s", xfd->wfd, strerror(errno));
+	 if (Close(xfd->fd) < 0) {
+	    Warn2("close(%d): %s", xfd->fd, strerror(errno));
 	 }
 	 return STAT_RETRYLATER;
       }
       if (result == 0) {
 	 Msg(level, "read(): EOF during read of socks reply");
-	 if (Close(xfd->rfd) < 0) {
-	    Warn2("close(%d): %s", xfd->rfd, strerror(errno));
-	 }
-	 if (Close(xfd->wfd) < 0) {
-	    Warn2("close(%d): %s", xfd->wfd, strerror(errno));
+	 if (Close(xfd->fd) < 0) {
+	    Warn2("close(%d): %s", xfd->fd, strerror(errno));
 	 }
 	 return STAT_RETRYLATER;
       }
@@ -80,7 +72,7 @@ static int xiosocks5_recvbytes(struct single *xfd,
    return STAT_OK;
 }
 
-static int xioopen_socks5_client(int argc, const char *argv[],
+static int xioopen_socks5_connect(int argc, const char *argv[],
 				 struct opt *opts, int xioflags,
 				 xiofile_t *xxfd,
 				 unsigned groups, int dummy1, int dummy2,
@@ -107,7 +99,7 @@ static int xioopen_socks5_client(int argc, const char *argv[],
    if (result != STAT_OK)  return result;
 #endif
 
-   if (xfd->rfd < 0) {
+   if (xfd->fd < 0) {
       Error("socks5 must be used as embedded address");
       return -1;
    }
@@ -146,7 +138,7 @@ static int xioopen_socks5_client(int argc, const char *argv[],
 #endif
 
 #if 0
-     if (xfd->rfd < 0) {
+     if (xfd->fd < 0) {
       /* this cannot fork because we retrieved fork option above */
       result =
 	 _xioopen_connect (xfd,
@@ -188,7 +180,7 @@ static int xioopen_socks5_client(int argc, const char *argv[],
       }
 
       /*!*/
-      applyopts(xfd->rfd, opts, PH_ALL);
+      applyopts(xfd->fd, opts, PH_ALL);
 
       if ((result = _xio_openlate(xfd, opts)) < 0)
 	 return result;
@@ -236,16 +228,13 @@ int _xioopen_socks5_connect(struct single *xfd,
    /* send socks header (target addr+port, +auth) */
    Info("sending socks5 identifier/method selection message");
    do {
-      result = Write(xfd->wfd, sendmethod, sendlen);
+      result = Write(xfd->fd, sendmethod, sendlen);
    } while (result < 0 && errno == EINTR);
    if (result < 0) {
       Msg4(level, "write(%d, %p, "F_Zu"): %s",
-	   xfd->wfd, sendmethod, sendlen, strerror(errno));
-      if (Close(xfd->wfd) < 0) {
-	 Warn2("close(%d): %s", xfd->wfd, strerror(errno));
-      }
-      if (Close(xfd->rfd) < 0) {
-	 Warn2("close(%d): %s", xfd->rfd, strerror(errno));
+	   xfd->fd, sendmethod, sendlen, strerror(errno));
+      if (Close(xfd->fd) < 0) {
+	 Warn2("close(%d): %s", xfd->fd, strerror(errno));
       }
       return STAT_RETRYLATER;	/* retry complete open cycle */
    }
@@ -308,16 +297,13 @@ int _xioopen_socks5_connect(struct single *xfd,
    /* send socks request (target addr+port, +auth) */
    Info("sending socks5 request selection");
    do {
-      result = Write(xfd->wfd, sendrequest, sendlen);
+      result = Write(xfd->fd, sendrequest, sendlen);
    } while (result < 0 && errno == EINTR);
    if (result < 0) {
       Msg4(level, "write(%d, %p, "F_Zu"): %s",
-	   xfd->wfd, sendmethod, sendlen, strerror(errno));
-      if (Close(xfd->wfd) < 0) {
-	 Warn2("close(%d): %s", xfd->wfd, strerror(errno));
-      }
-      if (Close(xfd->rfd) < 0) {
-	 Warn2("close(%d): %s", xfd->rfd, strerror(errno));
+	   xfd->fd, sendmethod, sendlen, strerror(errno));
+      if (Close(xfd->fd) < 0) {
+	 Warn2("close(%d): %s", xfd->fd, strerror(errno));
       }
       return STAT_RETRYLATER;	/* retry complete open cycle */
    }
@@ -467,16 +453,13 @@ int xio_socks5_dialog(int level, struct single *xfd,
    /* send socks header (target addr+port, +auth) */
    Info1("sending socks5 %s message", descr);
    do {
-      result = Write(xfd->wfd, sendbuff, sendlen);
+      result = Write(xfd->fd, sendbuff, sendlen);
    } while (result < 0 && errno == EINTR);
    if (result < 0) {
       Msg4(level, "write(%d, %p, "F_Zu"): %s",
-	   xfd->wfd, sendbuff, sendlen, strerror(errno));
-      if (Close(xfd->wfd) < 0) {
-	 Warn2("close(%d): %s", xfd->wfd, strerror(errno));
-      }
-      if (Close(xfd->rfd) < 0) {
-	 Warn2("close(%d): %s", xfd->rfd, strerror(errno));
+	   xfd->fd, sendbuff, sendlen, strerror(errno));
+      if (Close(xfd->fd) < 0) {
+	 Warn2("close(%d): %s", xfd->fd, strerror(errno));
       }
       return STAT_RETRYLATER;	/* retry complete open cycle */
    }

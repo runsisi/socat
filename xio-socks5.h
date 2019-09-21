@@ -86,7 +86,7 @@ extern const struct optdesc opt_socksuser;
 extern const struct optdesc opt_socks5_username;
 extern const struct optdesc opt_socks5_password;
 
-extern const union xioaddr_desc *xioaddrs_socks5_client[];
+extern const struct addrdesc addr_socks5_connect;
 
 extern int
    _xioopen_socks5_connect0(struct single *xfd,
