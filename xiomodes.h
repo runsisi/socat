@@ -31,6 +31,7 @@
 #include "xio-udp.h"
 #include "xio-sctp.h"
 #include "xio-socks.h"
+#include "xio-socks5.h"
 #include "xio-proxy.h"
 #endif /* _WITH_SOCKET */
 #include "xio-progcall.h"

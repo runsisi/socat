@@ -28,7 +28,7 @@
 #  define WITH_SOCKS4 1
 #endif
 
-#if WITH_SOCKS4 || WITH_PROXY
+#if WITH_SOCKS4 || WITH_SOCKS5 || WITH_PROXY
 #  define WITH_TCP 1
 #  define WITH_IP4 1	/* currently this socks implementation does not work
 			   with IP6 */
