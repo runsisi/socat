@@ -41,7 +41,7 @@ static const char *optiontypenames[] = {
 
 /* keep consistent with xioopts.h:#define GROUP_* ! */
 static const char *addressgroupnames[] = {
-	"FD",		"FIFO",		"CHR",		"BLK",
+	"FD",		"FIFO",		"SOCKS5",	"BLK",
 	"REG",		"SOCKET",	"READLINE",	"undef",
 	"NAMED",	"OPEN",		"EXEC",		"FORK",
 	"LISTEN",	"DEVICE",	"CHILD",	"RETRY",

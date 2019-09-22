@@ -1566,6 +1566,9 @@ const struct optname optionnames[] = {
 	IF_SOCKET ("sockopt-int",	&opt_setsockopt_int)
 	IF_SOCKET ("sockopt-listen",	&opt_setsockopt_listen)
 	IF_SOCKET ("sockopt-string",	&opt_setsockopt_string)
+	IF_SOCKS5 ("socks5pass", &opt_socks5_password)          // sorted by key!!!
+	IF_SOCKS5 ("socks5port", &opt_socks5_port)
+	IF_SOCKS5 ("socks5user", &opt_socks5_username)
 	IF_SOCKS4 ("socksport",	&opt_socksport)
 	IF_SOCKS4 ("socksuser",	&opt_socksuser)
 	IF_SOCKET ("socktype",	&opt_so_type)

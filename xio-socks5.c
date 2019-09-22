@@ -23,10 +23,11 @@ static int xioopen_socks5_connect(int argc, const char *argv[],
                  unsigned groups, int dummy1, int dummy2,
                  int dummy3);
 
-const struct optdesc opt_socks5_username  = { "socks5-username",  "socks5user", OPT_SOCKS5_USERNAME,  GROUP_SOCKS5, PH_LATE, TYPE_STRING,  OFUNC_SPEC };
-const struct optdesc opt_socks5_password  = { "socks5-password",  "socks5pass", OPT_SOCKS5_PASSWORD,  GROUP_SOCKS5, PH_LATE, TYPE_STRING,  OFUNC_SPEC };
+const struct optdesc opt_socks5_port = { "socks5port", NULL, OPT_SOCKS5_PORT, GROUP_SOCKS5, PH_SPEC, TYPE_STRING, OFUNC_SPEC };
+const struct optdesc opt_socks5_username  = { "socks5user",  NULL, OPT_SOCKS5_USERNAME,  GROUP_SOCKS5, PH_SPEC, TYPE_STRING,  OFUNC_SPEC };
+const struct optdesc opt_socks5_password  = { "socks5pass",  NULL, OPT_SOCKS5_PASSWORD,  GROUP_SOCKS5, PH_SPEC, TYPE_STRING,  OFUNC_SPEC };
 
-const struct addrdesc addr_socks5_connect = { "socks5", 3, xioopen_socks5_connect, GROUP_FD|GROUP_SOCKET|GROUP_SOCK_IP4|GROUP_SOCK_IP6|GROUP_IP_TCP|GROUP_IP_SOCKS4|GROUP_CHILD|GROUP_RETRY, 0, 0, 0 HELP(":<socks-server>:<host>:<port>") };
+const struct addrdesc addr_socks5_connect = { "socks5", 3, xioopen_socks5_connect, GROUP_FD|GROUP_SOCKET|GROUP_SOCK_IP4|GROUP_SOCK_IP6|GROUP_IP_TCP|GROUP_SOCKS5|GROUP_CHILD|GROUP_RETRY, 0, 0, 0 HELP(":<socks-server>:<host>:<port>") };
 
 /* read until buflen bytes received or EOF */
 /* returns STAT_OK, STAT_RETRYLATER, or STAT_NOTRETRY */
@@ -79,30 +80,49 @@ static int xioopen_socks5_connect(int argc, const char *argv[],
 				 int dummy3) {
    /* we expect the form: host:port */
    xiosingle_t *xfd = &xxfd->stream;
+   struct opt *opts0 = NULL;
+   struct opt *opts_socks5 = copyopts(opts, GROUP_SOCKS5);
+   const char *sockdname; char *socksport;
    const char *targetname, *targetservice;
+   int pf = PF_UNSPEC;
+   int ipproto = IPPROTO_TCP;
+   bool dofork = false;
+   union sockaddr_union us_sa,  *us = &us_sa;
+   union sockaddr_union them_sa, *them = &them_sa;
+   socklen_t uslen = sizeof(us_sa);
+   socklen_t themlen = sizeof(them_sa);
+   bool needbind = false;
+   bool lowport = false;
+   int socktype = SOCK_STREAM;
    int level;
    int result;
 
-   if (argc != 3) {
-      Error("SOCKS5 syntax: socks5-connect:<host>:<port>");	/*! UDP? */
+   if (argc != 4) {
+      Error("SOCKS5 syntax: socks5-connect:<socks-server>:<host>:<port>");
       return STAT_NORETRY;
    }
 
-   targetname = argv[1];
-   targetservice = argv[2];
+   sockdname = argv[1];
+   targetname = argv[2];
+   targetservice = argv[3];
 
+   xfd->howtoend = END_SHUTDOWN;
+   if (applyopts_single(xfd, opts, PH_INIT) < 0)  return -1;
    applyopts(-1, opts, PH_INIT);
-   applyopts_single(xfd, opts, PH_INIT);
 
-#if 0
-   result = _xioopen_socks5_prepare(a3, opts, &socksport, sockhead, &buflen);
+   retropt_int(opts, OPT_SO_TYPE, &socktype);
+
+   retropt_bool(opts, OPT_FORK, &dofork);
+
+   result = _xioopen_socks5_prepare(opts, &socksport);
    if (result != STAT_OK)  return result;
-#endif
-
-   if (xfd->fd < 0) {
-      Error("socks5 must be used as embedded address");
-      return -1;
-   }
+   result =
+       _xioopen_ipapp_prepare(opts, &opts0, sockdname, socksport,
+                              &pf, ipproto,
+                              xfd->para.socket.ip.res_opts[1],
+                              xfd->para.socket.ip.res_opts[0],
+                              them, &themlen, us, &uslen,
+                              &needbind, &lowport, socktype);
 
    Notice2("opening connection to %s:%s using socks5",
 	   targetname, targetservice);
@@ -116,55 +136,12 @@ static int xioopen_socks5_connect(int argc, const char *argv[],
 #endif /* WITH_RETRY */
 	 level = E_ERROR;
 
-#if 0
-      /* we try to resolve the target address _before_ connecting to the socks
-	 server: this avoids unnecessary socks connects and timeouts */
-      result =
-	 _xioopen_socks5_connect0(xfd, targetname, sockhead, opts,
-				  (ssize_t *)&buflen, level);
-      switch (result) {
-      case STAT_OK: break;
-#if WITH_RETRY
-      case STAT_RETRYLATER:
-      case STAT_RETRYNOW:
-	 if (xfd->forever || xfd->retry--) {
-	    if (result == STAT_RETRYLATER)  Nanosleep(&xfd->intervall, NULL);
-	    continue;
-	 }
-#endif /* WITH_RETRY */
-      default:
-	 return result;
-      }
-#endif
-
-#if 0
-     if (xfd->fd < 0) {
       /* this cannot fork because we retrieved fork option above */
       result =
 	 _xioopen_connect (xfd,
 			   needbind?(struct sockaddr *)us:NULL, sizeof(*us),
-			   (struct sockaddr *)them, sizeof(struct sockaddr_in),
-			   opts, PF_INET, socktype, IPPROTO_TCP, lowport, level);
-      switch (result) {
-      case STAT_OK: break;
-#if WITH_RETRY
-      case STAT_RETRYLATER:
-      case STAT_RETRYNOW:
-	 if (xfd->forever || xfd->retry--) {
-	    if (result == STAT_RETRYLATER)  Nanosleep(&xfd->intervall, NULL);
-	    continue;
-	 }
-#endif /* WITH_RETRY */
-      default:
-	 return result;
-      }
-      xfd->rfd = xfd->wfd = xfd->fd;
-     } else
-#endif
-	xfd->dtype = XIODATA_STREAM;
-
-      result =
-	_xioopen_socks5_connect(xfd, targetname, targetservice, opts, level);
+			   (struct sockaddr *)them, themlen,
+			   opts, pf, socktype, IPPROTO_TCP, lowport, level);
       switch (result) {
       case STAT_OK: break;
 #if WITH_RETRY
@@ -179,12 +156,60 @@ static int xioopen_socks5_connect(int argc, const char *argv[],
 	 return result;
       }
 
-      /*!*/
+      free(moveopts(opts, GROUP_SOCKS5));
+
       applyopts(xfd->fd, opts, PH_ALL);
 
       if ((result = _xio_openlate(xfd, opts)) < 0)
-	 return result;
+         return result;
 
+      result = _xioopen_socks5_connect(xfd, targetname, targetservice, opts_socks5, level);
+      switch (result) {
+      case STAT_OK: break;
+#if WITH_RETRY
+      case STAT_RETRYLATER:
+      case STAT_RETRYNOW:
+	 if (xfd->forever || xfd->retry--) {
+	    if (result == STAT_RETRYLATER)  Nanosleep(&xfd->intervall, NULL);
+	    continue;
+	 }
+#endif /* WITH_RETRY */
+      default:
+	 return result;
+      }
+
+      if (dofork) {
+         xiosetchilddied();     /* set SIGCHLD handler */
+      }
+
+#if WITH_RETRY
+      if (dofork) {
+         pid_t pid;
+         int level = E_ERROR;
+         if (xfd->forever || xfd->retry) {
+            level = E_WARN;     /* most users won't expect a problem here,
+                                   so Notice is too weak */
+         }
+         while ((pid = xio_fork(false, level)) < 0) {
+            if (xfd->forever || --xfd->retry) {
+               Nanosleep(&xfd->intervall, NULL);
+               continue;
+            }
+            return STAT_RETRYLATER;
+         }
+
+         if (pid == 0) {        /* child process */
+            xfd->forever = false;  xfd->retry = 0;
+            break;
+         }
+
+         /* parent process */
+         Close(xfd->fd);
+         Nanosleep(&xfd->intervall, NULL);
+         dropopts(opts, PH_ALL); opts = copyopts(opts0, GROUP_ALL);
+         continue;
+      } else
+#endif /* WITH_RETRY */
       {
 	 break;
       }
@@ -193,7 +218,27 @@ static int xioopen_socks5_connect(int argc, const char *argv[],
    return 0;
 }
 
+int _xioopen_socks5_prepare(struct opt *opts, char **socksport) {
+   struct servent *se;
 
+   if (retropt_string(opts, OPT_SOCKS5_PORT, socksport) < 0) {
+      // refer to /etc/services
+      if ((se = getservbyname("socks", "tcp")) != NULL) {
+         Debug1("\"socks/tcp\" resolves to %u", ntohs(se->s_port));
+         if ((*socksport = Malloc(6)) == NULL) {
+            return -1;
+         }
+         sprintf(*socksport, "%u", ntohs(se->s_port));
+      } else {
+         Debug1("cannot resolve service \"socks/tcp\", using %s", SOCKSPORT);
+         if ((*socksport = strdup(SOCKSPORT)) == NULL) {
+            errno = ENOMEM;  return -1;
+         }
+      }
+   }
+
+   return STAT_OK;
+}
 
 /* perform socks5 client dialog on existing FD.
    Called within fork/retry loop, after connect() */
@@ -285,7 +330,8 @@ int _xioopen_socks5_connect(struct single *xfd,
 		targetname);
       }
       sendrequest->destaddr[0] = strlen(targetname);
-      *(sendrequest->destaddr+1) = '\0'; strncat(sendrequest->destaddr+1, targetname, sizeof(sendbuff)-5);
+      *(sendrequest->destaddr+1) = '\0';
+      strncat(sendrequest->destaddr+1, targetname, sizeof(sendbuff)-5);
       break;
    case SOCKS5_ADDRTYPE_IPV6:
       break;
