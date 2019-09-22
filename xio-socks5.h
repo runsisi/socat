@@ -79,19 +79,13 @@ struct socks5_userpass_reply {
    uint8_t  status;
 } ;
 
-#if 0
-extern const struct optdesc opt_socksport;
-extern const struct optdesc opt_socksuser;
-#endif
+extern const struct optdesc opt_socks5_port;
 extern const struct optdesc opt_socks5_username;
 extern const struct optdesc opt_socks5_password;
 
 extern const struct addrdesc addr_socks5_connect;
 
-extern int
-   _xioopen_socks5_connect0(struct single *xfd,
-			    const char *targetname, const char *targetservice,
-			    int level);
+extern int _xioopen_socks5_prepare(struct opt *opts, char **socksport);
 extern int _xioopen_socks5_connect(struct single *xfd,
 				   const char *targetname,
 				   const char *targetservice,
