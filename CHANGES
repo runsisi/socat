@@ -26,6 +26,10 @@ Corrections:
 	Test: IP_SENDTO_6
 	Thanks to Sören for sending an initial patch.
 
+	Under certain circumstances, Socat printed the "socket ... is at EOF"
+	multiple times.
+	Test: MULTIPLE_EOF
+
 ####################### V 1.7.3.3:
 
 Corrections:

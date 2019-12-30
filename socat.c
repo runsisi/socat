@@ -1076,10 +1076,10 @@ int _socat(void) {
 		   XIO_RDSTREAM(sock1)->fd);	/*! */
 	    mayrd1 = true;
 	    polling = 1;	/* do not hook this eof fd to poll for pollintv*/
-	 } else {
+	 } else if (XIO_RDSTREAM(sock1)->eof <= 2) {
 	    Notice1("socket 1 (fd %d) is at EOF", XIO_GETRDFD(sock1));
 	    xioshutdown(sock2, SHUT_WR);
-	    XIO_RDSTREAM(sock1)->eof = 2;
+	    XIO_RDSTREAM(sock1)->eof = 3;
 	    XIO_RDSTREAM(sock1)->ignoreeof = false;
 	 }
       } else if (polling && XIO_RDSTREAM(sock1)->ignoreeof) {
@@ -1099,10 +1099,10 @@ int _socat(void) {
 		   XIO_RDSTREAM(sock2)->fd);
 	    mayrd2 = true;
 	    polling = 1;	/* do not hook this eof fd to poll for pollintv*/
-	 } else {
+	 } else if (XIO_RDSTREAM(sock2)->eof <= 2) {
 	    Notice1("socket 2 (fd %d) is at EOF", XIO_GETRDFD(sock2));
 	    xioshutdown(sock1, SHUT_WR);
-	    XIO_RDSTREAM(sock2)->eof = 2;
+	    XIO_RDSTREAM(sock2)->eof = 3;
 	    XIO_RDSTREAM(sock2)->ignoreeof = false;
 	 }
       } else if (polling && XIO_RDSTREAM(sock2)->ignoreeof) {

@@ -13094,6 +13094,45 @@ esac
 N=$((N+1))
 
 
+# test if the multiple EOF messages are fixed
+NAME=MULTIPLE_EOF
+case "$TESTS" in
+*%$N%*|*%functions%*|*%bugs%*|*%unix%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: multiple EOF messages"
+# start two processes, connected via UNIX socket. The listener gets EOF from local address immediately; the second process then sends data. If the listener reports "socket 1 (fd .*) is at EOF" only once, the test succeeded
+if ! eval $NUMCOND; then :; else
+ts="$td/test$N.sock"
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts -d -d UNIX-LISTEN:$ts /dev/null"
+CMD1="$TRACE $SOCAT $opts -d -d - UNIX-CONNECT:$ts"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+waitunixport $ts 1
+echo "$da" |$CMD1 >"${tf}1" 2>"${te}1"
+rc1=$?
+kill $pid0 2>/dev/null; wait
+if [ $(grep "socket 2 (fd .*) is at EOF" ${te}0 |wc -l) -eq 1 ]; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    cat "${te}0"
+    cat "${te}1"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
+esac
+N=$((N+1))
+
+
 ##################################################################################
 #=================================================================================
 # here come tests that might affect your systems integrity. Put normal tests

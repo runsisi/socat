@@ -129,7 +129,8 @@ typedef struct single {
    bool   ignoreeof;	/* option ignoreeof; do not pass eof condition to app*/
    int    eof;		/* 1..exec'd child has died, but no explicit eof
 			   occurred 
-			   2..fd0 has reached EOF (definitely; never with
+			   2..fd0 has reached EOF, but check for ignoreeof
+			   3..fd0 has reached EOF (definitely; never with
 			   ignoreeof! */
    size_t wsize;	/* write always this size; 0..all available */
    size_t readbytes;	/* read only so many bytes; 0...unlimited */
