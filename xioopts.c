@@ -3581,7 +3581,7 @@ int applyopts(int fd, struct opt *opts, enum e_phase phase) {
    }
 
 #if WITH_TERMIOS
-   if (phase == PH_FD) {
+   if (phase == PH_FD || phase == PH_ALL) {
       xiotermios_flush(fd);
    }
 #endif /* WITH_TERMIOS */

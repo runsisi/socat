@@ -13027,6 +13027,40 @@ esac
 N=$((N+1))
 
 
+# test for a bug in Socat version 1.7.3.3 where
+# termios options of the first address were applied to the second address.
+NAME=TERMIOS_PH_ALL
+case "$TESTS" in
+*%$N%*|*%functions%*|*%bugs%*|*%termios%*|*%$NAME%*)
+TEST="$NAME: are termios options applied to the correct address"
+# add a termios option to the first address, a tty, and have a second address
+# with pipe. If no error occurs the termios option was not applied to the pipe,
+# thus the test succeeded.
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts -T 1 STDIO,echo=0 EXEC:cat"
+printf "test $F_n $TEST... " $N
+$CMD0 2>"${te}0"
+rc0=$?
+if [ $rc0 -eq 0 ]; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
 ##################################################################################
 #=================================================================================
 # here come tests that might affect your systems integrity. Put normal tests

@@ -5,6 +5,12 @@ Corrections:
 	Thanks to Joe Strout and others for reporting this bug.
 	Thanks to Andrew Childs and others for sending a patch.
 
+	Under certain circumstances, termios options of the first address were
+	applied to the second address, resulting in error
+	"Inappropriate ioctl for device" 
+	This affected version 1.7.3.3 only.
+	Thanks to Ivan J. for reporting this issue.
+
 ####################### V 1.7.3.3:
 
 Corrections:
