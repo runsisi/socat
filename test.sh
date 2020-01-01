@@ -13061,6 +13061,39 @@ PORT=$((PORT+1))
 N=$((N+1))
 
 
+# Due to a fallback logic before calling getaddrinfo(), intended to allow use
+# of service (port) names with SCTP, raw socket addresses where resolved with
+# socket type stream, which fails for protocol 6 (TCP)
+# Fixed after 1.7.3.3
+NAME=IP_SENDTO_6
+case "$TESTS" in
+*%$N%*|*%functions%*|*%bugs%*|*%socket%*|*%rawip%*|*%rawip4%*|*%$NAME%*)
+TEST="$NAME: IP-SENDTO::6 passes getaddrinfo()"
+# invoke socat with address IP-SENDTO:*:6; when this does not fail with
+# "ai_socktype not supported", the test succeeded
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+CMD0="$TRACE $SOCAT $opts -u /dev/null IP-SENDTO:127.0.0.1:6"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0"
+if ! grep -q "ai_socktype not supported" ${te}0; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0"
+    cat "${te}0"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
+esac
+N=$((N+1))
+
+
 ##################################################################################
 #=================================================================================
 # here come tests that might affect your systems integrity. Put normal tests

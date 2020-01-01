@@ -121,7 +121,7 @@ unsigned long res_opts() {
    hostname.domain (fq hostname resolving to IPv4 or IPv6 address)
  service: the port specification; may be numeric or symbolic
  family: PF_INET, PF_INET6, or PF_UNSPEC permitting both
- socktype: SOCK_STREAM, SOCK_DGRAM
+ socktype: SOCK_STREAM, SOCK_DGRAM, ...
  protocol: IPPROTO_UDP, IPPROTO_TCP
  sau: an uninitialized storage for the resulting socket address
  returns: STAT_OK, STAT_RETRYLATER
@@ -202,18 +202,9 @@ int xiogetaddrinfo(const char *node, const char *service,
    if (node != NULL || service != NULL) {
       struct addrinfo *record;
 
-      if (socktype != SOCK_STREAM && socktype != SOCK_DGRAM) {
-	 /* actual socket type value is not supported - fallback to a good one */
-	 socktype = SOCK_DGRAM;
-      }
-      if (protocol != IPPROTO_TCP && protocol != IPPROTO_UDP) {
-	 /* actual protocol value is not supported - fallback to a good one */
-	 if (socktype == SOCK_DGRAM) {
-	    protocol = IPPROTO_UDP;
-	 } else {
-	    protocol = IPPROTO_TCP;
-	 }
-      }
+      /* here was code that helped SCTP to use service names.
+	 If you need this feature enhance your /etc/services with sctp entries */
+
       hints.ai_flags |= AI_PASSIVE;
       hints.ai_family = family;
       hints.ai_socktype = socktype;
