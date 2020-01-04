@@ -30,6 +30,9 @@ Corrections:
 	multiple times.
 	Test: MULTIPLE_EOF
 
+	Newer parts of test.sh used substitutions ${x,,*} or ${x^^*} that are
+	not implemented in older bash versions.
+
 ####################### V 1.7.3.3:
 
 Corrections:
