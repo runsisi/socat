@@ -183,7 +183,7 @@ if ! type usleep >/dev/null 2>&1 ||
 fi
 #USLEEP=usleep
 
-if type ping6; then
+if type ping6 >/dev/null 2>&1; then
     PING6=ping6
 else
     PING6="ping -6"
@@ -13020,7 +13020,7 @@ N=$((N+1))
 
 NAME=SOCAT_OPT_HINT
 case "$TESTS" in
-*%$N%*|*%socat%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$NAME%*)
 TEST="$NAME: check if merging single character options is rejected"
 if ! eval $NUMCOND; then :; else
 te="$td/test$N.stderr"
@@ -13057,8 +13057,10 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
 CMD0="$TRACE $SOCAT $opts -T 1 STDIO,echo=0 EXEC:cat"
+echo "$CMD0" >$td/test$N.sh
+chmod a+x $td/test$N.sh
 printf "test $F_n $TEST... " $N
-$CMD0 2>"${te}0"
+$SOCAT /dev/null EXEC:$td/test$N.sh,pty 2>"${te}0"
 rc0=$?
 if [ $rc0 -eq 0 ]; then
     $PRINTF "$OK\n"
@@ -13066,6 +13068,7 @@ if [ $rc0 -eq 0 ]; then
 else
     $PRINTF "$FAILED\n"
     echo "$CMD0"
+    cat "${te}0"
     numFAIL=$((numFAIL+1))
     listFAIL="$listFAIL $N"
 fi

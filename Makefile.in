@@ -49,7 +49,6 @@ XIOSRCS = xioinitialize.c xiohelp.c xioparam.c xiodiag.c xioopen.c xioopts.c \
 	xio-ip.c xio-ip4.c xio-ip6.c xio-ipapp.c xio-tcp.c \
 	xio-sctp.c xio-rawip.c \
 	xio-socks.c xio-proxy.c xio-udp.c \
-	xio-rawip.c \
 	xio-progcall.c xio-exec.c xio-system.c xio-termios.c xio-readline.c \
 	xio-pty.c xio-openssl.c xio-streams.c\
 	xio-ascii.c xiolockfile.c xio-tcpwrap.c xio-ext2.c xio-tun.c
