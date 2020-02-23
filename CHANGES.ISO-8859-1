@@ -1,4 +1,4 @@
-ï»¿
+
 ####################### V 1.7.3.4:
 
 Corrections:
@@ -26,7 +26,7 @@ Corrections:
 	"ai_socktype not supported" when protocol 6 was addressed.
 	The fix removes the possibility to use service names with SCTP.
 	Test: IP_SENDTO_6
-	Thanks to SÃ¶ren for sending an initial patch.
+	Thanks to Sören for sending an initial patch.
 
 	Under certain circumstances, Socat printed the "socket ... is at EOF"
 	multiple times.
@@ -57,7 +57,7 @@ Corrections:
 	The async signal safe diagnostic system used FDs 3 and 4 internally, so
 	use of appropriate fdin or fdout led to failures.
 	Test: DIAG_FDIN
-	Problem reported by Onur SentÃ¼rk.
+	Problem reported by Onur Sentürk.
 
 	The socket based mechanism for passing messages and signal information
 	from signal handler to process could reach and kill the wrong process.
@@ -194,11 +194,11 @@ corrections:
 
 	AddressSanitizer reported a few buffer overflows (false positives).
 	Nevertheless fixed Socat source.
-	Issue reported by Hanno BÃ¶ck.
+	Issue reported by Hanno Böck.
 
 	Socat did not use option ipv6-join-group.
 	Test: USE_IPV6_JOIN_GROUP
-	Thanks to Linus LÃ¼ssing for sending a patch.
+	Thanks to Linus Lüssing for sending a patch.
 
 	UDP-LISTEN did not honor the max-children option.
 	Test: UDP4MAXCHILDREN UDP6MAXCHILDREN
@@ -747,7 +747,7 @@ security:
 	than 512 bytes.
 	Note that this could only be exploited when an attacker was able to
 	inject data into socat's command line.
-	Full credits to Felix GrÃ¶bert, Google Security Team, for finding and
+	Full credits to Felix Gröbert, Google Security Team, for finding and
 	reporting this issue
 
 ####################### V 1.7.1.2:
@@ -1275,7 +1275,7 @@ new features:
 
 	new options "retry", "forever", and "intervall"
 
-	option "fork" for address TCP improves `gender changerÂ´
+	option "fork" for address TCP improves `gender changer´
 
 	options "sigint", "sigquit", and "sighup" control passing of signals to
 	sub process (thanks to David Shea who contributed to this issue)
@@ -1688,7 +1688,7 @@ solved problems and bugs:
 new features:
 	address type UDP-LISTEN now supports option fork: it internally applies
 	socket option SO_REUSEADDR so a new UDP socket can bind to port after
-	`acceptingÂ´ a connection (child processes might live forever though)
+	`accepting´ a connection (child processes might live forever though)
 	(suggestion from Damjan Lango)
 
 
