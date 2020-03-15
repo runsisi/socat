@@ -63,6 +63,10 @@ Corrections:
 	filan -s assumed each stream socket to be TCP and each datagram socket
 	to be UDP. Now it uses SO_PROTOCOL and getprotoent() for correct output.
 
+	Help text showed two parameters for UDP4-RECVFROM address, but only
+	<port> is allowed.
+	Thanks to John the Scott for reporting this issue.
+
 Porting:
 	In gcc version 10 the default changed from -fcommon to -fno-common.
 	Consequently, linking filan and procan failed with error
