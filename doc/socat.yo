@@ -1229,10 +1229,10 @@ label(ADDRESS_UDP_RECV)dit(bf(tt(UDP-RECV:<port>)))
    Creates a UDP socket on <port> [link(UDP service)(TYPE_UDP_SERVICE)] using UDP/IP version 4 or 6
    depending on option link(pf)(OPTION_PROTOCOL_FAMILY).
    It receives packets from multiple unspecified peers and merges the data.
-   No replies are possible. It works well with, e.g., socat UDP-SENDTO address peers; it behaves similar to a syslog server.nl()
+   No replies are possible. It works well with, e.g., socat link(UDP-SENDTO)(ADDRESS_UDP_SENDTO) address peers; it behaves similar to a syslog server.nl()
+   Note: if you need the link(fork)(OPTION_FORK) option, use link(UDP-RECVFROM)(ADDRESS_UDP_RECVFROM) in unidirectional mode (with link(option -u)(option_u)) instead.nl()
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4),link(IP6)(GROUP_IP6),link(RANGE)(GROUP_RANGE) nl()
    Useful options:
-   link(fork)(OPTION_FORK),
    link(pf)(OPTION_PROTOCOL_FAMILY),
    link(bind)(OPTION_BIND),
    link(sourceport)(OPTION_SOURCEPORT),
@@ -1330,7 +1330,7 @@ label(ADDRESS_UNIX_RECV)dit(bf(tt(UNIX-RECV:<filename>)))
    Creates a unixdomain() datagram socket [link(<filename>)(TYPE_FILENAME)].
    Receives packets from multiple unspecified peers and merges the data.
    No replies are possible. It can be, e.g., addressed by socat UNIX-SENDTO address peers.
-   It behaves similar to a syslog server.
+   It behaves similar to a syslog server.nl()
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(NAMED)(GROUP_NAMED),link(UNIX)(GROUP_SOCK_UNIX) nl()
    See also:
    link(UNIX-SENDTO)(ADDRESS_UNIX_SENDTO),
