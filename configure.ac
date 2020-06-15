@@ -759,12 +759,12 @@ AC_ARG_ENABLE(retry, [  --disable-retry         disable retry support],
 AC_MSG_CHECKING(included message level)
 AC_ARG_ENABLE(msglevel, [  --enable-msglevel=N     set max verbosity to debug,info,notice,warn,error,fatal],
 	      [case "$enableval" in
-	       0|debug) AC_DEFINE(WITH_MSGLEVEL,0) AC_MSG_RESULT(debug);;
-	       1|info)  AC_DEFINE(WITH_MSGLEVEL,1) AC_MSG_RESULT(info);;
-	       2|notice) AC_DEFINE(WITH_MSGLEVEL,2) AC_MSG_RESULT(notice);;
-	       3|warn) AC_DEFINE(WITH_MSGLEVEL,3) AC_MSG_RESULT(warn);;
-	       4|error) AC_DEFINE(WITH_MSGLEVEL,4) AC_MSG_RESULT(error);;
-	       5|fatal) AC_DEFINE(WITH_MSGLEVEL,5) AC_MSG_RESULT(fatal);;
+	       0|DEBUG|Debug|debug) AC_DEFINE(WITH_MSGLEVEL,0) AC_MSG_RESULT(debug);;
+	       1|INFO|Info|info)  AC_DEFINE(WITH_MSGLEVEL,1) AC_MSG_RESULT(info);;
+	       2|NOTICE|Notice|notice) AC_DEFINE(WITH_MSGLEVEL,2) AC_MSG_RESULT(notice);;
+	       3|WARN|Warn|warn) AC_DEFINE(WITH_MSGLEVEL,3) AC_MSG_RESULT(warn);;
+	       4|ERROR|Error|error) AC_DEFINE(WITH_MSGLEVEL,4) AC_MSG_RESULT(error);;
+	       5|FATAL|Fatal|fatal) AC_DEFINE(WITH_MSGLEVEL,5) AC_MSG_RESULT(fatal);;
 	       *) AC_DEFINE(WITH_MSGLEVEL,0) AC_MSG_RESULT(debug);;
 	       esac],
 	       [AC_DEFINE(WITH_MSGLEVEL,0) AC_MSG_RESULT(debug)])
