@@ -60,8 +60,8 @@ MISCDELAY=1
 if ! [ -x "$SOCAT" ] && ! type $SOCAT >/dev/null 2>&1; then
     echo "$SOCAT does not exist" >&2; exit 1;
 fi
-[ -z "$PROCAN" ] && PROCAN="./procan"
-[ -z "$FILAN" ] && FILAN="./filan"
+if [ -z "$PROCAN" ]; then if test -x ./procan; then PROCAN="./procan"; elif ! type procan >/dev/null 2>&1; then PROCAN=${SOCAT%/*}/procan; fi; fi
+if [ -z "$FILAN" ]; then if test -x ./filan; then FILAN="./filan"; elif ! type filan >/dev/null 2>&1; then FILAN=${SOCAT%/*}/filan; fi; fi
 opts="$opt_t $OPTS"
 export SOCAT_OPTS="$opts"
 #debug="1"
@@ -13458,6 +13458,55 @@ fi
 fi # NUMCOND
  ;;
 esac
+N=$((N+1))
+
+
+# Test for integer overflow with data transfer block size parameter
+NAME=BLKSIZE_INT_OVERFL
+case "$TESTS" in
+*%$N%*|*%functions%*|*%bugs%*|*%security%*|*%$NAME%*)
+TEST="$NAME: integer overflow with buffer size parameter"
+# Use a buffer size that would lead to integer overflow
+# Test succeeds when Socat terminates with correct error message
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+dat="$td/test$N.dat"
+# calculate the minimal length with integer overflow
+BYTES=$($PROCAN |grep size_t |awk '{print($3);}')
+case $BYTES in
+    2) CHKSIZE=32768 ;;
+    4) CHKSIZE=2147483648 ;;
+    8) CHKSIZE=9223372036854775808 ;;
+    16) CHKSIZE=170141183460469231731687303715884105728 ;;
+esac
+CMD0="$TRACE $SOCAT $opts -T 1 -b $CHKSIZE /dev/null PIPE"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0"
+rc0=$?
+if [ $rc0 -eq 0 ]; then
+    $PRINTF "$FAILED (rc=$rc0)\n"
+    echo "$CMD0"
+    cat "${te}0"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+elif [ $rc0 -eq 1 ]; then
+    if grep -q "buffer size option (-b) to big" "${te}0"; then
+	$PRINTF "$OK\n"
+	numOK=$((numOK+1))
+    else
+	$PRINTF "$FAILED (rc=$rc0)\n"
+	echo "$CMD0"
+	cat "${te}0"
+	numFAIL=$((numFAIL+1))
+	listFAIL="$listFAIL $N"
+    fi
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
 N=$((N+1))
 
 

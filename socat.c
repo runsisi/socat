@@ -779,6 +779,10 @@ int _socat(void) {
 #endif /* WITH_FILAN */
 
    /* when converting nl to crnl, size might double */
+   if (socat_opts.bufsiz > (SIZE_MAX-1)/2) {
+      Error2("buffer size option (-b) to big - "F_Zu" (max is "F_Zu")", socat_opts.bufsiz, (SIZE_MAX-1)/2);
+      socat_opts.bufsiz = (SIZE_MAX-1)/2;
+   }
    buff = Malloc(2*socat_opts.bufsiz+1);
    if (buff == NULL)  return -1;
 

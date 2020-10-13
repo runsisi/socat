@@ -1,4 +1,12 @@
 ﻿
+Security:
+	Buffer size option (-b) is internally doubled for CR-CRLF conversion,
+	but not	checked for integer overflow. This could lead to heap based
+	buffer overflow, assuming the attacker could provide this parameter.
+	Test: BLKSIZE_INT_OVERFL
+	Thanks to Lê Hiếu Bùi for reporting this issue and sending an
+	example exploit.
+
 Testing:
 	test.sh now produces a list of tests that could not be performed for
 	any reason. This helps to analyse these cases.

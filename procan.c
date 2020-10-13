@@ -159,6 +159,9 @@ int procan(FILE *outfile) {
 		 rlim.rlim_cur, rlim.rlim_max);
       }
 #endif
+#ifdef SIZE_MAX
+      fprintf(outfile, "SIZE_MAX                  = %-24lu\n", SIZE_MAX);
+#endif
    }
 
    /* file descriptors */
