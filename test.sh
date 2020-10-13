@@ -1659,6 +1659,7 @@ numOK=0
 numFAIL=0
 numCANT=0
 listFAIL=
+listCANT=
 
 #==============================================================================
 # test if selected socat features work ("FUNCTIONS")
@@ -2548,6 +2549,7 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs pty >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}PTY not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 testecho "$N" "$TEST" "" "exec:$CAT,pty,$PTYOPTS" "$opts"
 fi
@@ -2563,6 +2565,7 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs pty >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}PTY not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 testecho "$N" "$TEST" "" "system:$CAT,pty,$PTYOPTS" "$opts"
 fi
@@ -2636,6 +2639,7 @@ N=$((N+1))
 #if ! testaddrs pty >/dev/null; then
 #    $PRINTF "test $F_n $TEST... ${YELLOW}PTY not available${NORMAL}\n" $N
 #    numCANT=$((numCANT+1))
+#    listCANT="$listCANT $N"
 #else
 #testod "$N" "$TEST" "" "exec:$OD_C,pty,$PTYOPTS" "$opts"
 #fi
@@ -2651,6 +2655,7 @@ N=$((N+1))
 #if ! testaddrs pty >/dev/null; then
 #    $PRINTF "test $F_n $TEST... ${YELLOW}PTY not available${NORMAL}\n" $N
 #    numCANT=$((numCANT+1))
+#    listCANT="$listCANT $N"
 #else
 #testod "$N" "$TEST" "" "system:$OD_C,pty,$PTYOPTS" "$opts"
 #fi
@@ -2690,12 +2695,15 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}IP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! feat=$(testaddrs rawip) >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}RAWIP not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
     testecho "$N" "$TEST" "" "ip4:127.0.0.1:$IPPROTO" "$opts"
 fi
@@ -2710,12 +2718,15 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}IP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! feat=$(testaddrs rawip) >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}RAWIP not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
     testecho "$N" "$TEST" "" "ip:127.0.0.1:$IPPROTO" "$opts"
 fi ;; # NUMCOND, feats
@@ -2730,12 +2741,15 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}IP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! feat=$(testaddrs rawip) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}RAWIP not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
     testecho "$N" "$TEST" "" "ip6:[::1]:$IPPROTO" "$opts"
 fi ;; # NUMCOND, feats
@@ -2750,12 +2764,15 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}IP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! feat=$(testaddrs rawip) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}RAWIP not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
     testecho "$N" "$TEST" "" "ip:[::1]:$IPPROTO" "$opts"
 fi
@@ -2771,6 +2788,7 @@ if ! eval $NUMCOND; then :;
 elif [ "$UNAME" != Linux ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}only on Linux$NORMAL\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
     #ts="127.0.0.1:$tsl"
     testecho "$N" "$TEST" "" "tcp:$SECONDADDR:$PORT,sp=$PORT,bind=$SECONDADDR,reuseaddr" "$opts"
@@ -2788,6 +2806,7 @@ TEST="$NAME: echo via self connection of UDP IPv4 socket"
 if [ "$UNAME" != Linux ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}only on Linux$NORMAL\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
     testecho "$N" "$TEST" "" "udp:$SECONDADDR:$PORT,sp=$PORT,bind=$SECONDADDR" "$opts"
 fi
@@ -2805,9 +2824,11 @@ if ! eval $NUMCOND; then :;
 elif [ "$UNAME" != Linux ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}only on Linux${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs udp ip6 >/dev/null || ! runsudp6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}UDP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
     tf="$td/file$N"
     testecho "$N" "$TEST" "" "udp6:[::1]:$PORT,sp=$PORT,bind=[::1]" "$opts"
@@ -2933,6 +2954,7 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip6 >/dev/null || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -2980,9 +3002,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs ip6 >/dev/null || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}IP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -3029,9 +3053,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs ip6 >/dev/null || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}IP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -3080,12 +3106,15 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs ip6 >/dev/null || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! feat=$(testoptions ipv6-v6only); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -3134,12 +3163,15 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs ip6 >/dev/null || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}IP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! feat=$(testoptions ipv6-v6only); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -3184,12 +3216,15 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs ip6 >/dev/null || ! runstcp6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! feat=$(testoptions ipv6-v6only); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -3235,9 +3270,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs ip6 >/dev/null || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}IP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -3283,12 +3320,15 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs ip6 >/dev/null || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}IP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! feat=$(testoptions ipv6-v6only); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -3334,9 +3374,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs ip6 >/dev/null || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}IP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -3383,12 +3425,15 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs ip6 >/dev/null || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}IP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! feat=$(testoptions ipv6-v6only); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -3434,9 +3479,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs ip6 >/dev/null || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}IP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -3530,6 +3577,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}UDP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -3856,6 +3904,7 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs pty >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}PTY not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tt="$td/pty$N"
 tf="$td/test$N.stdout"
@@ -4073,12 +4122,15 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! type openssl >/dev/null 2>&1; then
     $PRINTF "test $F_n $TEST... ${YELLOW}openssl executable not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert testsrv
 tf="$td/test$N.stdout"
@@ -4123,9 +4175,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert testsrv
 tf="$td/test$N.stdout"
@@ -4168,9 +4222,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs listen tcp ip6 >/dev/null || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert testsrv
 tf="$td/test$N.stdout"
@@ -4227,9 +4283,11 @@ if ! eval $NUMCOND; then :;
 elif [ "$FEAT" != ',' ] && ! testaddrs "$FEAT" >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$FEAT not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! runs$RUNS >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$RUNS not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -4287,9 +4345,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert testsrv
 gentestcert testcli
@@ -4333,9 +4393,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert testsrv
 gentestcert testcli
@@ -4379,12 +4441,15 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testoptions fips >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL/FIPS not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 OPENSSL_FIPS=1 gentestcert testsrvfips
 OPENSSL_FIPS=1 gentestcert testclifips
@@ -4429,12 +4494,15 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testoptions openssl-compress >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL compression option not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
     gentestcert testsrv
     printf "test $F_n $TEST... " $N
@@ -4486,9 +4554,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs socks4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}SOCKS4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -4531,9 +4601,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs socks4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}SOCKS4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs listen tcp ip6 >/dev/null || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -4577,9 +4649,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs socks4a >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}SOCKS4A not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -4622,9 +4696,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs socks4a >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}SOCKS4A not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs listen tcp ip6 >/dev/null || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -4668,9 +4744,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs proxy >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}PROXY not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 ts="$td/test$N.sh"
 tf="$td/test$N.stdout"
@@ -4714,9 +4792,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs proxy >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}PROXY not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs listen tcp ip6 >/dev/null || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 ts="$td/test$N.sh"
 tf="$td/test$N.stdout"
@@ -4951,6 +5031,7 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs proxy >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}PROXY not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 ts="$td/test$N.sh"
 tf="$td/test$N.stdout"
@@ -5013,6 +5094,7 @@ else
     else
 	$PRINTF "${YELLOW}failed (don't care)${NORMAL}\n"
 	numCANT=$((numCANT+1))
+	listCANT="$listCANT $N"
     fi
 fi
 fi ;; # NUMCOND
@@ -5044,6 +5126,7 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs pty >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}PTY not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 testecho "$N" "$TEST" "-!!exec:cat,pty,raw" "" "$opts" 1
 fi ;; # NUMCOND, feats
@@ -5074,6 +5157,7 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs pty >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}PTY not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 testecho "$N" "$TEST" "exec:cat,pty,raw!!-" "" "$opts" $MISCDELAY
 fi ;; # NUMCOND, feats
@@ -5088,6 +5172,7 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs pty >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}PTY not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 testecho "$N" "$TEST" "exec:cat,pty,raw!!-" "" "$opts"
 fi ;; # NUMCOND, feats
@@ -5104,6 +5189,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs readline pty); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 SAVETERM="$TERM"; TERM=	# 'cause konsole might print controls even in raw
 SAVEMICS=$MICROS
@@ -5250,6 +5336,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs openssl proxy); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat" |tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert testsrv
 gentestcert testcli
@@ -5336,6 +5423,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs openssl proxy); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert testsrv
 gentestcert testcli
@@ -5468,6 +5556,7 @@ testserversec () {
 	echo "$TRACE $SOCAT $opts \"$arg1,$secopt0\" echo &"
 	cat "${te}1"
 	numCANT=$((numCANT+1))
+	listCANT="$listCANT $N"
 	wait; return
     fi
     # now use client
@@ -5482,6 +5571,7 @@ testserversec () {
 	echo "$TRACE $SOCAT $opts - \"$arg2\""
 	cat "${te}2"
 	numCANT=$((numCANT+1))
+	listCANT="$listCANT $N"
 	wait; return
     elif echo "$da" |diff - "$tf" >"$tdiff1" 2>&1; then
 	:	# function without security is ok, go on
@@ -5493,6 +5583,7 @@ testserversec () {
 	cat "${te}2"
 	cat "$tdiff1"
 	numCANT=$((numCANT+1))
+	listCANT="$listCANT $N"
 	wait; return
     fi
 
@@ -5500,6 +5591,7 @@ testserversec () {
     if [ "$port" ] && ! wait${proto}${ipvers}port $port 0; then
 	$PRINTF "$NO_RESULT (ph.1 port remains in use)\n"
 	numCANT=$((numCANT+1))
+	listCANT="$listCANT $N"
 	wait; return
     fi
     wait
@@ -5522,6 +5614,7 @@ testserversec () {
 	echo "$CMD3"
 	cat "${te}3"
 	numCANT=$((numCANT+1))
+	listCANT="$listCANT $N"
 	return
     fi
     # now use client
@@ -5547,30 +5640,36 @@ testserversec () {
 	    cat "${te}3"
 	    echo "$TRACE $SOCAT $opts - $arg2"
 	    cat "${te}4"
-	    numCANT=$((numCANT+1)) ;;
+	    numCANT=$((numCANT+1))
+	    listCANT="$listCANT $N"
+	    ;;
 	X0) $PRINTF "$NO_RESULT (ph.2 diff failed): diff:\n"
 	    echo "$TRACE $SOCAT $opts $arg echo"
 	    cat "${te}3"
 	    echo "$TRACE $SOCAT $opts - $arg2"
 	    cat "${te}4"
-	    cat "$tdiff2"
-	    numCANT=$((numCANT+1)) ;;
+	    cat "$tdiff2" 2>/dev/stderr
+	    numCANT=$((numCANT+1))
+	    listCANT="$listCANT $N"
+	    ;;
 	X1) $PRINTF "$FAILED: SECURITY BROKEN\n"
 	    echo "$TRACE $SOCAT $opts $arg echo"
 	    cat "${te}3"
 	    echo "$TRACE $SOCAT $opts - $arg2"
 	    cat "${te}4"
-	    cat "$tdiff2"
+	    cat "$tdiff2" 2>/dev/stderr
 	    numFAIL=$((numFAIL+1))
-	    listFAIL="$listFAIL $N" ;;
+	    listFAIL="$listFAIL $N"
+	    ;;
 	X2) $PRINTF "$FAILED: diff:\n"
 	    echo "$TRACE $SOCAT $opts $arg echo"
 	    cat "${te}3"
 	    echo "$TRACE $SOCAT $opts - $arg2"
 	    cat "${te}4"
-	    cat "$tdiff2"
+	    cat "$tdiff2" 2>/dev/stderr
 	    numFAIL=$((numFAIL+1))
-	    listFAIL="$listFAIL $N" ;;
+	    listFAIL="$listFAIL $N"
+	    ;;
 	esac
     else
 	$PRINTF "$OK\n"
@@ -5594,6 +5693,7 @@ elif [ -z "$SECONDADDR" ]; then
     # we need access to a second addresses
     $PRINTF "test $F_n $TEST... ${YELLOW}need a second IPv4 address${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 testserversec "$N" "$TEST" "$opts" "tcp4-l:$PORT,reuseaddr,fork,retry=1" "" "range=$SECONDADDR/32" "tcp4:127.0.0.1:$PORT" 4 tcp $PORT 0
 fi ;; # $SECONDADDR, NUMCOND
@@ -5610,6 +5710,7 @@ elif [ -z "$SECONDADDR" ]; then
     # we need access to a second addresses
     $PRINTF "test $F_n $TEST... ${YELLOW}need a second IPv4 address${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 testserversec "$N" "$TEST" "$opts" "tcp4-l:$PORT,reuseaddr,fork,retry=1" "" "range=$SECONDADDR:255.255.255.255" "tcp4:127.0.0.1:$PORT" 4 tcp $PORT 0
 fi ;; # $SECONDADDR, NUMCOND
@@ -5660,6 +5761,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip4 libwrap) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 ha="$td/hosts.allow"
 hd="$td/hosts.deny"
@@ -5679,6 +5781,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip4 libwrap) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 ha="$td/hosts.allow"
 hd="$td/hosts.deny"
@@ -5699,6 +5802,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 testserversec "$N" "$TEST" "$opts" "tcp6-l:$PORT,reuseaddr,fork,retry=1" "" "range=[::2]/128" "tcp6:[::1]:$PORT" 6 tcp $PORT 0
 fi ;; # NUMCOND, feats
@@ -5714,6 +5818,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 testserversec "$N" "$TEST" "$opts" "tcp6-l:$PORT,reuseaddr,fork,retry=1" "" "sp=$PORT" "tcp6:[::1]:$PORT" 6 tcp $PORT 0
 fi ;; # NUMCOND, feats
@@ -5729,6 +5834,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 testserversec "$N" "$TEST" "$opts" "tcp6-l:$PORT,reuseaddr,fork,retry=1" "" "lowport" "tcp6:[::1]:$PORT" 6 tcp $PORT 0
 fi ;; # NUMCOND, feats
@@ -5744,6 +5850,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip6 libwrap && runstcp6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 ha="$td/hosts.allow"
 hd="$td/hosts.deny"
@@ -5798,6 +5905,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip4 libwrap) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 ha="$td/hosts.allow"
 hd="$td/hosts.deny"
@@ -5818,6 +5926,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 #testserversec "$N" "$TEST" "$opts" "udp6-l:$PORT,reuseaddr,fork" "" "range=[::2]/128" "udp6:[::1]:$PORT" 6 udp $PORT 0
 testserversec "$N" "$TEST" "$opts" "udp6-l:$PORT,reuseaddr" "" "range=[::2]/128" "udp6:[::1]:$PORT" 6 udp $PORT 0
@@ -5834,6 +5943,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}UDP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 testserversec "$N" "$TEST" "$opts" "udp6-l:$PORT,reuseaddr" "" "sp=$PORT" "udp6:[::1]:$PORT" 6 udp $PORT 0
 fi ;; # NUMCOND, feats
@@ -5849,6 +5959,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}UDP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 testserversec "$N" "$TEST" "$opts" "udp6-l:$PORT,reuseaddr" "" "lowport" "udp6:[::1]:$PORT" 6 udp $PORT 0
 fi ;; # NUMCOND, feats
@@ -5864,6 +5975,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip6 libwrap && runsip6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 ha="$td/hosts.allow"
 hd="$td/hosts.deny"
@@ -5883,6 +5995,7 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert testsrv
 testserversec "$N" "$TEST" "$opts" "SSL-L:$PORT,pf=ip4,reuseaddr,fork,retry=1,$SOCAT_EGD,verify=0,cert=testsrv.crt,key=testsrv.key" "" "range=$SECONDADDR/32" "SSL:$LOCALHOST:$PORT,cafile=testsrv.crt,$SOCAT_EGD" 4 tcp $PORT -1
@@ -5899,6 +6012,7 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert testsrv
 testserversec "$N" "$TEST" "$opts" "SSL-L:$PORT,pf=ip4,reuseaddr,fork,retry=1,$SOCAT_EGD,verify=0,cert=testsrv.crt,key=testsrv.key" "" "sp=$PORT" "SSL:$LOCALHOST:$PORT,cafile=testsrv.crt,$SOCAT_EGD" 4 tcp $PORT -1
@@ -5915,6 +6029,7 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert testsrv
 testserversec "$N" "$TEST" "$opts" "SSL-L:$PORT,pf=ip4,reuseaddr,fork,retry=1,$SOCAT_EGD,verify=0,cert=testsrv.crt,key=testsrv.key" "" "lowport" "SSL:$LOCALHOST:$PORT,cafile=testsrv.crt,$SOCAT_EGD" 4 tcp $PORT -1
@@ -5931,6 +6046,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4 tcp libwrap openssl); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert testsrv
 ha="$td/hosts.allow"
@@ -5951,6 +6067,7 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert testsrv
 gentestcert testcli
@@ -5968,6 +6085,7 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert testsrv
 gentestcert testcli
@@ -5986,9 +6104,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert6 testsrv6
 testserversec "$N" "$TEST" "$opts" "ssl-l:$PORT,pf=ip6,reuseaddr,fork,retry=1,$SOCAT_EGD,verify=0,cert=testsrv6.crt,key=testsrv6.key" "" "range=[::2]/128" "ssl:[::1]:$PORT,cafile=testsrv6.crt,$SOCAT_EGD" 6 tcp $PORT -1
@@ -6005,9 +6125,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert6 testsrv6
 testserversec "$N" "$TEST" "$opts" "ssl-l:$PORT,pf=ip6,reuseaddr,fork,retry=1,$SOCAT_EGD,verify=0,cert=testsrv6.crt,key=testsrv6.key" "" "sp=$PORT" "ssl:[::1]:$PORT,cafile=testsrv6.crt,$SOCAT_EGD" 6 tcp $PORT -1
@@ -6024,9 +6146,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert6 testsrv6
 testserversec "$N" "$TEST" "$opts" "ssl-l:$PORT,pf=ip6,reuseaddr,fork,retry=1,$SOCAT_EGD,verify=0,cert=testsrv6.crt,key=testsrv6.key" "" "lowport" "ssl:[::1]:$PORT,cafile=testsrv6.crt,$SOCAT_EGD" 6 tcp $PORT -1
@@ -6043,6 +6167,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip6 tcp libwrap openssl && runsip6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert6 testsrv6
 ha="$td/hosts.allow"
@@ -6067,9 +6192,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert testsrv
 gentestcert testcli
@@ -6091,9 +6218,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert testsrv
 gentestcert testcli
@@ -6112,12 +6241,15 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testoptions fips >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL/FIPS not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert testsrv
 gentestcert testcli
@@ -6242,6 +6374,7 @@ else
     cat "$te4"
     cat "$tdiff"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 fi
 }
 
@@ -6254,9 +6387,11 @@ if ! eval $NUMCOND; then :; else
 if ! feat=$(testaddrs pty); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! feat=$(testoptions "$PTYTYPE" pty-wait-slave); then
     $PRINTF "test $F_n $TEST... ${YELLOW}option $(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
    testptywaitslave "$N" "$TEST" "$PTYTYPE" "$opts"
 fi
@@ -6273,9 +6408,11 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs pty); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! feat=$(testoptions "$PTYTYPE" pty-wait-slave); then
     $PRINTF "test $F_n $TEST... ${YELLOW}option $(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
    testptywaitslave "$N" "$TEST" "$PTYTYPE" "$opts"
 fi ;; # NUMCOND, feats
@@ -6291,9 +6428,11 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! feat=$(testoptions connect-timeout); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 # we need a hanging connection attempt, guess an address for this
 case "$UNAME" in
@@ -6314,6 +6453,7 @@ sleep 2
 if ! kill $pid1 2>"$tk1"; then
     $PRINTF "${YELLOW}does not hang${NORMAL}\n"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 # second, set connect-timeout and see if socat exits before kill
 $TRACE $SOCAT $opts - tcp:$HANGIP:1,connect-timeout=1.0 >"$te2" 2>&1 </dev/null &
@@ -6394,6 +6534,7 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 SRVCERT=testsrvdsa
 gentestdsacert $SRVCERT
@@ -6457,6 +6598,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs pty); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat" |tr a-z A-Z) not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 SIG="$(signum $signam)"
 te="$td/test$N.stderr"
@@ -6506,6 +6648,7 @@ if ! eval $NUMCOND; then :;
 elif false; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tr="$td/test$N.ref"
 ti="$td/test$N.in"
@@ -6568,11 +6711,13 @@ if [ $? -ne 0 ]; then
     echo "$CLI"
     cat "${te}s" "${te}1"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! echo "$da1" |diff - "${tf}1" >"$tdiff"; then
     kill "$pids" 2>/dev/null
     $PRINTF "$NO_RESULT (first conn failed); diff:\n"
     cat "$tdiff"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 sleep 2		# UDP-LISTEN sleeps 1s
 echo "$da2" |eval "$CLI" >"${tf}2" 2>"${te}2"
@@ -6623,7 +6768,8 @@ if ! eval $NUMCOND; then :;
 #    numCANT=$((numCANT+1))
 elif ! runs$protov >/dev/null; then
      $PRINTF "test $F_n $TEST... ${YELLOW}$PROTOV not available${NORMAL}\n" $N
-    numCANT=$((numCANT+1))
+     numCANT=$((numCANT+1))
+     listCANT="$listCANT $N"
 else
 ts="$td/test$N.sock"
 tref="$td/test$N.ref"
@@ -6890,6 +7036,7 @@ elif true; then
 elif ! testaddrs tcp ip6 >/dev/null || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -6992,6 +7139,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -7040,6 +7188,7 @@ if ! eval $NUMCOND; then :;
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -7091,9 +7240,11 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip6 rawip && runsip6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -7236,6 +7387,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -7286,6 +7438,7 @@ if ! eval $NUMCOND; then :;
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -7336,9 +7489,11 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip6 rawip && runsip6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -7433,6 +7588,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip4) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}UDP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 testserversec "$N" "$TEST" "$opts" "udp4-recvfrom:$PORT,reuseaddr" "" "sp=$PORT" "udp4-sendto:127.0.0.1:$PORT" 4 udp $PORT 0
 fi ;; # NUMCOND, feats
@@ -7448,6 +7604,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip4) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}UDP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 testserversec "$N" "$TEST" "$opts" "udp4-recvfrom:$PORT,reuseaddr" "" "lowport" "udp4-sendto:127.0.0.1:$PORT" 4 udp $PORT 0
 fi ;; # NUMCOND, feats
@@ -7475,6 +7632,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4 udp libwrap) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 ha="$td/hosts.allow"
 hd="$td/hosts.deny"
@@ -7496,6 +7654,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip4) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}UDP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 PORT1=$PORT; PORT=$((PORT+1))
 PORT2=$PORT; PORT=$((PORT+1))
@@ -7516,6 +7675,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip4) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}UDP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 PORT1=$PORT; PORT=$((PORT+1))
 PORT2=$PORT
@@ -7535,6 +7695,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip4) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}UDP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 PORT1=$PORT; PORT=$((PORT+1))
 PORT2=$PORT
@@ -7554,6 +7715,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip4 libwrap) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 PORT1=$PORT; PORT=$((PORT+1))
 PORT2=$PORT
@@ -7578,6 +7740,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}UDP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 testserversec "$N" "$TEST" "$opts" "udp6-recvfrom:$PORT,reuseaddr" "" "sp=$PORT" "udp6-sendto:[::1]:$PORT" 6 udp $PORT 0
 fi ;; # NUMCOND, feats
@@ -7593,6 +7756,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}UDP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 testserversec "$N" "$TEST" "$opts" "udp6-recvfrom:$PORT,reuseaddr" "" "lowport" "udp6-sendto:[::1]:$PORT" 6 udp $PORT 0
 fi ;; # NUMCOND, feats
@@ -7608,6 +7772,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 #testserversec "$N" "$TEST" "$opts" "udp6-recvfrom:$PORT,reuseaddr,fork" "" "range=[::2]/128" "udp6-sendto:[::1]:$PORT" 6 udp $PORT 0
 testserversec "$N" "$TEST" "$opts" "udp6-recvfrom:$PORT,reuseaddr" "" "range=[::2]/128" "udp6-sendto:[::1]:$PORT" 6 udp $PORT 0
@@ -7624,6 +7789,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6 libwrap && runsip6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 ha="$td/hosts.allow"
 hd="$td/hosts.deny"
@@ -7644,6 +7810,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}UDP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 PORT1=$PORT; PORT=$((PORT+1))
 PORT2=$PORT; PORT=$((PORT+1))
@@ -7664,6 +7831,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}UDP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 PORT1=$PORT; PORT=$((PORT+1))
 PORT2=$PORT
@@ -7683,6 +7851,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}UDP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 PORT1=$PORT; PORT=$((PORT+1))
 PORT2=$PORT
@@ -7702,6 +7871,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6 libwrap && runsip6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 ha="$td/hosts.allow"
 hd="$td/hosts.deny"
@@ -7726,9 +7896,11 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4 rawip) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 #testserversec "$N" "$TEST" "$opts" "ip4-recvfrom:$PROTO,reuseaddr,fork" "" "range=$SECONDADDR/32" "ip4-sendto:127.0.0.1:$PROTO" 4 ip $PROTO 0
 testserversec "$N" "$TEST" "$opts" "ip4-recvfrom:$PROTO,reuseaddr!!udp4-sendto:127.0.0.1:$PORT" "" "range=$SECONDADDR/32" "udp4-recv:$PORT!!ip4-sendto:127.0.0.1:$PROTO" 4 ip $PROTO 0
@@ -7746,9 +7918,11 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4 rawip libwrap) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 ha="$td/hosts.allow"
 hd="$td/hosts.deny"
@@ -7772,9 +7946,11 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4 rawip) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}IP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 PROTO1=$PROTO; PROTO=$((PROTO+1))
 PROTO2=$PROTO
@@ -7796,9 +7972,11 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4 rawip libwrap) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 PROTO1=$PROTO; PROTO=$((PROTO+1))
 PROTO2=$PROTO
@@ -7823,9 +8001,11 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip6 rawip && runsip6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 #testserversec "$N" "$TEST" "$opts" "ip6-recvfrom:$PROTO,reuseaddr,fork" "" "range=[::2]/128" "ip6-sendto:[::1]:$PROTO" 6 ip $PROTO 0
 testserversec "$N" "$TEST" "$opts" "ip6-recvfrom:$PROTO,reuseaddr!!udp6-sendto:[::1]:$PORT" "" "range=[::2]/128" "udp6-recv:$PORT!!ip6-sendto:[::1]:$PROTO" 6 ip $PROTO 0
@@ -7843,9 +8023,11 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip6 rawip libwrap && runsip6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 ha="$td/hosts.allow"
 hd="$td/hosts.deny"
@@ -7868,9 +8050,11 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip6 rawip) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}raw IP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 PROTO1=$PROTO; PROTO=$((PROTO+1))
 PROTO2=$PROTO
@@ -7890,9 +8074,11 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip6 rawip libwrap && runsip6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 PROTO1=$PROTO; PROTO=$((PROTO+1))
 PROTO2=$PROTO
@@ -7921,6 +8107,7 @@ if ! eval $NUMCOND; then :;
 elif ! testoptions o-noatime >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}o-noatime not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.file"
 te="$td/test$N.stderr"
@@ -7973,6 +8160,7 @@ if ! eval $NUMCOND; then :;
 elif ! testoptions o-noatime >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}o-noatime not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.file"
 te="$td/test$N.stderr"
@@ -8026,6 +8214,7 @@ if ! eval $NUMCOND; then :;
 elif ! testoptions ext2-noatime >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}ext2-noatime not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 ts="$td/test$N.socket"
 tf="$td/test$N.file"
@@ -8041,6 +8230,7 @@ $CMD0 2>"${te}0"
 if [ $? -ne 0 ]; then
     $PRINTF "${YELLOW} cannot test${NORMAL}\n"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 # generate a file with noatime, len >= 1
 $CMD 2>"$te"
@@ -8049,6 +8239,7 @@ if [ $? -ne 0 ]; then # command failed
     echo "$CMD"
     cat "$te"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 sleep 1
 # generate a reference file
@@ -8085,6 +8276,7 @@ if ! eval $NUMCOND; then :;
 elif ! testoptions cool-write >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}option cool-write not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 #set -vx
 ti="$td/test$N.pipe"
@@ -8134,6 +8326,7 @@ if ! eval $NUMCOND; then :;
 elif ! testoptions cool-write >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}option cool-write not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 #set -vx
 ti="$td/test$N.pipe"
@@ -8361,6 +8554,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}UDP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -8410,6 +8604,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip4 libwrap) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -8421,9 +8616,12 @@ CMD1="$TRACE $SOCAT $opts TCP4-LISTEN:$PORT,$REUSEADDR,hosts-allow=$ha,tcpwrap=t
 CMD2="$TRACE $SOCAT $opts - TCP:$LOCALHOST:$PORT"
 printf "test $F_n $TEST... " $N
 $CMD1 2>"${te}1" &
+pid1=$!
 waittcp4port $PORT
 echo "$da" |$CMD2 >"$tf" 2>"${te}2"
-if [ $? -ne 0 ]; then
+rc2=$?
+kill $pid1 2>/dev/null; wait
+if [ $rc2 -ne 0 ]; then
    $PRINTF "$FAILED: $TRACE $SOCAT:\n"
    echo "$CMD1 &"
    echo "$CMD2"
@@ -8457,6 +8655,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs tcp ip6 libwrap && runsip6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -8473,8 +8672,9 @@ $CMD1 2>"${te}1" &
 pid1=$!
 waittcp6port $PORT
 echo "$da" |$CMD2 >"$tf" 2>"${te}2"
+rc2=$?
 kill $pid1 2>/dev/null; wait
-if [ $? -ne 0 ]; then
+if [ $rc2 -ne 0 ]; then
    $PRINTF "$FAILED: $TRACE $SOCAT:\n"
    echo "$CMD1 &"
    echo "$CMD2"
@@ -8506,6 +8706,7 @@ if ! eval $NUMCOND; then :;
 elif [ -z "$BCADDR" ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}dont know a broadcast address${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -8564,9 +8765,11 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4 rawip) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}raw IP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ -z "$BCADDR" ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}dont know a broadcast address${NORMAL}\n" $N
 else
@@ -8639,6 +8842,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4 udp) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -8687,9 +8891,11 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4 rawip) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -8742,6 +8948,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip6 udp && runsip6); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -8844,9 +9051,11 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4 rawip) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -8905,9 +9114,11 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4 tun) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -8964,9 +9175,11 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs ip4 tun interface) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -9020,6 +9233,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs abstract-unixsocket); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 ts="$td/test$N.socket"
 tf="$td/test$N.stdout"
@@ -9075,6 +9289,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs abstract-unixsocket); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -9124,6 +9339,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs abstract-unixsocket); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 ts="$td/test$N.socket"
 tf="$td/test$N.stdout"
@@ -9179,6 +9395,7 @@ if ! eval $NUMCOND; then :;
 elif [ "$UNAME" != Linux ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}only on Linux${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -9234,6 +9451,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs openssl) >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.out"
 te="$td/test$N.err"
@@ -9287,6 +9505,7 @@ if ! eval $NUMCOND; then :;
 elif false; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tr="$td/test$N.ref"
 ti="$td/test$N.in"
@@ -9447,6 +9666,7 @@ FOPEN_MAX=$($PROCAN -c 2>/dev/null |grep '^#define[ ][ ]*FOPEN_MAX' |awk '{print
 if [ -z "$FOPEN_MAX" ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}could not determine FOPEN_MAX${NORMAL}\n" "$N"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 OPEN_FILES=$FOPEN_MAX	# more than the highest FOPEN_MAX
 i=3; while [ "$i" -lt "$OPEN_FILES" ]; do
@@ -9496,9 +9716,11 @@ kill $pid1 2>/dev/null; wait
 if [ $rc2 -ne 0 ]; then
     $PRINTF "$NO_RESULT (client failed)\n"	# already handled in test UDP4STREAM
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
     $PRINTF "$NO_RESULT (diff failed)\n"	# already handled in test UDP4STREAM
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif $(isdefunct "$l"); then
     $PRINTF "$FAILED: $TRACE $SOCAT:\n"
     echo "$CMD1 &"
@@ -9549,9 +9771,11 @@ kill $pid1 2>/dev/null; wait
 if [ $rc2 -ne 0 ]; then
     $PRINTF "$NO_RESULT\n"	# already handled in test UDP4DGRAM
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
     $PRINTF "$NO_RESULT\n"	# already handled in test UDP4DGRAM
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif $(isdefunct "$l"); then
     $PRINTF "$FAILED: $TRACE $SOCAT:\n"
     echo "$CMD1 &"
@@ -9584,6 +9808,7 @@ if ! eval $NUMCOND; then :;
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -9659,6 +9884,7 @@ kill $pid1 2>/dev/null; wait
 if [ $rc2b -ne 0 ]; then
     $PRINTF "$NO_RESULT\n"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
     $PRINTF "$FAILED: $TRACE $SOCAT:\n"
     echo "$CMD1 &"
@@ -9762,9 +9988,11 @@ kill $pid1 2>/dev/null; wait
 if [ $rc1 -ne 0 ]; then
     $PRINTF "$NO_RESULT\n"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $nsocks -eq 0 ]; then
     $PRINTF "$NO_RESULT\n"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $nsocks -ne 1 ]; then
     $PRINTF "$FAILED ($nsocks listening sockets)\n"
     echo "$CMD0 &"
@@ -9914,12 +10142,15 @@ if ! eval $NUMCOND; then :;
 elif [ "$ROOT" = root -a $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ "$PF" = "IP6" ] && ( ! feat=$(testaddrs ip6) || ! runsip6 >/dev/null ); then
     $PRINTF "test $F_n $TEST... ${YELLOW}IP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testoptions $SCM_RECV >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}option $SCM_RECV not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -9967,6 +10198,7 @@ if [ "$rc1" -ne 0 ]; then
     grep " $LEVELS " "${te}0"
     grep " $LEVELS " "${te}1"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! grep "ancillary message: $SCM_TYPE: $SCM_NAME=" ${te}0 >/dev/null; then
     $PRINTF "$FAILED\n"
     echo "variable $SCM_TYPE: $SCM_NAME not set"
@@ -9996,6 +10228,7 @@ fi
 else # option is not supported
     $PRINTF "${YELLOW}$SCM_RECV not available${NORMAL}\n"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 fi # option is not supported
 fi # NUMCOND, root, feats
  ;;
@@ -10054,10 +10287,12 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs $FEAT); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat" |tr a-z A-Z) not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ "$KEYW" = "TCP6" -o "$KEYW" = "UDP6" -o "$KEYW" = "SCTP6" ] && \
     ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}IP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ "$KEYW" = "SCTP4" ] && ! runssctp4 "$((PORT))" >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$KEYW not available${NORMAL}\n" $N
 elif [ "$KEYW" = "SCTP6" ] && ! runssctp6 "$((PORT))" >/dev/null; then
@@ -10099,6 +10334,7 @@ if [ $rc1 != 0 ]; then
     echo "$CMD1"
     cat "${te}1"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ "$(grep SOCAT_SOCKADDR "${tf}" |sed -e 's/^[^=]*=//' |sed -e "s/[\"']//g")" = "$TEST_SOCKADDR" -a \
     "$(grep SOCAT_PEERADDR "${tf}" |sed -e 's/^[^=]*=//' -e "s/[\"']//g")" = "$TEST_PEERADDR" -a \
     \( "$TEST_SOCKPORT" = ',' -o "$(grep SOCAT_SOCKPORT "${tf}" |sed -e 's/^[^=]*=//' |sed -e 's/"//g')" = "$tsp" \) -a \
@@ -10161,9 +10397,11 @@ if ! eval $NUMCOND; then :;
 elif [ "$ROOT" = root -a $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ "$PF" = "IP6" ] && ( ! feat=$(testaddrs ip6) || ! runsip6 ) >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}IP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -10205,6 +10443,7 @@ if [ "$rc1" -ne 0 ]; then
     cat "${te}0"
     cat "${te}1"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 #elif ! egrep "^export SOCAT_$SCM_ENVNAME=[\"']?$SCM_VALUE[\"']?\$" ${tf} >/dev/null; then
 #elif ! eval echo "$TRACE $SOCAT_\$SCM_VALUE" |diff - "${tf}" >/dev/null; then
 elif ! expr "$(cat "$tf")" : "$(eval echo "\$SCM_VALUE")\$" >/dev/null; then
@@ -10226,6 +10465,7 @@ fi
 else # option is not supported
     $PRINTF "${YELLOW}$SCM_RECV not available${NORMAL}\n"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 fi # option is not supported
 fi ;; # NUMCOND, feats
 esac
@@ -10326,6 +10566,7 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs tcp ip6 >/dev/null || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 # start a TCP6-LISTEN process that echoes data, and send test data using
 # SOCKET-CONNECT, selecting TCP/IPv6. The sent data should be returned.
@@ -10713,6 +10954,7 @@ elif [ -z "$SECONDADDR" ]; then
     # we need access to more loopback addresses
     $PRINTF "test $F_n $TEST... ${YELLOW}need a second IPv4 address${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 ts1p=$(printf "%04x" $PORT);
 testserversec "$N" "$TEST" "$opts" "SOCKET-LISTEN:2:6:x${ts1p}x00000000x0000000000000000,$REUSEADDR,fork,retry=1" "" "range=x0000x7f000000:x0000xffffffff" "SOCKET-CONNECT:2:6:x${ts1p}x${SECONDADDRHEX}x0000000000000000" 4 tcp $PORT 0
@@ -10740,6 +10982,7 @@ elif [ -z "$TIOCEXCL" ]; then
     # we use the numeric value of TIOCEXL which is system dependent
     $PRINTF "test $F_n $TEST... ${YELLOW}no value of TIOCEXCL${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tp="$td/test$N.pty"
 tf="$td/test$N.stdout"
@@ -10765,6 +11008,7 @@ if ! echo "$da" |diff - "$tf" >/dev/null; then
     echo "$CMD1"
     echo "$da" |diff - "$tf"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $rc2 -eq 0 ]; then
     $PRINTF "$FAILED: $TRACE $SOCAT:\n"
     echo "$CMD0 &"
@@ -10808,6 +11052,7 @@ elif [ -z "$SO_REUSEADDR" ]; then
     # we use the numeric value of SO_REUSEADDR which might be system dependent
     $PRINTF "test $F_n $TEST... ${YELLOW}value of SO_REUSEADDR not known${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tp="$PORT"
 tf="$td/test$N.stdout"
@@ -10836,6 +11081,7 @@ if ! echo "$da" |diff - "$tf"; then
     echo "$CMD0 &"
     echo "$CMD1"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $rc3 -ne 0 ]; then
     $PRINTF "$FAILED: $TRACE $SOCAT:\n"
     echo "$CMD0 &"
@@ -10853,6 +11099,7 @@ elif ! echo "$da" |diff - "${tf}3"; then
     echo "$CMD3"
     echo "$da" |diff - "${tf}3"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
     $PRINTF "$OK\n"
     if [ -n "$debug" ]; then cat "${te}0" "${te}1" "${te}2" "${te}3"; fi
@@ -10875,12 +11122,15 @@ PORT="$((PORT+1))"
 if ! eval $NUMCOND; then :;
 elif ! testaddrs sctp ip4 >/dev/null || ! runsip4 >/dev/null || ! runssctp4 "$((PORT-1))" >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}SCTP4 not available${NORMAL}\n" $N
+    listCANT="$listCANT $N"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ "$UNAME" = Linux ] && ! grep ^sctp /proc/modules >/dev/null; then
     # RHEL5 based systems became unusable when an sctp socket was created but
     # module sctp not loaded
     $PRINTF "test $F_n $TEST...${YELLOW}load sctp module!${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -10931,9 +11181,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs sctp ip6 >/dev/null || ! runsip6 >/dev/null || ! runssctp6 "$((PORT-1))" >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}SCTP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ "$UNAME" = Linux ] && ! grep ^sctp /proc/modules >/dev/null; then
     $PRINTF "test $F_n $TEST...${YELLOW}load sctp module!${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -10987,12 +11239,15 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! type openssl >/dev/null 2>&1; then
     $PRINTF "test $F_n $TEST... ${YELLOW}openssl executable not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert testsrv
 tf="$td/test$N.stdout"
@@ -11043,12 +11298,15 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! type openssl >/dev/null 2>&1; then
     $PRINTF "test $F_n $TEST... ${YELLOW}openssl executable not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert testsrv
 tf="$td/test$N.stdout"
@@ -11344,9 +11602,11 @@ wait
 if [ $rc1 -ne 0 ]; then
     $PRINTF "$NO_RESULT\n"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ ! -e "$tw" ]; then 
     $PRINTF "$NO_RESULT\n"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ "$bytes" -eq $(cat "$tw") ]; then
     $PRINTF "$OK\n"
     numOK=$((numOK+1))
@@ -11370,9 +11630,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testaddrs listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -11424,9 +11686,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs "$FEAT" >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$FEAT not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! runs$RUNS >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$(toupper $RUNS) not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 case "X$IPPORT" in
     "XPORT")
@@ -11507,9 +11771,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs "$FEAT" >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$FEAT not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! runs$RUNS >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$(toupper $RUNS) not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 case "X$IPPORT" in
     "XPORT")
@@ -11584,6 +11850,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testaddrs readline pty); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -11712,6 +11979,7 @@ if [ $rc1 -lt 128 ]; then
     else
 	$PRINTF "$UNKNOWN $RED(install ElectricFEnce!)$NORMAL\n"
 	numCANT=$((num+1))
+	listCANT="$listCANT $N"
     fi
 else
     $PRINTF "$FAILED\n"
@@ -11760,6 +12028,7 @@ if [ -z "$KEEPALIVE" ]; then
     cat "${te}0"
     cat "${te}1"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ "$KEEPALIVE" = "1" ]; then
     $PRINTF "$OK\n";
     numOK=$((numOK+1))
@@ -11792,6 +12061,7 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert testsrv
 tf0="$td/test$N.0.stdout"
@@ -11848,6 +12118,7 @@ elif [ -z "$SECONDADDR" ]; then
     # we need access to a second addresses
     $PRINTF "test $F_n $TEST... ${YELLOW}need a second IPv4 address${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -11866,6 +12137,7 @@ kill $pid0 2>/dev/null; wait
 if [ $rc1 != 0 ]; then
     $PRINTF "${YELLOW}invocation failed${NORMAL}\n"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! [ -f "$tf" ]; then
     $PRINTF "$FAILED\n"
     echo "$CMD0 &"
@@ -11877,6 +12149,7 @@ elif ! [ -f "$tf" ]; then
 elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
     $PRINTF "${YELLOW}diff failed${NORMAL}\n"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
     $PRINTF "$OK\n"
     numOK=$((numOK+1))
@@ -11906,6 +12179,7 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs $FEAT >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}$FEAT not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -11945,6 +12219,7 @@ if [ $rc1 != 0 ]; then
     echo "$CMD1"
     cat "${te}1"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif effval="$(grep SOCAT_${SSLDIST}_${MODULE}_${FIELD} "${tf}" |sed -e 's/^[^=]*=//' |sed -e "s/[\"']//g")";
     [ "$effval" = "$VALUE" ]; then
     $PRINTF "$OK\n"
@@ -12151,6 +12426,7 @@ if ! eval $NUMCOND; then :;
 elif [ $(id -u) -ne 0 -a "$withroot" -eq 0 ]; then
     $PRINTF "test $F_n $TEST... ${YELLOW}must be root${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tlog="$td/test$N.log"
 te0="$td/test$N.0.stderr"
@@ -12246,7 +12522,8 @@ if [ $rc1 != 0 ]; then
     echo "$CMD0 &"
     cat "$te0"
     cat "$tlog"
-    let numCANT=numCANT+1
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! [ $crit $tsock ]; then
     $PRINTF "$OK\n"
     let numOK=numOK+1
@@ -12314,7 +12591,8 @@ if [ $rc1 != 0 ]; then
     echo "$CMD0 &"
     cat "$te0"
     cat "$tlog"
-    let numCANT=numCANT+1
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! [ $crit $tsock ]; then
     $PRINTF "$OK\n"
     let numOK=numOK+1
@@ -12354,6 +12632,7 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert testsrv
 tf="$td/test$N.stdout"
@@ -12468,9 +12747,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! socat -hhh |grep -q "^[[:space:]]*openssl-method[[:space:]]"; then
     $PRINTF "test $F_n $TEST... ${YELLOW}Option openssl-method not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert testsrv
 tf="$td/test$N.stdout"
@@ -12483,6 +12764,7 @@ printf "test $F_n $TEST... " $N
 if [ "$method" = DTLS1 -a "$(echo -e "$OPENSSL_VERSION\n1.0.2" |sort -V |tail -n 1)" = "$OPENSSL_VERSION_GOOD" ]; then
     $PRINTF "${YELLOW}might hang, skipping${NORMAL}\n"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 $CMD0 >/dev/null 2>"${te}0" &
 pid0=$!
@@ -12528,9 +12810,11 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! socat -hhh |grep -q "^[[:space:]]*openssl-method[[:space:]]"; then
     $PRINTF "test $F_n $TEST... ${YELLOW}Option openssl-method not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 gentestcert testsrv
 tf="$td/test$N.stdout"
@@ -12543,6 +12827,7 @@ printf "test $F_n $TEST... " $N
 if [ "$method" = DTLS1 -a "$(echo -e "$OPENSSL_VERSION\n1.0.2" |sort -V |tail -n 1)" = "$OPENSSL_VERSION_GOOD" ]; then
     $PRINTF "${YELLOW}might hang, skipping${NORMAL}\n"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 $CMD0 >/dev/null 2>"${te}0" &
 pid0=$!
@@ -12694,6 +12979,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testoptions so-reuseaddr); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tp="$PORT"
 tf="$td/test$N.stdout"
@@ -12722,6 +13008,7 @@ if ! echo "$da" |diff - "$tf"; then
     echo "$CMD0 &"
     echo "$CMD1"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $rc3 -ne 0 ]; then
     $PRINTF "$FAILED: $TRACE $SOCAT:\n"
     echo "$CMD0 &"
@@ -12739,6 +13026,7 @@ elif ! echo "$da" |diff - "${tf}3"; then
     echo "$CMD3"
     echo "$da" |diff - "${tf}3"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
     $PRINTF "$OK\n"
     if [ -n "$debug" ]; then cat "${te}0" "${te}1" "${te}2" "${te}3"; fi
@@ -12765,6 +13053,7 @@ if ! eval $NUMCOND; then :;
 elif ! feat=$(testoptions so-reuseport); then
     $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tp="$PORT"
 tf="$td/test$N.stdout"
@@ -12796,6 +13085,7 @@ if ! echo "$da2" |diff - "${tf}2"; then
     echo "$CMD2"
     cat "${te}2"
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif [ $rc3 -ne 0 ]; then
     $PRINTF "$FAILED:\n"
     echo "$CMD0 &"
@@ -12893,6 +13183,7 @@ if ! eval $NUMCOND; then :;
 elif ! testaddrs openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
@@ -13222,6 +13513,9 @@ N=$((N+1))
 
 echo "summary: $((N-1)) tests, $((numOK+numFAIL+numCANT)) selected; $numOK ok, $numFAIL failed, $numCANT could not be performed"
 
+if [ "$numCANT" -gt 0 ]; then
+    echo "CANT: $listCANT"
+fi
 if [ "$numFAIL" -gt 0 ]; then
     echo "FAILED: $listFAIL"
     exit 1
