@@ -5538,7 +5538,7 @@ testserversec () {
     local ipvers="$8"	# IP version, for check of listen port
     local proto="$9"	# protocol, for check of listen port
     local port="${10}"	# start client when this port is listening
-    local expect="${11}"	# expected behaviour of client: 0..empty output; -1..error
+    local expect="${11}"	# expected behaviour of client: 0..empty output; -1..error; *: any of these
     local T="${12}";	[ -z "$T" ] && T=0
     local tf="$td/test$N.stdout"
     local te="$td/test$N.stderr"
@@ -5635,7 +5635,16 @@ testserversec () {
     else
 	result=2;	# output differs from input
     fi
-    if [ X$result != X$expect ]; then
+    if [ "$expect" != '1' -a "$result" -eq 1 ]; then
+	    $PRINTF "$FAILED: SECURITY BROKEN\n"
+	    echo "$TRACE $SOCAT $opts $arg echo"
+	    cat "${te}3"
+	    echo "$TRACE $SOCAT $opts - $arg2"
+	    cat "${te}4"
+	    cat "$tdiff2"
+	    numFAIL=$((numFAIL+1))
+	    listFAIL="$listFAIL $N"
+    elif [ "X$expect" != 'X*' -a X$result != X$expect ]; then
 	case X$result in
 	X-1) $PRINTF "$NO_RESULT (ph.2 client error): $TRACE $SOCAT:\n"
 	    echo "$TRACE $SOCAT $opts $arg echo"
@@ -5650,7 +5659,7 @@ testserversec () {
 	    cat "${te}3"
 	    echo "$TRACE $SOCAT $opts - $arg2"
 	    cat "${te}4"
-	    cat "$tdiff2" 2>/dev/stderr
+	    cat "$tdiff2"
 	    numCANT=$((numCANT+1))
 	    listCANT="$listCANT $N"
 	    ;;
@@ -5659,7 +5668,7 @@ testserversec () {
 	    cat "${te}3"
 	    echo "$TRACE $SOCAT $opts - $arg2"
 	    cat "${te}4"
-	    cat "$tdiff2" 2>/dev/stderr
+	    cat "$tdiff2"
 	    numFAIL=$((numFAIL+1))
 	    listFAIL="$listFAIL $N"
 	    ;;
@@ -5668,7 +5677,7 @@ testserversec () {
 	    cat "${te}3"
 	    echo "$TRACE $SOCAT $opts - $arg2"
 	    cat "${te}4"
-	    cat "$tdiff2" 2>/dev/stderr
+	    cat "$tdiff2"
 	    numFAIL=$((numFAIL+1))
 	    listFAIL="$listFAIL $N"
 	    ;;
@@ -6073,7 +6082,7 @@ elif ! testaddrs openssl >/dev/null; then
 else
 gentestcert testsrv
 gentestcert testcli
-testserversec "$N" "$TEST" "$opts -4" "SSL-L:$PORT,pf=ip4,reuseaddr,fork,retry=1,$SOCAT_EGD,verify,cert=testsrv.crt,key=testsrv.key" "cafile=testcli.crt" "cafile=testsrv.crt" "SSL:$LOCALHOST:$PORT,cafile=testsrv.crt,cert=testcli.pem,$SOCAT_EGD" 4 tcp $PORT -1
+testserversec "$N" "$TEST" "$opts -4" "SSL-L:$PORT,pf=ip4,reuseaddr,fork,retry=1,$SOCAT_EGD,verify,cert=testsrv.crt,key=testsrv.key" "cafile=testcli.crt" "cafile=testsrv.crt" "SSL:$LOCALHOST:$PORT,cafile=testsrv.crt,cert=testcli.pem,$SOCAT_EGD" 4 tcp $PORT '*'
 fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
@@ -6202,7 +6211,7 @@ elif ! testaddrs listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
 else
 gentestcert testsrv
 gentestcert testcli
-testserversec "$N" "$TEST" "$opts -t 0.5 -4" "SSL:127.0.0.1:$PORT,fork,retry=2,verify,cafile=testsrv.crt" "commonname=$LOCALHOST" "" "SSL-L:$PORT,pf=ip4,$REUSEADDR,cert=testsrv.crt,key=testsrv.key,verify=0" 4 tcp "" 0
+testserversec "$N" "$TEST" "$opts -t 0.5 -4" "SSL:127.0.0.1:$PORT,fork,retry=2,verify,cafile=testsrv.crt" "commonname=$LOCALHOST" "" "SSL-L:$PORT,pf=ip4,$REUSEADDR,cert=testsrv.crt,key=testsrv.key,verify=0" 4 tcp "" '*'
 fi ;; # testaddrs, NUMCOND
 esac
 PORT=$((PORT+1))
@@ -6228,7 +6237,7 @@ elif ! testaddrs listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
 else
 gentestcert testsrv
 gentestcert testcli
-testserversec "$N" "$TEST" "$opts -4" "SSL-L:$PORT,pf=ip4,reuseaddr,cert=testsrv.crt,key=testsrv.key,cafile=testcli.crt" "" "commonname=onlyyou" "SSL:$LOCALHOST:$PORT,$REUSEADDR,verify=0,cafile=testsrv.crt,cert=testcli.crt,key=testcli.key" 4 tcp "$PORT" 0
+testserversec "$N" "$TEST" "$opts -4" "SSL-L:$PORT,pf=ip4,reuseaddr,cert=testsrv.crt,key=testsrv.key,cafile=testcli.crt" "" "commonname=onlyyou" "SSL:$LOCALHOST:$PORT,$REUSEADDR,verify=0,cafile=testsrv.crt,cert=testcli.crt,key=testcli.key" 4 tcp "$PORT" '*'
 fi ;; # testaddrs, NUMCOND
 esac
 PORT=$((PORT+1))

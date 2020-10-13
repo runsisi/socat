@@ -6,6 +6,10 @@ Testing:
 	OpenSSL s_server appearently started to neglect TCPs half close feature.
 	Test OPENSSL_TCP4 has been changed to tolerate this.
 
+	OpenSSL changed its behaviour when connection is rejected. Tests
+	OPENSSLCERTSERVER, OPENSSL_CN_CLIENT_SECURITY, and
+	OPENSSL_CN_SERVER_SECURITY now tolerate this.
+
 ####################### V 1.7.3.4:
 
 Corrections:
