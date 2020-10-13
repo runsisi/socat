@@ -7,6 +7,11 @@ Security:
 	Thanks to Lê Hiếu Bùi for reporting this issue and sending an
 	example exploit.
 
+Corrections:
+	Socats address parser read over end of string when there were unbalanced
+	quotes
+	Test: UNBALANCED_QUOTE
+
 Testing:
 	test.sh now produces a list of tests that could not be performed for
 	any reason. This helps to analyse these cases.

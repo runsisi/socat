@@ -13510,6 +13510,37 @@ PORT=$((PORT+1))
 N=$((N+1))
 
 
+# Test if unbalanced quoting in Socat addresses is detected
+NAME=UNBALANCED_QUOTE
+case "$TESTS" in
+*%$N%*|*%functions%*|*%bugs%*|*%$NAME%*)
+TEST="$NAME: Test fix of unbalanced quoting"
+# Invoke Socat with an address containing unbalanced quoting. If Socat prints
+# a "syntax error" message, the test succeeds
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts -u FILE:$td/ab\"cd FILE:/dev/null"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0"
+if grep -q "syntax error" "${te}0"; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0"
+    cat "${te}0"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
+esac
+N=$((N+1))
+
+
 ##################################################################################
 #=================================================================================
 # here come tests that might affect your systems integrity. Put normal tests

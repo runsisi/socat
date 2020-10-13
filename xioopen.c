@@ -367,6 +367,8 @@ xiofile_t *xioopen(const char *addr,	/* address specification */
       return NULL;
    }
 
+   Debug1("xioopen(\"%s\")", addr);
+
    if ((xfd = xioparse_dual(&addr)) == NULL) {
       return NULL;
    }
@@ -384,6 +386,8 @@ xiofile_t *xioopen(const char *addr,	/* address specification */
    return xfd;
 }
 
+/* parse an address string that might contain !!
+   return NULL on error */
 static xiofile_t *xioparse_dual(const char **addr) {
    xiofile_t *xfd;
    xiosingle_t *sfd1;
@@ -445,6 +449,7 @@ static int xioopen_dual(xiofile_t *xfd, int xioflags) {
 
 
 static xiosingle_t *xioparse_single(const char **addr) {
+   const char *addr0 = *addr; 	/* save for error messages */
    xiofile_t *xfd;
    xiosingle_t *sfd;
    struct addrname *ae;
@@ -540,7 +545,7 @@ static xiosingle_t *xioparse_single(const char **addr) {
       len = sizeof(token);  tokp = token;
       if (nestlex(addr, &tokp, &len, ends, hquotes, squotes, nests,
 		  true, true, false) != 0) {
-	 Error2("syntax error in address \"%s%s\"", token, *addr);
+	 Error1("syntax error in address \"%s\"", addr0);
       }
       *tokp = '\0';
       if ((sfd->argv[sfd->argc++] = strdup(token)) == NULL) {

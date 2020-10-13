@@ -159,6 +159,7 @@ static int _nestlex(const char **addr,
 
 	    if (result == 0 && dropquotes) {
 	       /* we strip the trailing quote */
+	       if (!in[0] || strncmp(in, *quotx, strlen(*quotx)))  return 1;
 	       in += strlen(*quotx);
 	    } else if (result < 0) {
 	       *addr = in; *token = out; return result;
