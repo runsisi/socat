@@ -67,6 +67,11 @@ Corrections:
 	<port> is allowed.
 	Thanks to John the Scott for reporting this issue.
 
+	Error messages from SSL_read() and SSL_write() sometimes stated
+	SSL_connect instead of originating function name.
+
+	Fixed some more non functional minor issues.
+
 Porting:
 	In gcc version 10 the default changed from -fcommon to -fno-common.
 	Consequently, linking filan and procan failed with error

@@ -1939,7 +1939,7 @@ ssize_t xioread_openssl(struct single *pipe, void *buff, size_t bufsiz) {
 	 }
 	 break;
       case SSL_ERROR_SSL:
-	 openssl_SSL_ERROR_SSL(E_ERROR, "SSL_connect");
+	 openssl_SSL_ERROR_SSL(E_ERROR, "SSL_read");
 	 break;
       default:
 	 Error("unknown error");
@@ -1998,7 +1998,7 @@ ssize_t xiowrite_openssl(struct single *pipe, const void *buff, size_t bufsiz) {
 	 }
 	 break;
       case SSL_ERROR_SSL:
-	 openssl_SSL_ERROR_SSL(E_ERROR, "SSL_connect");
+	 openssl_SSL_ERROR_SSL(E_ERROR, "SSL_write");
 	 break;
       default:
 	 Error("unknown error");
