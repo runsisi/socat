@@ -129,6 +129,12 @@ For other operating systems, if socat does not compile without errors, refer to
 the file PORTING.
 
 
+platform specifics - Debian (Ubuntu, ...)
+-----------------------------------------
+
+libssl-dev
+
+
 platform specifics - redhat
 ---------------------------
 
