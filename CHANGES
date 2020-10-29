@@ -3,6 +3,9 @@ Testing:
 	test.sh now produces a list of tests that could not be performed for
 	any reason. This helps to analyse these cases.
 
+	OpenSSL s_server appearently started to neglect TCPs half close feature.
+	Test OPENSSL_TCP4 has been changed to tolerate this.
+
 ####################### V 1.7.3.4:
 
 Corrections:

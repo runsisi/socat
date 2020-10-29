@@ -4145,7 +4145,9 @@ eval "$CMD2 2>\"${te}1\" &"
 pid=$!	# background process id
 # this might timeout when openssl opens tcp46 port like " :::$PORT"
 waittcp4port $PORT
-echo "$da" |$CMD >$tf 2>"${te}2"
+#echo "$da" |$CMD >$tf 2>"${te}2"
+#note: with about OpenSSL 1.1 s_server lost the half close feature, thus:
+(echo "$da"; sleep 0.1) |$CMD >$tf 2>"${te}2"
 if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     $PRINTF "$FAILED: $TRACE $SOCAT:\n"
     echo "$CMD2 &"
