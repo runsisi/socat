@@ -11238,8 +11238,14 @@ PORT=$((PORT+1))
 N=$((N+1))
 
 
+if type openssl >/dev/null 2>&1; then
+    OPENSSL_METHOD=$(openssl s_client -help 2>&1 |egrep -o -e '-tls1(_[012])?' |sort -V |tail -n 1)
+    [ -z "$OPENSSL_METHOD" ] && OPENSSL_METHOD="-tls1" 	# just so
+fi
+
 # socat up to 1.7.1.1 (and 2.0.0-b3) terminated with error when an openssl peer
 # performed a renegotiation. Test if this is fixed.
+# Note: the renegotiation feature in OpenSSL exists only up to TLSv1.2
 NAME=OPENSSLRENEG1
 case "$TESTS" in
 *%$N%*|*%functions%*|*%bugs%*|*%openssl%*|*%socket%*|*%$NAME%*)
@@ -11267,7 +11273,7 @@ tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
 CMD0="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,$REUSEADDR,cert=testsrv.crt,key=testsrv.key,verify=0 PIPE"
 #CMD1="openssl s_client -port $PORT -verify 0" 	# not with openssl 1.1.0g
-CMD1="openssl s_client -port $PORT"
+CMD1="openssl s_client $OPENSSL_METHOD -port $PORT"
 printf "test $F_n $TEST... " $N
 $CMD0 >/dev/null 2>"${te}0" &
 pid0=$!
@@ -11298,6 +11304,7 @@ N=$((N+1))
 # socat up to 1.7.1.1 (and 2.0.0-b3) terminated with error when an openssl peer
 # performed a renegotiation. The first temporary fix to this problem might
 # leave socat in a blocking ssl-read state. Test if this has been fixed.
+# Note: the renegotiation feature in OpenSSL exists only up to TLSv1.2
 NAME=OPENSSLRENEG2
 case "$TESTS" in
 *%$N%*|*%functions%*|*%bugs%*|*%openssl%*|*%socket%*|*%$NAME%*)
@@ -11326,7 +11333,7 @@ tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
 CMD0="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,$REUSEADDR,cert=testsrv.crt,key=testsrv.key,verify=0 SYSTEM:\"sleep 1; echo \\\\\\\"\\\"$da\\\"\\\\\\\"; sleep 1\"!!STDIO"
 #CMD1="openssl s_client -port $PORT -verify 0" 	# not with openssl 1.1.0g
-CMD1="openssl s_client -port $PORT"
+CMD1="openssl s_client $OPENSSL_METHOD -port $PORT"
 printf "test $F_n $TEST... " $N
 eval "$CMD0 >/dev/null 2>\"${te}0\" &"
 pid0=$!

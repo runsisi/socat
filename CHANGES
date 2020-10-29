@@ -10,6 +10,11 @@ Testing:
 	OPENSSLCERTSERVER, OPENSSL_CN_CLIENT_SECURITY, and
 	OPENSSL_CN_SERVER_SECURITY now tolerate this.
 
+	OpenSSL no longer allows explicit renegotiation with TLSv1.3, thus the
+	appropriate tests failed.
+	Fix: use TLSv1.2 for renegotiation tests
+	Tests: OPENSSLRENEG1 OPENSSLRENEG2
+
 ####################### V 1.7.3.4:
 
 Corrections:
