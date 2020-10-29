@@ -108,7 +108,8 @@ TESTCERT_ORGANIZATIONALUNITNAME="socat"
 TESTCERT_ORGANIZATIONNAME="dest-unreach"
 TESTCERT_SUBJECT="C = $TESTCERT_COUNTRYNAME, CN = $TESTCERT_COMMONNAME, O = $TESTCERT_ORGANIZATIONNAME, OU = $TESTCERT_ORGANIZATIONALUNITNAME, L = $TESTCERT_LOCALITYNAME"
 TESTCERT_ISSUER="C = $TESTCERT_COUNTRYNAME, CN = $TESTCERT_COMMONNAME, O = $TESTCERT_ORGANIZATIONNAME, OU = $TESTCERT_ORGANIZATIONALUNITNAME, L = $TESTCERT_LOCALITYNAME"
-RSABITS=1024
+RSABITS=2048 	# Ubuntu-20.04 with OpenSSL-1.1.1f does not work with 1024 nor 1536
+DSABITS=2048
 cat >$TESTCERT_CONF <<EOF
 prompt=no
 
@@ -2391,8 +2392,8 @@ gentestcert () {
 gentestdsacert () {
     local name="$1"
     if [ -s $name.key -a -s $name.crt -a -s $name.pem ]; then return; fi
-    openssl dsaparam -out $name-dsa.pem 1024 >/dev/null 2>&1
-    openssl dhparam -dsaparam -out $name-dh.pem 1024 >/dev/null 2>&1
+    openssl dsaparam -out $name-dsa.pem $DSABITS >/dev/null 2>&1
+    openssl dhparam -dsaparam -out $name-dh.pem $DSABITS >/dev/null 2>&1
     openssl req -newkey dsa:$name-dsa.pem -keyout $name.key -nodes -x509 -config $TESTCERT_CONF -out $name.crt -days 3653 >/dev/null 2>&1
     cat $name-dsa.pem $name-dh.pem $name.key $name.crt >$name.pem
 }

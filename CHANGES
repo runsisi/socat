@@ -15,6 +15,8 @@ Testing:
 	Fix: use TLSv1.2 for renegotiation tests
 	Tests: OPENSSLRENEG1 OPENSSLRENEG2
 
+	Ubuntu 20.04 requires 2048 bit certificates with OpenSSL
+
 ####################### V 1.7.3.4:
 
 Corrections:
