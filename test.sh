@@ -232,16 +232,16 @@ else
 fi
 
 if type ip >/dev/null 2>&1; then
-    if ip -V |grep -q "^ip utility, iproute2-ss"; then
-	IP=$(which ip)
+    if ip -V |grep -q "^ip utility, iproute2-"; then
+	IP=$(type -p ip)
     else
 	unset IP
     fi
 fi
 
 if type ss >/dev/null 2>&1; then
-    if ss -V |grep -q "^ss utility, iproute2-ss"; then
-	SS=$(which ss)
+    if ss -V |grep -q "^ss utility, iproute2-"; then
+	SS=$(type -p ss)
     else
 	unset SS
     fi
@@ -373,7 +373,7 @@ else
     SECONDIP6ADDR="[$SECONDIP6ADDR]"
 fi
 
-TRUE=$(which true)
+TRUE=$(type true)
 #E=-e	# Linux
 if   [ $(echo "x\c") = "x" ]; then E=""
 elif [ $(echo -e "x\c") = "x" ]; then E="-e"

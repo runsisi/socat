@@ -17,6 +17,9 @@ Testing:
 
 	Ubuntu 20.04 requires 2048 bit certificates with OpenSSL
 
+	Archlinux 2020 has not which command; its ip,ss commands have modified
+	version strings
+
 ####################### V 1.7.3.4:
 
 Corrections:
