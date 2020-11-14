@@ -19,10 +19,6 @@
 
 #include "procan.h"
 
-/* dirty workaround so we dont get an error on AIX when getting linked with
-   libwrap */
-int allow_severity, deny_severity;
-
 
 int procan(FILE *outfile) {
 

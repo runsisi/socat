@@ -28,10 +28,6 @@ struct sockopt {
 
 static int filan_streams_analyze(int fd, FILE *outfile);
 
-/* dirty workaround so we dont get an error on AIX when being linked with
-   libwrap */
-int allow_severity, deny_severity;
-
 /* global variables for configuring filan */
 bool filan_followsymlinks;
 bool filan_rawoutput;

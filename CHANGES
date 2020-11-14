@@ -12,6 +12,14 @@ Corrections:
 	quotes
 	Test: UNBALANCED_QUOTE
 
+Porting:
+	In gcc version 10 the default changed from -fcommon to -fno-common.
+	Consequently, linking filan and procan failed with error
+	"multiple definition of `deny_severity'" and `allow_severity'
+	Fixed by removing definitions in filan.c and procan.c
+	Debian issue 957823
+	Thanks to László Böszörményi and others for reporting this issue.
+
 Testing:
 	test.sh now produces a list of tests that could not be performed for
 	any reason. This helps to analyse these cases.
