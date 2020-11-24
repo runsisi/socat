@@ -1243,7 +1243,9 @@ static int openssl_delete_cert_info(void) {
 	 const char *eq = strchr(*entry, '=');
 	 if (eq == NULL)  eq = *entry + strlen(*entry);
 	 envname[0] = '\0'; strncat(envname, *entry, eq-*entry);
+#if HAVE_UNSETENV
 	 Unsetenv(envname);
+#endif
       } else {
 	 ++entry;
       }
