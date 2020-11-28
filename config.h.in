@@ -63,6 +63,9 @@
 /* Define if you have the select function.  */
 #undef HAVE_SELECT
 
+/* Define if you have the pselect function.  */
+#undef HAVE_PSELECT
+
 /* Define if you have the poll function.  */
 #undef HAVE_POLL
 
@@ -599,6 +602,7 @@
 #undef HAVE_TYPEOF_ST64_BLOCKS
 
 #undef HAVE_TYPEOF_STRUCT_TIMEVAL_TV_USEC
+#undef HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC
 
 #undef HAVE_TYPEOF_RLIM_MAX
 

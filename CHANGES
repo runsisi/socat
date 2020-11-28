@@ -27,6 +27,13 @@ Corrections:
 	not writing complete pages.
 	Test: O_DIRECT
 
+	There was a race condition in the way Socat UDP-RECVFROM and similar
+	addresses with option fork prevents one packet from triggering
+	multiple processes. The symptom was that Socat master process seemed to
+	hang and did not process further packets. The fix makes use of
+	pselect() system call.
+	Thanks to Fulvio Scapin for reporting this issue.
+
 Porting:
 	In gcc version 10 the default changed from -fcommon to -fno-common.
 	Consequently, linking filan and procan failed with error

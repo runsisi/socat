@@ -858,6 +858,50 @@ int Select(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
    return result;
 }
 
+#if HAVE_PSELECT
+/* we only show the first word of the fd_set's; hope this is enough for most
+   cases. */
+int Pselect(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
+	    const struct timespec *timeout, const sigset_t *sigmask) {
+   int result, _errno;
+   if (!diag_in_handler) diag_flush();
+#if WITH_SYCLS
+#if HAVE_FDS_BITS
+   Debug8("pselect(%d, &0x%lx, &0x%lx, &0x%lx, %s%lu."F_tv_nsec", "F_sigset")",
+	  n, readfds?readfds->fds_bits[0]:0, writefds?writefds->fds_bits[0]:0,
+	  exceptfds?exceptfds->fds_bits[0]:0,
+	  timeout?"&":"NULL/", timeout?timeout->tv_sec:0,
+	  timeout?timeout->tv_nsec:0, *(T_sigset *)sigmask);
+#else
+   Debug8("pselect(%d, &0x%lx, &0x%lx, &0x%lx, %s%lu.%06u)",
+	  n, readfds?readfds->__fds_bits[0]:0, writefds?writefds->__fds_bits[0]:0,
+	  exceptfds?exceptfds->__fds_bits[0]:0,
+	  timeout?"&":"NULL/", timeout?timeout->tv_sec:0,
+	  timeout?timeout->tv_nsec:0);
+#endif
+#endif /* WITH_SYCLS */
+   result = pselect(n, readfds, writefds, exceptfds, timeout, sigmask);
+   _errno = errno;
+   if (!diag_in_handler) diag_flush();
+#if WITH_SYCLS
+#if HAVE_FDS_BITS
+   Debug5("pselect -> (, 0x%lx, 0x%lx, 0x%lx), "F_sigset", %d",
+	  readfds?readfds->fds_bits[0]:0, writefds?writefds->fds_bits[0]:0,
+	  exceptfds?exceptfds->fds_bits[0]:0, *(T_sigset *)sigmask,
+	  result);
+#else
+   Debug6("pselect -> (, 0x%lx, 0x%lx, 0x%lx), %d",
+	  readfds?readfds->__fds_bits[0]:0, writefds?writefds->__fds_bits[0]:0,
+	  exceptfds?exceptfds->__fds_bits[0]:0,
+	  result);
+#endif
+#endif /* WITH_SYCLS */
+   errno = _errno;
+
+   return result;
+}
+#endif /* HAVE_PSELECT */
+
 #if WITH_SYCLS
 
 pid_t Fork(void) {

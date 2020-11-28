@@ -627,6 +627,33 @@ typedef int sig_atomic_t;
 #endif
 
 /* default: long */
+#if !defined(HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC) || !HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC
+#  undef HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC
+#  define HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC 5
+#endif
+#ifndef F_tv_nsec
+#  if HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC==1
+#define F_tv_nsec "%09hd"
+#  elif HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC==2
+#define F_tv_nsec "%09hu"
+#  elif HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC==3
+#define F_tv_nsec "%09d"
+#  elif HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC==4
+#define F_tv_nsec "%09u"
+#  elif HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC==5
+#define F_tv_nsec "%09ld"
+#  elif HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC==6
+#define F_tv_nsec "%09lu"
+#  elif HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC==7
+#define F_tv_nsec "%09Ld"
+#  elif HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC==8
+#define F_tv_nsec "%09Lu"
+#  else
+#error "HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC is out of range:" HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC
+#  endif
+#endif
+
+/* default: long */
 #if !defined(HAVE_TYPEOF_RLIM_MAX) || !HAVE_TYPEOF_RLIM_MAX
 #  undef HAVE_TYPEOF_RLIM_MAX
 #  define HAVE_TYPEOF_RLIM_MAX 5
@@ -652,6 +679,10 @@ typedef int sig_atomic_t;
 #error "HAVE_TYPEOF_RLIM_MAX is out of range:" HAVE_TYPEOF_RLIM_MAX
 #  endif
 #endif
+
+/* sigset_t printing - not an exact solution yet */
+#define F_sigset "0x%4lx"
+typedef unsigned long T_sigset;
 
 /* default: socklen_t */
 #if !defined(HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN) || !HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN

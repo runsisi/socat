@@ -85,6 +85,8 @@ int Chmod(const char *path, mode_t mode);
 int Poll(struct pollfd *ufds, unsigned int nfds, int timeout);
 int Select(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
 	   struct timeval *timeout);
+int Pselect(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
+	    const struct timespec *timeout, const sigset_t *sigmask);
 #if WITH_SYCLS
 pid_t Fork(void);
 #endif /* WITH_SYCLS */

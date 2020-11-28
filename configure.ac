@@ -769,7 +769,7 @@ AC_PROG_GCC_TRADITIONAL
 AC_FUNC_MEMCMP
 AC_TYPE_SIGNAL
 AC_FUNC_STRFTIME
-AC_CHECK_FUNCS(putenv select poll socket strtod strtol)
+AC_CHECK_FUNCS(putenv select pselect poll socket strtod strtol)
 AC_CHECK_FUNCS(strtoul uname getpgid getsid gethostbyname getaddrinfo)
 AC_CHECK_FUNCS(setgroups inet_aton)
 AC_CHECK_FUNCS()
@@ -1850,6 +1850,8 @@ AC_TYPEOF_COMPONENT([#include <sys/stat.h>], struct stat64, st_blocks, HAVE_TYPE
 fi
 
 AC_TYPEOF_COMPONENT([#include <sys/time.h>], struct timeval, tv_usec, HAVE_TYPEOF_STRUCT_TIMEVAL_TV_USEC, sc_cv_type_struct_timeval_tv_usec)
+
+AC_TYPEOF_COMPONENT([#include <sys/time.h>], struct timespec, tv_nsec, HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC, sc_cv_type_struct_timespec_tv_nsec)
 
 AC_TYPEOF_COMPONENT([#include <sys/types.h>
 #include <sys/time.h>

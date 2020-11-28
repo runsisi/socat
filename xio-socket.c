@@ -1389,27 +1389,27 @@ int _xioopen_dgram_recvfrom(struct single *xfd, int xioflags,
       xfd->salen = palen;
 
       if (dofork) {
-	 sigset_t mask_sigchldusr1;
+	 sigset_t oldset, mask_sigchldusr1;
 
 	 /* we must prevent that the current packet triggers another fork;
 	    therefore we wait for a signal from the recent child: USR1
 	    indicates that is has consumed the last packet; CHLD means it has
 	    terminated */
 	 /* block SIGCHLD and SIGUSR1 until parent is ready to react */
-	 sigemptyset(&mask_sigchldusr1);
+	 Sigprocmask(SIG_BLOCK, NULL, &mask_sigchldusr1);
 	 sigaddset(&mask_sigchldusr1, SIGCHLD);
 	 sigaddset(&mask_sigchldusr1, SIGUSR1);
-	 Sigprocmask(SIG_BLOCK, &mask_sigchldusr1, NULL);
+	 Sigprocmask(SIG_SETMASK, &mask_sigchldusr1, &oldset);
 
 	 if ((pid = xio_fork(false, level)) < 0) {
 	    Close(xfd->fd);
-	    Sigprocmask(SIG_UNBLOCK, &mask_sigchldusr1, NULL);
+	    Sigprocmask(SIG_SETMASK, &oldset, NULL);
 	    return STAT_RETRYLATER;
 	 }
 
 	 if (pid == 0) {	/* child */
 	    /* no reason to block SIGCHLD in child process */
-	    Sigprocmask(SIG_UNBLOCK, &mask_sigchldusr1, NULL);
+	    Sigprocmask(SIG_SETMASK, &oldset, NULL);
 	    xfd->ppid = Getppid();	/* send parent a signal when packet has
 					   been consumed */
 
@@ -1431,12 +1431,21 @@ int _xioopen_dgram_recvfrom(struct single *xfd, int xioflags,
 
 	 /* server: continue loop with listen */
 	 xio_waitingfor = pid;
+
+#if HAVE_PSELECT
+	 {
+	    struct timespec timeout = { LONG_MAX, 0 };
+	    Pselect(0, NULL, NULL, NULL, &timeout, &oldset);
+	    Sigprocmask(SIG_SETMASK, &oldset, NULL);
+	 }
+#else /* ! HAVE_PSELECT */
 	 /* now we are ready to handle signals */
-	 Sigprocmask(SIG_UNBLOCK, &mask_sigchldusr1, NULL);
+	 Sigprocmask(SIG_SETMASK, &oldset, NULL);
 
 	 while (!xio_hashappened) {
-	    Sleep(UINT_MAX);	/* any signal lets us continue */
+	    Sleep(1);	/* any signal speeds up return */
 	 }
+#endif /* ! HAVE_PSELECT */
 	 xio_waitingfor = 0;	/* so this child will not set hashappened again */
 	 xio_hashappened = false;
 
