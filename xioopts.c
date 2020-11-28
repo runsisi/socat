@@ -1821,7 +1821,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
    unsigned long ulongval;
    long slongval;
    long long slonglongval;
-   char token[512], *tokp;  size_t len;
+   char token[2048], *tokp;  size_t len;
    int parsres;
    int result;
    char optbuf[256];  size_t optlen;

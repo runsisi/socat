@@ -39,6 +39,10 @@ Corrections:
 	Tests: UNIX_SENDTO_UNLINK UNIX_CONNECT_UNLINK
 	Thanks to Nico Williams for reporting this major issue.
 
+	Length of single address options was limited to 511 bytes. This value
+	is now increased to 2047 bytes.
+	Change suggested by Mario Camou.
+
 Porting:
 	In gcc version 10 the default changed from -fcommon to -fno-common.
 	Consequently, linking filan and procan failed with error
