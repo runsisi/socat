@@ -41,6 +41,12 @@ Testing:
 	Archlinux 2020 has not which command; its ip,ss commands have modified
 	version strings
 
+	More testing issues solved:
+	* ss to pipe might omit column separator
+	* UDP6MULTICAST_UNIDIR fails on newer Linux kernels
+	* do not use sort -V
+	* renamed testaddrs() to testfeats(), and introduced new testaddrs()
+
 ####################### V 1.7.3.4:
 
 Corrections:
