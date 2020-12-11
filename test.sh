@@ -13573,6 +13573,48 @@ esac
 N=$((N+1))
 
 
+# Currently (2020) SCTP has not found its way into main distributions
+# /etc/services file. A fallback mechanism has been implemented in Socat
+# that allows use of TCP service names when service resolution for SCTP failed.
+# Furthermore, older getaddrinfo() implementations to not handle SCTP as SOCK_STREAM
+# at all, fall back to unspecified socktype then.
+NAME=SCTP_SERVICENAME
+case "$TESTS" in
+*%$N%*|*%functions%*|*%socket%*|*%sctp%*|*%$NAME%*)
+TEST="$NAME: Service name resolution works with SCTP"
+# invoke socat with address SCTP4-CONNECT:$LOCALHOST:http; when this does fails with
+# "Connection refused", or does not fail at all, the test succeeded
+if ! eval $NUMCOND; then :;
+elif ! runssctp4 "$((PORT))" >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}SCTP4 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+CMD0="$TRACE $SOCAT $opts -u /dev/null SCTP4-CONNECT:$LOCALHOST:http"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0"
+if [ $? -eq 0 ]; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+elif grep -q "Connection refused" ${te}0; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0"
+    cat "${te}0"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
+esac
+N=$((N+1))
+
+
 ##################################################################################
 #=================================================================================
 # here come tests that might affect your systems integrity. Put normal tests

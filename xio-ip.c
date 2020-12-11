@@ -202,9 +202,6 @@ int xiogetaddrinfo(const char *node, const char *service,
    if (node != NULL || service != NULL) {
       struct addrinfo *record;
 
-      /* here was code that helped SCTP to use service names.
-	 If you need this feature enhance your /etc/services with sctp entries */
-
       hints.ai_flags |= AI_PASSIVE;
       hints.ai_family = family;
       hints.ai_socktype = socktype;
@@ -214,7 +211,19 @@ int xiogetaddrinfo(const char *node, const char *service,
       hints.ai_canonname = NULL;
       hints.ai_next = NULL;
 
-      if ((error_num = Getaddrinfo(node, service, &hints, &res)) != 0) {
+      do {
+	error_num = Getaddrinfo(node, service, &hints, &res);
+	if (error_num == 0)  break;
+	if (error_num == EAI_SOCKTYPE && socktype != 0) {
+	   /* there are systems where kernel goes SCTP but not getaddrinfo() */
+	   hints.ai_socktype = 0;
+	   continue;
+	}
+	if (error_num == EAI_SERVICE && protocol != 0) {
+	   hints.ai_protocol = 0;
+	   continue;
+	}
+	if (error_num != 0) {
 	 Error7("getaddrinfo(\"%s\", \"%s\", {%d,%d,%d,%d}, {}): %s",
 		node?node:"NULL", service?service:"NULL",
 		hints.ai_flags, hints.ai_family,
@@ -231,7 +240,8 @@ int xiogetaddrinfo(const char *node, const char *service,
 	 }
 #endif
 	 return STAT_RETRYLATER;
-      }
+	}
+      } while (1);
       service = NULL;	/* do not resolve later again */
 
       record = res;

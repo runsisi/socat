@@ -32,6 +32,12 @@ Porting:
 	Added configure option --enable-openssl-base to specify the location of
 	a non-OS OpenSSL installation
 
+	There are systems whose kernel understands SCTP but getaddrinfo does
+	not. As workaround after EIA_SOCKTYPE on name and service resolution
+	fall back to ai_socktype=0; if it fails with EAI_SERVICE, set
+	ai_protocol=0 and try again
+	Test: SCTP_SERVICENAME
+
 Testing:
 	test.sh now produces a list of tests that could not be performed for
 	any reason. This helps to analyse these cases.
