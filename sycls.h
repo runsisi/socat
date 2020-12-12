@@ -134,7 +134,6 @@ int Shutdown(int fd, int how);
 #endif /* _WITH_SOCKET */
 #if WITH_SYCLS
 unsigned int Sleep(unsigned int seconds);
-void Usleep(unsigned long usec);
 unsigned int Nanosleep(const struct timespec *req, struct timespec *rem);
 int Pause(void);
 struct hostent *Gethostbyname(const char *name);
@@ -242,7 +241,6 @@ void Add_history(const char *string);
 #define Setsockopt(s,d,n,v,l) setsockopt(s,d,n,v,l)
 #define Shutdown(f,h) shutdown(f,h)
 #define Sleep(s) sleep(s)
-#define Usleep(u) usleep(u)
 #define Nanosleep(req,rem) nanosleep(req,rem)
 #define Pause() pause()
 #define Gethostbyname(n) gethostbyname(n)

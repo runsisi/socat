@@ -1329,14 +1329,6 @@ unsigned int Sleep(unsigned int seconds) {
    return retval;
 }
 
-/* obsolete by POSIX.1-2001 */
-void Usleep(unsigned long usec) {
-   Debug1("usleep(%lu)", usec);
-   usleep(usec);
-   Debug("usleep() ->");
-   return;
-}
-
 #if HAVE_NANOSLEEP
 unsigned int Nanosleep(const struct timespec *req, struct timespec *rem) {
    int retval, _errno;
