@@ -423,6 +423,9 @@ enum e_optcode {
    OPT_IP_ROUTER_ALERT,
 #endif
    OPT_IP_TOS,
+#ifdef IP_TRANSPARENT
+   OPT_IP_TRANSPARENT,
+#endif
    OPT_IP_TTL,
    OPT_ISIG,		/* termios.c_lflag */
    OPT_ISPEED,		/* termios.c_ispeed */

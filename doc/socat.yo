@@ -2116,6 +2116,10 @@ dit(bf(tt(ip-multicast-loop=<bool>)))
 label(OPTION_IP_MULTICAST_TTL)
 dit(bf(tt(ip-multicast-ttl=<byte>)))
    Sets the TTL used for outgoing multicast traffic. Default is 1.
+label(OPTOIN_IP_TRANSPARENT)
+dit(bf(tt(ip-transparent)))
+   Sets the IP_TRANSPARENT socket option.
+   This option might require root privilege.
 label(OPTION_RES_DEBUG)dit(bf(tt(res-debug)))
 label(OPTION_RES_AAONLY)dit(bf(tt(res-aaonly)))
 label(OPTION_RES_USEVC)dit(bf(tt(res-usevc)))

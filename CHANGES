@@ -142,6 +142,9 @@ New features:
 	Added options -r and -R for raw dump of transferred data to files.
 	Test: OPTION_RAW_DUMP
 
+	Added option ip-transparent (socket option IP_TRANSPARENT)
+	Thanks to Wang Shanker for sending a patch.
+
 ####################### V 1.7.3.4:
 
 Corrections:

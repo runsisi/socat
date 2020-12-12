@@ -719,6 +719,9 @@ const struct optname optionnames[] = {
 	IF_IP     ("ip-router-alert",	&opt_ip_router_alert)
 #endif
 	IF_IP     ("ip-tos",	&opt_ip_tos)
+#ifdef IP_TRANSPARENT
+	IF_IP     ("ip-transparent",    &opt_ip_transparent)
+#endif
 	IF_IP     ("ip-ttl",	&opt_ip_ttl)
 #ifdef IP_FREEBIND
 	IF_IP     ("ipfreebind",	&opt_ip_freebind)
@@ -1691,6 +1694,9 @@ const struct optname optionnames[] = {
 #endif
 	IF_IP     ("tos",	&opt_ip_tos)
 	IF_TERMIOS("tostop",	&opt_tostop)
+#ifdef IP_TRANSPARENT
+	IF_IP     ("transparent",    &opt_ip_transparent)
+#endif
 	IF_OPEN   ("trunc",	&opt_o_trunc)
 #if HAVE_FTRUNCATE64
 	IF_ANY    ("truncate",	&opt_ftruncate64)

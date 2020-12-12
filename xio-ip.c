@@ -50,6 +50,9 @@ const struct optdesc opt_ip_mtu_discover={"ip-mtu-discover","mtudiscover",OPT_IP
 #ifdef IP_MTU
 const struct optdesc opt_ip_mtu     = { "ip-mtu",     "mtu",       OPT_IP_MTU,     GROUP_SOCK_IP, PH_PASTSOCKET, TYPE_INT, OFUNC_SOCKOPT, SOL_IP, IP_MTU };
 #endif
+#ifdef IP_TRANSPARENT
+const struct optdesc opt_ip_transparent = {"ip-transparent", "transparent", OPT_IP_TRANSPARENT, GROUP_SOCK_IP, PH_PREBIND, TYPE_BOOL, OFUNC_SOCKOPT, SOL_IP, IP_TRANSPARENT};
+#endif
 #ifdef IP_FREEBIND
 const struct optdesc opt_ip_freebind= { "ip-freebind","freebind",  OPT_IP_FREEBIND,GROUP_SOCK_IP, PH_PASTSOCKET, TYPE_INT, OFUNC_SOCKOPT, SOL_IP, IP_FREEBIND };
 #endif

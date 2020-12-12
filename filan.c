@@ -745,6 +745,9 @@ int ipan(int fd, FILE *outfile) {
 #ifdef IP_RECVTOS
       {IP_RECVTOS,      "IP_RECVTOS"},
 #endif
+#ifdef IP_TRANSPARENT
+      {IP_TRANSPARENT,  "IP_TRANSPARENT"},
+#endif
 #ifdef IP_MTU
       {IP_MTU,          "IP_MTU"},
 #endif

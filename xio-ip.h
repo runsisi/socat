@@ -26,6 +26,7 @@ extern const struct optdesc opt_ip_pktoptions;
 extern const struct optdesc opt_ip_add_membership;
 extern const struct optdesc opt_ip_recvdstaddr;
 extern const struct optdesc opt_ip_recvif;
+extern const struct optdesc opt_ip_transparent;
 
 extern const struct optdesc opt_res_debug;
 extern const struct optdesc opt_res_aaonly;
