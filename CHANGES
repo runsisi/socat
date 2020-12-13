@@ -186,6 +186,10 @@ Documentation:
 	Address UDP-RECV does not support option fork.
 	Thanks to Fulvio Scapin for reporting that mistake in docu.
 
+	TUN address documentation showed TCP for backend which may merge
+	consecutive packets which causes data loss.
+	Thanks to Tomasz Lakota for reporting this issue.
+
 ####################### V 1.7.3.4:
 
 Corrections:

@@ -1047,7 +1047,10 @@ label(ADDRESS_TUN)dit(bf(tt(TUN[:<if-addr>/<bits>])))
    ready for use by other processes; socat serves its "wire side". This address
    requires read and write access to the tunnel cloning device, usually
    code(/dev/net/tun), as well as permission to set some tt(ioctl()s).
-   bf(Option iff-up is required to immediately activate the interface!)nl() 
+   bf(Option iff-up is required to immediately activate the interface!)nl()
+   Note: If you intend to transfer packets between two Socat "wire sides" you
+   need a protocol that keeps packet boundaries, e.g.UDP; TCP might work with
+   option link(nodelay)(OPTION_TCP_NODELAY).nl()
    Option groups: link(FD)(GROUP_FD),link(NAMED)(GROUP_NAMED),link(OPEN)(GROUP_OPEN),link(TUN)(GROUP_TUN) nl()
    Useful options:
    link(iff-up)(OPTION_IFF_UP),
@@ -2223,7 +2226,7 @@ label(GROUP_TCP)em(bf(TCP option group))
 
 These options may be applied to TCP sockets. They work by invoking code(setsockopt()) with the appropriate parameters.
 startdit()
-label(OPTION_CORK)dit(bf(tt(cork)))
+label(OPTION_TCP_CORK)dit(bf(tt(cork)))
    Doesn't send packets smaller than MSS (maximal segment size).
 label(OPTION_DEFER-ACCEPT)dit(bf(tt(defer-accept)))
    While listening, accepts connections only when data from the peer arrived.
@@ -2247,7 +2250,7 @@ label(OPTION_MSS)dit(bf(tt(mss=<bytes>)))
 label(OPTION_MSS_LATE)dit(bf(tt(mss-late=<bytes>)))
    Sets the MSS of the socket after connection has been established to <bytes>
    [link(int)(TYPE_INT)].
-label(OPTION_NODELAY)dit(bf(tt(nodelay)))
+label(OPTION_TCP_NODELAY)dit(bf(tt(nodelay)))
    Turns off the Nagle algorithm for measuring the RTT (round trip time).
 label(OPTION_RFC1323)dit(bf(tt(rfc1323)))
    Enables RFC1323 TCP options: TCP window scale, round-trip time measurement
@@ -3475,13 +3478,13 @@ operating system, bridges, or a badly configured switch.
 
 
 label(EXAMPLE_ADDRESS_TUN)
-dit(bf(tt(socat TCP:host2:4443 TUN:192.168.255.1/24,up)))
+dit(bf(tt(socat UDP:host2:4443 TUN:192.168.255.1/24,up)))
 
 establishes one side of a virtual (but not private!) network with host2 where a
 similar process might run, with UDP-L and tun address 192.168.255.2. They can
 reach each other using the addresses 192.168.255.1 and 192.168.255.2. Note that
-streaming eg. via TCP or SSL does not guarantee to retain packet boundaries and
-may thus cause packet loss.
+streaming eg.via TCP or SSL does not guarantee to retain packet boundaries and
+might thus cause packet loss.
 
 
 label(EXAMPLE_ADDRESS_VSOCK)
