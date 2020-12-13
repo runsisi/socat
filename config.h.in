@@ -379,6 +379,9 @@
 /* Define if you have struct ipv6_mreq */
 #undef HAVE_STRUCT_IPV6_MREQ
 
+/* Define if you have struct ip_mreq_source */
+#undef HAVE_STRUCT_IP_MREQ_SOURCE
+
 /* Define if you have struct ifreq */
 #undef HAVE_STRUCT_IFREQ
 

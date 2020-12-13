@@ -354,6 +354,13 @@ union integral {
 #endif
    } u_ip_mreq;
 #endif
+#if HAVE_STRUCT_IP_MREQ_SOURCE
+   struct {
+      char *mcaddr;
+      char *ifaddr;	/* address, interface */
+      char *srcaddr;	/* source address */
+   } u_ip_mreq_source;
+#endif
 #if WITH_IP4
    struct in_addr  u_ip4addr;
 #endif

@@ -155,6 +155,9 @@ New features:
 	Test: ACCEPTTIMEOUT
 	Proposed by Roland
 
+	New option ip-add-source-membership
+	Feature inspired by Brian (b f31415)
+
 ####################### V 1.7.3.4:
 
 Corrections:

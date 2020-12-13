@@ -394,6 +394,7 @@ label(ADDRESS_IP_DATAGRAM)dit(bf(tt(IP-DATAGRAM:<address>:<protocol>)))
    link(ip-multicast-ttl)(OPTION_IP_MULTICAST_TTL),
    link(ip-multicast-if)(OPTION_IP_MULTICAST_IF),
    link(ip-add-membership)(OPTION_IP_ADD_MEMBERSHIP),
+   link(ip-add-source-membership)(OPTION_IP_ADD_SOURCE_MEMBERSHIP),
    link(ttl)(OPTION_TTL),
    link(tos)(OPTION_TOS),
    link(pf)(OPTION_PROTOCOL_FAMILY)nl()
@@ -1101,6 +1102,7 @@ label(ADDRESS_UDP_DATAGRAM)dit(bf(tt(UDP-DATAGRAM:<address>:<port>)))
    link(ip-multicast-ttl)(OPTION_IP_MULTICAST_TTL),
    link(ip-multicast-if)(OPTION_IP_MULTICAST_IF),
    link(ip-add-membership)(OPTION_IP_ADD_MEMBERSHIP),
+   link(ip-add-source-membership)(OPTION_IP_ADD_SOURCE_MEMBERSHIP),
    link(ttl)(OPTION_TTL),
    link(tos)(OPTION_TOS),
    link(sourceport)(OPTION_SOURCEPORT),
@@ -2108,6 +2110,11 @@ dit(bf(tt(ip-add-membership=<multicast-address:interface-address:interface-index
    provide tt(struct mreqn) (Linux).nl()
    The indices of active network interfaces can be shown using the utility
    procan().
+label(OPTION_IP_ADD_SOURCE_MEMBERSHIP)
+dit(bf(tt(ip-add-source-membership=<multicast-address:interface-address:source-address>)))
+   Makes the socket member of the specified multicast group for the specified
+   source, i.e. only multicast traffic from this address is to be delivered.
+   This is currently only implemented for IPv4.nl()
 label(OPTION_IP_MULTICAST_IF)
 dit(bf(tt(ip-multicast-if=<hostname>)))
    Specifies hostname or address of the network interface to be used for

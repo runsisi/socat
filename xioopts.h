@@ -73,8 +73,11 @@ enum e_types {
 #if HAVE_STRUCT_IP_MREQ || HAVE_STRUCT_IP_MREQN
    TYPE_IP_MREQN,	/* for  struct ip_mreq  or  struct ip_mreqn */
 #endif
+#if HAVE_STRUCT_IP_MREQ_SOURCE
+   TYPE_IP_MREQ_SOURCE,	/* for  struct ip_mreq_source */
+#endif
 
-   TYPE_GENERIC, 	/* type is determined from (text) data provided */
+   TYPE_GENERIC, 	/* type is determined from (text) data provided (dalan syntax) */
 } ;
 
 enum e_func {
@@ -380,6 +383,7 @@ enum e_optcode {
    OPT_IOCTL_STRING,	/* generic ioctl with integer value (pointed to) */
    OPT_IOCTL_VOID,	/* generic ioctl without value */
    OPT_IP_ADD_MEMBERSHIP,
+   OPT_IP_ADD_SOURCE_MEMBERSHIP,
 #ifdef IP_HDRINCL
    OPT_IP_HDRINCL,
 #endif

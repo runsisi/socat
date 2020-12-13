@@ -24,6 +24,7 @@ extern const struct optdesc opt_ip_multicast_loop;
 extern const struct optdesc opt_ip_multicast_if;
 extern const struct optdesc opt_ip_pktoptions;
 extern const struct optdesc opt_ip_add_membership;
+extern const struct optdesc opt_ip_add_source_membership;
 extern const struct optdesc opt_ip_recvdstaddr;
 extern const struct optdesc opt_ip_recvif;
 extern const struct optdesc opt_ip_transparent;
@@ -48,5 +49,7 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
 			char *nambuff, int namlen,
 			char *envbuff, int envlen,
 			char *valbuff, int vallen);
+extern int xiotype_ip_add_source_membership(char* token, const struct optname *ent, struct opt *opt);
+extern int xioapply_ip_add_source_membership(struct single *xfd, struct opt *opt);
 
 #endif /* !defined(__xio_ip_h_included) */

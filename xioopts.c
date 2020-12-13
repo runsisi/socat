@@ -7,6 +7,7 @@
 #include "xiosysincludes.h"
 #include "xioopen.h"
 #include "xio-unix.h"
+#include "xio-ip.h"
 
 #include "xiomodes.h"
 #include "xiolockfile.h"
@@ -156,6 +157,9 @@ const struct optname optionnames[] = {
 #endif /* SO_ACCEPTCONN */
 #ifdef IP_ADD_MEMBERSHIP
 	IF_IP     ("add-membership",	&opt_ip_add_membership)
+#endif
+#ifdef IP_ADD_SOURCE_MEMBERSHIP
+	IF_IP     ("add-source-membership",	&opt_ip_add_source_membership)
 #endif
 	IF_TUN    ("allmulti",	&opt_iff_allmulti)
 #if WITH_LIBWRAP && defined(HAVE_HOSTS_ALLOW_TABLE)
@@ -667,6 +671,9 @@ const struct optname optionnames[] = {
 	IF_ANY    ("ioctl-void",	&opt_ioctl_void)
 #ifdef IP_ADD_MEMBERSHIP
 	IF_IP     ("ip-add-membership",	&opt_ip_add_membership)
+#endif
+#ifdef IP_ADD_SOURCE_MEMBERSHIP
+	IF_IP     ("ip-add-source-membership",	&opt_ip_add_source_membership)
 #endif
 #ifdef IP_FREEBIND
 	IF_IP     ("ip-freebind",	&opt_ip_freebind)
@@ -1547,6 +1554,9 @@ const struct optname optionnames[] = {
 	IF_SOCKS4 ("socksport",	&opt_socksport)
 	IF_SOCKS4 ("socksuser",	&opt_socksuser)
 	IF_SOCKET ("socktype",	&opt_so_type)
+#ifdef IP_ADD_SOURCE_MEMBERSHIP
+	IF_IP     ("source-membership",	&opt_ip_add_source_membership)
+#endif
 	IF_IPAPP  ("sourceport",	&opt_sourceport)
 	IF_IPAPP  ("sp",	&opt_sourceport)
 	IF_TERMIOS("start",	&opt_vstart)
@@ -2487,6 +2497,10 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	 }
 	 break;
 #endif /* defined(HAVE_STRUCT_IP_MREQ) || defined (HAVE_STRUCT_IP_MREQN) */
+
+      case TYPE_IP_MREQ_SOURCE:
+	 xiotype_ip_add_source_membership(token, ent, opt);
+	 break;
 
 #if WITH_IP4
       case TYPE_IP4NAME:
@@ -4057,7 +4071,13 @@ mc:addr
 	   break;
 #endif /* WITH_IP4 && (defined(HAVE_STRUCT_IP_MREQ) || defined (HAVE_STRUCT_IP_MREQN)) */
 
-
+#if WITH_IP4 && defined(HAVE_STRUCT_IP_MREQ_SOURCE) && defined(IP_ADD_SOURCE_MEMBERSHIP)
+	 case OPT_IP_ADD_SOURCE_MEMBERSHIP:
+	    if (xioapply_ip_add_source_membership(xfd, opt) < 0) {
+	       continue;
+	    }
+	   break;
+#endif /* WITH_IP4 && defined(HAVE_STRUCT_IP_MREQ_SOURCE) && defined(IP_ADD_SOURCE_MEMBERSHIP) */
 
 #if WITH_IP6 && defined(HAVE_STRUCT_IPV6_MREQ)
 	 case OPT_IPV6_JOIN_GROUP:
