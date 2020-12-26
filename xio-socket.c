@@ -1128,6 +1128,8 @@ static pid_t xio_waitingfor;	/* info from recv loop to signal handler:
 				   that should send us the USR1 signal */
 static bool xio_hashappened;	/* info from signal handler to loop: child
 				   process has read ("consumed") the packet */
+static int xio_childstatus;
+
 /* this is the signal handler for USR1 and CHLD */
 void xiosigaction_hasread(int signum
 #if HAVE_STRUCT_SIGACTION_SA_SIGACTION && defined(SA_SIGINFO)
@@ -1179,6 +1181,7 @@ void xiosigaction_hasread(int signum
 	 }
 	 if (pid == xio_waitingfor) {
 	    xio_hashappened = true;
+            xio_childstatus = WEXITSTATUS(status);
 	    Debug("xiosigaction_hasread() ->");
 	    diag_in_handler = 0;
 	    errno = _errno;
@@ -1480,6 +1483,12 @@ int _xioopen_dgram_recvfrom(struct single *xfd, int xioflags,
 	 xio_waitingfor = 0;	/* so this child will not set hashappened again */
 	 xio_hashappened = false;
 
+         if (xio_childstatus != 0) {
+             char buff[512];
+             Recv(xfd->fd, buff, sizeof(buff), 0);
+             xio_childstatus = 0;
+             Info("drop data because of child exit failed");
+         }
 	 Info("continue listening");
       } else {
 	break;

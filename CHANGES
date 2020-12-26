@@ -43,6 +43,13 @@ Corrections:
 	is now increased to 2047 bytes.
 	Change suggested by Mario Camou.
 
+	Addresses of type RECVFROM with option fork looped with an error
+	message in case that the second address failed before consuming the
+	packet. The fix makes RECVFROM drop the packet when the second address
+	failed before reading it. Use retry or forever option with the second
+	address if you want to avoid data loss.
+	Thanks to Chunmei Xu for reporting this issue and proving the patch.
+
 Porting:
 	In gcc version 10 the default changed from -fcommon to -fno-common.
 	Consequently, linking filan and procan failed with error

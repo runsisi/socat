@@ -419,6 +419,7 @@ label(ADDRESS_IP_RECVFROM)dit(bf(tt(IP-RECVFROM:<protocol>)))
    This address works well with IP-SENDTO address peers (see above).
    Protocol 255 uses the raw socket with the IP header being part of the
    data.nl()
+   See the link(note about RECVFROM addresses)(NOTE_RECVFROM).nl()
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4),link(IP6)(GROUP_IP6),link(CHILD)(GROUP_CHILD),link(RANGE)(GROUP_RANGE) nl()
    Useful options:
    link(pf)(OPTION_PROTOCOL_FAMILY),
@@ -790,6 +791,7 @@ label(ADDRESS_SOCKET_RECVFROM)dit(bf(tt(SOCKET-RECVFROM:<domain>:<type>:<protoco
    to find the appropriate values. The local-address must be the
    link(data)(TYPE_DATA) representation of a sockaddr structure without
    sa_family and (BSD) sa_len components.nl()
+   See the link(note about RECVFROM addresses)(NOTE_RECVFROM).nl()
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(CHILD)(GROUP_CHILD),link(RANGE)(GROUP_RANGE)nl()
    Useful options:
    link(fork)(OPTION_FORK),
@@ -1113,11 +1115,15 @@ label(ADDRESS_UDP_RECVFROM)dit(bf(tt(UDP-RECVFROM:<port>)))
    UDP/IP version 4 or 6 
    depending on option link(pf)(OPTION_PROTOCOL_FAMILY).
    It receives one packet from an unspecified peer and may send one or more
-   answer packets to that peer. This mode is particularly useful with fork
-   option 
+   answer packets to that peer. This mode is particularly useful with
+   link(fork)(OPTION_FORK) option 
    where each arriving packet - from arbitrary peers - is handled by its own sub
    process. This allows a behaviour similar to typical UDP based servers like ntpd
    or named. This address works well with socat UDP-SENDTO address peers.nl()
+   label(NOTE_RECVFROM)Note: When the second address fails before entering the transfer loop the
+   packet is dropped. Use option link(retry)(OPTION_RETRY) or
+   link(forever)(OPTION_FOREVER) on the second address to avoid data loss.
+   nl()
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4),link(IP6)(GROUP_IP6),link(CHILD)(GROUP_CHILD),link(RANGE)(GROUP_RANGE) nl()
    Useful options:
    link(fork)(OPTION_FORK),
@@ -1233,6 +1239,7 @@ label(ADDRESS_UNIX_RECVFROM)dit(bf(tt(UNIX-RECVFROM:<filename>)))
    This mode is particularly useful with fork option where each arriving packet - from arbitrary peers - is handled by its own sub process.
    This address works well with socat UNIX-SENDTO address peers.nl()
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(NAMED)(GROUP_NAMED),link(CHILD)(GROUP_CHILD),link(UNIX)(GROUP_SOCK_UNIX) nl()
+   See the link(note about RECVFROM addresses)(NOTE_RECVFROM).nl()
    Useful options:
    link(fork)(OPTION_FORK)nl()
    See also:
@@ -2310,7 +2317,8 @@ label(OPTION_FORK)dit(bf(tt(fork)))
    child:
    OPENSSL-LISTEN forks em(before) the SSL handshake, while OPENSSL-CONNECT
    forks em(afterwards).
-   RETRY and FOREVER options are not inherited by the child process.nl()
+   link(retry)(OPTION_RETRY) and link(forever)(OPTION_FOREVER) options are not
+   inherited by the child process.nl()
    On some operating systems (e.g. FreeBSD) this option does not work for
    UDP-LISTEN addresses.nl()
 enddit()
