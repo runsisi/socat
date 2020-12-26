@@ -307,6 +307,12 @@ const struct addrname addressnames[] = {
    { "unix-send",	&xioaddr_unix_sendto },
    { "unix-sendto",	&xioaddr_unix_sendto },
 #endif
+#if WITH_VSOCK
+   { "vsock-connect",	&addr_vsock_connect },
+#endif
+#if WITH_VSOCK && WITH_LISTEN
+   { "vsock-listen",	&addr_vsock_listen },
+#endif
 #else /* !0 */
 #  if WITH_INTEGRATE
 #    include "xiointegrate.c"

@@ -152,6 +152,18 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
    applyopts_offset(xfd, opts);
    applyopts_cloexec(xfd->fd, opts);
 
+#if defined(WITH_VSOCK) && defined(IOCTL_VM_SOCKETS_GET_LOCAL_CID)
+   {
+      unsigned int cid;
+      if (Ioctl(xfd->fd, IOCTL_VM_SOCKETS_GET_LOCAL_CID, &cid) < 0) {
+	 Warn2("ioctl(%d, IOCTL_VM_SOCKETS_GET_LOCAL_CID, ...): %s",
+	       xfd->fd, strerror(errno));
+      } else {
+	 Notice1("VSOCK CID=%u", cid);
+      }
+   }
+#endif
+
    applyopts(xfd->fd, opts, PH_PREBIND);
    applyopts(xfd->fd, opts, PH_BIND);
    if (Bind(xfd->fd, (struct sockaddr *)us, uslen) < 0) {

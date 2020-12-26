@@ -528,6 +528,11 @@ void socat_version(FILE *fd) {
 #else
    fputs("  #undef WITH_SOCKS4A\n", fd);
 #endif
+#ifdef WITH_VSOCK
+   fprintf(fd, "  #define WITH_VSOCK %d\n", WITH_VSOCK);
+#else
+   fputs("  #undef WITH_VSOCK\n", fd);
+#endif
 #ifdef WITH_PROXY
    fprintf(fd, "  #define WITH_PROXY %d\n", WITH_PROXY);
 #else

@@ -35,6 +35,7 @@ done
 opt_t="-t $val_t"
 
 UNAME=`uname`
+UNAME_R=`uname -r`
 
 #MICROS=100000
 case "X$val_t" in
@@ -14583,6 +14584,62 @@ fi
 kill $pid 2>/dev/null
 wait
 fi ;; # NUMCOND, feats
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
+# Test communication via vsock loopback socket
+NAME=VSOCK_ECHO
+case "$TESTS" in
+*%$N%*|*%functions%*|*%vsock%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: test communication via vsock loopback socket"
+# Start a listening echo server
+# Connect with a client, send data and compare reply with original data
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts VSOCK-LISTEN:$PORT PIPE"
+CMD1="$TRACE $SOCAT $opts - VSOCK-CONNECT:1:$PORT"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+sleep 1
+echo "$da" |$CMD1 >"${tf}1" 2>"${te}1"
+rc1=$?
+kill $pid0 2>/dev/null; wait
+if [ $rc1 -ne 0 ] &&  [ "$UNAME" != Linux ]; then
+    $PRINTF "${YELLOW}works only on Linux?${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif [ $rc1 -ne 0 ] && [ "$UNAME" = Linux ] && ! [[ $UNAME_R =~ ^[6-9]\.* ]] && ! [[ $UNAME_R =~ ^5\.[6-]\.* ]] && ! [[ $UNAME_R =~ ^5\.[1-9][0-9].* ]]; then
+    $PRINTF "${YELLOW}works only on Linux from 5.6${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif [ $rc1 -ne 0 ]; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &" >&2
+    cat "${te}0" >&2
+    echo "$CMD1" >&2
+    cat "${te}1" >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+elif echo "$da" |diff - ${tf}1 >${tfdiff}$N; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &" >&2
+    cat "${te}0" >&2
+    echo "$CMD1" >&2
+    cat "${te}1" >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
 esac
 PORT=$((PORT+1))
 N=$((N+1))

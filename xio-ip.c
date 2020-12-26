@@ -167,6 +167,17 @@ int xiogetaddrinfo(const char *node, const char *service,
    if (service && service[0]=='\0') {
       Error("empty port/service");
    }
+
+#ifdef WITH_VSOCK
+   if (family == AF_VSOCK) {
+      error_num = sockaddr_vm_parse(&sau->vm, node, service);
+      if (error_num < 0)
+         return STAT_NORETRY;
+
+      return STAT_OK;
+   }
+#endif /* WITH_VSOCK */
+
    /* if service is numeric we don't want to have a lookup (might take long
       with NIS), so we handle this specially */
    if (service && isdigit(service[0]&0xff)) {

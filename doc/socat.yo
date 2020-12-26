@@ -1352,6 +1352,37 @@ label(ADDRESS_UNIX_CLIENT)dit(bf(tt(UNIX-CLIENT:<filename>)))
    link(UNIX-SENDTO)(ADDRESS_UNIX_SENDTO),
    link(GOPEN)(ADDRESS_GOPEN)
 
+label(ADDRESS_VSOCK_CONNECT)dit(bf(tt(VSOCK-CONNECT:<cid>:<port>)))
+   Establishes a VSOCK stream connection to the specified <cid> [link(VSOCK
+   cid)(TYPE_VSOCK_ADDRESS)] and <port> [link(VSOCK port)(TYPE_VSOCK_PORT)].nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(CHILD)(GROUP_CHILD),link(RETRY)(GROUP_RETRY) nl()
+   Useful options:
+   link(bind)(OPTION_BIND),
+   link(pf)(OPTION_PROTOCOL_FAMILY),
+   link(connect-timeout)(OPTION_CONNECT_TIMEOUT),
+   link(retry)(OPTION_RETRY),
+   link(readbytes)(OPTION_READBYTES)nl()
+   See also:
+   link(VSOCK-LISTEN)(ADDRESS_VSOCK_LISTEN),
+
+label(ADDRESS_VSOCK_LISTEN)dit(bf(tt(VSOCK-LISTEN:<port>)))
+   Listens on <port> [link(VSOCK port)(TYPE_VSOCK_PORT)] and accepts a
+   VSOCK connection.
+   Note that opening this address usually blocks until a client connects.nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(LISTEN)(GROUP_LISTEN),link(CHILD)(GROUP_CHILD),link(RETRY)(GROUP_RETRY) nl()
+   Useful options:
+   link(fork)(OPTION_FORK),
+   link(bind)(OPTION_BIND),
+   link(pf)(OPTION_PROTOCOL_FAMILY),
+   link(max-children)(OPTION_MAX_CHILDREN),
+   link(backlog)(OPTION_BACKLOG),
+   link(su)(OPTION_SUBSTUSER),
+   link(reuseaddr)(OPTION_REUSEADDR),
+   link(retry)(OPTION_RETRY),
+   link(cool-write)(OPTION_COOL_WRITE)nl()
+   See also:
+   link(VSOCK-CONNECT)(ADDRESS_VSOCK_CONNECT)
+
 dit(bf(tt(ABSTRACT-CONNECT:<string>)))
 dit(bf(tt(ABSTRACT-LISTEN:<string>)))
 dit(bf(tt(ABSTRACT-SENDTO:<string>)))
@@ -1885,7 +1916,8 @@ label(OPTION_BIND)dit(bf(tt(bind=<sockname>)))
    Binds the socket to the given socket address using the code(bind()) system
    call. The form of <sockname> is socket domain dependent:
    IP4 and IP6 allow the form [hostname|hostaddress][:(service|port)] (link(example)(EXAMPLE_OPTION_BIND_TCP4)),
-   unixdomain() sockets require link(<filename>)(TYPE_FILENAME).
+   unixdomain() sockets require link(<filename>)(TYPE_FILENAME),
+   VSOCK allow the form [cid][:(port)].
 label(OPTION_CONNECT_TIMEOUT)dit(bf(tt(connect-timeout=<seconds>)))
    Abort the connection attempt after <seconds> [link(timeval)(TYPE_TIMEVAL)]
    with error status.
@@ -3041,6 +3073,14 @@ label(TYPE_USER)dit(user)
    If the first character is a decimal digit, the value is read with
    code(strtoul()) as unsigned integer specifying a user id. Otherwise, it must
    be an existing user name.
+label(TYPE_VSOCK_ADDRESS)dit(VSOCK cid)
+   A uint32_t (32 bit unsigned number) specifying a VSOCK Context Identifier
+   (CID), read with code(strtoul()).
+   There are several special addresses: VMADDR_CID_ANY (-1U) means any address
+   for binding; VMADDR_CID_HOST (2) is the well-known address of the host.
+label(TYPE_VSOCK_PORT)dit(VSOCK port)
+   A uint32_t (32 bit unsigned number) specifying a VSOCK port, read
+   with code(strtoul()).
 enddit()
 
 
@@ -3442,6 +3482,45 @@ similar process might run, with UDP-L and tun address 192.168.255.2. They can
 reach each other using the addresses 192.168.255.1 and 192.168.255.2. Note that
 streaming eg. via TCP or SSL does not guarantee to retain packet boundaries and
 may thus cause packet loss.
+
+
+label(EXAMPLE_ADDRESS_VSOCK)
+dit(bf(tt(socat - VSOCK-CONNECT:2:1234)))
+
+establishes a VSOCK connection with the host (host is always reachable with
+the well-know CID=2) on 1234 port.
+
+
+dit(bf(tt(socat - VSOCK-LISTEN:1234)))
+
+listens for a VSOCK connection on 1234 port.
+
+
+dit(bf(tt(socat - VSOCK-CONNECT:31:4321,bind:5555)))
+
+establishes a VSOCK connection with the guest that have CID=31 on 1234 port,
+binding the local socket to the 5555 port.
+
+
+dit(bf(tt(socat VSOCK-LISTEN:3333,reuseaddr,fork VSOCK-CONNECT:42,3333)))
+
+starts a forwarder that accepts VSOCK connections on port 3333, and directs
+them to the guest with CID=42 on the same port.
+
+
+dit(bf(tt(socat VSOCK-LISTEN:22,reuseaddr,fork TCP:localhost:22)))
+
+forwards VSOCK connections from 22 port to the local SSH server.
+Running this in a VM allows you to connect via SSH from the host using VSOCK,
+as in the example below.
+
+
+dit(bf(tt(socat TCP4-LISTEN:22222,reuseaddr,fork VSOCK-CONNECT:33:22)))
+
+forwards TCP connections from 22222 port to the guest with CID=33 listening on
+VSOCK port 22.
+Running this in the host, allows you to connect via SSH running
+"ssh -p 22222 user@localhost", if the guest runs the example above.
 
 
 label(EXAMPLE_INTERFACE)

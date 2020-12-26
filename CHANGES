@@ -170,6 +170,9 @@ New features:
 	Test: PROXYAUTHFILE
 	Thanks to Charles Stephens for sending an initial patch.
 
+	Added AF_VSOCK support with VSOCK-CONNECT and VSOCK-LISTEN addresses.
+	Developed by Stefano Garzarella.
+
 ####################### V 1.7.3.4:
 
 Corrections:

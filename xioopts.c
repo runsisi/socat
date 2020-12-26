@@ -3044,7 +3044,10 @@ int retropt_bind(struct opt *opts,
       }
       break;
 
-#if WITH_IP4 || WITH_IP6
+#if WITH_IP4 || WITH_IP6 || WITH_VSOCK
+#if WITH_VSOCK
+   case AF_VSOCK:
+#endif
 #if WITH_IP4
    case AF_INET:
 #endif

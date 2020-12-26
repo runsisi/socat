@@ -185,5 +185,8 @@
 #include <openssl/err.h>
 #include <openssl/rand.h>
 #endif
+#if HAVE_LINUX_VM_SOCKETS_H
+#include <linux/vm_sockets.h>
+#endif
 
 #endif /* !defined(__sysincludes_h_included) */

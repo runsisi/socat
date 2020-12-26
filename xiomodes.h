@@ -32,6 +32,7 @@
 #include "xio-sctp.h"
 #include "xio-socks.h"
 #include "xio-proxy.h"
+#include "xio-vsock.h"
 #endif /* _WITH_SOCKET */
 #include "xio-progcall.h"
 #include "xio-exec.h"
