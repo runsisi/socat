@@ -164,6 +164,12 @@ New features:
 	Test: UDP_DATAGRAM_SOURCEPORT
 	Feature inspired by Hans Bueckler for SSDP inquiry (for UPnP)
 
+	New option proxy-authorization-file reads PROXY-CONNECT credentials
+	from file and makes it possible to hide this data from the process
+	table.
+	Test: PROXYAUTHFILE
+	Thanks to Charles Stephens for sending an initial patch.
+
 ####################### V 1.7.3.4:
 
 Corrections:

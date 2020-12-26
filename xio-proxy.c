@@ -29,6 +29,7 @@ const struct optdesc opt_proxyport = { "proxyport", NULL, OPT_PROXYPORT, GROUP_H
 const struct optdesc opt_ignorecr  = { "ignorecr",  NULL, OPT_IGNORECR,  GROUP_HTTP, PH_LATE, TYPE_BOOL,  OFUNC_SPEC };
 const struct optdesc opt_proxy_resolve   = { "proxy-resolve",   "resolve", OPT_PROXY_RESOLVE,   GROUP_HTTP, PH_LATE, TYPE_BOOL,  OFUNC_SPEC };
 const struct optdesc opt_proxy_authorization  = { "proxy-authorization",  "proxyauth", OPT_PROXY_AUTHORIZATION,  GROUP_HTTP, PH_LATE, TYPE_STRING,  OFUNC_SPEC };
+const struct optdesc opt_proxy_authorization_file  = { "proxy-authorization-file",  "proxyauthfile", OPT_PROXY_AUTHORIZATION_FILE,  GROUP_HTTP, PH_LATE, TYPE_STRING,  OFUNC_SPEC };
 
 const struct addrdesc addr_proxy_connect = { "proxy", 3, xioopen_proxy_connect, GROUP_FD|GROUP_SOCKET|GROUP_SOCK_IP4|GROUP_SOCK_IP6|GROUP_IP_TCP|GROUP_HTTP|GROUP_CHILD|GROUP_RETRY, 0, 0, 0 HELP(":<proxy-server>:<host>:<port>") };
 
@@ -239,6 +240,50 @@ int _xioopen_proxy_prepare(struct proxyvars *proxyvars, struct opt *opts,
    retropt_bool(opts, OPT_IGNORECR, &proxyvars->ignorecr);
    retropt_bool(opts, OPT_PROXY_RESOLVE, &proxyvars->doresolve);
    retropt_string(opts, OPT_PROXY_AUTHORIZATION, &proxyvars->authstring);
+   retropt_string(opts, OPT_PROXY_AUTHORIZATION_FILE, &proxyvars->authfile);
+
+   if (proxyvars->authfile) {
+      int authfd;
+      off_t length;
+      ssize_t bytes;
+
+      /* if we have a file containing authentication credentials and they were also
+	 provided on the command line, something is misspecified */
+      if (proxyvars->authstring) {
+	 Error("Only one of options proxy-authorization and proxy-authorization-file allowed");
+	 return STAT_NORETRY;
+      }
+      authfd = Open(proxyvars->authfile, O_RDONLY, 0);
+      if (authfd < 0) {
+	 Error2("open(\"%s\", O_RDONLY): %s", proxyvars->authfile, strerror(errno));
+	 return STAT_NORETRY;
+      }
+      /* go to the end of our proxy auth file to 
+	 figure out how long our proxy auth is */
+      if ((length = Lseek(authfd, 0, SEEK_END)) < 0) {
+	 Error2("lseek(<%s>, 0, SEEK_END): %s",
+		proxyvars->authfile, strerror(errno));
+	 return STAT_RETRYLATER;
+      }
+      proxyvars->authstring = Malloc(length+1);
+      /* go back to the beginning */
+      Lseek(authfd, 0, SEEK_SET);
+      /* read our proxy info from the file */
+      if ((bytes = Read(authfd, proxyvars->authstring, (size_t) length)) < 0) {
+	 Error3("read(<%s>, , "F_Zu"): %s", proxyvars->authfile, length, strerror(errno));
+	 free(proxyvars->authstring);
+	 Close(authfd);
+	 return STAT_NORETRY;
+      }
+      if (bytes < length) {
+	 Error3("read(<%s>, , "F_Zu"): got only "F_Zu" bytes",
+		proxyvars->authfile, length, bytes);
+	 Close(authfd);
+	 return STAT_NORETRY;
+      }
+      proxyvars->authstring[bytes] = '\0';	/* string termination */
+      Close(authfd);
+   }
 
    if (proxyvars->doresolve) {
       /* currently we only resolve to IPv4 addresses. This is in accordance to

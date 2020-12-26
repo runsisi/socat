@@ -10,6 +10,7 @@ struct proxyvars {
    bool ignorecr;
    bool doresolve;
    char *authstring;
+   char *authfile;
    char *targetaddr;	/* name/address of host, in malloced string */
    uint16_t targetport;
 } ;
@@ -18,6 +19,7 @@ extern const struct optdesc opt_proxyport;
 extern const struct optdesc opt_ignorecr;
 extern const struct optdesc opt_proxy_resolve;
 extern const struct optdesc opt_proxy_authorization;
+extern const struct optdesc opt_proxy_authorization_file;
 
 extern const struct addrdesc addr_proxy_connect;
 

@@ -2343,13 +2343,17 @@ label(OPTION_IGNORECR)dit(bf(tt(ignorecr)))
    server violates this standard, socat might not understand its answer. 
    This option directs socat to interprete NL as line terminator and
    to ignore CR in the answer. Nevertheless, socat sends CR+NL to the proxy.
-label(OPTION_PROXY_AUTHORIZATION)dit(bf(tt(proxyauth=<username>:<password>)))
+label(OPTION_PROXY_AUTHORIZATION)dit(bf(tt(proxy-authorization=<username>:<password>)))
    Provide "basic" authentication to the proxy server. The argument to the
-   option is used with a "Proxy-Authorization: Base" header in base64 encoded
+   option is used with a "Proxy-Authorization: Basic" header in base64 encoded
    form.nl() 
    Note: username and password are visible for every user on the local machine
    in the process list; username and password are transferred to the proxy
    server unencrypted (base64 encoded) and might be sniffed.
+label(OPTION_PROXY_AUTHORIZATION_FILE)dit(bf(tt(proxy-authorization-file=<filename>)))
+   Like option link(proxy-authorization)(OPTION_PROXY_AUTHORIZATION), but the
+   credentials are read from the file and therefore not visible in the process
+   list.nl() 
 label(OPTION_PROXY_RESOLVE)dit(bf(tt(resolve)))
    Per default, socat sends to the proxy a CONNECT request containing the
    target hostname. With this option, socat resolves the hostname locally and

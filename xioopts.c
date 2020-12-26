@@ -1254,8 +1254,10 @@ const struct optname optionnames[] = {
 #endif
 	IF_PROXY  ("proxy-auth",	&opt_proxy_authorization)
 	IF_PROXY  ("proxy-authorization",	&opt_proxy_authorization)
+	IF_PROXY  ("proxy-authorization-file",	&opt_proxy_authorization_file)
 	IF_PROXY  ("proxy-resolve",	&opt_proxy_resolve)
 	IF_PROXY  ("proxyauth",	&opt_proxy_authorization)
+	IF_PROXY  ("proxyauthfile",	&opt_proxy_authorization_file)
 	IF_PROXY  ("proxyport",	&opt_proxyport)
 #ifdef ECHOPRT
 	IF_TERMIOS("prterase",	&opt_echoprt)

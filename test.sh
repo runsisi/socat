@@ -14521,6 +14521,73 @@ PORT=$((PORT+1))
 N=$((N+1))
 
 
+# Test the proxy-authorization-file option
+NAME=PROXYAUTHFILE
+case "$TESTS" in
+*%$N%*|*%functions%*|*%proxyconnect%*|*%proxy%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
+TEST="$NAME: proxy-authorization-file option"
+if ! eval $NUMCOND; then :;
+elif ! testfeats proxy >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}PROXY not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! testfeats listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! testoptions proxy-authorization-file >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}Option proxy-authorization-file not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+else
+ta="$td/test$N.auth"
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"; da="$da$($ECHO '\r')"
+CMD0="{ echo -e \"HTTP/1.0 200 OK\\n\"; sleep 2; } |$TRACE $SOCAT $opts - TCP4-L:$PORT,$REUSEADDR,crlf"
+CMD1="$TRACE $SOCAT $opts FILE:/dev/null PROXY-CONNECT:$LOCALHOST:127.0.0.1:1000,pf=ip4,proxyport=$PORT,proxy-authorization-file=$ta"
+printf "test $F_n $TEST... " $N
+echo "user:s3cr3t" >$ta
+eval "$CMD0 >${tf}0 2>${te}0 &"
+pid0=$!	# background process id
+waittcp4port $PORT 1
+$CMD1 >"${tf}1" 2>"${te}1"
+rc1=$?
+kill $pid0 2>/dev/null
+wait $pid0
+if [ $rc1 -ne 0 ]; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &" >&2
+    cat "${te}0" >&2
+    echo "$CMD1" >&2
+    cat "${te}1" >&2
+    cat "${tf}0" >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+elif ! grep -q '^Proxy-authorization: Basic dXNlcjpzM2NyM3QK$' ${tf}0; then
+    $PRINTF "$FAILED:\n"
+    echo "$CMD0 &" >&2
+    cat "${te}0" >&2
+    echo "$CMD1" >&2
+    cat "${te}1" >&2
+    cat "${tf}0" >&2
+    echo "Authorization string not in client request" >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
+   numOK=$((numOK+1))
+fi
+kill $pid 2>/dev/null
+wait
+fi ;; # NUMCOND, feats
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
 ##################################################################################
 #=================================================================================
 # here come tests that might affect your systems integrity. Put normal tests
