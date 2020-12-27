@@ -932,6 +932,8 @@ extern int parseopts(const char **a, unsigned int groups, struct opt **opts);
 extern int parseopts_table(const char **a, unsigned int groups,
 			   struct opt **opts,
 			 const struct optname optionnames[], size_t optionnum);
+extern const struct opt *searchopt(const struct opt *opts, unsigned int groups, enum e_phase from, enum e_phase to,
+				   enum e_func func);
 extern struct opt *copyopts(const struct opt *opts, unsigned int groups);
 extern struct opt *moveopts(struct opt *opts, unsigned int groups);
 extern int leftopts(const struct opt *opts);

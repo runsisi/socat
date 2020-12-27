@@ -157,6 +157,26 @@ PH_LATE		FD is ready, before start of data loop
 PH_LATE2	FD is ready, dropping privileges
 
 
+Passive UNIX socket addresses; this is a mix of socket phases and file system phases:
+PH_INIT		retrieving info from original state
+PH_EARLY	before any other processing
+PH_PRESOCKET	before socket call
+PH_SOCKET	for socket call
+PH_PASTSOCKET	after socket call
+PH_FD		soon after FD creation or identification
+PH_PREOPEN	before file creation/opening
+PH_PREBIND	before socket bind()
+PH_BIND		during socket bind()
+PH_PASTOPEN	past file creation/opening
+PH_PASTBIND	past socket bind(), not used up to 1.7.3.4
+PH_PRECONNECT	before connect()
+PH_CONNECT	during connect()
+PH_PASTCONNECT	after connect()
+PH_CONNECTED	phase common with listen
+PH_LATE		FD is ready, before start of data loop
+PH_LATE2	FD is ready, dropping privileges
+
+
 FD addresses:
 
 PH_INIT		retrieving info from original state

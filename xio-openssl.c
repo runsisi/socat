@@ -278,7 +278,7 @@ static int
       /* this cannot fork because we retrieved fork option above */
       result =
 	 _xioopen_connect(xfd,
-			  needbind?(struct sockaddr *)us:NULL, uslen,
+			  needbind?us:NULL, uslen,
 			  (struct sockaddr *)them, themlen,
 			  opts, pf, socktype, ipproto, lowport, level);
       switch (result) {

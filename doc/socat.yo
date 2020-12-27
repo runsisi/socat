@@ -1541,6 +1541,8 @@ startdit()enddit()nl()
 label(GROUP_NAMED)em(bf(NAMED option group))
 
 These options work on file system entries.nl()
+Please note that, with UNIX domain client addresses, this means the bind entry,
+not the target/peer entry.nl()
 See also options link(user)(OPTION_USER), link(group)(OPTION_GROUP), and
 link(mode)(OPTION_MODE).
 
@@ -1575,12 +1577,11 @@ label(OPTION_UNLINK_LATE)dit(bf(tt(unlink-late)))
 label(OPTION_UNLINK_CLOSE)dit(bf(tt(unlink-close)))
    Removes the addresses file system entry when closing the address.
    For link(named pipes)(ADDRESS_NAMED_PIPE),
-   link(listening unix domain sockets)(ADDRESS_UNIX_LISTEN),
+   link(UNIX domain sockets)(ADDRESS_UNIX_LISTEN),
    and the link(symbolic links)(OPTION_SYMBOLIC_LINK) of link(pty addresses)(ADDRESS_PTY),
    the default is 1; for link(created files)(ADDRESS_CREAT),
-   link(opened files)(ADDRESS_OPEN),
-   link(generic opened files)(ADDRESS_GOPEN), and
-   link(client unix domain sockets)(ADDRESS_UNIX_CONNECT) the default is 0.
+   link(opened files)(ADDRESS_OPEN), and
+   link(generic opened files)(ADDRESS_GOPEN) the default is 0.
 enddit()
 
 startdit()enddit()nl()

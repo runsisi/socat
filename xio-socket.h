@@ -74,13 +74,13 @@ char *xiogetifname(int ind, char *val, int ins);
 extern int retropt_socket_pf(struct opt *opts, int *pf);
 
 extern int xioopen_connect(struct single *fd,
-			    struct sockaddr *us, size_t uslen,
+			    union sockaddr_union *us, size_t uslen,
 			    struct sockaddr *them, size_t themlen,
 			    struct opt *opts,
 			   int pf, int socktype, int protocol,
 			    bool alt);
 extern int _xioopen_connect(struct single *fd,
-			    struct sockaddr *us, size_t uslen,
+			    union sockaddr_union *us, size_t uslen,
 			    struct sockaddr *them, size_t themlen,
 			    struct opt *opts,
 			    int pf, int socktype, int protocol,

@@ -2514,6 +2514,31 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
    return 0;
 }
 
+
+/* look for an option with the given properties
+   return a pointer to the first matching valid option in the list
+   Returns NULL when no matching option found */
+const struct opt *searchopt(const struct opt *opts, unsigned int groups, enum e_phase from, enum e_phase to,
+		      enum e_func func) {
+   int i;
+
+   if (!opts)  return NULL;
+
+   /* remember: struct opt are in an array */
+   i = 0;
+   while (opts[i].desc != ODESC_END) {
+      if (opts[i].desc != ODESC_DONE &&
+	  (groups == 0 || (groups && (opts[i].desc->group&groups))) &&
+	  (from == 0 || (from <= opts[i].desc->phase)) &&
+	  (to   == 0 || (opts[i].desc->phase <= to)) &&
+	  (func == 0 || (opts[i].desc->func == func))) {
+	 return &opts[i];
+      }
+      ++i;
+   }
+   return NULL;
+}
+
 /* copy the already parsed options for repeated application, but only those
    matching groups ANY and <groups> */
 struct opt *copyopts(const struct opt *opts, unsigned int groups) {

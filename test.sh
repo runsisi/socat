@@ -13573,7 +13573,6 @@ esac
 PORT=$((PORT+1))
 N=$((N+1))
 
-
 # Test if unbalanced quoting in Socat addresses is detected
 NAME=UNBALANCED_QUOTE
 case "$TESTS" in
@@ -13699,6 +13698,93 @@ else
     numOK=$((numOK+1))
 fi # command ok
 fi ;; # NUMCOND, feats
+esac
+N=$((N+1))
+
+
+# test if option unlink-close removes the bind socket file
+NAME=UNIX_SENDTO_UNLINK
+case "$TESTS" in
+*%$N%*|*%functions%*|*%bugs%*|*%socket%*|*%unix%*|*%$NAME%*)
+TEST="$NAME: Option unlink-close with UNIX sendto socket"
+# Have a recv socket with option unlink-close=0
+# and a sendto socket with option unlink-close=1
+# Expected beavior: the recv socket is kept, the
+# sendto/bind socket is removed
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+uns="$td/test$N.server"
+unc="$td/test$N.client"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts -u UNIX-RECV:$uns,unlink-close=0 GOPEN:$tf"
+CMD1="$TRACE $SOCAT $opts - UNIX-SENDTO:$uns,bind=$unc,unlink-close=1"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+waitunixport $uns 1
+echo "$da" |$CMD1 >"${tf}1" 2>"${te}1"
+rc1=$?
+kill $pid0 2>/dev/null; wait
+if test -S $uns && ! test -S $unc; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    ls -ld $uns $unc
+    cat "${te}0"
+    cat "${te}1"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
+esac
+N=$((N+1))
+
+# test if option unlink-close removes the bind socket file
+NAME=UNIX_CONNECT_UNLINK
+case "$TESTS" in
+*%$N%*|*%functions%*|*%bugs%*|*%socket%*|*%unix%*|*%$NAME%*)
+TEST="$NAME: Option unlink-close with UNIX connect socket"
+# Have a listen socket with option unlink-close=0
+# and a connect socket with option unlink-close=1
+# Expected beavior: the listen socket entry is kept, the
+# connect/bind socket is removed
+if ! eval $NUMCOND; then :; else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+uns="$td/test$N.server"
+unc="$td/test$N.client"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts -u UNIX-LISTEN:$uns,unlink-close=0 GOPEN:$tf"
+CMD1="$TRACE $SOCAT $opts - UNIX-CONNECT:$uns,bind=$unc,unlink-close=1"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+waitunixport $uns 1
+echo "$da" |$CMD1 >"${tf}1" 2>"${te}1"
+rc1=$?
+kill $pid0 2>/dev/null; wait
+if test -S $uns && ! test -S $unc; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &"
+    echo "$CMD1"
+    ls -ld $uns $unc
+    cat "${te}0"
+    cat "${te}1"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
 esac
 N=$((N+1))
 

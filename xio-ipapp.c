@@ -79,7 +79,7 @@ int xioopen_ipapp_connect(int argc, const char *argv[], struct opt *opts,
 
       result =
 	 _xioopen_connect(xfd,
-			  needbind?(struct sockaddr *)us:NULL, uslen,
+			  needbind?us:NULL, uslen,
 			  (struct sockaddr *)them, themlen,
 			  opts, pf, socktype, ipproto, lowport, level);
       switch (result) {

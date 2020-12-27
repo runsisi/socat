@@ -34,6 +34,11 @@ Corrections:
 	pselect() system call.
 	Thanks to Fulvio Scapin for reporting this issue.
 
+	UNIX domain client addresses applied file system entry options (group
+	NAMED) to the server socket instead of the client (bind) socket entry.
+	Tests: UNIX_SENDTO_UNLINK UNIX_CONNECT_UNLINK
+	Thanks to Nico Williams for reporting this major issue.
+
 Porting:
 	In gcc version 10 the default changed from -fcommon to -fno-common.
 	Consequently, linking filan and procan failed with error
