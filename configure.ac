@@ -481,22 +481,33 @@ AC_ARG_ENABLE(openssl, [  --disable-openssl       disable OpenSSL support],
     *) AC_MSG_RESULT(yes); WITH_OPENSSL=1 ;;
    esac],
    [ AC_MSG_RESULT(yes);   WITH_OPENSSL=1 ])
+AC_ARG_ENABLE(openssl_base, [  --enable-openssl-base   specify directory with include/ and lib/],
+    [ OPENSSL_BASE="$enableval" ],
+    [ unset OPENSSL_BASE ])
 #
 if test -n "$WITH_OPENSSL"; then
+ if test -n "$OPENSSL_BASE"; then
+    sc_cv_have_openssl_ssl_h=yes; OPENSSL_BASE="$D"
+ else
   AC_MSG_NOTICE(checking for components of OpenSSL)
   # first, we need to find the include file <openssl/ssl.h>
   AC_CACHE_VAL(sc_cv_have_openssl_ssl_h,
     [AC_TRY_COMPILE([#include <openssl/ssl.h>],[;],
-      [sc_cv_have_openssl_ssl_h=yes; OPENSSL_ROOT=""; ],
+      [sc_cv_have_openssl_ssl_h=yes; OPENSSL_BASE=""; ],
       [sc_cv_have_openssl_ssl_h=no
-       for D in "/sw" "/usr/local" "/opt/freeware" "/usr/sfw" "/usr/local/ssl"; do
+       if [ "$OPENSSL_BASE" ]; then
+	  s="$OPENSSL_BASE"
+       else
+          Ds="/sw /usr/local /opt/freeware /usr/sfw /usr/local/ssl"
+       fi
+       for D in $Ds; do
 	I="$D/include"
 	i="$I/openssl/ssl.h"
 	if test -r "$i"; then
 	  #V_INCL="$V_INCL -I$I"
 	  CPPFLAGS="$CPPFLAGS -I$I"
 	  AC_MSG_NOTICE(found $i)
-	  sc_cv_have_openssl_ssl_h=yes; OPENSSL_ROOT="$D"
+	  sc_cv_have_openssl_ssl_h=yes; OPENSSL_BASE="$D"
 	  break;
 	fi
       done])
@@ -505,17 +516,18 @@ if test -n "$WITH_OPENSSL"; then
     AC_DEFINE(HAVE_OPENSSL_SSL_H)
   fi
   AC_MSG_NOTICE(checked for openssl/ssl.h... $sc_cv_have_openssl_ssl_h)
+ fi
 fi	# end checking for openssl/ssl.h
 #
 if test -n "$WITH_OPENSSL" -a "$sc_cv_have_openssl_ssl_h" = 'yes'; then
   # next, we search for the openssl library (libssl.*)
   # interesting: Linux only requires -lssl, FreeBSD requires -lssl -lcrypto
-  # Note, version OpenSSL 0.9.7j requires -lcrypto even on Linux.
+  # Note, version OpenSSL 0.9.7j and higher requires -lcrypto even on Linux.
   AC_MSG_CHECKING(for libssl)
   AC_CACHE_VAL(sc_cv_have_libssl,
     [ LIBS0="$LIBS"
-      if test -n "$OPENSSL_ROOT"; then
-	L="$OPENSSL_ROOT/lib"; LIBS="$LIBS -L$L -lssl"
+      if test -n "$OPENSSL_BASE"; then
+	L="$OPENSSL_BASE/lib"; LIBS="$LIBS -L$L -lssl"
       else
 	LIBS="$LIBS -lssl"
       fi
@@ -617,8 +629,8 @@ if test -n "$WITH_FIPS"; then
 #include <openssl/fips.h>],[;],
       [sc_cv_have_openssl_fips_h=yes; ],
       [sv_cv_have_openssl_fips_h=no
-        if test -n "$OPENSSL_ROOT"; then
-          I="$OPENSSL_ROOT/include"
+        if test -n "$OPENSSL_BASE"; then
+          I="$OPENSSL_BASE/include"
           i="$I/openssl/fips.h"
           if test -r "$i"; then
             AC_MSG_NOTICE(found $i)
@@ -641,8 +653,8 @@ if test -n "$WITH_FIPS" -a "$sc_cv_have_openssl_fips_h" = 'yes'; then
     [ LIBS0="$LIBS"
       echo $LIBS | grep -q "\-lcrypto"
       if test $? -ne 0; then
-        if test -n "$OPENSSL_ROOT"; then
-          L="$OPENSSL_ROOT/lib"; LIBS="$LIBS -L$L -lcrypto"
+        if test -n "$OPENSSL_BASE"; then
+          L="$OPENSSL_BASE/lib"; LIBS="$LIBS -L$L -lcrypto"
         else
           LIBS="$LIBS -lcrypto"
         fi

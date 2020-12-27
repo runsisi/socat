@@ -29,6 +29,9 @@ Porting:
 	Solaris 9 does not provide strndup(); added substitute code.
 	Thanks to Greg Earle for providing a patch.
 
+	Added configure option --enable-openssl-base to specify the location of
+	a non-OS OpenSSL installation
+
 Testing:
 	test.sh now produces a list of tests that could not be performed for
 	any reason. This helps to analyse these cases.
