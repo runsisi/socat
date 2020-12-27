@@ -704,4 +704,8 @@ typedef int sig_atomic_t;
 extern const char *hstrerror(int);
 #endif
 
+#if !HAVE_PROTOTYPE_LIB_strndup
+extern char *strndup (const char *s, size_t n);
+#endif
+
 #endif /* !defined(__compat_h_included) */
