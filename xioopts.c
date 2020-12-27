@@ -83,6 +83,12 @@ bool xioopts_ignoregroups;
 #  define IF_TCP(a,b) 
 #endif
 
+#if WITH_UDP
+#  define IF_UDP(a,b) {a,b},
+#else
+#  define IF_UDP(a,b) 
+#endif
+
 #if WITH_SCTP
 #  define IF_SCTP(a,b) {a,b},
 #else

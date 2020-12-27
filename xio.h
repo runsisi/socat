@@ -193,7 +193,7 @@ typedef struct single {
 	 struct {
 	    unsigned int res_opts[2];	/* bits to be set in _res.options are
 				       at [0], bits to be cleared are at [1] */
-	    bool   dosourceport;
+	    bool     dosourceport; 	/* check the source port of incoming connection or packets */
 	    uint16_t sourceport;	/* host byte order */
 	    bool     lowport;
 #if (WITH_TCP || WITH_UDP) && WITH_LIBWRAP

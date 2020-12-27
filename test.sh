@@ -69,6 +69,15 @@ export SOCAT_OPTS="$opts"
 #debug="1"
 debug=
 TESTS="$@"; export TESTS
+if !  $SOCAT -V >/dev/null 2>&1; then
+    echo "Failed to execute $SOCAT, exiting" >&2
+    exit 1
+fi
+
+SOCAT_VERSION=$($SOCAT -V |head -n 2 |tail -n 1 |sed 's/.* \([0-9][1-9]*\.[0-9][0-9]*\.[0-9][^[:space:]]*\).*/\1/')
+if [ -z "$SOCAT_VERSION" ]; then
+    echo "Warning: failed to retrieve Socat version" >&2
+fi
 
 # for some tests we need a network interface
 if type ip >/dev/null 2>&1; then
@@ -14462,6 +14471,53 @@ fi
 wait
 fi ;; # testaddrs, NUMCOND
 esac
+N=$((N+1))
+
+
+# Test the modified UDP-DATAGRAM address: Now it ignores peerport by default
+NAME=UDP_DATAGRAM_PEERPORT
+case "$TESTS" in
+*%$N%*|*%functions%*|*%udp%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: test UDP-DATAGRAM ignoring peerport"
+# A UDP-DATAGRAM address bound to PORT has defined peer on PORT+1
+# From another Socat instance we send a packet to PORT but with source port
+# PORT+2. The first instance should accept the packet
+if ! eval $NUMCOND; then :
+elif [ $(echo $E "$SOCAT_VERSION\n1.7.3.4" |sort -n |tail -n 1) = 1.7.3.4 ]; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}Only with Socat 1.7.4.0 or higher${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts -u UDP-DATAGRAM:$LOCALHOST:$((PORT+1)),bind=:$((PORT)) -"
+CMD1="$TRACE $SOCAT $opts -u - UDP-DATAGRAM:$LOCALHOST:$((PORT)),bind=:$((PORT+2))"
+printf "test $F_n $TEST... " $N
+$CMD0 >${tf}0 2>"${te}0" &
+pid0=$!
+waitudp4port $PORT 1
+echo "$da" |$CMD1 >"${tf}1" 2>"${te}1"
+rc1=$?
+kill $pid0 2>/dev/null; wait
+if [ -f ${tf}0 ] && echo "$da" |diff - ${tf}0 >$tdiff; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &" >&2
+    cat "${te}0" >&2
+    echo "$CMD1" >&2
+    cat "${te}1" >&2
+    cat "${tdiff}" >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
 N=$((N+1))
 
 

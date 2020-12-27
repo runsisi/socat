@@ -158,6 +158,12 @@ New features:
 	New option ip-add-source-membership
 	Feature inspired by Brian (b f31415)
 
+	INCOMPATIBLE CHANGE: Address UDP-DATAGRAM now does not check peerport
+	of replies, as it did up to version 1.7.3.4. Use option sourceport when
+	you need the old behaviour.
+	Test: UDP_DATAGRAM_SOURCEPORT
+	Feature inspired by Hans Bueckler for SSDP inquiry (for UPnP)
+
 ####################### V 1.7.3.4:
 
 Corrections:

@@ -453,6 +453,13 @@ int xioopen_udp_datagram(int argc, const char *argv[], struct opt *opts,
       return STAT_RETRYLATER;
    }
 
+   /* only accept packets with correct remote ports */
+   if (retropt_ushort(opts, OPT_SOURCEPORT, &xfd->para.socket.ip.sourceport)
+       >= 0) {
+      xfd->para.socket.ip.dosourceport = true;
+      xfd->para.socket.ip.sourceport = ntohs(xfd->peersa.ip4.sin_port);
+   }
+
    retropt_socket_pf(opts, &pf);
    result =
       _xioopen_udp_sendto(hostname, argv[2], opts, xioflags, xxfd, groups,
@@ -465,10 +472,6 @@ int xioopen_udp_datagram(int argc, const char *argv[], struct opt *opts,
    xfd->dtype = XIOREAD_RECV|XIOWRITE_SENDTO;
 
    xfd->para.socket.la.soa.sa_family = xfd->peersa.soa.sa_family;
-
-   /* only accept packets with correct remote ports */
-   xfd->para.socket.ip.sourceport = ntohs(xfd->peersa.ip4.sin_port);
-   xfd->para.socket.ip.dosourceport = true;
 
    /* which reply packets will be accepted - determine by range option */
    if (retropt_string(opts, OPT_RANGE, &rangename)

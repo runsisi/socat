@@ -1088,7 +1088,7 @@ label(ADDRESS_UDP6_CONNECT)dit(bf(tt(UDP6:<host>:<port>)))
 label(ADDRESS_UDP_DATAGRAM)dit(bf(tt(UDP-DATAGRAM:<address>:<port>)))
    Sends outgoing data to the specified address which may in particular be a
    broadcast or multicast address. Packets arriving on the local socket are
-   checked for the correct remote port and if their source addresses match
+   checked for the correct remote port only when option link(sourceport)(OPTION_SOURCEPORT) is used (this is a change with Socat() version 1.7.4.0) and if their source addresses match
    link(RANGE)(OPTION_RANGE) or link(TCPWRAP)(OPTION_TCPWRAPPERS)
    options. This address type can for example be used for implementing
    symmetric or asymmetric broadcast or multicast communications.nl()
@@ -2260,6 +2260,20 @@ enddit()
 startdit()enddit()nl()
 
 
+label(GROUP_UDP)em(bf(UDP option group))
+
+This option may be applied to UDP datagram sockets.
+
+startdit()
+label(OPTION_UDP_IGNORE_PEERPORT)dit(bf(tt(udp-ignore-peerport>)))
+   Address UDP-DATAGRAM expects incoming responses to come from the port
+   specified in its second parameter. With this option, it accepts packets
+   coming from any port.
+enddit()
+
+startdit()enddit()nl()
+
+
 label(GROUP_SCTP)em(bf(SCTP option group))
 
 These options may be applied to SCTP stream sockets.
@@ -2274,7 +2288,7 @@ enddit()
 startdit()enddit()nl()
 
 
-em(bf(UDP, TCP, and SCTP option groups))
+em(bf(UDP, TCP, and SCTP option group))
 
 Here we find options that are related to the network port mechanism and thus
 can be used with UDP, TCP, and SCTP client and server addresses.
@@ -2283,7 +2297,10 @@ label(OPTION_SOURCEPORT)dit(bf(tt(sourceport=<port>)))
    For outgoing (client) TCP and UDP connections, it sets the source
    link(<port>)(TYPE_PORT) using an extra code(bind()) call.
    With TCP or UDP listen addresses, socat immediately shuts down the
-   connection if the client does not use this sourceport (link(example)(EXAMPLE_OPTION_SOURCEPORT)).
+   connection if the client does not use this sourceport. UDP-RECV,
+   UDP-RECVFROM, UDP-SENDTO, and UDP-DATAGRAM addresses ignore the packet when
+   it does not match.
+   (link(example)(EXAMPLE_OPTION_SOURCEPORT)).
 label(OPTION_LOWPORT)dit(bf(tt(lowport)))
    Outgoing (client) TCP and UDP connections with this option use
    an unused random source port between 640 and 1023 incl. On UNIX class operating
@@ -3451,6 +3468,12 @@ link(tt(ip-pktinfo))(OPTION_IP_PKTINFO) with link(tt(ip-recvdstaddr))(OPTION_IP_
 SOCAT_IP_DSTADDR: it contains the target address of the packet which may be a
 unicast, multicast, or broadcast address.
 
+
+label(EXAMPLE_SSD)
+dit(bf(tt(echo -e "M-SEARCH * HTTP/1.1\nHOST: 239.255.255.250:1900\nMAN: \"ssdp:discover\"\nMX: 4\nST: \"ssdp:all\"\n" |./socat - UDP-DATAGRAM:239.255.255.250:1900,crlf)))
+
+sends an SSDP (Simple Service Discovery Protocol) query to the local network
+and collects and outputs the answers received.
 
 dit(bf(tt()))
 
