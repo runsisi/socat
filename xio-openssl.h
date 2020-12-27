@@ -15,6 +15,8 @@ extern const struct addrdesc addr_openssl_listen;
 
 extern const struct optdesc opt_openssl_cipherlist;
 extern const struct optdesc opt_openssl_method;
+extern const struct optdesc opt_openssl_min_proto_version;
+extern const struct optdesc opt_openssl_max_proto_version;
 extern const struct optdesc opt_openssl_verify;
 extern const struct optdesc opt_openssl_certificate;
 extern const struct optdesc opt_openssl_key;

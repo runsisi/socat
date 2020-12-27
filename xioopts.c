@@ -904,6 +904,9 @@ const struct optname optionnames[] = {
 #endif
 	IF_TUN    ("master",	&opt_iff_master)
 	IF_LISTEN ("max-children",	&opt_max_children)
+#if HAVE_SSL_set_max_proto_version || defined(SSL_set_max_proto_version)
+	IF_OPENSSL("max-version",	&opt_openssl_max_proto_version)
+#endif
 	IF_LISTEN ("maxchildren",	&opt_max_children)
 #ifdef TCP_MAXSEG
 	IF_TCP    ("maxseg",	&opt_tcp_maxseg)
@@ -919,6 +922,9 @@ const struct optname optionnames[] = {
 	IF_OPENSSL("method",	&opt_openssl_method)
 #endif
 	IF_TERMIOS("min",	&opt_vmin)
+#if HAVE_SSL_set_min_proto_version || defined(SSL_set_min_proto_version)
+	IF_OPENSSL("min-version",	&opt_openssl_min_proto_version)
+#endif
 	IF_ANY    ("mode",	&opt_perm)
 #ifdef TCP_MAXSEG
 	IF_TCP    ("mss",	&opt_tcp_maxseg)
@@ -1147,8 +1153,14 @@ const struct optname optionnames[] = {
 	IF_OPENSSL("openssl-fips",	&opt_openssl_fips)
 #endif
 	IF_OPENSSL("openssl-key",	&opt_openssl_key)
+#if HAVE_SSL_set_max_proto_version || defined(SSL_set_max_proto_version)
+	IF_OPENSSL("openssl-max-proto-version",	&opt_openssl_max_proto_version)
+#endif
 #if WITH_OPENSSL_METHOD
 	IF_OPENSSL("openssl-method",	&opt_openssl_method)
+#endif
+#if HAVE_SSL_set_min_proto_version || defined(SSL_set_min_proto_version)
+	IF_OPENSSL("openssl-min-proto-version",	&opt_openssl_min_proto_version)
 #endif
 	IF_OPENSSL("openssl-pseudo",	&opt_openssl_pseudo)
 	IF_OPENSSL("openssl-verify",	&opt_openssl_verify)

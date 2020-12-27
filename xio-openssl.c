@@ -104,6 +104,12 @@ const struct optdesc opt_openssl_cipherlist = { "openssl-cipherlist", "ciphers",
 #if WITH_OPENSSL_METHOD
 const struct optdesc opt_openssl_method     = { "openssl-method",     "method",  OPT_OPENSSL_METHOD,     GROUP_OPENSSL, PH_SPEC, TYPE_STRING, OFUNC_SPEC };
 #endif
+#if HAVE_SSL_CTX_set_min_proto_version || defined(SSL_CTX_set_min_proto_version)
+const struct optdesc opt_openssl_min_proto_version = { "openssl-min-proto-version", "min-version", OPT_OPENSSL_MIN_PROTO_VERSION, GROUP_OPENSSL, PH_INIT, TYPE_STRING, OFUNC_OFFSET, XIO_OFFSETOF(para.openssl.min_proto_version) };
+#endif
+#if HAVE_SSL_CTX_set_max_proto_version || defined(SSL_CTX_set_max_proto_version)
+const struct optdesc opt_openssl_max_proto_version = { "openssl-max-proto-version", "max-version", OPT_OPENSSL_MAX_PROTO_VERSION, GROUP_OPENSSL, PH_INIT, TYPE_STRING, OFUNC_OFFSET, XIO_OFFSETOF(para.openssl.max_proto_version) };
+#endif
 const struct optdesc opt_openssl_verify     = { "openssl-verify",     "verify",  OPT_OPENSSL_VERIFY,     GROUP_OPENSSL, PH_SPEC, TYPE_BOOL,   OFUNC_SPEC };
 const struct optdesc opt_openssl_certificate = { "openssl-certificate", "cert",  OPT_OPENSSL_CERTIFICATE, GROUP_OPENSSL, PH_SPEC, TYPE_FILENAME, OFUNC_SPEC };
 const struct optdesc opt_openssl_key         = { "openssl-key",         "key",   OPT_OPENSSL_KEY,         GROUP_OPENSSL, PH_SPEC, TYPE_FILENAME, OFUNC_SPEC };
@@ -147,7 +153,15 @@ int xio_reset_fips_mode(void) {
 #endif
 
 static void openssl_conn_loginfo(SSL *ssl) {
-   Notice1("SSL connection using %s", SSL_get_cipher(ssl));
+   const char *string;
+
+   string = SSL_get_cipher_version(ssl);
+   Notice1("SSL proto version used: %s", string);
+   xiosetenv("OPENSSL_PROTO_VERSION", string, 1, NULL);
+
+   string = SSL_get_cipher(ssl);
+   Notice1("SSL connection using %s", string);
+   xiosetenv("OPENSSL_CIPHER", string, 1, NULL);
 
 #if OPENSSL_VERSION_NUMBER >= 0x00908000L && !defined(OPENSSL_NO_COMP)
    {
@@ -706,6 +720,116 @@ static int openssl_setup_compression(SSL_CTX *ctx, char *method)
 #endif
 
 
+#if HAVE_CTX_SSL_set_min_proto_version || defined(SSL_CTX_set_min_proto_version) || \
+   HAVE_SSL_CTX_set_max_proto_version || defined(SSL_CTX_set_max_proto_version)
+#define XIO_OPENSSL_VERSIONGROUP_TLS 1
+#define XIO_OPENSSL_VERSIONGROUP_DTLS 2
+
+static struct wordent _xio_openssl_versions[] = {
+#ifdef DTLS1_VERSION
+   { "DTLS1",		(void *)DTLS1_VERSION },
+   { "DTLS1.0",		(void *)DTLS1_VERSION },
+#endif
+#ifdef DTLS1_2_VERSION
+   { "DTLS1.2",		(void *)DTLS1_2_VERSION },
+#endif
+#ifdef DTLS1_VERSION
+   { "DTLSv1",		(void *)DTLS1_VERSION },
+   { "DTLSv1.0",	(void *)DTLS1_VERSION },
+#endif
+#ifdef DTLS1_2_VERSION
+   { "DTLSv1.2",	(void *)DTLS1_2_VERSION },
+#endif
+#ifdef SSL2_VERSION
+   { "SSL2",		(void *)SSL2_VERSION },
+#endif
+#ifdef SSL3_VERSION
+   { "SSL3",		(void *)SSL3_VERSION },
+#endif
+#ifdef SSL2_VERSION
+   { "SSLv2",		(void *)SSL2_VERSION },
+#endif
+#ifdef SSL3_VERSION
+   { "SSLv3",		(void *)SSL3_VERSION },
+#endif
+#ifdef TLS1_VERSION
+   { "TLS1",		(void *)TLS1_VERSION },
+   { "TLS1.0",		(void *)TLS1_VERSION },
+#endif
+#ifdef TLS1_1_VERSION
+   { "TLS1.1",		(void *)TLS1_1_VERSION },
+#endif
+#ifdef TLS1_2_VERSION
+   { "TLS1.2",		(void *)TLS1_2_VERSION },
+#endif
+#ifdef TLS1_3_VERSION
+   { "TLS1.3",		(void *)TLS1_3_VERSION },
+#endif
+#ifdef TLS1_VERSION
+   { "TLSv1",		(void *)TLS1_VERSION },
+   { "TLSv1.0",		(void *)TLS1_VERSION },
+#endif
+#ifdef TLS1_1_VERSION
+   { "TLSv1.1",		(void *)TLS1_1_VERSION },
+#endif
+#ifdef TLS1_2_VERSION
+   { "TLSv1.2",		(void *)TLS1_2_VERSION },
+#endif
+#ifdef TLS1_3_VERSION
+   { "TLSv1.3",		(void *)TLS1_3_VERSION },
+#endif
+} ;
+
+static int _xio_openssl_parse_version(const char *verstring, int vergroups) {
+   int sslver;
+   const struct wordent *we;
+   we = keyw(_xio_openssl_versions, verstring,
+	     sizeof(_xio_openssl_versions)/sizeof(struct wordent));
+   if (we == 0) {
+      Error1("Unknown SSL/TLS version \"%s\"", verstring);
+      return -1;
+   }
+   sslver = (size_t)we->desc;
+   switch (sslver) {
+#ifdef SSL2_VERSION
+   case SSL2_VERSION:
+#endif
+#ifdef SSL3_VERSION
+   case SSL3_VERSION:
+#endif
+#ifdef TLS1_VERSION
+   case TLS1_VERSION:
+#endif
+#ifdef TLS1_1_VERSION
+   case TLS1_1_VERSION:
+#endif
+#ifdef TLS1_2_VERSION
+   case TLS1_2_VERSION:
+#endif
+#ifdef TLS1_3_VERSION
+   case TLS1_3_VERSION:
+#endif
+      if (!(vergroups & XIO_OPENSSL_VERSIONGROUP_TLS)) {
+	 Error1("Wrong type of TLS/DTLS version \"%s\"", verstring);
+	 return -1;
+      }
+#ifdef DTLS1_VERSION
+   case DTLS1_VERSION:
+#endif
+#ifdef DTLS1_2_VERSION
+   case DTLS1_2_VERSION:
+#endif
+      if (!(vergroups & XIO_OPENSSL_VERSIONGROUP_DTLS)) {
+	 Error1("Wrong type of TLS/DTLS version \"%s\"", verstring);
+	 return -1;
+      }
+      break;
+   }
+   return sslver;
+}
+#endif /* defined(SSL_CTX_set_min_proto_version) || defined(SSL_CTX_set_max_proto_version) */
+
+
 int
    _xioopen_openssl_prepare(struct opt *opts,
 			    struct single *xfd,/* a xio file descriptor
@@ -714,8 +838,9 @@ int
 			    bool server,	/* SSL client: false */
 			    bool *opt_ver,
 			    const char *opt_cert,
-			    SSL_CTX **ctx)
+			    SSL_CTX **ctxp)
 {
+   SSL_CTX *ctx;
    bool opt_fips = false;
    const SSL_METHOD *method = NULL;
    char *me_str = NULL;	/* method string */
@@ -910,7 +1035,7 @@ int
       }
    }
 
-   if ((*ctx = sycSSL_CTX_new(method)) == NULL) {
+   if ((ctx = sycSSL_CTX_new(method)) == NULL) {
       if (ERR_peek_error() == 0) Error("SSL_CTX_new()");
       while (err = ERR_get_error()) {
 	 Error1("SSL_CTX_new(): %s", ERR_error_string(err, NULL));
@@ -919,6 +1044,39 @@ int
       /*ERR_clear_error;*/
       return STAT_RETRYLATER;
    }
+   xfd->para.openssl.ctx = ctx;
+   *ctxp = ctx;
+
+#if HAVE_SSL_CTX_set_min_proto_version || defined(SSL_CTX_set_min_proto_version)
+   if (xfd->para.openssl.min_proto_version != NULL) {
+      int sslver, rc;
+      sslver = _xio_openssl_parse_version(xfd->para.openssl.min_proto_version,
+					  XIO_OPENSSL_VERSIONGROUP_TLS|XIO_OPENSSL_VERSIONGROUP_DTLS);
+      if (sslver < 0)
+	 return STAT_NORETRY;
+      if ((rc = SSL_CTX_set_min_proto_version(ctx, sslver)) <= 0) {
+	 Debug1("version: %d", SSL_CTX_get_min_proto_version(ctx));
+	 Error3("_xioopen_openssl_prepare(): SSL_CTX_set_min_proto_version(\"%s\"->%d): failed (%d)",
+		xfd->para.openssl.min_proto_version, sslver, rc);
+	 return STAT_NORETRY;
+      }
+	 Debug1("version: %d", SSL_CTX_get_min_proto_version(ctx));
+   }
+#endif /* HAVE_SSL_set_min_proto_version || defined(SSL_set_min_proto_version) */
+#if HAVE_SSL_CTX_set_max_proto_version || defined(SSL_CTX_set_max_proto_version)
+   if (xfd->para.openssl.max_proto_version != NULL) {
+      int sslver;
+      sslver = _xio_openssl_parse_version(xfd->para.openssl.max_proto_version,
+					  XIO_OPENSSL_VERSIONGROUP_TLS|XIO_OPENSSL_VERSIONGROUP_DTLS);
+      if (sslver < 0)
+	 return STAT_NORETRY;
+      if (SSL_CTX_set_max_proto_version(ctx, sslver) <= 0) {
+	 Error2("_xioopen_openssl_prepare(): SSL_CTX_set_max_proto_version(\"%s\"->%d): failed",
+		xfd->para.openssl.max_proto_version, sslver);
+	 return STAT_NORETRY;
+      }
+   }
+#endif /* HAVE_SSL_set_max_proto_version || defined(SSL_set_max_proto_version) */
 
    {
       static unsigned char dh2048_p[] = {
@@ -976,12 +1134,12 @@ int
       dh->p = p;
       dh->g = g;
 #endif /* HAVE_DH_set0_pqg */
-      if (sycSSL_CTX_set_tmp_dh(*ctx, dh) <= 0) {
+      if (sycSSL_CTX_set_tmp_dh(ctx, dh) <= 0) {
          while (err = ERR_get_error()) {
-            Warn3("SSL_CTX_set_tmp_dh(%p, %p): %s", *ctx, dh,
+            Warn3("SSL_CTX_set_tmp_dh(%p, %p): %s", ctx, dh,
                   ERR_error_string(err, NULL));
          }
-         Error2("SSL_CTX_set_tmp_dh(%p, %p) failed", *ctx, dh);
+         Error2("SSL_CTX_set_tmp_dh(%p, %p) failed", ctx, dh);
       }
       /* p & g are freed by DH_free() once attached */
       DH_free(dh);
@@ -1009,14 +1167,14 @@ cont_out:
 	 return -1;
       }
 
-      SSL_CTX_set_tmp_ecdh(*ctx, ecdh);
+      SSL_CTX_set_tmp_ecdh(ctx, ecdh);
    }
 #endif /* HAVE_TYPE_EC_KEY */
 
 #if OPENSSL_VERSION_NUMBER >= 0x00908000L
    if (opt_compress) {
       int result;
-      result = openssl_setup_compression(*ctx, opt_compress);
+      result = openssl_setup_compression(ctx, opt_compress);
       if (result != STAT_OK) {
 	return result;
       }
@@ -1028,17 +1186,17 @@ cont_out:
       Without correction socat might hang in SSL_read() */
    {
       long mode = 0;
-      mode = SSL_CTX_get_mode(*ctx);
+      mode = SSL_CTX_get_mode(ctx);
       if (mode & SSL_MODE_AUTO_RETRY) {
 	 Info("SSL_CTX mode has SSL_MODE_AUTO_RETRY set. Correcting..");
-	 Debug1("SSL_CTX_clean_mode(%p, SSL_MODE_AUTO_RETRY)", *ctx);
-	 SSL_CTX_clear_mode(*ctx, SSL_MODE_AUTO_RETRY);
+	 Debug1("SSL_CTX_clean_mode(%p, SSL_MODE_AUTO_RETRY)", ctx);
+	 SSL_CTX_clear_mode(ctx, SSL_MODE_AUTO_RETRY);
       }
    }
 #endif /* defined(HAVE_SSL_CTX_clear_mode) || defined(SSL_CTX_clear_mode) */
 
    if (opt_cafile != NULL || opt_capath != NULL) {
-      if (sycSSL_CTX_load_verify_locations(*ctx, opt_cafile, opt_capath) != 1) {
+      if (sycSSL_CTX_load_verify_locations(ctx, opt_cafile, opt_capath) != 1) {
 	 int result;
 
 	 if ((result =
@@ -1050,7 +1208,7 @@ cont_out:
       }
 #ifdef HAVE_SSL_CTX_set_default_verify_paths
    } else {
-      SSL_CTX_set_default_verify_paths(*ctx);
+      SSL_CTX_set_default_verify_paths(ctx);
 #endif
    }
 
@@ -1058,12 +1216,12 @@ cont_out:
       BIO *bio;
       DH *dh;
 
-      if (sycSSL_CTX_use_certificate_chain_file(*ctx, opt_cert) <= 0) {
+      if (sycSSL_CTX_use_certificate_chain_file(ctx, opt_cert) <= 0) {
 	 /*! trace functions */
 	 /*0 ERR_print_errors_fp(stderr);*/
 	 if (ERR_peek_error() == 0)
 	    Error2("SSL_CTX_use_certificate_file(%p, \"%s\", SSL_FILETYPE_PEM) failed",
-		 *ctx, opt_cert);
+		 ctx, opt_cert);
 	 while (err = ERR_get_error()) {
 	    Error1("SSL_CTX_use_certificate_file(): %s",
 		   ERR_error_string(err, NULL));
@@ -1071,7 +1229,7 @@ cont_out:
 	 return STAT_RETRYLATER;
       }
 
-      if (sycSSL_CTX_use_PrivateKey_file(*ctx, opt_key?opt_key:opt_cert, SSL_FILETYPE_PEM) <= 0) {
+      if (sycSSL_CTX_use_PrivateKey_file(ctx, opt_key?opt_key:opt_cert, SSL_FILETYPE_PEM) <= 0) {
 	 /*ERR_print_errors_fp(stderr);*/
 	 openssl_SSL_ERROR_SSL(E_ERROR/*!*/, "SSL_CTX_use_PrivateKey_file");
 	 return STAT_RETRYLATER;
@@ -1088,12 +1246,12 @@ cont_out:
 	    Info1("PEM_read_bio_DHparams(%p, NULL, NULL, NULL): error", bio);
 	 } else {
 	    BIO_free(bio);
-	    if (sycSSL_CTX_set_tmp_dh(*ctx, dh) <= 0) {
+	    if (sycSSL_CTX_set_tmp_dh(ctx, dh) <= 0) {
 	       while (err = ERR_get_error()) {
-		  Warn3("SSL_CTX_set_tmp_dh(%p, %p): %s", *ctx, dh,
+		  Warn3("SSL_CTX_set_tmp_dh(%p, %p): %s", ctx, dh,
 			ERR_error_string(err, NULL));
 	       }
-	       Error2("SSL_CTX_set_tmp_dh(%p, %p): error", *ctx, dh);
+	       Error2("SSL_CTX_set_tmp_dh(%p, %p): error", ctx, dh);
 	    }
 	 }
       }
@@ -1102,7 +1260,7 @@ cont_out:
    /* set pre openssl-connect options */
    /* SSL_CIPHERS */
    if (ci_str != NULL) {
-      if (sycSSL_CTX_set_cipher_list(*ctx, ci_str) <= 0) {
+      if (sycSSL_CTX_set_cipher_list(ctx, ci_str) <= 0) {
 	 if (ERR_peek_error() == 0)
 	    Error1("SSL_set_cipher_list(, \"%s\") failed", ci_str);
 	 while (err = ERR_get_error()) {
@@ -1115,11 +1273,11 @@ cont_out:
    }
 
    if (*opt_ver) {
-      sycSSL_CTX_set_verify(*ctx,
+      sycSSL_CTX_set_verify(ctx,
 			    SSL_VERIFY_PEER| SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
 			    NULL);
    } else {
-      sycSSL_CTX_set_verify(*ctx,
+      sycSSL_CTX_set_verify(ctx,
 			    SSL_VERIFY_NONE,
 			    NULL);
    }

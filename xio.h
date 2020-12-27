@@ -229,8 +229,14 @@ typedef struct single {
 #if WITH_OPENSSL
       struct {
 	 struct timeval connect_timeout; /* how long to hang in connect() */
+	 SSL_CTX* ctx; 	/* for freeing on close */
 	 SSL *ssl;
-	 SSL_CTX* ctx;
+#if HAVE_SSL_CTX_set_min_proto_version || defined(SSL_CTX_set_min_proto_version)
+	 char *min_proto_version;
+#endif
+#if HAVE_SSL_CTX_set_max_proto_version || defined(SSL_CTX_set_max_proto_version)
+	 char *max_proto_version;
+#endif
       } openssl;
 #endif /* WITH_OPENSSL */
 #if WITH_TUN

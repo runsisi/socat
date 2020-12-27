@@ -45,6 +45,11 @@ Porting:
 	<linux/ext2_fs.h>. Now they are called fs-* and depend on <linux/fs.h>.
 	These fs-* options are also available on old systems with ext2_fs.h
 
+	New options openssl-min-proto-version (min-version) and
+	openssl-max-proto-version (max-version) give access to the related
+	OpenSSL set-macros and substitute deprecated version-specific methods.
+	Test: OPENSSL_MIN_VERSION
+
 Testing:
 	test.sh now produces a list of tests that could not be performed for
 	any reason. This helps to analyse these cases.

@@ -1450,6 +1450,8 @@ AC_CHECK_FUNC(setenv, AC_DEFINE(HAVE_SETENV),
 dnl Search for unsetenv()
 AC_CHECK_FUNC(unsetenv, AC_DEFINE(HAVE_UNSETENV))
 
+AC_CHECK_FUNC(SSL_CTX_set_min_proto_version, AC_DEFINE(HAVE_SSL_CTX_set_min_proto_version))
+AC_CHECK_FUNC(SSL_CTX_set_max_proto_version, AC_DEFINE(HAVE_SSL_CTX_set_max_proto_version))
 AC_CHECK_FUNC(TLS_client_method, AC_DEFINE(HAVE_TLS_client_method) ac_cv_have_tls_client_method=yes, AC_CHECK_LIB(crypt, TLS_client_method, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(TLS_server_method, AC_DEFINE(HAVE_TLS_server_method) ac_cv_have_tls_server_method=yes, AC_CHECK_LIB(crypt, TLS_server_method, [LIBS=-lcrypt $LIBS]))
 if test -n "$WITH_OPENSSL_METHOD" -o -z "$ac_cv_have_tls_client_method" -o -z "$ac_cv_have_tls_server_method" ; then

@@ -12910,6 +12910,36 @@ N=$((N+1))
 
 done
 
+# test security of option openssl-set-min-proto-version
+OPENSSL_LATEST_PROTO_VERSION=$(openssl s_server --help 2>&1 |grep -e -ssl[1-9] -e -tls[1-9] |awk '{print($1);}' |cut -c 2- |tr '[a-z_]' '[A-Z.]' |sort |tail -n 1)
+OPENSSL_BEFORELAST_PROTO_VERSION=$(openssl s_server --help 2>&1 |grep -e -ssl[1-9] -e -tls[1-9] |awk '{print($1);}' |cut -c 2- |tr '[a-z_]' '[A-Z.]' |sort |tail -n 2 |head -n 1)
+
+NAME=OPENSSL_MIN_VERSION
+case "$TESTS" in
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%openssl%*|*%$NAME%*)
+TEST="$NAME: security of OpenSSL server with openssl-min-proto-version"
+if ! eval $NUMCOND; then :;
+elif ! testaddrs openssl >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! feat=$(testoptions openssl-min-proto-version); then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! [ "$OPENSSL_LATEST_PROTO_VERSION" -a "$OPENSSL_BEFORELAST_PROTO_VERSION" -a \
+         "$OPENSSL_LATEST_PROTO_VERSION" != "$OPENSSL_BEFORELAST_PROTO_VERSION" ]; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}cannot determine two available SSL/TLS versions${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+else
+gentestcert testsrv
+testserversec "$N" "$TEST" "$opts -4" "SSL-L:$PORT,pf=ip4,reuseaddr,$SOCAT_EGD,verify=0,cert=testsrv.crt,key=testsrv.key" "" "openssl-min-proto-version=$OPENSSL_LATEST_PROTO_VERSION" "SSL:$LOCALHOST:$PORT,cafile=testsrv.crt,$SOCAT_EGD,openssl-max-proto-version=$OPENSSL_BEFORELAST_PROTO_VERSION" 4 tcp $PORT -1
+fi ;; # NUMCOND, $fets
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
 
 # Address options fdin and fdout were silently ignored when not applicable
 # due to -u or -U option. Now these combinations are caught as errors.

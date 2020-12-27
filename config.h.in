@@ -464,6 +464,12 @@
 #undef HAVE_DTLSv1_client_method
 #undef HAVE_DTLSv1_server_method
 
+/* Define if you have the SSL CTX_set_min_proto_version function/macro */
+#undef HAVE_SSL_CTX_set_min_proto_version
+
+/* Define if you have the SSL_CTX_set_max_proto_version function/macro */
+#undef HAVE_SSL_CTX_set_max_proto_version
+
 /* Define if you have the EC_KEY type */
 #undef HAVE_TYPE_EC_KEY
 
