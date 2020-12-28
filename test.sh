@@ -8520,16 +8520,17 @@ esac
 N=$((N+1))
 
 
-# test the shut-null and null-eof options
+# Test the shut-null and null-eof options
 NAME=SHUTNULLEOF
 case "$TESTS" in
 *%$N%*|*%functions%*|*%socket%*|*%$NAME%*)
 TEST="$NAME: options shut-null and null-eof"
-# run a receiving background process with option null-eof. 
-# start a sending process with option shut-null that sends a test record to the
+# Run a receiving background process with option null-eof. 
+# Start a sending process with option shut-null that sends a test record to the
 # receiving process and then terminates.
-# send another test record.
-# whe the receiving process just got the first test record the test succeeded
+# Send another test record.
+# When the receiving process only received and stored the first test record the
+# test succeeded
 if ! eval $NUMCOND; then :; else
 tf="$td/test$N.stout"
 te="$td/test$N.stderr"
@@ -8541,9 +8542,9 @@ printf "test $F_n $TEST... " $N
 $CMD0 >/dev/null 2>"${te}0" &
 pid0=$!
 waitudp4port $PORT 1
-echo "$da" |$CMD1 >"${tf}1" 2>"${te}1"
+{ echo "$da"; sleep 0.1; } |$CMD1 >"${tf}1" 2>"${te}1"
 rc1=$?
-echo "xyz" |$CMD1 >"${tf}2" 2>"${te}2"
+{ echo "xyz"; sleep 0.1; } |$CMD1 >"${tf}2" 2>"${te}2"
 rc2=$?
 kill $pid0 2>/dev/null; wait
 if [ $rc1 != 0 -o $rc2 != 0 ]; then
@@ -12161,7 +12162,7 @@ case "$TESTS" in
 TEST="$NAME: correct evaluation of range mask 0"
 if ! eval $NUMCOND; then :;
 elif [ -z "$SECONDADDR" ]; then
-    # we need access to a second addresses
+    # we need access to a second address
     $PRINTF "test $F_n $TEST... ${YELLOW}need a second IPv4 address${NORMAL}\n" $N
     numCANT=$((numCANT+1))
     listCANT="$listCANT $N"
@@ -12179,6 +12180,7 @@ pid0=$!
 waittcp4port $PORT 1
 echo "$da" |$CMD1 >"${tf}1" 2>"${te}1"
 rc1=$?
+sleep 1
 kill $pid0 2>/dev/null; wait
 if [ $rc1 != 0 ]; then
     $PRINTF "${YELLOW}invocation failed${NORMAL}\n"

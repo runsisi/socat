@@ -11,6 +11,7 @@
 
 /*!! with socat, at most 4 exec children exist */
 pid_t diedunknown[NUMUNKNOWN];	/* children that died before they were registered */
+int   statunknown[NUMUNKNOWN]; 	/* exit state of unknown dead child */
 size_t nextunknown;
 
 
@@ -120,7 +121,8 @@ void childdied(int signum) {
 	 if (nextunknown == NUMUNKNOWN) {
 	    nextunknown = 0;
 	 }
-	 diedunknown[nextunknown++] = pid;
+	 diedunknown[nextunknown] = pid;
+	 statunknown[nextunknown++] = WEXITSTATUS(status);
 	 Debug1("saving pid in diedunknown"F_Zu,
 		nextunknown/*sic, for compatibility*/);
       }

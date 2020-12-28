@@ -597,29 +597,20 @@ int socat(const char *address1, const char *address2) {
        (XIO_RDSTREAM(sock1)->howtoend == END_KILL ||
 	XIO_RDSTREAM(sock1)->howtoend == END_CLOSE_KILL ||
 	XIO_RDSTREAM(sock1)->howtoend == END_SHUTDOWN_KILL)) {
-      if (XIO_RDSTREAM(sock1)->para.exec.pid == diedunknown1) {
-	 /* child has alread died... but it might have put regular data into
-	    the communication channel, so continue */
-	 Info1("child "F_pid" has already died (diedunknown1)",
-	       XIO_RDSTREAM(sock1)->para.exec.pid);
-	 diedunknown1 = 0;
-	 XIO_RDSTREAM(sock1)->para.exec.pid = 0;
-	 /* return STAT_RETRYLATER; */
-      } else if (XIO_RDSTREAM(sock1)->para.exec.pid == diedunknown2) {
-	 Info1("child "F_pid" has already died (diedunknown2)",
-	       XIO_RDSTREAM(sock1)->para.exec.pid);
-	 diedunknown2 = 0;
-	 XIO_RDSTREAM(sock1)->para.exec.pid = 0;
-      } else if (XIO_RDSTREAM(sock1)->para.exec.pid == diedunknown3) {
-	 Info1("child "F_pid" has already died (diedunknown3)",
-	       XIO_RDSTREAM(sock1)->para.exec.pid);
-	 diedunknown3 = 0;
-	 XIO_RDSTREAM(sock1)->para.exec.pid = 0;
-      } else if (XIO_RDSTREAM(sock1)->para.exec.pid == diedunknown4) {
-	 Info1("child "F_pid" has already died (diedunknown4)",
-	       XIO_RDSTREAM(sock1)->para.exec.pid);
-	 diedunknown4 = 0;
-	 XIO_RDSTREAM(sock1)->para.exec.pid = 0;
+      int i;
+      for (i = 0; i < NUMUNKNOWN; ++i) {
+	 if (XIO_RDSTREAM(sock1)->para.exec.pid == diedunknown[i]) {
+	    /* child has alread died... but it might have put regular data into
+	       the communication channel, so continue */
+	    Info2("child "F_pid" has already died with status %d",
+		  XIO_RDSTREAM(sock1)->para.exec.pid, statunknown[i]);
+	    if (statunknown[i] != 0) {
+	       return 1;
+	    }
+	    diedunknown[i] = 0;
+	    XIO_RDSTREAM(sock1)->para.exec.pid = 0;
+	    /* return STAT_RETRYLATER; */
+	 }
       }
    }
 #endif
@@ -648,29 +639,20 @@ int socat(const char *address1, const char *address2) {
        (XIO_RDSTREAM(sock2)->howtoend == END_KILL ||
 	XIO_RDSTREAM(sock2)->howtoend == END_CLOSE_KILL ||
 	XIO_RDSTREAM(sock2)->howtoend == END_SHUTDOWN_KILL)) {
-      if (XIO_RDSTREAM(sock2)->para.exec.pid == diedunknown1) {
-	 /* child has alread died... but it might have put regular data into
-	    the communication channel, so continue */
-	 Info1("child "F_pid" has already died (diedunknown1)",
-	       XIO_RDSTREAM(sock2)->para.exec.pid);
-	 diedunknown1 = 0;
-	 XIO_RDSTREAM(sock2)->para.exec.pid = 0;
-	 /* return STAT_RETRYLATER; */
-      } else if (XIO_RDSTREAM(sock2)->para.exec.pid == diedunknown2) {
-	 Info1("child "F_pid" has already died (diedunknown2)",
-	       XIO_RDSTREAM(sock2)->para.exec.pid);
-	 diedunknown2 = 0;
-	 XIO_RDSTREAM(sock2)->para.exec.pid = 0;
-      } else if (XIO_RDSTREAM(sock2)->para.exec.pid == diedunknown3) {
-	 Info1("child "F_pid" has already died (diedunknown3)",
-	       XIO_RDSTREAM(sock2)->para.exec.pid);
-	 diedunknown3 = 0;
-	 XIO_RDSTREAM(sock2)->para.exec.pid = 0;
-      } else if (XIO_RDSTREAM(sock2)->para.exec.pid == diedunknown4) {
-	 Info1("child "F_pid" has already died (diedunknown4)",
-	       XIO_RDSTREAM(sock2)->para.exec.pid);
-	 diedunknown4 = 0;
-	 XIO_RDSTREAM(sock2)->para.exec.pid = 0;
+      int i;
+      for (i = 0; i < NUMUNKNOWN; ++i) {
+	 if (XIO_RDSTREAM(sock2)->para.exec.pid == diedunknown[i]) {
+	    /* child has alread died... but it might have put regular data into
+	       the communication channel, so continue */
+	    Info2("child "F_pid" has already died with status %d",
+		  XIO_RDSTREAM(sock2)->para.exec.pid, statunknown[i]);
+	    if (statunknown[i] != 0) {
+	       return 1;
+	    }
+	    diedunknown[i] = 0;
+	    XIO_RDSTREAM(sock2)->para.exec.pid = 0;
+	    /* return STAT_RETRYLATER; */
+	 }
       }
    }
 #endif
