@@ -41,7 +41,7 @@
 #include "xio-pty.h"
 #include "xio-openssl.h"
 #include "xio-tcpwrap.h"
-#include "xio-ext2.h"
+#include "xio-fs.h"
 #include "xio-tun.h"
 #include "xio-streams.h"
 

@@ -41,6 +41,10 @@ Porting:
 	ai_protocol=0 and try again
 	Test: SCTP_SERVICENAME
 
+	Per file filesystem options were still name ext2-* and depended on
+	<linux/ext2_fs.h>. Now they are called fs-* and depend on <linux/fs.h>.
+	These fs-* options are also available on old systems with ext2_fs.h
+
 Testing:
 	test.sh now produces a list of tests that could not be performed for
 	any reason. This helps to analyse these cases.
@@ -231,6 +235,9 @@ Cosmetics:
 New features:
 	Permit combined -d options as -dd etc.
 
+porting:
+	ext2 options are now fs options.
+	
 ####################### V 1.7.3.2:
 
 corrections:

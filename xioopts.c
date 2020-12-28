@@ -293,8 +293,8 @@ const struct optname optionnames[] = {
 	IF_ANY    ("close",	&opt_end_close)
 	IF_OPENSSL("cn",		&opt_openssl_commonname)
 	IF_OPENSSL("commonname",	&opt_openssl_commonname)
-#if WITH_EXT2 && defined(EXT2_COMPR_FL)
-	IF_ANY    ("compr",	&opt_ext2_compr)
+#if WITH_FS && defined(FS_COMPR_FL)
+	IF_ANY    ("compr",	&opt_fs_compr)
 #endif
 #if OPENSSL_VERSION_NUMBER >= 0x00908000L && !defined(OPENSSL_NO_COMP)
 	IF_OPENSSL("compress",	&opt_openssl_compress)
@@ -382,8 +382,8 @@ const struct optname optionnames[] = {
 #ifdef O_DIRECTORY
 	IF_OPEN   ("directory",	&opt_o_directory)
 #endif
-#if WITH_EXT2 && defined(EXT2_DIRSYNC_FL)
-	IF_ANY    ("dirsync",	&opt_ext2_dirsync)
+#if WITH_FS && defined(FS_DIRSYNC_FL)
+	IF_ANY    ("dirsync",	&opt_fs_dirsync)
 #endif
 #ifdef VDISCARD
 	IF_TERMIOS("discard",	&opt_vdiscard)
@@ -422,77 +422,77 @@ const struct optname optionnames[] = {
 	IF_SOCKET ("error",	&opt_so_error)
 	IF_ANY    ("escape",	&opt_escape)
 	IF_OPEN   ("excl",	&opt_o_excl)
-#if WITH_EXT2 && defined(EXT2_APPEND_FL)
-	IF_ANY    ("ext2-append",	&opt_ext2_append)
+#if WITH_FS && defined(FS_APPEND_FL)
+	IF_ANY    ("ext2-append",	&opt_fs_append)
 #endif
-#if WITH_EXT2 && defined(EXT2_COMPR_FL)
-	IF_ANY    ("ext2-compr",	&opt_ext2_compr)
+#if WITH_FS && defined(FS_COMPR_FL)
+	IF_ANY    ("ext2-compr",	&opt_fs_compr)
 #endif
-#if WITH_EXT2 && defined(EXT2_DIRSYNC_FL)
-	IF_ANY    ("ext2-dirsync",	&opt_ext2_dirsync)
+#if WITH_FS && defined(FS_DIRSYNC_FL)
+	IF_ANY    ("ext2-dirsync",	&opt_fs_dirsync)
 #endif
-#if WITH_EXT2 && defined(EXT2_IMMUTABLE_FL)
-	IF_ANY    ("ext2-immutable",	&opt_ext2_immutable)
+#if WITH_FS && defined(FS_IMMUTABLE_FL)
+	IF_ANY    ("ext2-immutable",	&opt_fs_immutable)
 #endif
-#if WITH_EXT2 && defined(EXT2_JOURNAL_DATA_FL)
-	IF_ANY    ("ext2-journal-data",	&opt_ext2_journal_data)
+#if WITH_FS && defined(FS_JOURNAL_DATA_FL)
+	IF_ANY    ("ext2-journal-data",	&opt_fs_journal_data)
 #endif
-#if WITH_EXT2 && defined(EXT2_NOATIME_FL)
-	IF_ANY    ("ext2-noatime",	&opt_ext2_noatime)
+#if WITH_FS && defined(FS_NOATIME_FL)
+	IF_ANY    ("ext2-noatime",	&opt_fs_noatime)
 #endif
-#if WITH_EXT2 && defined(EXT2_NODUMP_FL)
-	IF_ANY    ("ext2-nodump",	&opt_ext2_nodump)
+#if WITH_FS && defined(FS_NODUMP_FL)
+	IF_ANY    ("ext2-nodump",	&opt_fs_nodump)
 #endif
-#if WITH_EXT2 && defined(EXT2_NOTAIL_FL)
-	IF_ANY    ("ext2-notail",	&opt_ext2_notail)
+#if WITH_FS && defined(FS_NOTAIL_FL)
+	IF_ANY    ("ext2-notail",	&opt_fs_notail)
 #endif
-#if WITH_EXT2 && defined(EXT2_SECRM_FL)
-	IF_ANY    ("ext2-secrm",	&opt_ext2_secrm)
+#if WITH_FS && defined(FS_SECRM_FL)
+	IF_ANY    ("ext2-secrm",	&opt_fs_secrm)
 #endif
-#if WITH_EXT2 && defined(EXT2_SYNC_FL)
-	IF_ANY    ("ext2-sync",		&opt_ext2_sync)
+#if WITH_FS && defined(FS_SYNC_FL)
+	IF_ANY    ("ext2-sync",		&opt_fs_sync)
 #endif
-#if WITH_EXT2 && defined(EXT2_TOPDIR_FL)
-	IF_ANY    ("ext2-topdir",	&opt_ext2_topdir)
+#if WITH_FS && defined(FS_TOPDIR_FL)
+	IF_ANY    ("ext2-topdir",	&opt_fs_topdir)
 #endif
-#if WITH_EXT2 && defined(EXT2_UNRM_FL)
-	IF_ANY    ("ext2-unrm",		&opt_ext2_unrm)
+#if WITH_FS && defined(FS_UNRM_FL)
+	IF_ANY    ("ext2-unrm",		&opt_fs_unrm)
 #endif
-#if WITH_EXT2 && defined(EXT2_APPEND_FL)
-	IF_ANY    ("ext3-append",	&opt_ext2_append)
+#if WITH_FS && defined(FS_APPEND_FL)
+	IF_ANY    ("ext3-append",	&opt_fs_append)
 #endif
-#if WITH_EXT2 && defined(EXT2_COMPR_FL)
-	IF_ANY    ("ext3-compr",	&opt_ext2_compr)
+#if WITH_FS && defined(FS_COMPR_FL)
+	IF_ANY    ("ext3-compr",	&opt_fs_compr)
 #endif
-#if WITH_EXT2 && defined(EXT2_DIRSYNC_FL)
-	IF_ANY    ("ext3-dirsync",	&opt_ext2_dirsync)
+#if WITH_FS && defined(FS_DIRSYNC_FL)
+	IF_ANY    ("ext3-dirsync",	&opt_fs_dirsync)
 #endif
-#if WITH_EXT2 && defined(EXT2_IMMUTABLE_FL)
-	IF_ANY    ("ext3-immutable",	&opt_ext2_immutable)
+#if WITH_FS && defined(FS_IMMUTABLE_FL)
+	IF_ANY    ("ext3-immutable",	&opt_fs_immutable)
 #endif
-#if WITH_EXT2 && defined(EXT2_JOURNAL_DATA_FL)
-	IF_ANY    ("ext3-journal-data",	&opt_ext2_journal_data)
+#if WITH_FS && defined(FS_JOURNAL_DATA_FL)
+	IF_ANY    ("ext3-journal-data",	&opt_fs_journal_data)
 #endif
-#if WITH_EXT2 && defined(EXT2_NOATIME_FL)
-	IF_ANY    ("ext3-noatime",	&opt_ext2_noatime)
+#if WITH_FS && defined(FS_NOATIME_FL)
+	IF_ANY    ("ext3-noatime",	&opt_fs_noatime)
 #endif
-#if WITH_EXT2 && defined(EXT2_NODUMP_FL)
-	IF_ANY    ("ext3-nodump",	&opt_ext2_nodump)
+#if WITH_FS && defined(FS_NODUMP_FL)
+	IF_ANY    ("ext3-nodump",	&opt_fs_nodump)
 #endif
-#if WITH_EXT2 && defined(EXT2_NOTAIL_FL)
-	IF_ANY    ("ext3-notail",	&opt_ext2_notail)
+#if WITH_FS && defined(FS_NOTAIL_FL)
+	IF_ANY    ("ext3-notail",	&opt_fs_notail)
 #endif
-#if WITH_EXT2 && defined(EXT2_SECRM_FL)
-	IF_ANY    ("ext3-secrm",	&opt_ext2_secrm)
+#if WITH_FS && defined(FS_SECRM_FL)
+	IF_ANY    ("ext3-secrm",	&opt_fs_secrm)
 #endif
-#if WITH_EXT2 && defined(EXT2_SYNC_FL)
-	IF_ANY    ("ext3-sync",		&opt_ext2_sync)
+#if WITH_FS && defined(FS_SYNC_FL)
+	IF_ANY    ("ext3-sync",		&opt_fs_sync)
 #endif
-#if WITH_EXT2 && defined(EXT2_TOPDIR_FL)
-	IF_ANY    ("ext3-topdir",	&opt_ext2_topdir)
+#if WITH_FS && defined(FS_TOPDIR_FL)
+	IF_ANY    ("ext3-topdir",	&opt_fs_topdir)
 #endif
-#if WITH_EXT2 && defined(EXT2_UNRM_FL)
-	IF_ANY    ("ext3-unrm",		&opt_ext2_unrm)
+#if WITH_FS && defined(FS_UNRM_FL)
+	IF_ANY    ("ext3-unrm",		&opt_fs_unrm)
 #endif
 	IF_ANY 	  ("f-setlk",	&opt_f_setlk_wr)
 	IF_ANY 	  ("f-setlk-rd",	&opt_f_setlk_rd)
@@ -533,6 +533,42 @@ const struct optname optionnames[] = {
 	IF_LISTEN ("fork",	&opt_fork)
 #ifdef IP_FREEBIND
 	IF_IP     ("freebind",	&opt_ip_freebind)
+#endif
+#if WITH_FS && defined(FS_APPEND_FL)
+	IF_ANY    ("fs-append",	&opt_fs_append)
+#endif
+#if WITH_FS && defined(FS_COMPR_FL)
+	IF_ANY    ("fs-compr",	&opt_fs_compr)
+#endif
+#if WITH_FS && defined(FS_DIRSYNC_FL)
+	IF_ANY    ("fs-dirsync",	&opt_fs_dirsync)
+#endif
+#if WITH_FS && defined(FS_IMMUTABLE_FL)
+	IF_ANY    ("fs-immutable",	&opt_fs_immutable)
+#endif
+#if WITH_FS && defined(FS_JOURNAL_DATA_FL)
+	IF_ANY    ("fs-journal-data",	&opt_fs_journal_data)
+#endif
+#if WITH_FS && defined(FS_NOATIME_FL)
+	IF_ANY    ("fs-noatime",	&opt_fs_noatime)
+#endif
+#if WITH_FS && defined(FS_NODUMP_FL)
+	IF_ANY    ("fs-nodump",	&opt_fs_nodump)
+#endif
+#if WITH_FS && defined(FS_NOTAIL_FL)
+	IF_ANY    ("fs-notail",	&opt_fs_notail)
+#endif
+#if WITH_FS && defined(FS_SECRM_FL)
+	IF_ANY    ("fs-secrm",	&opt_fs_secrm)
+#endif
+#if WITH_FS && defined(FS_SYNC_FL)
+	IF_ANY    ("fs-sync",		&opt_fs_sync)
+#endif
+#if WITH_FS && defined(FS_TOPDIR_FL)
+	IF_ANY    ("fs-topdir",	&opt_fs_topdir)
+#endif
+#if WITH_FS && defined(FS_UNRM_FL)
+	IF_ANY    ("fs-unrm",		&opt_fs_unrm)
 #endif
 #if HAVE_FTRUNCATE64
 	IF_ANY    ("ftruncate",	&opt_ftruncate64)
@@ -608,8 +644,8 @@ const struct optname optionnames[] = {
 	IF_IP     ("igntc",	&opt_res_igntc)
 #endif /* HAVE_RESOLV_H */
 	IF_TERMIOS("imaxbel",	&opt_imaxbel)
-#if WITH_EXT2 && defined(EXT2_IMMUTABLE_FL)
-	IF_ANY    ("immutable",	&opt_ext2_immutable)
+#if WITH_FS && defined(FS_IMMUTABLE_FL)
+	IF_ANY    ("immutable",	&opt_fs_immutable)
 #endif
 #ifdef TCP_INFO	/* Linux 2.4.0 */
 	IF_TCP    ("info",	&opt_tcp_info)
@@ -803,9 +839,9 @@ const struct optname optionnames[] = {
 #ifdef IPV6_JOIN_GROUP
 	IF_IP6    ("join-group",	&opt_ipv6_join_group)
 #endif
-#if WITH_EXT2 && defined(EXT2_JOURNAL_DATA_FL)
-	IF_ANY    ("journal",		&opt_ext2_journal_data)
-	IF_ANY    ("journal-data",	&opt_ext2_journal_data)
+#if WITH_FS && defined(FS_JOURNAL_DATA_FL)
+	IF_ANY    ("journal",		&opt_fs_journal_data)
+	IF_ANY    ("journal-data",	&opt_fs_journal_data)
 #endif
 	IF_SOCKET ("keepalive",	&opt_so_keepalive)
 #ifdef TCP_KEEPCNT	/* Linux 2.4.0 */
@@ -930,8 +966,8 @@ const struct optname optionnames[] = {
 #ifdef TCP_NODELAY
 	IF_TCP    ("nodelay",	&opt_tcp_nodelay)
 #endif
-#if WITH_EXT2 && defined(EXT2_NODUMP_FL)
-	IF_ANY    ("nodump",	&opt_ext2_nodump)
+#if WITH_FS && defined(FS_NODUMP_FL)
+	IF_ANY    ("nodump",	&opt_fs_nodump)
 #endif
 #if HAVE_REGEX_H
 	IF_READLINE("noecho",	&opt_noecho)
@@ -1310,8 +1346,8 @@ const struct optname optionnames[] = {
 #ifdef SCTP_NODELAY
 	IF_SCTP   ("sctp-nodelay",	&opt_sctp_nodelay)
 #endif
-#if WITH_EXT2 && defined(EXT2_SECRM_FL)
-	IF_ANY    ("secrm",	&opt_ext2_secrm)
+#if WITH_FS && defined(FS_SECRM_FL)
+	IF_ANY    ("secrm",	&opt_fs_secrm)
 #endif
 #ifdef SO_SECURITY_AUTHENTICATION
 	IF_SOCKET ("security-authentication",	&opt_so_security_authentication)
@@ -1510,8 +1546,8 @@ const struct optname optionnames[] = {
 	IF_PTY    ("symbolic-link",	&opt_symbolic_link)
 #ifdef O_SYNC
 	IF_OPEN   ("sync",	&opt_o_sync)
-#elif EXT2_SYNC_FL
-	IF_ANY    ("sync",	&opt_ext2_sync)
+#elif FS_SYNC_FL
+	IF_ANY    ("sync",	&opt_fs_sync)
 #endif
 #ifdef TCP_SYNCNT
 	IF_TCP    ("syncnt",	&opt_tcp_syncnt)
@@ -1634,8 +1670,8 @@ const struct optname optionnames[] = {
 	IF_SOCKET ("timestamp",	&opt_so_timestamp)
 #endif
 	IF_TERMIOS("tiocsctty",	&opt_tiocsctty)
-#if WITH_EXT2 && defined(EXT2_TOPDIR_FL)
-	IF_ANY    ("topdir",	&opt_ext2_topdir)
+#if WITH_FS && defined(FS_TOPDIR_FL)
+	IF_ANY    ("topdir",	&opt_fs_topdir)
 #endif
 	IF_IP     ("tos",	&opt_ip_tos)
 	IF_TERMIOS("tostop",	&opt_tostop)
@@ -1664,8 +1700,8 @@ const struct optname optionnames[] = {
 	IF_NAMED  ("unlink-close",	&opt_unlink_close)
 	IF_NAMED  ("unlink-early",	&opt_unlink_early)
 	IF_NAMED  ("unlink-late",	&opt_unlink_late)
-#if WITH_EXT2 && defined(EXT2_UNRM_FL)
-	IF_ANY    ("unrm",		&opt_ext2_unrm)
+#if WITH_FS && defined(FS_UNRM_FL)
+	IF_ANY    ("unrm",		&opt_fs_unrm)
 #endif
 	IF_TUN    ("up",	&opt_iff_up)
 #ifdef SO_USE_IFBUFS

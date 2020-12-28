@@ -1663,22 +1663,22 @@ label(OPTION_FTRUNCATE)dit(bf(tt(ftruncate=<offset>)))
    link(off64_t)(TYPE_OFF64)]. Please note that a missing value defaults to 1,
    not 0.
 
-label(OPTION_EXT2_SECRM_FL)dit(bf(tt(secrm=<bool>)))
-label(OPTION_EXT2_UNRM)dit(bf(tt(unrm=<bool>)))
-label(OPTION_EXT2_COMPR)dit(bf(tt(compr=<bool>)))
-label(OPTION_EXT2_SYNC)dit(bf(tt(ext2-sync=<bool>)))
-label(OPTION_EXT2_IMMUTABLE)dit(bf(tt(immutable=<bool>)))
-label(OPTION_EXT2_APPEND)dit(bf(tt(ext2-append=<bool>)))
-label(OPTION_EXT2_NODUMP)dit(bf(tt(nodump=<bool>)))
-label(OPTION_EXT2_NOATIME)dit(bf(tt(ext2-noatime=<bool>)))
-label(OPTION_EXT2_JOURNAL_DATA)dit(bf(tt(journal-data=<bool>)))
-label(OPTION_EXT2_NOTAIL)dit(bf(tt(notail=<bool>)))
-label(OPTION_EXT2_DIRSYNC)dit(bf(tt(dirsync=<bool>)))
+label(OPTION_FS_SECRM_FL)dit(bf(tt(secrm=<bool>)))
+label(OPTION_FS_UNRM)dit(bf(tt(unrm=<bool>)))
+label(OPTION_FS_COMPR)dit(bf(tt(compr=<bool>)))
+label(OPTION_FS_SYNC)dit(bf(tt(fs-sync=<bool>)))
+label(OPTION_FS_IMMUTABLE)dit(bf(tt(immutable=<bool>)))
+label(OPTION_FS_APPEND)dit(bf(tt(fs-append=<bool>)))
+label(OPTION_FS_NODUMP)dit(bf(tt(nodump=<bool>)))
+label(OPTION_FS_NOATIME)dit(bf(tt(fs-noatime=<bool>)))
+label(OPTION_FS_JOURNAL_DATA)dit(bf(tt(journal-data=<bool>)))
+label(OPTION_FS_NOTAIL)dit(bf(tt(notail=<bool>)))
+label(OPTION_FS_DIRSYNC)dit(bf(tt(dirsync=<bool>)))
    These options change non standard file attributes on operating systems and
-   file systems that support these features, like Linux with ext2fs,
-   ext3fs, or reiserfs. See man 1 chattr for information on these options.
-   Please note that there might be a race condition between creating the file
-   and applying these options.
+   file systems that support these features, like Linux with ext2fs and
+   successors, xfs, or reiserfs. See man 1 chattr for information on these
+   options. Please note that there might be a race condition between creating
+   the file and applying these options.
 enddit()
 
 startdit()enddit()nl()

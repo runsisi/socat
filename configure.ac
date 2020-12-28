@@ -405,13 +405,13 @@ AC_ARG_ENABLE(pty, [  --disable-pty           disable pty support],
 	       esac],
 	       [AC_DEFINE(WITH_PTY) AC_MSG_RESULT(yes)])
 
-AC_MSG_CHECKING(whether to include ext2 fs attributes support)
-AC_ARG_ENABLE(ext2, [  --disable-ext2          disable ext2 fs attributes support],
+AC_MSG_CHECKING(whether to include fs attributes support)
+AC_ARG_ENABLE(fs, [  --disable-fs            disable fs attributes support],
 	      [case "$enableval" in
 	       no) AC_MSG_RESULT(no);;
-	       *) AC_DEFINE(WITH_EXT2) AC_MSG_RESULT(yes);;
+	       *) AC_DEFINE(WITH_FS) AC_MSG_RESULT(yes);;
 	       esac],
-	       [AC_DEFINE(WITH_EXT2) AC_MSG_RESULT(yes)])
+	       [AC_DEFINE(WITH_FS) AC_MSG_RESULT(yes)])
 
 AC_MSG_CHECKING(whether to include readline support)
 AC_ARG_ENABLE(readline, [  --disable-readline      disable readline support],

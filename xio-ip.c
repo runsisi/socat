@@ -359,7 +359,7 @@ int xiogetaddrinfo(const char *node, const char *service,
       /* this is not a typical IP6 resolver function - but Linux
 	 "man gethostbyname" says that the only supported address type with
 	 this function is AF_INET _at present_, so maybe this fallback will
-	 be useful somewhere sometimesin a future even for IP6 */
+	 be useful somewhere sometimes in a future even for IP6 */
       if (family == PF_UNSPEC) {
 #if WITH_IP4 && WITH_IP6
 	 family = xioopts.default_ip=='6'?PF_INET6:PF_INET;

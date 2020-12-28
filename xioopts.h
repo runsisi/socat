@@ -275,18 +275,6 @@ enum e_optcode {
 #endif
    OPT_END_CLOSE,	/* xfd.stream.howtoend = END_CLOSE */
    OPT_ESCAPE,
-   OPT_EXT2_SECRM,
-   OPT_EXT2_UNRM,
-   OPT_EXT2_COMPR,
-   OPT_EXT2_SYNC,
-   OPT_EXT2_IMMUTABLE,
-   OPT_EXT2_APPEND,
-   OPT_EXT2_NODUMP,
-   OPT_EXT2_NOATIME,
-   OPT_EXT2_JOURNAL_DATA,
-   OPT_EXT2_NOTAIL,
-   OPT_EXT2_DIRSYNC,
-   OPT_EXT2_TOPDIR,
    OPT_FDIN,
    OPT_FDOUT,
 #ifdef FFDLY
@@ -309,6 +297,18 @@ enum e_optcode {
    /*0 OPT_FORCE,*/
    OPT_FOREVER,
    OPT_FORK,
+   OPT_FS_APPEND,
+   OPT_FS_COMPR,
+   OPT_FS_DIRSYNC,
+   OPT_FS_IMMUTABLE,
+   OPT_FS_JOURNAL_DATA,
+   OPT_FS_NOATIME,
+   OPT_FS_NODUMP,
+   OPT_FS_NOTAIL,
+   OPT_FS_SECRM,
+   OPT_FS_SYNC,
+   OPT_FS_TOPDIR,
+   OPT_FS_UNRM,
    OPT_FTRUNCATE32,	/* ftruncate() */
    OPT_FTRUNCATE64,	/* ftruncate64() */
    OPT_F_SETLKW_RD,	/* fcntl with struct flock - read-lock, wait */

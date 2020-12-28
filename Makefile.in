@@ -51,7 +51,7 @@ XIOSRCS = xioinitialize.c xiohelp.c xioparam.c xiodiag.c xioopen.c xioopts.c \
 	xio-socks.c xio-proxy.c xio-udp.c \
 	xio-progcall.c xio-exec.c xio-system.c xio-termios.c xio-readline.c \
 	xio-pty.c xio-openssl.c xio-streams.c\
-	xio-ascii.c xiolockfile.c xio-tcpwrap.c xio-ext2.c xio-tun.c
+	xio-ascii.c xiolockfile.c xio-tcpwrap.c xio-fs.c xio-tun.c
 XIOOBJS = $(XIOSRCS:.c=.o)
 UTLSRCS = error.c dalan.c procan.c procan-cdefs.c hostan.c fdname.c sysutils.c utils.c nestlex.c vsnprintf_r.c snprinterr.c @FILAN@ sycls.c @SSLCLS@
 UTLOBJS = $(UTLSRCS:.c=.o)
@@ -69,7 +69,7 @@ HFILES = sycls.h sslcls.h error.h dalan.h procan.h filan.h hostan.h sysincludes.
 	xio-socks.h xio-proxy.h xio-progcall.h xio-exec.h \
 	xio-system.h xio-termios.h xio-readline.h \
 	xio-pty.h xio-openssl.h xio-streams.h \
-	xio-ascii.h xiolockfile.h xio-tcpwrap.h xio-ext2.h xio-tun.h
+	xio-ascii.h xiolockfile.h xio-tcpwrap.h xio-fs.h xio-tun.h
 
 
 DOCFILES = README README.FIPS CHANGES FILES EXAMPLES PORTING SECURITY DEVELOPMENT doc/socat.yo doc/socat.1 doc/socat.html doc/xio.help FAQ BUGREPORTS COPYING COPYING.OpenSSL doc/dest-unreach.css doc/socat-openssltunnel.html doc/socat-multicast.html doc/socat-tun.html doc/socat-genericsocket.html

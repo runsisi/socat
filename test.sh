@@ -8232,17 +8232,17 @@ fi ;; # NUMCOND, feats
 esac
 N=$((N+1))
 
-NAME=EXT2_NOATIME
+NAME=FS_NOATIME
 case "$TESTS" in
-*%$N%*|*%functions%*|*%ext2%*|*%noatime%*|*%$NAME%*)
-TEST="$NAME: extended file system options using ext2fs noatime option"
-# idea: create a file with ext2-noatime option; one second later create a file
+*%$N%*|*%functions%*|*%fs%*|*%noatime%*|*%$NAME%*)
+TEST="$NAME: extended file system options using fs noatime option"
+# idea: create a file with fs-noatime option; one second later create a file
 # without this option (using touch); one second later read from the first file.
 # Then we check which file has the later ATIME stamp. For this check we use
 # "ls -ltu" because it is more portable than "test ... -nt ..."
 if ! eval $NUMCOND; then :;
-elif ! testoptions ext2-noatime >/dev/null; then
-    $PRINTF "test $F_n $TEST... ${YELLOW}ext2-noatime not available${NORMAL}\n" $N
+elif ! testoptions fs-noatime >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}fs-noatime not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
     listCANT="$listCANT $N"
 else
@@ -8254,7 +8254,7 @@ ts1="$ts"
 da="test$N $(date) $RANDOM"
 $PRINTF "test $F_n $TEST... " $N
 CMD0="$TRACE $SOCAT $opts -u /dev/null create:\"${tf}1\""
-CMD="$TRACE $SOCAT $opts -u /dev/null create:\"${tf}1\",ext2-noatime"
+CMD="$TRACE $SOCAT $opts -u /dev/null create:\"${tf}1\",fs-noatime"
 # check if this is a capable FS; lsattr does other things on AIX, thus socat
 $CMD0 2>"${te}0"
 if [ $? -ne 0 ]; then
