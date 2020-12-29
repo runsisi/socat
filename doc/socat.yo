@@ -708,9 +708,7 @@ label(ADDRESS_SOCKET_CONNECT)dit(bf(tt(SOCKET-CONNECT:<domain>:<protocol>:<remot
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(CHILD)(GROUP_CHILD),link(RETRY)(GROUP_RETRY)nl()
    Useful options:
    link(bind)(OPTION_BIND),
-   link(setsockopt-int)(OPTION_SETSOCKOPT_INT),
-   link(setsockopt-bin)(OPTION_SETSOCKOPT_BIN),
-   link(setsockopt-string)(OPTION_SETSOCKOPT_STRING)
+   link(setsockopt)(OPTION_SETSOCKOPT),
    nl()
    See also:
    link(TCP)(ADDRESS_TCP_CONNECT),
@@ -733,9 +731,7 @@ label(ADDRESS_SOCKET_DATAGRAM)dit(bf(tt(SOCKET-DATAGRAM:<domain>:<type>:<protoco
    Useful options:
    link(bind)(OPTION_BIND),
    link(range)(OPTION_RANGE),
-   link(setsockopt-int)(OPTION_SETSOCKOPT_INT),
-   link(setsockopt-bin)(OPTION_SETSOCKOPT_BIN),
-   link(setsockopt-string)(OPTION_SETSOCKOPT_STRING)
+   link(setsockopt)(OPTION_SETSOCKOPT),
    nl()
    See also:
    link(UDP-DATAGRAM)(ADDRESS_UDP_DATAGRAM),
@@ -756,9 +752,8 @@ label(ADDRESS_SOCKET_LISTEN)dit(bf(tt(SOCKET-LISTEN:<domain>:<protocol>:<local-a
    link(-g)(option_g).nl()
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(LISTEN)(GROUP_LISTEN),link(RANGE)(GROUP_RANGE),link(CHILD)(GROUP_CHILD),link(RETRY)(GROUP_RETRY)nl()
    Useful options:
-   link(setsockopt-int)(OPTION_SETSOCKOPT_INT),
-   link(setsockopt-bin)(OPTION_SETSOCKOPT_BIN),
-   link(setsockopt-string)(OPTION_SETSOCKOPT_STRING)
+   link(setsockopt)(OPTION_SETSOCKOPT),
+   link(setsockopt-listen)(OPTION_SETSOCKOPT_LISTEN),
    nl()
    See also:
    link(TCP)(ADDRESS_TCP_LISTEN),
@@ -777,9 +772,8 @@ label(ADDRESS_SOCKET_RECV)dit(bf(tt(SOCKET-RECV:<domain>:<type>:<protocol>:<loca
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(RANGE)(GROUP_RANGE)nl()
    Useful options:
    link(range)(OPTION_RANGE),
-   link(setsockopt-int)(OPTION_SETSOCKOPT_INT),
-   link(setsockopt-bin)(OPTION_SETSOCKOPT_BIN),
-   link(setsockopt-string)(OPTION_SETSOCKOPT_STRING)
+   link(setsockopt)(OPTION_SETSOCKOPT),
+   link(setsockopt-listen)(OPTION_SETSOCKOPT_LISTEN)
    nl()
    See also:
    link(UDP-RECV)(ADDRESS_UDP_RECV),
@@ -800,9 +794,8 @@ label(ADDRESS_SOCKET_RECVFROM)dit(bf(tt(SOCKET-RECVFROM:<domain>:<type>:<protoco
    Useful options:
    link(fork)(OPTION_FORK),
    link(range)(OPTION_RANGE),
-   link(setsockopt-int)(OPTION_SETSOCKOPT_INT),
-   link(setsockopt-bin)(OPTION_SETSOCKOPT_BIN),
-   link(setsockopt-string)(OPTION_SETSOCKOPT_STRING)
+   link(setsockopt)(OPTION_SETSOCKOPT),
+   link(setsockopt-listen)(OPTION_SETSOCKOPT_LISTEN)
    nl()
    See also:
    link(UDP-RECVFROM)(ADDRESS_UDP_RECVFROM),
@@ -822,9 +815,8 @@ label(ADDRESS_SOCKET_SENDTO)dit(bf(tt(SOCKET-SENDTO:<domain>:<type>:<protocol>:<
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET)nl()
    Useful options:
    link(bind)(OPTION_BIND),
-   link(setsockopt-int)(OPTION_SETSOCKOPT_INT),
-   link(setsockopt-bin)(OPTION_SETSOCKOPT_BIN),
-   link(setsockopt-string)(OPTION_SETSOCKOPT_STRING)
+   link(setsockopt)(OPTION_SETSOCKOPT),
+   link(setsockopt-listen)(OPTION_SETSOCKOPT_LISTEN)
    nl()
    See also:
    link(UDP-SENDTO)(ADDRESS_UDP_SENDTO),
@@ -1921,22 +1913,24 @@ COMMENT(label(OPTION_USEIFBUFS)dit(bf(tt(useifbufs)))
 label(OPTION_SO_TIMESTAMP)dit(bf(tt(so-timestamp)))
    Sets the SO_TIMESTAMP socket option. This enables receiving and logging of
    timestamp ancillary messages.
-label(OPTION_SETSOCKOPT_INT)dit(bf(tt(setsockopt-int=<level>:<optname>:<optval>)))
+label(OPTION_SETSOCKOPT)dit(bf(tt(setsockopt=<level>:<optname>:<optval>)))
    Invokes tt(setsockopt()) for the socket with the given parameters. tt(level)
    [link(int)(TYPE_INT)] is used as second argument to tt(setsockopt()) and
    specifies the layer, e.g. SOL_TCP for TCP (6 on Linux), or SOL_SOCKET for
    the socket layer (1 on Linux). tt(optname) [link(int)(TYPE_INT)] is the
    third argument to tt(setsockopt()) and tells which socket option is to be
    set. For the actual numbers you might have to look up the appropriate include
-   files of your system. The 4th tt(setsockopt()) parameter, tt(value)
-   [link(int)(TYPE_INT)], is passed to the function per pointer, and for the
-   length parameter NOEXPAND(sizeof(int)) is taken implicitely.
-label(OPTION_SETSOCKOPT_BIN)dit(bf(tt(setsockopt-bin=<level>:<optname>:<optval>)))
-   Like tt(setsockopt-int), but <optval> must be provided in
-   link(dalan)(TYPE_DATA) format and specifies an arbitrary sequence of bytes;
-   the length parameter is automatically derived from the data.
+   files of your system. For the 4th and 5th tt(setsockopt()) parameters,
+   tt(value) [link(dalan)(TYPE_DATA)] specifies an arbitrary sequence of bytes
+   that are passed to the function per pointer, with the automatically derived
+   length parameter.
+label(OPTION_SETSOCKOPT_INT)dit(bf(tt(setsockopt-int=<level>:<optname>:<optval>)))
+   Like tt(setsockopt), but <optval> is a pointer to int [link(int)(TYPE_INT)]
+label(OPTION_SETSOCKOPT_LISTEN)dit(bf(tt(setsockopt-listen=<level>:<optname>:<optval>)))
+   Like tt(setsockopt), but for listen type addresses it is applied to the
+   listening socket instead of the connected socket.
 label(OPTION_SETSOCKOPT_STRING)dit(bf(tt(setsockopt-string=<level>:<optname>:<optval>)))
-   Like tt(setsockopt-int), but <optval> must be a link(string)(TYPE_STRING).
+   Like tt(setsockopt), but <optval> is a link(string)(TYPE_STRING).
    This string is passed to the function with trailing null character, and the
    length parameter is automatically derived from the data.
 enddit()
@@ -2805,9 +2799,36 @@ label(TYPE_COMMAND_LINE)dit(command-line)
    A string specifying a program name and its arguments, separated by single
    spaces. 
 label(TYPE_DATA)dit(data)
-   A raw data specification following em(dalan) syntax. Currently the only
-   valid form is a string starting with 'x' followed by an even number of hex
-   digits, specifying a sequence of bytes.
+   This is a more general data specification. The given text string contains
+   information about the target data type and value. Generally a leading
+   character specifies the type of the following data item. In its specific
+   context a default data type may exist.nl()
+   Currently only the following specifications are implemented:nl()
+   description(
+   dit(i)  A signed integer number, stored in host byte order.nl()
+   Example:    bf(i-1000)    (Integer number -1000)
+   dit(I)  An unsigned integer number, stored in host byte order.nl()
+   dit(l)  A signed long integer number, stored in host byte order.nl()
+   dit(L)  An unsigned long integer number, stored in host byte order.nl()
+   dit(s)  A signed short integer number, stored in host byte order.nl()
+   dit(S)  An unsigned short integer number, stored in host byte order.nl()
+   dit(b)  A signed byte (signed char).nl()
+   dit(B)  An unsigned byte (unsigned char).nl()
+   dit(x)  Following is an even number of hex digits, stored as sequence of
+   bytes.nl()
+   Example:    bf(x7f000001) (IP address 127.0.0.1)
+   dit(")  Following is a string that is used with the common conversions 
+   \n \r \t \f \b \a \e \0; the string must be closed with '"'. Please note
+   that the quotes and backslashes need to be escaped from shell and socat()
+   conversion.nl()
+   Example:    bf("Hello world!\n")
+   dit(')  A single char, with the usual conversions. Please note that the
+   quotes and backslashes need to be escaped from shell and socat() conversion.
+   nl()
+   Example:    bf('a')
+   )
+   Data items may be separated with white space without need to repeat the type
+   specifier again.
 label(TYPE_DIRECTORY)dit(directory)
    A string with usual unix() directory name semantics.
 label(TYPE_FACILITY)dit(facility)
@@ -2838,7 +2859,7 @@ label(TYPE_IPV4_ADDRESS)dit(IPv4 address)
    an IPv4 address.nl()
    Examples: 127.0.0.1, www.dest-unreach.org, dns2
 label(TYPE_IPV6_ADDRESS)dit(IPv6 address)
-   An iPv6 address in hexnumbers-and-colons notation enclosed in brackets, or a
+   An IPv6 address in hexnumbers-and-colons notation enclosed in brackets, or a
    hostname that resolves to an IPv6 address.nl()
    Examples: [::1], [1234:5678:9abc:def0:1234:5678:9abc:def0],
    ip6name.domain.org 

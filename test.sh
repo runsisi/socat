@@ -11121,14 +11121,90 @@ N=$((N+1))
 
 SOL_SOCKET="$($PROCAN -c |grep "^#define[[:space:]]*SOL_SOCKET[[:space:]]" |cut -d' ' -f3)"
 SO_REUSEADDR="$($PROCAN -c |grep "^#define[[:space:]]*SO_REUSEADDR[[:space:]]" |cut -d' ' -f3)"
+TCP_MAXSEG="$($PROCAN -c |grep "^#define[[:space:]]*TCP_MAXSEG[[:space:]]" |cut -d' ' -f3)"
 
-# test the generic setsockopt-int option
-if false; then
-# this test no longer works due to fix for options on listening sockets
-NAME=SETSOCKOPT_INT
+# Test the generic setsockopt option
+NAME=SETSOCKOPT
 case "$TESTS" in
 *%$N%*|*%functions%*|*%ip4%*|*%tcp%*|*%generic%*|*%$NAME%*)
-TEST="$NAME: test the setsockopt-int option"
+TEST="$NAME: test the setsockopt option"
+# Set the TCP_MAXSEG (MSS) option with a reasonable value, this should succeed.
+# The try again with TCP_MAXSEG=1, this fails at least on Linux.
+# Thus:
+# process 0 provides a tcp listening,forking socket
+# process 1 connects to this port using reasonably MSS, data transfer should
+# succeed.
+# Then,
+# process 2 connects to this port using a very small MSS, this should fail
+if ! eval $NUMCOND; then :;
+elif [ -z "$TCP_MAXSEG" ]; then
+    # we use the numeric value of TCP_MAXSEG which might be system dependent
+    $PRINTF "test $F_n $TEST... ${YELLOW}value of TCPMAXSEG not known${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts TCP4-L:$PORT,so-reuseaddr,fork PIPE"
+CMD1="$TRACE $SOCAT $opts - TCP:$LOCALHOST:$PORT,setsockopt=6:$TCP_MAXSEG:512"
+CMD2="$TRACE $SOCAT $opts - TCP:$LOCALHOST:$PORT,setsockopt=6:$TCP_MAXSEG:1"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+waittcp4port $PORT 1
+(echo "$da"; sleep 1) |$CMD1 >"${tf}1" 2>"${te}1" 	# this should always work
+rc1=$?
+usleep 1000000
+(echo "$da"; sleep 1) |$CMD2 >"${tf}2" 2>"${te}2" 	# this should fail
+rc2=$?
+kill $pid0 $pid1 $pid2 2>/dev/null; wait
+if ! echo "$da" |diff - "${tf}1" >"$tdiff"; then
+    $PRINTF "${YELLOW}phase 1 failed${NORMAL}\n"
+    echo "$CMD0 &"
+    cat ${te}0
+    echo "$CMD1"
+    cat ${te}1
+    cat "$tdiff"
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif [ $rc1 -ne 0 ]; then
+    $PRINTF "$FAILED: $TRACE $SOCAT:\n"
+    echo "$CMD0 &"
+    cat ${te}0
+    echo "$CMD1"
+    cat ${te}1
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+elif [ $rc2 -eq 0 ]; then
+    $PRINTF "$FAILED: $TRACE $SOCAT:\n"
+    echo "$CMD0 &"
+    cat ${te}0
+    echo "$CMD2"
+    cat ${te}2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+else
+    $PRINTF "$OK\n"
+    if [ -n "$debug" ]; then cat "${te}0" "${te}1" "${te}2"; fi
+    numOK=$((numOK+1))
+fi
+fi # NUMCOND, SO_REUSEADDR
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+# Test the generic setsockopt-listen option
+# This test, with setsockopt-int, no longer worked due to fix for options on
+# listening sockets
+# Now it got a chance again using new option setsockopt-listen
+#NAME=SETSOCKOPT_INT
+NAME=SETSOCKOPT_LISTEN
+case "$TESTS" in
+*%$N%*|*%functions%*|*%ip4%*|*%tcp%*|*%generic%*|*%$NAME%*)
+TEST="$NAME: test the setsockopt-listen option"
 # there are not many socket options that apply to non global resources, do not
 # require root, do not require a network connection, and can easily be
 # tested. SO_REUSEADDR seems to fit:
@@ -11145,50 +11221,59 @@ elif [ -z "$SO_REUSEADDR" ]; then
     numCANT=$((numCANT+1))
     listCANT="$listCANT $N"
 else
-tp="$PORT"
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD0="$TRACE $SOCAT $opts TCP4-L:$tp,setsockopt-int=$SOL_SOCKET:$SO_REUSEADDR:1 PIPE"
-CMD1="$TRACE $SOCAT $opts - TCP:localhost:$tp"
+CMD0="$TRACE $SOCAT $opts TCP4-L:$PORT,setsockopt-listen=$SOL_SOCKET:$SO_REUSEADDR:1 PIPE"
+CMD1="$TRACE $SOCAT $opts - TCP:$LOCALHOST:$PORT"
 CMD2="$CMD0"
 CMD3="$CMD1"
 printf "test $F_n $TEST... " $N
 $CMD0 >/dev/null 2>"${te}0" &
 pid0=$!
-waittcp4port $tp 1
-(echo "$da"; sleep 3) |$CMD1 >"$tf" 2>"${te}1" &	# this should always work
-pid1=$!
-usleep 1000000
+waittcp4port $PORT 1
+echo "$da" |$CMD1 >"${tf}1" 2>"${te}1"	# this should always work
+rc1=$?
+kill $pid0 2>/dev/null; wait
 $CMD2 >/dev/null 2>"${te}2" &
 pid2=$!
-waittcp4port $tp 1
-(echo "$da") |$CMD3 >"${tf}3" 2>"${te}3"
+waittcp4port $PORT 1
+echo "$da" |$CMD3 >"${tf}3" 2>"${te}3"
 rc3=$?
-kill $pid0 $pid1 $pid2 2>/dev/null; wait
-if ! echo "$da" |diff - "$tf"; then
+kill $pid2 2>/dev/null; wait
+if ! echo "$da" |diff - "${tf}1" >"${tdiff}1"; then
     $PRINTF "${YELLOW}phase 1 failed${NORMAL}\n"
     echo "$CMD0 &"
+    cat ${te}0
     echo "$CMD1"
+    cat ${te}1
+    cat "${tdiff}1"
     numCANT=$((numCANT+1))
     listCANT="$listCANT $N"
 elif [ $rc3 -ne 0 ]; then
     $PRINTF "$FAILED: $TRACE $SOCAT:\n"
     echo "$CMD0 &"
+    cat ${te}0
     echo "$CMD1"
+    cat ${te}1
     echo "$CMD2 &"
+    cat ${te}2
     echo "$CMD3"
-    cat "${te}2" "${te}3"
+    cat ${te}3
     numFAIL=$((numFAIL+1))
     listFAIL="$listFAIL $N"
-elif ! echo "$da" |diff - "${tf}3"; then
+elif ! echo "$da" |diff - "${tf}3" >"${tdiff}3"; then
     $PRINTF "$FAILED: $TRACE $SOCAT:\n"
     echo "$CMD0 &"
+    cat ${te}0
     echo "$CMD1"
+    cat ${te}1
     echo "$CMD2 &"
+    cat ${te}2
     echo "$CMD3"
-    echo "$da" |diff - "${tf}3"
+    cat ${te}3
+    cat "${tdiff}3"
     numCANT=$((numCANT+1))
     listCANT="$listCANT $N"
 else
@@ -11201,8 +11286,6 @@ fi # NUMCOND, SO_REUSEADDR
 esac
 PORT=$((PORT+1))
 N=$((N+1))
-#
-fi
 
 
 NAME=SCTP4STREAM

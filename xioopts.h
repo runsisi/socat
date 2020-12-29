@@ -64,6 +64,7 @@ enum e_types {
    TYPE_INT_INT_INT,	/* 3 params: first and second are int, 3rd is int */
    TYPE_INT_INT_BIN,	/* 3 params: first and second are int, 3rd is binary */
    TYPE_INT_INT_STRING,	/* 3 params: first and second are int, 3rd is string */
+   TYPE_INT_INT_GENERIC,	/* 3 params: first and second are int, 3rd is specified by value (dalan syntax) */
 
    TYPE_IP4NAME,	/* IPv4 hostname or address */
 #if HAVE_STRUCT_LINGER
@@ -72,6 +73,8 @@ enum e_types {
 #if HAVE_STRUCT_IP_MREQ || HAVE_STRUCT_IP_MREQN
    TYPE_IP_MREQN,	/* for  struct ip_mreq  or  struct ip_mreqn */
 #endif
+
+   TYPE_GENERIC, 	/* type is determined from (text) data provided */
 } ;
 
 enum e_func {
@@ -596,6 +599,7 @@ enum e_optcode {
    OPT_SETSID,
    OPT_SETSOCKOPT_BIN,
    OPT_SETSOCKOPT_INT,
+   OPT_SETSOCKOPT_LISTEN,
    OPT_SETSOCKOPT_STRING,
    OPT_SETUID,
    OPT_SETUID_EARLY,

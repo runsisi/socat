@@ -146,6 +146,7 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
    if ((xfd->fd = xiosocket(opts, us->sa_family, socktype, proto, level)) < 0) {
       return STAT_RETRYLATER;
    }
+   applyopts(xfd->fd, opts, PH_PASTSOCKET);
 
    applyopts_cloexec(xfd->fd, opts);
 

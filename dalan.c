@@ -6,6 +6,7 @@
    primitive subset exists. */
 
 #include "config.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #if HAVE_STDBOOL_H
@@ -70,8 +71,220 @@ void dalan_init(void) {
   _dalan_dflts(&dalan_opts);
 }
 
-/* read data description from line, write result to data; do not write
-   so much data that *p exceeds n !
+/* Parses and coverts a data item.
+   Returns 0 on success,
+   -1 if the data was cut due to n limit,
+   1 if a syntax error occurred
+   2 if the actual character is white space
+   3 if the first character is not a type specifier
+*/
+static int dalan_item(int c, const char **line0, uint8_t *data, size_t *p, size_t n) {
+   const char *line = *line0;
+   size_t p1 = *p;
+
+   switch (c) {
+   case ' ':
+   case '\t':
+   case '\r':
+   case '\n':
+      return 2;
+   case '"':
+      while (1) {
+	 switch (c = *line++) {
+	 case '\0': fputs("unterminated string\n", stderr);
+	    *line0 = line;
+	    return 1;
+	 case '"':
+	    break;
+	 case '\\':
+	    if (!(c = *line++)) {
+	       fputs("continuation line not implemented\n", stderr);
+	       *line0 = line;
+	       return 1;
+	    }
+	    switch (c) {
+	    case 'n': c = '\n'; break;
+	    case 'r': c = '\r'; break;
+	    case 't': c = '\t'; break;
+	    case 'f': c = '\f'; break;
+	    case 'b': c = '\b'; break;
+	    case 'a': c = '\a'; break;
+#if 0
+	    case 'e': c = '\e'; break;
+#else
+	    case 'e': c = '\033'; break;
+#endif
+	    case '0': c = '\0'; break;
+	    }
+	    /* PASSTHROUGH */
+	 default:
+	    if (p1 >= n) {
+	       *p = p1;
+	       *line0 = line;
+	       return -1;
+	    }
+	    data[p1++] = c;
+	    continue;
+	 }
+	 if (c == '"')
+	    break;
+      }
+      break;
+   case '\'':
+      switch (c = *line++) {
+      case '\0': fputs("unterminated character\n", stderr);
+	 *line0 = line;
+	 return 1;
+      case '\'': fputs("error in character\n", stderr);
+	 *line0 = line;
+	 return 1;
+      case '\\':
+	 if (!(c = *line++)) {
+	    fputs("continuation line not implemented\n", stderr);
+	    *line0 = line;
+	    return 1;
+	 }
+	 switch (c) {
+	 case 'n': c = '\n'; break;
+	 case 'r': c = '\r'; break;
+	 case 't': c = '\t'; break;
+	 case 'f': c = '\f'; break;
+	 case 'b': c = '\b'; break;
+	 case 'a': c = '\a'; break;
+#if 0
+	 case 'e': c = '\e'; break;
+#else
+	 case 'e': c = '\033'; break;
+#endif
+	 }
+	 /* PASSTHROUGH */
+      default:
+	 if (p1 >= n) { *p = p1; return -1; }
+	 data[p1++] = c;
+	 break;
+      }
+      if (*line != '\'') {
+	 fputs("error in character termination\n", stderr);
+	 *p = p1;
+	 *line0 = line;
+	 return 1;
+      }
+      ++line;
+      break;
+   case 'x':
+      /* expecting hex data, must be an even number of digits!! */
+      while (true) {
+	 int x;
+	 c = *line;
+	 if (isdigit(c&0xff)) {
+	    x = (c-'0') << 4;
+	 } else if (isxdigit(c&0xff)) {
+	    x = ((c&0x07) + 9) << 4;
+	 } else
+	    break;
+	 ++line;
+	 c = *line;
+	 if (isdigit(c&0xff)) {
+	    x |= (c-'0');
+	 } else if (isxdigit(c&0xff)) {
+	    x |= (c&0x07) + 9;
+	 } else {
+	    fputs("odd number of hexadecimal digits\n", stderr);
+	    *p = p1;
+	    *line0 = line;
+	    return 1;
+	 }
+	 ++line;
+	 if (p1 >= n) {
+	    *p = p1;
+	    *line0 = line;
+	    return -1;
+	 }
+	 data[p1++] = x;
+      }
+      break;
+   case 'l':
+      /* expecting decimal number, with target type long */
+      {
+	 char *endptr;
+	 *(long *)&data[p1] = strtol(line, &endptr, 10);
+	 p1 += sizeof(long);
+	 line = endptr;
+      }
+      break;
+   case 'L':
+      /* expecting decimal number, with target type unsigned long */
+      {
+	 char *endptr;
+	 *(unsigned long *)&data[p1] = strtol(line, &endptr, 10);
+	 p1 += sizeof(unsigned long);
+	 line = endptr;
+      }
+      break;
+   case 'i':
+      /* expecting decimal number, with target type int */
+      {
+	 char *endptr;
+	 *(int *)&data[p1] = strtol(line, &endptr, 10);
+	 p1 += sizeof(int);
+	 line = endptr;
+      }
+      break;
+   case 'I':
+      /* expecting decimal number, with target type unsigned int */
+      {
+	 char *endptr;
+	 *(unsigned int *)&data[p1] = strtol(line, &endptr, 10);
+	 p1 += sizeof(unsigned int);
+	 line = endptr;
+      }
+      break;
+   case 's':
+      /* expecting decimal number, with target type short */
+      {
+	 char *endptr;
+	 *(short *)&data[p1] = strtol(line, &endptr, 10);
+	 p1 += sizeof(short);
+	 line = endptr;
+      }
+      break;
+   case 'S':
+      /* expecting decimal number, with target type unsigned short */
+      {
+	 char *endptr;
+	 *(unsigned short *)&data[p1] = strtol(line, &endptr, 10);
+	 p1 += sizeof(unsigned short);
+	 line = endptr;
+      }
+      break;
+   case 'b':
+      /* expecting decimal number, with target type byte (int8_t) */
+      {
+	 char *endptr;
+	 *(int8_t *)&data[p1] = strtoul(line, &endptr, 10);
+	 p1 += sizeof(uint8_t);
+	 line = endptr;
+      }
+   case 'B':
+      /* expecting decimal number, with target type byte (uint8_t) */
+      {
+	 char *endptr;
+	 *(uint8_t *)&data[p1] = strtoul(line, &endptr, 10);
+	 p1 += sizeof(uint8_t);
+	 line = endptr;
+      }
+      break;
+   default:
+      *line0 = line;
+      return 3;
+   }
+   *p = p1;
+   *line0 = line;
+   return 0;
+}
+
+/* read data description from line (\0-terminated), write result to data; do
+   not write so much data that *p exceeds n !
    p must be initialized to 0.
    return 0 on success,
    -1 if the data was cut due to n limit,
@@ -79,151 +292,33 @@ void dalan_init(void) {
    *p is a global data counter; especially it must be used when calculating
      alignment. On successful return from the function *p must be actual!
 */
-int dalan(const char *line, char *data, size_t *p, size_t n) {
-  int align, mask, i, x;
-  size_t p1 = *p;
-  char c;
+int dalan(const char *line, uint8_t *data, size_t *p, size_t n, char deflt) {
+   size_t p0;
+   char c;
+   int rc;
 
-  /*fputs(line, stderr); fputc('\n', stderr);*/
-  while (c = *line++) {
-    switch (c) {
-    case ' ':
-    case '\t':
-    case '\r':
-    case '\n':
-      break;
-    case ',':
-      align = 2;
-      while (*line == ',') {
-	align <<= 1;
-	++line;
-      }
-      mask = align - 1;	/* create the bitmask */
-      i = (align - (p1 & mask)) & mask;
-      while (i && p1<n) data[p1++] = 0, --i;
-      if (i) { *p = p1; return -1; }
-      break;
-    case ';':
-      align = dalan_opts.c_int;
-      mask = align - 1;
-      i = (align - (p1 & mask)) & mask;
-      while (i && p1<n) data[p1++] = 0, --i;
-      if (i) { *p = p1; return -1; }
-      break;
-    case '"':
-      while (1) {
-	switch (c = *line++) {
-	case '\0': fputs("unterminated string\n", stderr);
-	  return 1;
-	case '"':
-	  break;
-	case '\\':
-	  if (!(c = *line++)) {
-	    fputs("continuation line not implemented\n", stderr);
-	    return 1;
-	  }
-	  switch (c) {
-	  case 'n': c = '\n'; break;
-	  case 'r': c = '\r'; break;
-	  case 't': c = '\t'; break;
-	  case 'f': c = '\f'; break;
-	  case 'b': c = '\b'; break;
-	  case 'a': c = '\a'; break;
-#if 0
-	  case 'e': c = '\e'; break;
-#else
-	  case 'e': c = '\033'; break;
-#endif
-	  case '0': c = '\0'; break;
-	  }
-	  /* PASSTHROUGH */
-	default:
-	  if (p1 >= n) { *p = p1; return -1; }
-	  data[p1++] = c;
-	  continue;
-	}
-	if (c == '"')
-	  break;
-      }
-      break;
-    case '\'':
-      switch (c = *line++) {
-      case '\0': fputs("unterminated character\n", stderr);
-	return 1;
-      case '\'': fputs("error in character\n", stderr);
-	return 1;
-      case '\\':
-	if (!(c = *line++)) {
-	  fputs("continuation line not implemented\n", stderr);
-	  return 1;
-	}
-	switch (c) {
-	case 'n': c = '\n'; break;
-	case 'r': c = '\r'; break;
-	case 't': c = '\t'; break;
-	case 'f': c = '\f'; break;
-	case 'b': c = '\b'; break;
-	case 'a': c = '\a'; break;
-#if 0
-	case 'e': c = '\e'; break;
-#else
-	case 'e': c = '\033'; break;
-#endif
-	}
-	/* PASSTHROUGH */
-      default:
-	if (p1 >= n) { *p = p1; return -1; }
-	data[p1++] = c;
-	break;
-      }
-      if (*line != '\'') {
-	fputs("error in character termination\n", stderr);
-	*p = p1; return 1;
-      }
-      ++line;
-      break;
-#if LATER
-    case '0':
+   while (1) {
+      /* assume there is a type specifier on beginning of rest of line */
       c = *line++;
-      if (c == 'x') {
-      /* hexadecimal */ ;
-      } else if (isdigit(c&0xff)) {
-	/* octal */
-      } else {
-	/* it was only 0 */
+      if (c == '\0')
+	 break;
+      p0 = *p;
+      rc = dalan_item(c, &line, data, p, n);
+      if (rc == 0) {
+	 deflt = c; 	/* continue with this type as default */
+      } else if (rc == 2) {
+	 /* white space */
+	 continue;
+      } else if (rc == 3) {
+	 /* no, we did not recognize c as type specifier, try default type */
+	 --line;
+	 rc = dalan_item(deflt, &line, data, p, n);
       }
-      break;
-#endif /* LATER */
-    case 'x':
-      /* expecting hex data, must be an even number of digits!! */
-      while (true) {
-	c = *line;
-	if (isdigit(c&0xff)) {
-	  x = (c-'0') << 4;
-	} else if (isxdigit(c&0xff)) {
-	  x = ((c&0x07) + 9) << 4;
-	} else
-	  break;
-	++line;
-	c = *line;
-	if (isdigit(c&0xff)) {
-	  x |= (c-'0');
-	} else if (isxdigit(c&0xff)) {
-	  x |= (c&0x07) + 9;
-	} else {
-	  fputs("odd number of hexadecimal digits\n", stderr);
-	  *p = p1; return 1;
-	}
-	++line;
-	if (p1 >= n) { *p = p1; return -1; }
-	data[p1++] = x;
+      if (rc != 0) {
+	 return rc;
       }
-      break;
-    case 'A': case 'a':
-    case 'C': case 'c':
-    default: fprintf(stderr, "syntax error in \"%s\"\n", line-1);
-      return 1;
-    }
-  }
-  *p = p1; return 0;
+      /* rc == 0 */
+      n -= (*p-p0);
+   }
+   return 0;
 }

@@ -1402,8 +1402,10 @@ const struct optname optionnames[] = {
 #if WITH_EXEC || WITH_SYSTEM
 	IF_EXEC   ("setsid",	&opt_setsid)
 #endif
+	IF_SOCKET ("setsockopt",	&opt_setsockopt)
 	IF_SOCKET ("setsockopt-bin",	&opt_setsockopt_bin)
 	IF_SOCKET ("setsockopt-int",	&opt_setsockopt_int)
+	IF_SOCKET ("setsockopt-listen",	&opt_setsockopt_listen)
 	IF_SOCKET ("setsockopt-string",	&opt_setsockopt_string)
 	IF_ANY    ("setuid",	&opt_setuid)
 	IF_ANY    ("setuid-early",	&opt_setuid_early)
@@ -1517,8 +1519,10 @@ const struct optname optionnames[] = {
 #ifdef SO_USELOOPBACK /* AIX433, Solaris */
 	IF_SOCKET ("so-useloopback",	&opt_so_useloopback)
 #endif /* SO_USELOOPBACK */
+	IF_SOCKET ("sockopt",		&opt_setsockopt)
 	IF_SOCKET ("sockopt-bin",	&opt_setsockopt_bin)
 	IF_SOCKET ("sockopt-int",	&opt_setsockopt_int)
+	IF_SOCKET ("sockopt-listen",	&opt_setsockopt_listen)
 	IF_SOCKET ("sockopt-string",	&opt_setsockopt_string)
 	IF_SOCKS4 ("socksport",	&opt_socksport)
 	IF_SOCKS4 ("socksuser",	&opt_socksuser)
@@ -1824,7 +1828,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
    char token[2048], *tokp;  size_t len;
    int parsres;
    int result;
-   char optbuf[256];  size_t optlen;
+   uint8_t optbuf[256];  size_t optlen;
    const char *endkey[6+1];
    const char *endval[5+1];
    const char *assign_str = "=";
@@ -1895,15 +1899,15 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
       ent = (struct optname *)
 	 keyw((struct wordent *)optionnames, token, optionnum);
       if (ent == NULL) {
-	 Error1("parseopts(): unknown option \"%s\"", token);
+	 Error1("parseopts_table(): unknown option \"%s\"", token);
 	 continue;
       }
 
       if (!(ent->desc->group & groups) && !(ent->desc->group & GROUP_ANY) &&
 	  !xioopts_ignoregroups) {
-	 Error1("parseopts(): option \"%s\" not supported with this address type",
+	 Error1("parseopts_table(): option \"%s\" not supported with this address type",
 		token /*a0*/);
-	 Info2("parseopts()  groups=%08x, ent->group=%08x",
+	 Info2("parseopts_table()  groups=%08x, ent->group=%08x",
 	       groups, ent->desc->group);
 #if 0
 	 continue;
@@ -1946,8 +1950,8 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	 if (!assign) { Error1("option \"%s\": value required", a0);
 	    continue; }
 	 optlen = 0;
-	 if ((result = dalan(token, optbuf, &optlen, sizeof(optbuf))) != 0) {
-	    Error1("parseopts(): problem with \"%s\" data", token);
+	 if ((result = dalan(token, optbuf, &optlen, sizeof(optbuf), 'i')) != 0) {
+	    Error1("parseopts_table(): problem with \"%s\" data", token);
 	    continue;
 	 }
 	 if (((*opts)[i].value.u_bin.b_data = memdup(optbuf, optlen)) == NULL) {
@@ -1962,7 +1966,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	  char *rest;
 	  ul = strtoul(token, &rest/*!*/, 0);
 	  if (ul > UCHAR_MAX) {
-	    Error3("parseopts(%s): byte value exceeds limit (%lu vs. %u), using max",
+	    Error3("parseopts_table(%s): byte value exceeds limit (%lu vs. %u), using max",
 		   a0, ul, UCHAR_MAX);
 	    (*opts)[i].value.u_byte = UCHAR_MAX;
 	  } else {
@@ -2011,7 +2015,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	    char *rest;
 	    ulongval = strtoul(token, &rest/*!*/, 0);
 	    if (ulongval > UINT_MAX) {
-	       Error3("parseopts(%s): unsigned int value exceeds limit (%lu vs. %u), using max",
+	       Error3("parseopts_table(%s): unsigned int value exceeds limit (%lu vs. %u), using max",
 		      a0, ulongval, UINT_MAX);
 	    }
 	    (*opts)[i].value.u_uint = ulongval;
@@ -2030,7 +2034,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	    char *rest;
 	    ulongval = strtoul(token, &rest/*!*/, 0);
 	    if (ulongval > USHRT_MAX) {
-	       Error3("parseopts(%s): unsigned short value exceeds limit (%lu vs. %u), using max",
+	       Error3("parseopts_table(%s): unsigned short value exceeds limit (%lu vs. %u), using max",
 		      a0, ulongval, USHRT_MAX);
 	    }
 	    (*opts)[i].value.u_ushort = ulongval;
@@ -2266,8 +2270,8 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	    }
 	    ++rest;
 	    optlen = 0;
-	    if ((result = dalan(rest, optbuf, &optlen, sizeof(optbuf))) != 0) {
-	       Error1("parseopts(): problem with \"%s\" data", rest);
+	    if ((result = dalan(rest, optbuf, &optlen, sizeof(optbuf), 'i')) != 0) {
+	       Error1("parseopts_table(): problem with \"%s\" data", rest);
 	       continue;
 	    }
 	    if (((*opts)[i].value2.u_bin.b_data = memdup(optbuf, optlen)) == NULL) {
@@ -2327,6 +2331,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	 break;
 
       case TYPE_INT_INT_BIN:
+      case TYPE_INT_INT_GENERIC:
 	 if (!assign) {
 	    Error1("option \"%s\": values required", a0);
 	    continue;
@@ -2346,8 +2351,8 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	    }
 	    ++rest;
 	    optlen = 0;
-	    if ((result = dalan(rest, optbuf, &optlen, sizeof(optbuf))) != 0) {
-	       Error1("parseopts(): problem with \"%s\" data", rest);
+	    if ((result = dalan(rest, optbuf, &optlen, sizeof(optbuf), 'i')) != 0) {
+	       Error1("parseopts_table(): problem with \"%s\" data", rest);
 	       continue;
 	    }
 	    if (((*opts)[i].value3.u_bin.b_data = memdup(optbuf, optlen)) == NULL) {
@@ -2494,8 +2499,25 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	 break;
 #endif /* defined(WITH_IP4) */
 
+      case TYPE_GENERIC:
+	 if (!assign) {
+	    (*opts)[i].value.u_int = 1;
+	 } else {
+	    int rc;
+	    size_t binlen = 64; 	/*!!!*/
+	    if (((*opts[i]).value.u_bin.b_data = Malloc(binlen)) == NULL) Error("!!!");
+	    (*opts)[i].value.u_bin.b_len = 0;
+	    rc = dalan(token, (*opts)[i].value.u_bin.b_data,
+		       &(*opts)[i].value.u_bin.b_len, binlen, 'i');
+	    if (rc != 0) {
+	       Error("!!!");
+	    }
+	    //(*opts)[i].value.u_bin.b_len
+	 }	 
+	 break;
+
       default:
-	 Error2("parseopts(): internal error on option \"%s\": unimplemented type %d",
+	 Error2("parseopts_table(): internal error on option \"%s\": unimplemented type %d",
 		ent->desc->defname, ent->desc->type);
 	 continue;
       }
@@ -2964,7 +2986,7 @@ int retropt_bind(struct opt *opts,
    case AF_UNSPEC:
       {
 	 size_t p = 0;
-	 dalan(bindname, (char *)sa->sa_data, &p, *salen-sizeof(sa->sa_family));
+	 dalan(bindname, (uint8_t *)sa->sa_data, &p, *salen-sizeof(sa->sa_family), 'i');
 	 *salen = p + sizeof(sa->sa_family);
 	 *salen = p +
 #if HAVE_STRUCT_SOCKADDR_SALEN

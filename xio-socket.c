@@ -186,9 +186,11 @@ const struct optdesc opt_protocol_family = { "protocol-family", "pf", OPT_PROTOC
 const struct optdesc opt_protocol        = { "protocol",        NULL, OPT_PROTOCOL,        GROUP_SOCKET, PH_PRESOCKET,  TYPE_STRING,  OFUNC_SPEC };
 
 /* generic setsockopt() options */
-const struct optdesc opt_setsockopt_int    = { "setsockopt-int",    "sockopt-int",    OPT_SETSOCKOPT_INT,        GROUP_SOCKET,PH_PASTSOCKET,TYPE_INT_INT_INT,     OFUNC_SOCKOPT_GENERIC, 0, 0 };
-const struct optdesc opt_setsockopt_bin    = { "setsockopt-bin",    "sockopt-bin",    OPT_SETSOCKOPT_BIN,        GROUP_SOCKET,PH_PASTSOCKET,TYPE_INT_INT_BIN,     OFUNC_SOCKOPT_GENERIC, 0, 0 };
-const struct optdesc opt_setsockopt_string = { "setsockopt-string", "sockopt-string", OPT_SETSOCKOPT_STRING,     GROUP_SOCKET,PH_PASTSOCKET,TYPE_INT_INT_STRING,  OFUNC_SOCKOPT_GENERIC, 0, 0 };
+const struct optdesc opt_setsockopt        = { "setsockopt",        "sockopt",        OPT_SETSOCKOPT_BIN,        GROUP_SOCKET,PH_CONNECTED, TYPE_INT_INT_BIN,     OFUNC_SOCKOPT_GENERIC, 0, 0 };
+const struct optdesc opt_setsockopt_int    = { "setsockopt-int",    "sockopt-int",    OPT_SETSOCKOPT_INT,        GROUP_SOCKET,PH_CONNECTED, TYPE_INT_INT_INT,     OFUNC_SOCKOPT_GENERIC, 0, 0 };
+const struct optdesc opt_setsockopt_bin    = { "setsockopt-bin",    "sockopt-bin",    OPT_SETSOCKOPT_BIN,        GROUP_SOCKET,PH_CONNECTED, TYPE_INT_INT_BIN,     OFUNC_SOCKOPT_GENERIC, 0, 0 };
+const struct optdesc opt_setsockopt_string = { "setsockopt-string", "sockopt-string", OPT_SETSOCKOPT_STRING,     GROUP_SOCKET,PH_CONNECTED, TYPE_INT_INT_STRING,  OFUNC_SOCKOPT_GENERIC, 0, 0 };
+const struct optdesc opt_setsockopt_listen = { "setsockopt-listen", "sockopt-listen", OPT_SETSOCKOPT_LISTEN,     GROUP_SOCKET,PH_PREBIND,   TYPE_INT_INT_BIN,     OFUNC_SOCKOPT_GENERIC, 0, 0 };
 
 const struct optdesc opt_null_eof = { "null-eof", NULL, OPT_NULL_EOF, GROUP_SOCKET, PH_INIT, TYPE_BOOL, OFUNC_OFFSET, XIO_OFFSETOF(para.socket.null_eof) };
 
@@ -239,7 +241,7 @@ int xioopen_socket_connect(int argc, const char *argv[], struct opt *opts,
 
    themsize = 0;
    if ((result =
-	dalan(address, (char *)&them.soa.sa_data, &themsize, sizeof(them)))
+	dalan(address, (uint8_t *)&them.soa.sa_data, &themsize, sizeof(them), 'i'))
        < 0) {
       Error1("data too long: \"%s\"", address);
    } else if (result > 0) {
@@ -316,7 +318,7 @@ int xioopen_socket_listen(int argc, const char *argv[], struct opt *opts,
    socket_init(0, &us);
    ussize = 0;
    if ((result =
-	dalan(usname, (char *)&us.soa.sa_data, &ussize, sizeof(us)))
+	dalan(usname, (uint8_t *)&us.soa.sa_data, &ussize, sizeof(us), 'i'))
        < 0) {
       Error1("data too long: \"%s\"", usname);
    } else if (result > 0) {
@@ -407,8 +409,8 @@ int _xioopen_socket_sendto(const char *pfname, const char *type,
    xfd->peersa.soa.sa_family = pf;
    themsize = 0;
    if ((result =
-	dalan(address, (char *)&xfd->peersa.soa.sa_data, &themsize,
-	      sizeof(xfd->peersa)))
+	dalan(address, (uint8_t *)&xfd->peersa.soa.sa_data, &themsize,
+	      sizeof(xfd->peersa), 'i'))
        < 0) {
       Error1("data too long: \"%s\"", address);
    } else if (result > 0) {
@@ -438,7 +440,7 @@ int _xioopen_socket_sendto(const char *pfname, const char *type,
    if (retropt_string(opts, OPT_BIND, &bindstring) == 0) {
       ussize = 0;
       if ((result =
-	   dalan(bindstring, (char *)&us.soa.sa_data, &ussize, sizeof(us)))
+	   dalan(bindstring, (uint8_t *)&us.soa.sa_data, &ussize, sizeof(us), 'i'))
 	  < 0) {
 	 Error1("data too long: \"%s\"", bindstring);
       } else if (result > 0) {
@@ -504,7 +506,7 @@ int xioopen_socket_recvfrom(int argc, const char *argv[], struct opt *opts,
 
    ussize = 0;
    if ((result =
-	dalan(address, (char *)&us->soa.sa_data, &ussize, sizeof(*us)))
+	dalan(address, (uint8_t *)&us->soa.sa_data, &ussize, sizeof(*us), 'i'))
        < 0) {
       Error1("data too long: \"%s\"", address);
    } else if (result > 0) {
@@ -581,7 +583,7 @@ int xioopen_socket_recv(int argc, const char *argv[], struct opt *opts,
 
    ussize = 0;
    if ((result =
-	dalan(address, (char *)&us.soa.sa_data, &ussize, sizeof(us)))
+	dalan(address, (uint8_t *)&us.soa.sa_data, &ussize, sizeof(us), 'i'))
        < 0) {
       Error1("data too long: \"%s\"", address);
    } else if (result > 0) {
@@ -649,8 +651,8 @@ int xioopen_socket_datagram(int argc, const char *argv[], struct opt *opts,
    xfd->peersa.soa.sa_family = pf;
    themsize = 0;
    if ((result =
-	dalan(address, (char *)&xfd->peersa.soa.sa_data, &themsize,
-	      sizeof(xfd->peersa)))
+	dalan(address, (uint8_t *)&xfd->peersa.soa.sa_data, &themsize,
+	      sizeof(xfd->peersa), 'i'))
        < 0) {
       Error1("data too long: \"%s\"", address);
    } else if (result > 0) {
@@ -1992,9 +1994,9 @@ int xioparsenetwork(const char *rangename, int pf, struct xiorange *range) {
      strncpy(addrname, rangename, maskname-rangename-1);	/* ok */
      addrname[maskname-rangename-1] = '\0';
      result =
-	dalan(addrname, (char *)&range->netaddr.soa.sa_data, &addrlen,
+	dalan(addrname, (uint8_t *)&range->netaddr.soa.sa_data, &addrlen,
 	      sizeof(range->netaddr)-(size_t)(&((struct sockaddr *)0)->sa_data)
-	      /* data length */);
+	      /* data length */, 'i');
      if (result < 0) {
 	Error1("data too long: \"%s\"", addrname);
 	free(addrname); return STAT_NORETRY;
@@ -2004,9 +2006,9 @@ int xioparsenetwork(const char *rangename, int pf, struct xiorange *range) {
      }
      free(addrname); 
      result =
-	dalan(maskname, (char *)&range->netmask.soa.sa_data, &masklen,
+	dalan(maskname, (uint8_t *)&range->netmask.soa.sa_data, &masklen,
 	      sizeof(range->netaddr)-(size_t)(&((struct sockaddr *)0)->sa_data)
-	      /* data length */);
+	      /* data length */, 'i');
      if (result < 0) {
 	Error1("data too long: \"%s\"", maskname);
 	return STAT_NORETRY;

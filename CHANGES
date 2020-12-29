@@ -104,6 +104,14 @@ New features:
 	Test: GOPENUNIXSEQPACKET
 	Feature suggested by vi0oss.
 
+Features:
+	The generic setsockopt-int and related options are, in case of
+	listening/accepting addresses, applied to the connected socket(s). To enable
+	setting options on the listening socket, a new option setsockopt-listen
+	has been implemented. See the documentation for info on data types.
+	Tests: SETSOCKOPT SETSOCKOPT_LISTEN
+	Thanks to Steven Danna and Korian Edeline for reporting this issue.
+
 ####################### V 1.7.3.4:
 
 Corrections:
