@@ -11,6 +11,7 @@ struct utsname;
 struct flock;
 struct addrinfo;
 
+int Posix_memalign(void **memptr, size_t alignment, size_t size);
 mode_t Umask(mode_t mask);
 #endif /* WITH_SYCLS */
 int Open(const char *pathname, int flags, mode_t mode);
@@ -175,6 +176,7 @@ void Add_history(const char *string);
 
 #else /* !WITH_SYCLS */
 
+#define Posix_memalign(m,a,s) posix_memalign(m,a,s)
 #define Umask(m) umask(m)
 #define Creat(p,m) creat(p,m)
 #define Lseek(f,o,w) lseek(f,o,w)

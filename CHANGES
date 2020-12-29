@@ -21,6 +21,12 @@ Corrections:
 	Mitigated race condition of quickly terminating SYSTEM or EXEC child
 	processes.
 
+	Option o-direct might require alignment of read/write buffer to, e.g.,
+	512 bytes, Socat now takes care of this when allocating the buffer.
+	With this fix read() succeeds, however, write() still might fail when
+	not writing complete pages.
+	Test: O_DIRECT
+
 Porting:
 	In gcc version 10 the default changed from -fcommon to -fno-common.
 	Consequently, linking filan and procan failed with error

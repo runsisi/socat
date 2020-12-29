@@ -785,6 +785,7 @@ AC_CHECK_FUNCS(cfsetispeed cfgetispeed cfsetospeed cfgetospeed)
 ###################################
 # check for prototype and existence of functions that return a pointer
 # defines in config.h: HAVE_PROTOTYPE_LIB_$1
+AC_CHECK_PROTOTYPE_LIB(posix_memalign)
 AC_CHECK_PROTOTYPE_LIB(strdup)
 AC_CHECK_PROTOTYPE_LIB(strerror)
 AC_CHECK_PROTOTYPE_LIB(strstr)
@@ -793,7 +794,6 @@ AC_CHECK_PROTOTYPE_LIB(strndup)
 AC_CHECK_PROTOTYPE_LIB(memrchr)
 AC_CHECK_PROTOTYPE_LIB(if_indextoname)
 AC_CHECK_PROTOTYPE_LIB(ptsname)
-
 
 AC_MSG_CHECKING(for long long)
 AC_CACHE_VAL(sc_cv_type_longlong,

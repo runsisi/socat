@@ -13614,7 +13614,7 @@ NAME=SCTP_SERVICENAME
 case "$TESTS" in
 *%$N%*|*%functions%*|*%socket%*|*%sctp%*|*%$NAME%*)
 TEST="$NAME: Service name resolution works with SCTP"
-# invoke socat with address SCTP4-CONNECT:$LOCALHOST:http; when this does fails with
+# invoke socat with address SCTP4-CONNECT:$LOCALHOST:http; when this fails with
 # "Connection refused", or does not fail at all, the test succeeded
 if ! eval $NUMCOND; then :;
 elif ! runssctp4 "$((PORT))" >/dev/null; then
@@ -13643,6 +13643,62 @@ else
 fi
 fi # NUMCOND
  ;;
+esac
+N=$((N+1))
+
+
+# Test the o-direct option on reading
+NAME=O_DIRECT
+case "$TESTS" in
+*%$N%*|*%functions%*|*%engine%*|*%file%*|*%$NAME%*)
+TEST="$NAME: echo via file with o-direct"
+# Write data to a file and read it with options o-direct (and ignoreeof)
+# When the data read is the same as the data written the test succeeded.
+if ! eval $NUMCOND; then :;
+elif ! testoptions o-direct >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}o-direct not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+else
+tf="$td/test$N.file"
+to="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+$PRINTF "test $F_n $TEST... " $N
+CMD="$TRACE $SOCAT $opts - $tf,o-direct,ignoreeof!!$tf"
+echo "$da" |$CMD >"$to" 2>"$te"
+rc=$?
+if [ $rc -ne 0 ] && grep -q "Invalid argument" "$te" && [ $UNAME = Linux ]; then
+    case $(stat -f /tmp/gerhard/ |grep -o "Type: [^[:space:]]*" |cut -c 7-) in
+	ext2/ext3|xfs|reiserfs)
+	    $PRINTF "${FAILED}\n"
+	    echo "$CMD" >&2
+	    cat "$te" >&2
+	    numFAIL=$((numFAIL+1))
+	    listFAIL="$listFAIL $N" ;;
+	*) $PRINTF "${YELLOW}inable file system${NORMAL}\n"
+	    numCANT=$((numCANT+1))
+	    listCANT="$listCANT $N" ;;
+    esac
+elif [ $rc -ne 0 ]; then
+    $PRINTF "${FAILED}:\n"
+    echo "$CMD" >&2
+    cat "$te" >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+elif ! echo "$da" |diff - "$to" >$tdiff; then
+    $PRINTF "${FAILED}\n"
+    echo "$CMD" >&2
+    cat "$te" >&2
+    cat "$tdiff" >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+else
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+fi # command ok
+fi ;; # NUMCOND, feats
 esac
 N=$((N+1))
 

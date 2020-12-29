@@ -23,6 +23,16 @@
 
 #if WITH_SYCLS
 
+#if HAVE_PROTOTYPE_LIB_posix_memalign
+int Posix_memalign(void **memptr, size_t alignment, size_t size) {
+   int result;
+   Debug3("posix_memalign(%p, "F_Zu", F_Zu)", memptr, alignment, size);
+   result = posix_memalign(memptr, alignment, size);
+   Debug1("posix_memalign(...) -> %d", result);
+   return result;
+}
+#endif /* HAVE_PROTOTYPE_LIB_posix_memalign */
+
 mode_t Umask(mode_t mask) {
    mode_t result;
    int _errno;

@@ -57,7 +57,7 @@ void socat_opt_hint(FILE *fd, char a, char b);
 void socat_version(FILE *fd);
 int socat(const char *address1, const char *address2);
 int _socat(void);
-int cv_newline(unsigned char **buff, ssize_t *bytes, int lineterm1, int lineterm2);
+int cv_newline(unsigned char *buff, ssize_t *bytes, int lineterm1, int lineterm2);
 void socat_signal(int sig);
 static int socat_sigchild(struct single *file);
 
@@ -708,7 +708,7 @@ int childleftdata(xiofile_t *xfd) {
 }
 
 int xiotransfer(xiofile_t *inpipe, xiofile_t *outpipe,
-		unsigned char **buff, size_t bufsiz, bool righttoleft);
+		unsigned char *buff, size_t bufsiz, bool righttoleft);
 
 bool mayrd1;		/* sock1 has read data or eof, according to poll() */
 bool mayrd2;		/* sock2 has read data or eof, according to poll() */
@@ -765,8 +765,21 @@ int _socat(void) {
       Error2("buffer size option (-b) to big - "F_Zu" (max is "F_Zu")", socat_opts.bufsiz, (SIZE_MAX-1)/2);
       socat_opts.bufsiz = (SIZE_MAX-1)/2;
    }
+
+#if HAVE_PROTOTYPE_LIB_posix_memalign
+   /* Operations on files with flag O_DIRECT might need buffer alignment.
+      Without this, eg.read() fails with "Invalid argument" */
+   {
+      int _errno;
+      if ((_errno = Posix_memalign((void **)&buff, getpagesize(), 2*socat_opts.bufsiz+1)) != 0) {
+	 Error1("posix_memalign(): %s", strerror(_errno));
+	 return -1;
+      }
+   }
+#else /* !HAVE_PROTOTYPE_LIB_posix_memalign */
    buff = Malloc(2*socat_opts.bufsiz+1);
    if (buff == NULL)  return -1;
+#endif /* !HAVE_PROTOTYPE_LIB_posix_memalign */
 
    if (socat_opts.logopt == 'm' && xioinqopt('l', NULL, 0) == 'm') {
       Info("switching to syslog");
@@ -988,7 +1001,7 @@ int _socat(void) {
 
       if (mayrd1 && maywr2) {
 	 mayrd1 = false;
-	 if ((bytes1 = xiotransfer(sock1, sock2, &buff, socat_opts.bufsiz, false))
+	 if ((bytes1 = xiotransfer(sock1, sock2, buff, socat_opts.bufsiz, false))
 	     < 0) {
 	    if (errno != EAGAIN) {
 	       closing = MAX(closing, 1);
@@ -1020,7 +1033,7 @@ int _socat(void) {
 
       if (mayrd2 && maywr1) {
 	 mayrd2 = false;
-	 if ((bytes2 = xiotransfer(sock2, sock1, &buff, socat_opts.bufsiz, true))
+	 if ((bytes2 = xiotransfer(sock2, sock1, buff, socat_opts.bufsiz, true))
 	     < 0) {
 	    if (errno != EAGAIN) {
 	       closing = MAX(closing, 1);
@@ -1106,7 +1119,7 @@ int _socat(void) {
    xioclose(sock1);
    xioclose(sock2);
 
-		  free(buff);
+   free(buff);
    return 0;
 }
 
@@ -1194,10 +1207,10 @@ static int
    */
 /* inpipe, outpipe must be single descriptors (not dual!) */
 int xiotransfer(xiofile_t *inpipe, xiofile_t *outpipe,
-		unsigned char **buff, size_t bufsiz, bool righttoleft) {
+		unsigned char *buff, size_t bufsiz, bool righttoleft) {
    ssize_t bytes, writt = 0;
 
-	 bytes = xioread(inpipe, *buff, bufsiz);
+	 bytes = xioread(inpipe, buff, bufsiz);
 	 if (bytes < 0) {
 	    if (errno != EAGAIN)
 	       XIO_RDSTREAM(inpipe)->eof = 2;
@@ -1215,7 +1228,7 @@ int xiotransfer(xiofile_t *inpipe, xiofile_t *outpipe,
 	    /* handle escape char */
 	    if (XIO_RDSTREAM(inpipe)->escape != -1) {
 	       /* check input data for escape char */
-	       unsigned char *ptr = *buff;
+	       unsigned char *ptr = buff;
 	       size_t ctr = 0;
 	       while (ctr < bytes) {
 		  if (*ptr == XIO_RDSTREAM(inpipe)->escape) {
@@ -1251,8 +1264,8 @@ int xiotransfer(xiofile_t *inpipe, xiofile_t *outpipe,
 	       size_t j;
 	       size_t N = 16;
 	       const unsigned char *end, *s, *t;
-	       s = *buff;
-	       end = (*buff)+bytes;
+	       s = buff;
+	       end = buff+bytes;
 	       xioprintblockheader(stderr, bytes, righttoleft);
 	       while (s < end) {
 		  /*! prefix? */
@@ -1298,8 +1311,8 @@ int xiotransfer(xiofile_t *inpipe, xiofile_t *outpipe,
 	       size_t i = 0;
 	       xioprintblockheader(stderr, bytes, righttoleft);
 	       while (i < (size_t)bytes) {
-		  int c = (*buff)[i];
-		  if (i > 0 && (*buff)[i-1] == '\n')
+		  int c = buff[i];
+		  if (i > 0 && buff[i-1] == '\n')
 		     /*! prefix? */;
 		  switch (c) {
 		  case '\a' : fputs("\\a", stderr); break;
@@ -1323,12 +1336,12 @@ int xiotransfer(xiofile_t *inpipe, xiofile_t *outpipe,
 	       /* print prefix */
 	       xioprintblockheader(stderr, bytes, righttoleft);
 	       for (i = 0; i < bytes; ++i) {
-		  fprintf(stderr, " %02x", (*buff)[i]);
+		  fprintf(stderr, " %02x", buff[i]);
 	       }
 	       fputc('\n', stderr);
 	    }
 
-	    writt = xiowrite(outpipe, *buff, bytes);
+	    writt = xiowrite(outpipe, buff, bytes);
 	    if (writt < 0) {
 	       /* EAGAIN when nonblocking but a mandatory lock is on file.
 		  the problem with EAGAIN is that the read cannot be repeated,
@@ -1355,11 +1368,9 @@ int xiotransfer(xiofile_t *inpipe, xiofile_t *outpipe,
 /* converts the newline characters (or character sequences) from the one
    specified in lineterm1 to that of lineterm2. Possible values are
    LINETERM_CR, LINETERM_CRNL, LINETERM_RAW.
-   buff points to the malloc()'ed data, input and output. It may be subject to
-   realloc(). bytes specifies the number of bytes input and output */
-int cv_newline(unsigned char **buff, ssize_t *bufsiz,
+   bytes specifies the number of bytes input and output */
+int cv_newline(unsigned char *buff, ssize_t *bytes,
 	       int lineterm1, int lineterm2) {
-   ssize_t *bytes = bufsiz;
    /* must perform newline changes */
    if (lineterm1 <= LINETERM_CR && lineterm2 <= LINETERM_CR) {
       /* no change in data length */
@@ -1369,23 +1380,23 @@ int cv_newline(unsigned char **buff, ssize_t *bufsiz,
       } else {
 	 from = '\r'; to = '\n';
       }
-      z = *buff + *bytes;
-      p = *buff;
+      z = buff + *bytes;
+      p = buff;
       while (p < z) {
 	 if (*p == from)  *p = to;
 	 ++p;
       }
 
    } else if (lineterm1 == LINETERM_CRNL) {
-      /* buffer becomes shorter */
+      /* buffer might become shorter */
       unsigned char to,  *s, *t, *z;
       if (lineterm2 == LINETERM_RAW) {
 	 to = '\n';
       } else {
 	 to = '\r';
       }
-      z = *buff + *bytes;
-      s = t = *buff;
+      z = buff + *bytes;
+      s = t = buff;
       while (s < z) {
 	 if (*s == '\r') {
 	    ++s;
@@ -1397,20 +1408,24 @@ int cv_newline(unsigned char **buff, ssize_t *bufsiz,
 	    *t++ = *s++;
 	 }
       }
-      *bufsiz = t - *buff;
+      *bytes = t - buff;
    } else {
-      /* buffer becomes longer, must alloc another space */
-      unsigned char *buf2;
+      /* buffer becomes longer (up to double length), must alloc another space */
+      static unsigned char *buf2;	/*! not threadsafe */
       unsigned char from;  unsigned char *s, *t, *z;
+
       if (lineterm1 == LINETERM_RAW) {
 	 from = '\n';
       } else {
 	 from = '\r';
       }
-      if ((buf2 = Malloc(2*socat_opts.bufsiz/*sic!*/+1)) == NULL) {
-	 return -1;
+      if (buf2 == NULL) {
+	 if ((buf2 = Malloc(socat_opts.bufsiz)) == NULL) {
+	    return -1;
+	 }
       }
-      s = *buff;  t = buf2;  z = *buff + *bytes;
+      memcpy(buf2, buff, *bytes);
+      s = buf2;  t = buff;  z = buf2 + *bytes;
       while (s < z) {
 	 if (*s == from) {
 	    *t++ = '\r'; *t++ = '\n';
@@ -1420,9 +1435,7 @@ int cv_newline(unsigned char **buff, ssize_t *bufsiz,
 	    *t++ = *s++;
 	 }
       }
-      free(*buff);
-      *buff = buf2;
-      *bufsiz = t - buf2;;
+      *bytes = t - buff;;
    }
    return 0;
 }
