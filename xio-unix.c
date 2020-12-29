@@ -541,6 +541,8 @@ _xioopen_unix_client(xiosingle_t *xfd, int xioflags, unsigned groups,
    if (applyopts_single(xfd, opts, PH_INIT) < 0)  return STAT_NORETRY;
    applyopts(-1, opts, PH_INIT);
    applyopts_offset(xfd, opts);
+   retropt_int(opts, OPT_SO_TYPE, &socktype);
+   retropt_int(opts, OPT_SO_PROTOTYPE, &protocol);
    applyopts(-1, opts, PH_EARLY);
 
    themlen = xiosetunix(pf, &them.un, name, abstract, xfd->para.socket.un.tight);
@@ -569,32 +571,56 @@ _xioopen_unix_client(xiosingle_t *xfd, int xioflags, unsigned groups,
    /* save options, because we might have to start again */
    opts0 = copyopts(opts, GROUP_ALL);
 
-   /* xfd->dtype = DATA_STREAM; // is default */
-   if ((result =
+   /* just a breakable block, helps to avoid goto */
+   do {
+      /* xfd->dtype = DATA_STREAM; // is default */
+      /* this function handles AF_UNIX with EPROTOTYPE specially for us */
+      if ((result =
 	xioopen_connect(xfd,
 			needbind?&us:NULL, uslen,
 			&them.soa, themlen,
 			opts, pf, socktype?socktype:SOCK_STREAM, protocol,
-			false)) != 0) {
-      if (errno == EPROTOTYPE) {
-	 if (needbind) {
-	    Unlink(us.un.sun_path);
-	 }
+			false)) == 0)
+	 break;
+      if (errno != EPROTOTYPE || socktype != 0)
+	 break;
+      if (needbind)
+	 Unlink(us.un.sun_path);
+      dropopts2(opts, PH_INIT, PH_SPEC); opts = opts0;
 
-	 dropopts2(opts, PH_INIT, PH_SPEC); opts = opts0;
+      socktype = SOCK_SEQPACKET;
+      if ((result =
+	xioopen_connect(xfd,
+			needbind?&us:NULL, uslen,
+			(struct sockaddr *)&them, themlen,
+			opts, pf, SOCK_SEQPACKET, protocol,
+			false)) == 0)
+	 break;
+      if (errno != EPROTOTYPE)
+	 break;
+      if (needbind)
+	 Unlink(us.un.sun_path);
+      dropopts2(opts, PH_INIT, PH_SPEC); opts = opts0;
 
-	 xfd->peersa = them;
-	 xfd->salen = sizeof(struct sockaddr_un);
-	 if ((result =
+      xfd->peersa = them;
+      xfd->salen = sizeof(struct sockaddr_un);
+      if ((result =
 	      _xioopen_dgram_sendto(needbind?&us:NULL, uslen,
 				    opts, xioflags, xfd, groups,
-				    pf, socktype?socktype:SOCK_DGRAM, protocol))
-	     != 0) {
-	    return result;
-	 }
+				    pf, SOCK_DGRAM, protocol))
+	  == 0) {
 	 xfd->dtype = XIODATA_RECVFROM;
+	 break;
       }
+   } while (0);
+
+   if (result != 0) {
+      if (needbind) {
+	 Unlink(us.un.sun_path);
+      }
+      return result;
    }
+
    if ((result = _xio_openlate(xfd, opts)) < 0) {
       return result;
    }

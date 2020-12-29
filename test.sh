@@ -3772,6 +3772,58 @@ fi # NUMCOND
 esac
 N=$((N+1))
 
+NAME=GOPENUNIXSEQPACKET
+case "$TESTS" in
+*%$N%*|*%functions%*|*%gopen%*|*%unix%*|*%listen%*|*%seqpacket%*|*%$NAME%*)
+TEST="$NAME: GOPEN on UNIX seqpacket socket"
+if ! eval $NUMCOND; then :; else
+    case "$UNAME" in
+	SunOS) SOCK_SEQPACKET=6 ;;
+	*)     SOCK_SEQPACKET=5 ;;
+    esac
+ts="$td/test$N.socket"
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da1="test$N $(date) $RANDOM"
+#establish a listening unix socket in background
+SRV="$TRACE $SOCAT $opts -lpserver UNIX-LISTEN:\"$ts\",so-type=$SOCK_SEQPACKET PIPE"
+#make a connection
+CMD="$TRACE $SOCAT $opts - $ts"
+$PRINTF "test $F_n $TEST... " $N
+eval "$SRV 2>${te}s &"
+pids=$!
+waitfile "$ts"
+echo "$da1" |eval "$CMD" >"${tf}1" 2>"${te}1"
+if [ $? -ne 0 ]; then
+    kill "$pids" 2>/dev/null
+    $PRINTF "$FAILED:\n"
+    echo "$SRV &"
+    cat "${te}s"
+    echo "$CMD"
+    cat "${te}1"
+    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
+elif ! echo "$da1" |diff - "${tf}1" >"$tdiff"; then
+    kill "$pids" 2>/dev/null
+    $PRINTF "$FAILED:\n"
+    echo "$SRV &"
+    cat "${te}s"
+    echo "$CMD"
+    cat "${te}1"
+    cat "$tdiff"
+    numFAIL=$((numFAIL+1))
+   listFAIL="$listFAIL $N"
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat $te; fi
+   numOK=$((numOK+1))
+fi # !(rc -ne 0)
+wait
+fi # NUMCOND
+esac
+N=$((N+1))
+
 
 NAME=GOPENUNIXDGRAM
 case "$TESTS" in
