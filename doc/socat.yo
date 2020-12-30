@@ -487,6 +487,7 @@ label(ADDRESS_OPEN)dit(bf(tt(OPEN:<filename>)))
    link(CREATE)(ADDRESS_CREAT),
    link(GOPEN)(ADDRESS_GOPEN),
    link(UNIX-CONNECT)(ADDRESS_UNIX_CONNECT)
+
 label(ADDRESS_OPENSSL_CONNECT)dit(bf(tt(OPENSSL:<host>:<port>)))
    Tries to establish a SSL connection to <port> [link(TCP
    service)(TYPE_TCP_SERVICE)] on  
@@ -502,7 +503,7 @@ label(ADDRESS_OPENSSL_CONNECT)dit(bf(tt(OPENSSL:<host>:<port>)))
    <host> parameter or the value of the 
    link(openssl-commonname)(OPTION_OPENSSL_COMMONNAME) option.
    Socat tries to match it against the certificates subject commonName,
-   and the certifications extension subjectAltName DNS names. Wildcards in the
+   and the certificates extension subjectAltName DNS names. Wildcards in the
    certificate are supported.nl() 
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4),link(IP6)(GROUP_IP6),link(TCP)(GROUP_TCP),link(OPENSSL)(GROUP_OPENSSL),link(RETRY)(GROUP_RETRY) nl()
    Useful options:
@@ -522,6 +523,7 @@ label(ADDRESS_OPENSSL_CONNECT)dit(bf(tt(OPENSSL:<host>:<port>)))
    See also:
    link(OPENSSL-LISTEN)(ADDRESS_OPENSSL_LISTEN),
    link(TCP)(ADDRESS_TCP_CONNECT)
+
 label(ADDRESS_OPENSSL_LISTEN)dit(bf(tt(OPENSSL-LISTEN:<port>)))
    Listens on tcp <port> [link(TCP service)(TYPE_TCP_SERVICE)].
    The IP version is 4 or the one specified with
@@ -552,6 +554,71 @@ label(ADDRESS_OPENSSL_LISTEN)dit(bf(tt(OPENSSL-LISTEN:<port>)))
    See also:
    link(OPENSSL)(ADDRESS_OPENSSL_CONNECT),
    link(TCP-LISTEN)(ADDRESS_TCP_LISTEN)
+
+label(ADDRESS_OPENSSL_DTLS_CLIENT)dit(bf(tt(OPENSSL-DTLS-CLIENT:<host>:<port>)))
+   Tries to establish a DTLS connection to <port> [link(UDP
+   service)(TYPE_UDP_SERVICE)] on
+   <host> [link(IP address)(TYPE_IP_ADDRESS)] using UDP/IP version 4 or 6
+   depending on address specification, name resolution, or option
+   link(pf)(OPTION_PROTOCOL_FAMILY).nl()
+   Socat() checks the peer certificates subjectAltName or commonName against the addresses
+   option link(openssl-commonname)(OPTION_OPENSSL_COMMONNAME) or the host name.
+   Wildcards in the certificate are supported.nl()
+   Use socat() option link(-b)(option_b) to make datagrams small enough to fit with overhead
+   on the network. Use option link(-T)(option_T) to prevent indefinite hanging when peer went down quietly.nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4),link(IP6)(GROUP_IP6),COMMENT(link(UDP)(GROUP_UDP),)link(OPENSSL)(GROUP_OPENSSL),link(RETRY)(GROUP_RETRY) nl()
+   Useful options:
+   link(cipher)(OPTION_OPENSSL_CIPHERLIST),
+   link(verify)(OPTION_OPENSSL_VERIFY),
+   link(commonname)(OPTION_OPENSSL_COMMONNAME),
+   link(cafile)(OPTION_OPENSSL_CAFILE),
+   link(capath)(OPTION_OPENSSL_CAPATH),
+   link(certificate)(OPTION_OPENSSL_CERTIFICATE),
+   link(key)(OPTION_OPENSSL_KEY),
+   link(compress)(OPTION_OPENSSL_COMPRESS),
+   link(bind)(OPTION_BIND),
+   link(pf)(OPTION_PROTOCOL_FAMILY),
+   link(sourceport)(OPTION_SOURCEPORT),
+   link(retry)(OPTION_RETRY)nl()
+   See also:
+   link(OPENSSL-DTLS-SERVER)(ADDRESS_OPENSSL_DTLS_SERVER),
+   link(OPENSSL-CONNECT)(ADDRESS_OPENSSL_CONNECT),
+   link(UDP-CONNECT)(ADDRESS_UDP_CONNECT)
+
+label(ADDRESS_OPENSSL_DTLS_SERVER)dit(bf(tt(OPENSSL-DTLS-SERVER:<port>)))
+   Listens on UDP <port> [link(UDP service)(TYPE_UDP_SERVICE)].
+   The IP version is 4 or the one specified with
+   link(pf)(OPTION_PROTOCOL_FAMILY). When a
+   connection is accepted, this address behaves as DTLS server.nl()
+   Note: You probably want to use the link(certificate)(OPTION_OPENSSL_CERTIFICATE) option with this address.nl()
+   NOTE: The client certificate is only checked for validity against
+   link(cafile)(OPTION_OPENSSL_CAFILE) or link(capath)(OPTION_OPENSSL_CAPATH),
+   but not for match with the client's name or its IP address!
+   Use socat() option link(-b)(option_b) to make datagrams small enough to fit with overhead on the network.
+   Use option link(-T)(option_T) to prevent indefinite hanging when peer went down quietly.nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4),link(IP6)(GROUP_IP6),COMMENT(link(UDP)(GROUP_UDP),)link(LISTEN)(GROUP_LISTEN),link(OPENSSL)(GROUP_OPENSSL),link(CHILD)(GROUP_CHILD),link(RANGE)(GROUP_RANGE),link(RETRY)(GROUP_RETRY) nl()
+   Useful options:
+   link(pf)(OPTION_PROTOCOL_FAMILY),
+   link(cipher)(OPTION_OPENSSL_CIPHERLIST),
+   link(verify)(OPTION_OPENSSL_VERIFY),
+   link(commonname)(OPTION_OPENSSL_COMMONNAME),
+   link(cafile)(OPTION_OPENSSL_CAFILE),
+   link(capath)(OPTION_OPENSSL_CAPATH),
+   link(certificate)(OPTION_OPENSSL_CERTIFICATE),
+   link(key)(OPTION_OPENSSL_KEY),
+   link(compress)(OPTION_OPENSSL_COMPRESS),
+   link(fork)(OPTION_FORK),
+   link(bind)(OPTION_BIND),
+   link(range)(OPTION_RANGE),
+   link(tcpwrap)(OPTION_TCPWRAPPERS),
+   link(su)(OPTION_SUBSTUSER),
+   link(reuseaddr)(OPTION_REUSEADDR),
+   link(retry)(OPTION_RETRY)nl()
+   See also:
+   link(OPENSSL-DTLS-CLIENT)(ADDRESS_OPENSSL_DTLS_CLIENT),
+   link(OPENSSL-LISTEN)(ADDRESS_OPENSSL_LISTEN),
+   link(UDP-LISTEN)(ADDRESS_UDP_LISTEN)
+
 label(ADDRESS_NAMED_PIPE)dit(bf(tt(PIPE:<filename>)))
    If link(<filename>)(TYPE_FILENAME) already exists, it is opened.
    If it does not exist, a named pipe is created and opened. Beginning with

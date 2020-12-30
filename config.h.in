@@ -466,6 +466,10 @@
 #undef HAVE_TLSv1_2_client_method
 #undef HAVE_TLSv1_2_server_method
 
+/* Define if you have the DTLS client and server method functions */
+#undef HAVE_DTLS_client_method
+#undef HAVE_DTLS_server_method
+
 /* Define if you have the DTLSv1 client and server method functions */
 #undef HAVE_DTLSv1_client_method
 #undef HAVE_DTLSv1_server_method
@@ -475,6 +479,10 @@
 
 /* Define if you have the SSL_CTX_set_max_proto_version function/macro */
 #undef HAVE_SSL_CTX_set_max_proto_version
+
+/* Define if you have the DTLSv1_2 client and server method functions */
+#undef HAVE_DTLSv1_2_client_method
+#undef HAVE_DTLSv1_2_server_method
 
 /* Define if you have the EC_KEY type */
 #undef HAVE_TYPE_EC_KEY

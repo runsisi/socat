@@ -35,6 +35,26 @@ int sycSSL_library_init(void) {
    return result;
 }
 
+#if HAVE_TLS_client_method
+const SSL_METHOD *sycTLS_client_method(void) {
+   const SSL_METHOD *result;
+   Debug("TLS_client_method()");
+   result = TLS_client_method();
+   Debug1("TLS_client_method() -> %p", result);
+   return result;
+}
+#endif
+
+#if HAVE_TLS_server_method
+const SSL_METHOD *sycTLS_server_method(void) {
+   const SSL_METHOD *result;
+   Debug("TLS_server_method()");
+   result = TLS_server_method();
+   Debug1("TLS_server_method() -> %p", result);
+   return result;
+}
+#endif
+
 #if HAVE_SSLv2_client_method
 const SSL_METHOD *sycSSLv2_client_method(void) {
    const SSL_METHOD *result;
@@ -151,6 +171,26 @@ const SSL_METHOD *sycTLSv1_2_server_method(void) {
 }
 #endif
 
+#if HAVE_DTLS_client_method
+const SSL_METHOD *sycDTLS_client_method(void) {
+   const SSL_METHOD *result;
+   Debug("DTLS_client_method()");
+   result = DTLS_client_method();
+   Debug1("DTLS_client_method() -> %p", result);
+   return result;
+}
+#endif
+
+#if HAVE_DTLS_server_method
+const SSL_METHOD *sycDTLS_server_method(void) {
+   const SSL_METHOD *result;
+   Debug("DTLS_server_method()");
+   result = DTLS_server_method();
+   Debug1("DTLS_server_method() -> %p", result);
+   return result;
+}
+#endif
+
 #if HAVE_DTLSv1_client_method
 const SSL_METHOD *sycDTLSv1_client_method(void) {
    const SSL_METHOD *result;
@@ -167,6 +207,26 @@ const SSL_METHOD *sycDTLSv1_server_method(void) {
    Debug("DTLSv1_server_method()");
    result = DTLSv1_server_method();
    Debug1("DTLSv1_server_method() -> %p", result);
+   return result;
+}
+#endif
+
+#if HAVE_DTLSv1_2_client_method
+const SSL_METHOD *sycDTLSv1_2_client_method(void) {
+   const SSL_METHOD *result;
+   Debug("DTLSv1_2_client_method()");
+   result = DTLSv1_2_client_method();
+   Debug1("DTLSv1_2_client_method() -> %p", result);
+   return result;
+}
+#endif
+
+#if HAVE_DTLSv1_2_server_method
+const SSL_METHOD *sycDTLSv1_2_server_method(void) {
+   const SSL_METHOD *result;
+   Debug("DTLSv1_2_server_method()");
+   result = DTLSv1_2_server_method();
+   Debug1("DTLSv1_2_server_method() -> %p", result);
    return result;
 }
 #endif

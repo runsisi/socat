@@ -1454,6 +1454,8 @@ AC_CHECK_FUNC(SSL_CTX_set_min_proto_version, AC_DEFINE(HAVE_SSL_CTX_set_min_prot
 AC_CHECK_FUNC(SSL_CTX_set_max_proto_version, AC_DEFINE(HAVE_SSL_CTX_set_max_proto_version))
 AC_CHECK_FUNC(TLS_client_method, AC_DEFINE(HAVE_TLS_client_method) ac_cv_have_tls_client_method=yes, AC_CHECK_LIB(crypt, TLS_client_method, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(TLS_server_method, AC_DEFINE(HAVE_TLS_server_method) ac_cv_have_tls_server_method=yes, AC_CHECK_LIB(crypt, TLS_server_method, [LIBS=-lcrypt $LIBS]))
+AC_CHECK_FUNC(DTLS_client_method, AC_DEFINE(HAVE_DTLS_client_method), AC_CHECK_LIB(crypt, DTLS_client_method, [LIBS=-lcrypt $LIBS]))
+AC_CHECK_FUNC(DTLS_server_method, AC_DEFINE(HAVE_DTLS_server_method), AC_CHECK_LIB(crypt, DTLS_server_method, [LIBS=-lcrypt $LIBS]))
 if test -n "$WITH_OPENSSL_METHOD" -o -z "$ac_cv_have_tls_client_method" -o -z "$ac_cv_have_tls_server_method" ; then
 dnl Search for SSLv2_client_method, SSLv2_server_method
 AC_CHECK_FUNC(SSLv2_client_method, AC_DEFINE(HAVE_SSLv2_client_method), AC_CHECK_LIB(crypt, SSLv2_client_method, [LIBS=-lcrypt $LIBS]))
@@ -1471,6 +1473,8 @@ AC_CHECK_FUNC(TLSv1_2_client_method, AC_DEFINE(HAVE_TLSv1_2_client_method), AC_C
 AC_CHECK_FUNC(TLSv1_2_server_method, AC_DEFINE(HAVE_TLSv1_2_server_method), AC_CHECK_LIB(crypt, TLSv1_2_server_method, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(DTLSv1_client_method, AC_DEFINE(HAVE_DTLSv1_client_method), AC_CHECK_LIB(crypt, DTLSv1_client_method, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(DTLSv1_server_method, AC_DEFINE(HAVE_DTLSv1_server_method), AC_CHECK_LIB(crypt, DTLSv1_server_method, [LIBS=-lcrypt $LIBS]))
+AC_CHECK_FUNC(DTLSv1_2_client_method, AC_DEFINE(HAVE_DTLSv1_2_client_method), AC_CHECK_LIB(crypt, DTLSv1_2_client_method, [LIBS=-lcrypt $LIBS]))
+AC_CHECK_FUNC(DTLSv1_2_server_method, AC_DEFINE(HAVE_DTLSv1_2_server_method), AC_CHECK_LIB(crypt, DTLSv1_2_server_method, [LIBS=-lcrypt $LIBS]))
 fi # $WITH_OPENSSL_METHOD
 
 AC_CHECK_FUNC(SSL_CTX_set_default_verify_paths, AC_DEFINE(HAVE_SSL_CTX_set_default_verify_paths))

@@ -41,6 +41,17 @@ const struct addrname addressnames[] = {
    { "datagram",		&xioaddr_socket_datagram },
    { "dgram",			&xioaddr_socket_datagram },
 #endif
+#if WITH_OPENSSL
+   { "dtls",		&xioaddr_openssl_dtls_client },
+   { "dtls-c",		&xioaddr_openssl_dtls_client },
+   { "dtls-client",	&xioaddr_openssl_dtls_client },
+   { "dtls-connect",	&xioaddr_openssl_dtls_client },
+#if WITH_LISTEN
+   { "dtls-l",		&xioaddr_openssl_dtls_server },
+   { "dtls-listen",	&xioaddr_openssl_dtls_server },
+   { "dtls-server",	&xioaddr_openssl_dtls_server },
+#endif
+#endif
 #if WITH_PIPE
    { "echo",		&addr_pipe },
 #endif
@@ -122,10 +133,14 @@ const struct addrname addressnames[] = {
    { "open",		&addr_open },
 #endif
 #if WITH_OPENSSL
-   { "openssl",		&addr_openssl },
-   { "openssl-connect",		&addr_openssl },
+   { "openssl",		&xioaddr_openssl },
+   { "openssl-connect",		&xioaddr_openssl },
+   { "openssl-dtls-client",	&xioaddr_openssl_dtls_client },
+   { "openssl-dtls-connect",	&xioaddr_openssl_dtls_client },
 #if WITH_LISTEN
-   { "openssl-listen",		&addr_openssl_listen },
+   { "openssl-dtls-listen",		&xioaddr_openssl_dtls_server },
+   { "openssl-dtls-server",		&xioaddr_openssl_dtls_server },
+   { "openssl-listen",		&xioaddr_openssl_listen },
 #endif
 #endif
 #if WITH_PIPE
@@ -186,9 +201,9 @@ const struct addrname addressnames[] = {
    { "socks4a",	&addr_socks4a_connect },
 #endif
 #if WITH_OPENSSL
-   { "ssl",		&addr_openssl },
+   { "ssl",		&xioaddr_openssl },
 #if WITH_LISTEN
-   { "ssl-l",		&addr_openssl_listen },
+   { "ssl-l",		&xioaddr_openssl_listen },
 #endif
 #endif
 #if WITH_STDIO

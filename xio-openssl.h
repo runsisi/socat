@@ -10,8 +10,10 @@
 #define SSLIO_BASE 0x53530000	/* "SSxx" */
 #define SSLIO_MASK 0xffff0000
 
-extern const struct addrdesc addr_openssl;
-extern const struct addrdesc addr_openssl_listen;
+extern const struct addrdesc xioaddr_openssl;
+extern const struct addrdesc xioaddr_openssl_listen;
+extern const struct addrdesc xioaddr_openssl_dtls_client;
+extern const struct addrdesc xioaddr_openssl_dtls_server;
 
 extern const struct optdesc opt_openssl_cipherlist;
 extern const struct optdesc opt_openssl_method;
@@ -36,7 +38,7 @@ extern const struct optdesc opt_openssl_commonname;
 extern int
    _xioopen_openssl_prepare(struct opt *opts, struct single *xfd,
 			    bool server, bool *opt_ver, const char *opt_cert,
-			    SSL_CTX **ctx);
+			    SSL_CTX **ctx, bool *use_dtls);
 extern int
    _xioopen_openssl_connect(struct single *xfd,  bool opt_ver,
 			    const char *opt_commonname,

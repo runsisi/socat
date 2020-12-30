@@ -12907,7 +12907,7 @@ N=$((N+1))
 
 # tests of various SSL methods; from TLS1.3 this method is not avail in OpenSSL:
 OPENSSL_METHODS_OBSOLETE="SSL3 SSL23"
-OPENSSL_METHODS_EXPECTED="TLS1 TLS1.1 TLS1.2 DTLS1"
+OPENSSL_METHODS_EXPECTED="TLS1 TLS1.1 TLS1.2 DTLS1 DTLS1.2"
 
 # the OPENSSL_METHOD_DTLS1 test hangs sometimes, probably depending on the openssl version.
 OPENSSL_VERSION="$(openssl version)"
@@ -13015,7 +13015,11 @@ if [ "$method" = DTLS1 -a "$(echo -e "$OPENSSL_VERSION\n1.0.2" |sort |tail -n 1)
 else
 $CMD0 >/dev/null 2>"${te}0" &
 pid0=$!
-waittcp4port $PORT 1
+if [[ "$method" =~ DTLS* ]]; then
+    waitudp4port $PORT 1
+else
+    waittcp4port $PORT 1
+fi
 echo "$da" |$CMD1 >"${tf}1" 2>"${te}1"
 rc1=$?
 kill $pid0 2>/dev/null; wait
@@ -13921,6 +13925,147 @@ fi
 fi # NUMCOND
  ;;
 esac
+N=$((N+1))
+
+
+# test the DTLS client feature
+NAME=OPENSSL_DTLS_CLIENT
+case "$TESTS" in
+*%$N%*|*%functions%*|*%openssl%*|*%dtls%*|*%udp%*|*%udp4%*|*%ip4%*|*%$NAME%*)
+TEST="$NAME: OpenSSL DTLS client"
+# Run openssl s_server in DTLS mode, wrapped into a simple Socat echoing command.
+# Start a Socat DTLS client, send data to server and check if reply is received.
+if ! eval $NUMCOND; then :;
+elif ! a=$(testfeats ip4 udp openssl); then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$a not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! a=$(testaddrs openssl-dtls-client); then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$a not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! runsip4 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}IPv4 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! type openssl >/dev/null 2>&1; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}openssl executable not found${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+else
+gentestcert testsrv
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+#set -vx
+da="test$N $(date) $RANDOM"
+S_SERVER_4=
+if openssl s_server -help 2>&1 | grep -q ' -4 '; then
+    S_SERVER_4="-4"
+fi
+if openssl s_server -help 2>&1 | grep -q ' -dtls '; then
+    S_SERVER_DTLS=-dtls
+else
+    S_SERVER_DTLS=-dtls1
+fi
+if openssl s_server -help 2>&1 | grep -q ' -no-ign_eof '; then
+    S_SERVER_NO_IGN_EOF=-no-ign_eof
+else
+    S_SERVER_NO_IGN_EOF=
+fi
+CMD1="$TRACE openssl s_server $S_SERVER_4 $S_SERVER_DTLS -accept $PORT -quiet $S_SERVER_NO_IGN_EOF -cert testsrv.pem"
+CMD="$TRACE $SOCAT $opts -T 1 - OPENSSL-DTLS-CLIENT:$LOCALHOST:$PORT,pf=ip4,verify=0,$SOCAT_EGD"
+printf "test $F_n $TEST... " $N
+( sleep 2; echo "$da"; sleep 1 ) |$CMD1 2>"${te}1" &
+pid1=$!	# background process id
+waitudp4port $PORT
+$CMD >$tf 2>"$te"
+kill $pid1 2>/dev/null; wait 2>/dev/null
+if ! echo "$da" |diff - "$tf" >"$tdiff"; then
+    $PRINTF "$FAILED: $TRACE $SOCAT:\n"
+    echo "$CMD1 &"
+    cat "${te}1"
+    echo "$CMD"
+    cat "$te"
+    cat "$tdiff"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat "${te}1" "$te"; fi
+   numOK=$((numOK+1))
+fi
+fi ;; # NUMCOND, feats
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+set +vx
+
+# test the DTLS server feature
+NAME=OPENSSL_DTLS_SERVER
+case "$TESTS" in
+*%$N%*|*%functions%*|*%openssl%*|*%dtls%*|*%udp%*|*%udp4%*|*%ip4%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: OpenSSL DTLS server"
+# Run a socat OpenSSL DTLS server with echo function
+# Start an OpenSSL s_client, send data and check if repley is received.
+if ! eval $NUMCOND; then :;
+elif ! a=$(testfeats ip4 udp openssl) >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$a not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! a=$(testaddrs openssl-dtls-server); then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$a not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! runsip4 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}IPv4 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! type openssl >/dev/null 2>&1; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}openssl executable not found${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif [[ $(openssl version |awk '{print($2);}') =~ 0.9.8[a-c] ]]; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}openssl s_client might hang${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+else
+gentestcert testsrv
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+if openssl s_server -help 2>&1 | grep -q ' -dtls '; then
+    S_SERVER_DTLS=-dtls
+else
+    S_SERVER_DTLS=-dtls1
+fi
+CMD1="$TRACE $SOCAT $opts OPENSSL-DTLS-SERVER:$PORT,$REUSEADDR,cert=testsrv.crt,key=testsrv.key,verify=0 PIPE"
+CMD="openssl s_client -host $LOCALHOST -port $PORT $S_SERVER_DTLS"
+printf "test $F_n $TEST... " $N
+$CMD1 >/dev/null 2>"${te}1" &
+pid1=$!
+waitudp4port $PORT 1
+( echo "$da"; sleep 0.1 ) |$CMD 2>"$te" |grep "$da" >"$tf"
+rc=$?
+kill $pid1 2>/dev/null; wait
+if echo "$da" |diff - $tf >"$tdiff"; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD1 &"
+    cat "${te}1"
+    echo "$CMD"
+    cat "$te"
+    cat "$tdiff"
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
 N=$((N+1))
 
 

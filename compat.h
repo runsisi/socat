@@ -681,7 +681,7 @@ typedef int sig_atomic_t;
 #endif
 
 /* sigset_t printing - not an exact solution yet */
-#define F_sigset "0x%4lx"
+#define F_sigset "0x%06lx"
 typedef unsigned long T_sigset;
 
 /* default: socklen_t */

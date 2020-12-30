@@ -50,6 +50,15 @@ Corrections:
 	address if you want to avoid data loss.
 	Thanks to Chunmei Xu for reporting this issue and proving the patch.
 
+	Socats DTLS implementation has been reworked and appears to work now
+	reasonably over UDP.
+	New addresses: OPENSSL-DTLS-SERVER (DTLS-L),
+		OPENSSL-DTLS-CLIENT (DTLS)
+	Tests: OPENSSL_DTLS_CLIENT OPENSSL_DTLS_SERVER
+		OPENSSL_METHOD_DTLS1 OPENSSL_METHOD_DTLS1.2
+	Thanks to Brandon Carpenter, Qing Wan, and Pavel Nakonechnyi for
+	sending patches.
+
 Porting:
 	In gcc version 10 the default changed from -fcommon to -fno-common.
 	Consequently, linking filan and procan failed with error

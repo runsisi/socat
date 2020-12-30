@@ -960,9 +960,15 @@ int Sigaction(int signum, const struct sigaction *act,
 
 int Sigprocmask(int how, const sigset_t *set, sigset_t *oset) {
    int retval;
-   Debug3("sigprocmask(%d, %p, %p)", how, set, oset);
+   if (set)
+      Debug3("sigprocmask(%d, "F_sigset", %p)", how, *(T_sigset *)set, oset);
+   else
+      Debug2("sigprocmask(%d, NULL, %p)", how, oset);
    retval = sigprocmask(how, set, oset);
-   Debug1("sigprocmask() -> %d", retval);
+   if (oset)
+      Debug2("sigprocmask() -> {,, "F_sigset"} %d", *(T_sigset *)oset, retval);
+   else
+      Debug1("sigprocmask() -> %d", retval);
    return retval;
 }
 

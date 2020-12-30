@@ -14,6 +14,7 @@
 #include "xio-fd.h"
 #include "xio-socket.h"	/* _xioopen_connect() */
 #include "xio-listen.h"
+#include "xio-udp.h"
 #include "xio-ipapp.h"
 #include "xio-openssl.h"
 
@@ -58,7 +59,7 @@ static int openssl_delete_cert_info(void);
 
 
 /* description record for ssl connect */
-const struct addrdesc addr_openssl = {
+const struct addrdesc xioaddr_openssl = {
    "openssl",	/* keyword for selecting this address type in xioopen calls
 		   (canonical or main name) */
    3,		/* data flow directions this address supports on API layer:
@@ -67,7 +68,7 @@ const struct addrdesc addr_openssl = {
    GROUP_FD|GROUP_SOCKET|GROUP_SOCK_IP4|GROUP_SOCK_IP6|GROUP_IP_TCP|GROUP_CHILD|GROUP_OPENSSL|GROUP_RETRY,	/* bitwise OR of address groups this address belongs to.
 		   You might have to specify a new group in xioopts.h */
    0,		/* an integer passed to xioopen_openssl; makes it possible to
-		   use the same xioopen_openssl function for slightly different
+		   use the xioopen_openssl_connect function for slightly different
 		   address types. */
    0,		/* like previous argument */
    0		/* like previous arguments, but pointer type.
@@ -79,7 +80,7 @@ const struct addrdesc addr_openssl = {
 
 #if WITH_LISTEN
 /* description record for ssl listen */
-const struct addrdesc addr_openssl_listen = {
+const struct addrdesc xioaddr_openssl_listen = {
    "openssl-listen",	/* keyword for selecting this address type in xioopen calls
 		   (canonical or main name) */
    3,		/* data flow directions this address supports on API layer:
@@ -88,7 +89,7 @@ const struct addrdesc addr_openssl_listen = {
    GROUP_FD|GROUP_SOCKET|GROUP_SOCK_IP4|GROUP_SOCK_IP6|GROUP_IP_TCP|GROUP_LISTEN|GROUP_CHILD|GROUP_RANGE|GROUP_OPENSSL|GROUP_RETRY,	/* bitwise OR of address groups this address belongs to.
 		   You might have to specify a new group in xioopts.h */
    0,		/* an integer passed to xioopen_openssl_listen; makes it possible to
-		   use the same xioopen_openssl_listen function for slightly different
+		   use the xioopen_openssl_listen function for slightly different
 		   address types. */
    0,		/* like previous argument */
    0		/* like previous arguments, but pointer type.
@@ -98,6 +99,9 @@ const struct addrdesc addr_openssl_listen = {
 			   only generates this text if WITH_HELP is != 0 */
 } ;
 #endif /* WITH_LISTEN */
+
+const struct addrdesc xioaddr_openssl_dtls_client = { "openssl-dtls-client", 3, xioopen_openssl_connect, GROUP_FD|GROUP_SOCKET|GROUP_SOCK_IP4|GROUP_SOCK_IP6|GROUP_IP_UDP|GROUP_CHILD|GROUP_OPENSSL|GROUP_RETRY, 1, 0, 0  HELP(":<host>:<port>") } ;
+const struct addrdesc xioaddr_openssl_dtls_server = { "openssl-dtls-server", 3, xioopen_openssl_listen, GROUP_FD|GROUP_SOCKET|GROUP_SOCK_IP4|GROUP_SOCK_IP6|GROUP_IP_UDP|GROUP_LISTEN|GROUP_CHILD|GROUP_RANGE|GROUP_OPENSSL|GROUP_RETRY, 1, 0, 0  HELP(":<port>") } ;
 
 /* both client and server */
 const struct optdesc opt_openssl_cipherlist = { "openssl-cipherlist", "ciphers", OPT_OPENSSL_CIPHERLIST, GROUP_OPENSSL, PH_SPEC, TYPE_STRING, OFUNC_SPEC };
@@ -188,7 +192,7 @@ static int
 		   xiofile_t *xxfd,	/* a xio file descriptor structure,
 				   already allocated */
 		   unsigned groups,	/* the matching address groups... */
-		   int dummy1,	/* first transparent integer value from
+		   int protogrp,	/* first transparent integer value from
 				   addr_openssl */
 		   int dummy2,	/* second transparent integer value from
 				   addr_openssl */
@@ -199,8 +203,9 @@ static int
    struct opt *opts0 = NULL;
    const char *hostname, *portname;
    int pf = PF_UNSPEC;
-   int ipproto = IPPROTO_TCP;
+   bool use_dtls = (protogrp != 0);
    int socktype = SOCK_STREAM;
+   int ipproto = IPPROTO_TCP;
    bool dofork = false;
    union sockaddr_union us_sa,  *us = &us_sa;
    union sockaddr_union them_sa, *them = &them_sa;
@@ -248,8 +253,15 @@ static int
    }
 
    result =
-      _xioopen_openssl_prepare(opts, xfd, false, &opt_ver, opt_cert, &ctx);
+      _xioopen_openssl_prepare(opts, xfd, false, &opt_ver, opt_cert, &ctx, (bool *)&use_dtls);
    if (result != STAT_OK)  return STAT_NORETRY;
+
+   if (use_dtls) {
+      socktype = SOCK_DGRAM;
+      ipproto = IPPROTO_UDP;
+   }
+   retropt_int(opts, OPT_SO_TYPE,      &socktype);
+   retropt_int(opts, OPT_SO_PROTOTYPE, &ipproto);
 
    result =
       _xioopen_ipapp_prepare(opts, &opts0, hostname, portname, &pf, ipproto,
@@ -428,7 +440,7 @@ static int
 		   xiofile_t *xxfd,	/* a xio file descriptor structure,
 				   already allocated */
 		   unsigned groups,	/* the matching address groups... */
-		   int dummy1,	/* first transparent integer value from
+		   int protogrp,	/* first transparent integer value from
 				   addr_openssl */
 		   int dummy2,	/* second transparent integer value from
 				   addr_openssl */
@@ -441,6 +453,7 @@ static int
    union sockaddr_union us_sa, *us = &us_sa;
    socklen_t uslen = sizeof(us_sa);
    int pf;
+   bool use_dtls = (protogrp != 0);
    int socktype = SOCK_STREAM;
    int ipproto = IPPROTO_TCP;
    /*! lowport? */
@@ -486,8 +499,15 @@ static int
    applyopts(-1, opts, PH_EARLY);
 
    result =
-      _xioopen_openssl_prepare(opts, xfd, true, &opt_ver, opt_cert, &ctx);
+      _xioopen_openssl_prepare(opts, xfd, true, &opt_ver, opt_cert, &ctx, &use_dtls);
    if (result != STAT_OK)  return STAT_NORETRY;
+
+   if (use_dtls) {
+      socktype = SOCK_DGRAM;
+      ipproto = IPPROTO_UDP;
+   }
+   retropt_int(opts, OPT_SO_TYPE,      &socktype);
+   retropt_int(opts, OPT_SO_PROTOTYPE, &ipproto);
 
    if (_xioopen_ipapp_listen_prepare(opts, &opts0, portname, &pf, ipproto,
 				     xfd->para.socket.ip.res_opts[1],
@@ -497,7 +517,7 @@ static int
       return STAT_NORETRY;
    }
 
-   xfd->addr  = &addr_openssl_listen;
+   xfd->addr  = &xioaddr_openssl_listen;
    xfd->dtype = XIODATA_OPENSSL;
 
    while (true) {	/* loop over failed attempts */
@@ -509,17 +529,22 @@ static int
 #endif /* WITH_RETRY */
 	 level = E_ERROR;
 
-      /* tcp listen; this can fork() for us; it only returns on error or on
-	 successful establishment of tcp connection */
-      result = _xioopen_listen(xfd, xioflags,
+      /* this can fork() for us; it only returns on error or on
+	 successful establishment of connection */
+      if (ipproto == IPPROTO_TCP) {
+	 result = _xioopen_listen(xfd, xioflags,
 			       (struct sockaddr *)us, uslen,
-			       opts, pf, socktype, IPPROTO_TCP,
+			       opts, pf, socktype, ipproto,
 #if WITH_RETRY
 			       (xfd->retry||xfd->forever)?E_INFO:E_ERROR
 #else
 			       E_ERROR
 #endif /* WITH_RETRY */
 			       );
+      } else {
+	 result = _xioopen_ipdgram_listen(xfd, xioflags,
+		us, uslen, opts, pf, socktype, ipproto);
+      }
 	 /*! not sure if we should try again on retry/forever */
       switch (result) {
       case STAT_OK: break;
@@ -838,7 +863,8 @@ int
 			    bool server,	/* SSL client: false */
 			    bool *opt_ver,
 			    const char *opt_cert,
-			    SSL_CTX **ctxp)
+			    SSL_CTX **ctxp,
+			    bool *use_dtls)	/* checked,overwritten with true if DTLS-method */
 {
    SSL_CTX *ctx;
    bool opt_fips = false;
@@ -857,7 +883,9 @@ int
    unsigned long err;
    int result;
 
-   xfd->addr  = &addr_openssl;
+   //*ipproto = IPPROTO_TCP;
+
+   xfd->addr  = &xioaddr_openssl;
    xfd->dtype = XIODATA_OPENSSL;
 
    retropt_bool(opts, OPT_OPENSSL_FIPS, &opt_fips);
@@ -926,15 +954,21 @@ int
 	    method = sycTLSv1_2_client_method();
 #endif
 #if HAVE_DTLSv1_client_method
-	 } else if (!strcasecmp(me_str, "DTLS") || !strcasecmp(me_str, "DTLS1")) {
+	 } else if (!strcasecmp(me_str, "DTLS1") || !strcasecmp(me_str, "DTLS1.0")) {
 	    method = sycDTLSv1_client_method();
+	    *use_dtls = true;
+#endif
+#if HAVE_DTLSv1_2_client_method
+	 } else if (!strcasecmp(me_str, "DTLS1.2")) {
+	    method = sycDTLSv1_2_client_method();
+	 *use_dtls = true;
 #endif
 	 } else {
 	    Error1("openssl-method=\"%s\": method unknown or not provided by library", me_str);
 	 }
-      } else {
+      } else if (!*use_dtls) {
 #if   HAVE_TLS_client_method
-	 method = TLS_client_method();
+	 method = sycTLS_client_method();
 #elif HAVE_SSLv23_client_method
 	 method = sycSSLv23_client_method();
 #elif HAVE_TLSv1_2_client_method
@@ -948,8 +982,19 @@ int
 #elif HAVE_SSLv2_client_method
 	 method = sycSSLv2_client_method();
 #else
-#        error "OpenSSL does not seem to provide client methods"
+#        error "OpenSSL does not seem to provide SSL/TLS client methods"
 #endif
+      } else {
+#if   HAVE_DTLS_client_method
+	 method = sycDTLS_client_method();
+#elif HAVE_DTLSv1_2_client_method
+	 method = sycDTLSv1_2_client_method();
+#elif HAVE_DTLSv1_client_method
+	 method = sycDTLSv1_client_method();
+#else
+#        error "OpenSSL does not seem to provide DTLS client methods"
+#endif
+	 *use_dtls = true;
       }
    } else /* server */ {
       if (me_str != 0) {
@@ -980,15 +1025,21 @@ int
 	    method = sycTLSv1_2_server_method();
 #endif
 #if HAVE_DTLSv1_server_method
-	 } else if (!strcasecmp(me_str, "DTLS") || !strcasecmp(me_str, "DTLS1")) {
+	 } else if (!strcasecmp(me_str, "DTLS1") || !strcasecmp(me_str, "DTLS1.0")) {
 	    method = sycDTLSv1_server_method();
+	    *use_dtls = true;
+#endif
+#if HAVE_DTLSv1_2_server_method
+	 } else if (!strcasecmp(me_str, "DTLS1.2")) {
+	    method = sycDTLSv1_2_server_method();
+	 *use_dtls = true;
 #endif
 	 } else {
 	    Error1("openssl-method=\"%s\": method unknown or not provided by library", me_str);
 	 }
-      } else {
+      } else if (!*use_dtls) {
 #if   HAVE_TLS_server_method
-	 method = TLS_server_method();
+	 method = sycTLS_server_method();
 #elif HAVE_SSLv23_server_method
 	 method = sycSSLv23_server_method();
 #elif HAVE_TLSv1_2_server_method
@@ -1002,8 +1053,19 @@ int
 #elif HAVE_SSLv2_server_method
 	 method = sycSSLv2_server_method();
 #else
-#        error "OpenSSL does not seem to provide client methods"
+#        error "OpenSSL does not seem to provide SSL/TLS server methods"
 #endif
+      } else {
+#if   HAVE_DTLS_server_method
+	 method = sycDTLS_server_method();
+#elif HAVE_DTLSv1_2_server_method
+	 method = sycDTLSv1_2_server_method();
+#elif HAVE_DTLSv1_server_method
+	 method = sycDTLSv1_server_method();
+#else
+#        error "OpenSSL does not seem to provide DTLS server methods"
+#endif
+	 *use_dtls = true;
       }
    }
 
