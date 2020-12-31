@@ -483,7 +483,7 @@ rm -rf "$TD" || (echo "cannot rm $TD" >&2; exit 1)
 mkdir -p "$TD"
 #trap "rm -r $TD" 0 3
 
-echo "using temp directory $TD"
+echo "Using temp directory $TD"
 
 case "$TESTS" in
 *%consistency%*)
@@ -6886,7 +6886,7 @@ PORT=$((PORT+1))
 N=$((N+1))
 
 
-# is a listen address capable of forking to child processes and have both
+# Is a listen address capable of forking two child processes and have both
 # active?
 while read PROTOV MAJADDR MINADDR; do
 if [ -z "$PROTOV" ] || [[ "$PROTOV" == \#* ]]; then continue; fi
@@ -6896,7 +6896,7 @@ NAME=${PROTOV}LISTENFORK
 case "$TESTS" in
 *%$N%*|*%functions%*|*%$protov%*|*%$proto%*|*%listen%*|*%fork%*|*%$NAME%*)
 TEST="$NAME: $PROTOV listen handles 2 concurrent connections"
-# have a listening address with fork option. connect with client1, send a piece
+# Have a listening address with fork option. connect with client1, send a piece
 # of data, wait 1s, connect with client2, send another piece of data, wait 1s,
 # and send another piece of data with client1. The server processes append all
 # data to the same file. Check all data are written to the file in correct
@@ -10016,29 +10016,30 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 tsp=$PORT
 ts="$LOCALHOST:$tsp"
-da="test$N $(date) $RANDOM"
+da2a="test$N $(date) $RANDOM"
+da2b="test$N $(date) $RANDOM"
 CMD1="$TRACE $SOCAT $opts -T 2 UDP4-RECVFROM:$tsp,reuseaddr,fork PIPE"
 CMD2="$TRACE $SOCAT $opts -T 1 - UDP4-SENDTO:$ts"
 printf "test $F_n $TEST... " $N
 $CMD1 >/dev/null 2>"${te}1" &
 pid1=$!
 waitudp4port $tsp 1
-echo "$da" |$CMD2 >/dev/null 2>>"${te}2"	# this should always work
+echo "$da2a" |$CMD2 >/dev/null 2>>"${te}2a"	# this should always work
 rc2a=$?
-sleep 1
-echo "$da" |$CMD2 >"$tf" 2>>"${te}3"		# this would fail when bug
+echo "$da2b" |$CMD2 >"$tf" 2>>"${te}2b"		# this would fail when bug
 rc2b=$?
 kill $pid1 2>/dev/null; wait
 if [ $rc2b -ne 0 ]; then
     $PRINTF "$NO_RESULT\n"
     numCANT=$((numCANT+1))
     listCANT="$listCANT $N"
-elif ! echo "$da" |diff - "$tf" >"$tdiff"; then
+elif ! echo "$da2b" |diff - "$tf" >"$tdiff"; then
     $PRINTF "$FAILED: $TRACE $SOCAT:\n"
-    echo "$CMD1 &"
-    echo "$CMD2"
-    cat "${te}1" "${te}2" "${te}3"
-    cat "$tdiff"
+    echo "$CMD1 &" >&2
+    cat "${te}1" >&2
+    echo "$CMD2" >&2
+    cat "${te}2b" >&2
+    cat "$tdiff" >&2
     numFAIL=$((numFAIL+1))
     listFAIL="$listFAIL $N"
 else
@@ -10422,10 +10423,11 @@ IP6  IP6  [::1]     PROTO ipv6-tclass=0xaa     ipv6-recvtclass   IPV6_TCLASS    
 while read KEYW FEAT TEST_SOCKADDR TEST_PEERADDR TEST_SOCKPORT TEST_PEERPORT; do
 if [ -z "$KEYW" ] || [[ "$KEYW" == \#* ]]; then continue; fi
 #
-test_proto="$(echo "$KEYW" |tr A-Z a-z)"
+protov="$(echo "$KEYW" |tr A-Z a-z)"
+proto="${protov%%[0-9]}"
 NAME=${KEYW}LISTENENV
 case "$TESTS" in
-*%$N%*|*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%$test_proto%*|*%envvar%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%$proto%*|*%$protov%*|*%envvar%*|*%$NAME%*)
 TEST="$NAME: $KEYW-LISTEN sets environment variables with socket addresses"
 # have a server accepting a connection and invoking some shell code. The shell
 # code extracts and prints the SOCAT related environment vars.
@@ -10469,7 +10471,7 @@ CMD1="$TRACE $SOCAT $opts -u - $KEYW-CONNECT:$tsa,bind=$tca"
 printf "test $F_n $TEST... " $N
 eval "$CMD0 2>\"${te}0\" >\"$tf\" &"
 pid0=$!
-wait${test_proto}port $tsa1 1
+wait${protov}port $tsa1 1
 echo |$CMD1 2>"${te}1"
 rc1=$?
 waitfile "$tf" 2
@@ -14714,7 +14716,8 @@ esac
 N=$((N+1))
 
 
-echo "summary: $((N-1)) tests, $((numOK+numFAIL+numCANT)) selected; $numOK ok, $numFAIL failed, $numCANT could not be performed"
+echo "Used temp directory $TD - you might want to remove it after analysis"
+echo "Summary: $((N-1)) tests, $((numOK+numFAIL+numCANT)) selected; $numOK ok, $numFAIL failed, $numCANT could not be performed"
 
 if [ "$numCANT" -gt 0 ]; then
     echo "CANT: $listCANT"
