@@ -46,7 +46,8 @@ int main(int argc, const char *argv[]) {
 #endif
       case 'L': filan_followsymlinks = true; break;
       case 'd': diag_set('d', NULL); break;
-      case 's': style = 1; break;
+      case 's': style = arg1[0][1]; break;
+      case 'S': style = arg1[0][1]; break;
       case 'r': filan_rawoutput = true; break;
       case 'i':  if (arg1[0][2]) {
 	    a = *arg1+2;
@@ -193,15 +194,15 @@ int main(int argc, const char *argv[]) {
 	    Debug2("open(\"%s\", O_RDONLY|O_NOCTTY|O_NONBLOCK|O_LARGEFILE, 0700): %s",
 		   filename, strerror(errno));
 	 }
-	 fdname(filename, fd, fdout, NULL);
+	 fdname(filename, fd, fdout, NULL, style);
 #endif
-	 fdname(filename, -1, fdout, NULL);
+	 fdname(filename, -1, fdout, NULL, style);
       } else {
 	 if (m == n) {
-	    fdname("", m, fdout, NULL);
+	    fdname("", m, fdout, NULL, style);
 	 } else {
 	    for (i = m; i < n; ++i) {
-	       fdname("", i, fdout, "%5u ");
+	       fdname("", i, fdout, "%5u ", style);
 	    }
 	 }
       }
@@ -235,6 +236,7 @@ static void filan_usage(FILE *fd) {
    fputs("      -i<fdnum>      only analyze this fd\n", fd);
    fprintf(fd, "      -n<fdnum>      analyze all fds from 0 up to fdnum-1 (default: %u)\n", FD_SETSIZE);
    fputs("      -s             simple output with just type and socket address or path\n", fd);
+   fputs("      -S             like -s but improved format and contents\n", fd);
 /*   fputs("      -c             alternate device visualization\n", fd);*/
    fputs("      -f<filename>   analyze file system entry\n", fd);
    fputs("      -T<seconds>    wait before analyzing, useful to connect with debugger\n", fd);

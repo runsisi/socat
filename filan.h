@@ -28,12 +28,14 @@ extern int cdevan(int fd, FILE *outfile);
 
 #if _WITH_SOCKET
 extern int isasocket(int fd);
+extern int sockettype(int socktype, char *typename, size_t typenamemax);
 extern int sockan(int fd, FILE *outfile);
 extern int ipan(int fd, FILE *outfile);
 extern int ip6an(int fd, FILE *outfile);
 #endif /* _WITH_SOCKET */
 
 extern
-   int fdname(const char *file, int fd, FILE *outfile, const char *numform);
+   int fdname(const char *file, int fd, FILE *outfile, const char *numform,
+	      char style);
 
 #endif /* !defined(__filan_h_included) */

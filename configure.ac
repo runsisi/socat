@@ -771,6 +771,7 @@ AC_TYPE_SIGNAL
 AC_FUNC_STRFTIME
 AC_CHECK_FUNCS(putenv select pselect poll socket strtod strtol)
 AC_CHECK_FUNCS(strtoul uname getpgid getsid gethostbyname getaddrinfo)
+AC_CHECK_FUNCS(getprotobynumber getprotobynumber_r)
 AC_CHECK_FUNCS(setgroups inet_aton)
 AC_CHECK_FUNCS()
 

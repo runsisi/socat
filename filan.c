@@ -527,20 +527,18 @@ int sockan(int fd, FILE *outfile) {
 #define FILAN_NAMELEN 256
    socklen_t optlen;
    int result /*0, i*/;
-   static const char *socktypes[] = {
-      "undef", "STREAM", "DGRAM", "RAW", "RDM",
-      "SEQPACKET", "undef", "undef", "undef", "undef", 
-      "PACKET", "undef" } ;
    char nambuff[FILAN_NAMELEN];
    /* in Linux these optcodes are 'enum', but on AIX they are bits! */
    static const struct sockopt sockopts[] = {
       {SO_DEBUG, "DEBUG"},
       {SO_REUSEADDR, "REUSEADDR"},
-      {SO_TYPE, "TYPE"},
-      {SO_ERROR, "ERROR"},
-#ifdef SO_PROTOTYPE
+#ifdef SO_PROTOCOL
+      {SO_PROTOCOL, "PROTOCOL"},
+#elif defined(SO_PROTOTYPE)
       {SO_PROTOTYPE, "PROTOTYPE"},
 #endif
+      {SO_TYPE, "TYPE"},
+      {SO_ERROR, "ERROR"},
       {SO_DONTROUTE, "DONTROUTE"},
       {SO_BROADCAST, "BROADCAST"},
       {SO_SNDBUF, "SNDBUF"},
@@ -615,8 +613,12 @@ int sockan(int fd, FILE *outfile) {
       Debug4("getsockopt(%d, SOL_SOCKET, SO_TYPE, %p, {"F_socklen"}): %s",
 	     fd, optval.c, optlen, strerror(errno));
    } else {
+#     define TYPENAMEMAX 16
+      char typename[TYPENAMEMAX];
+      sockettype(*optval.i, typename, sizeof(typename));
+      
       Debug3("fd %d: socket of type %d (\"%s\")", fd, *optval.i,
-	  socktypes[*optval.i]);
+	  typename);
    }
 
    optname = sockopts; while (optname->so) {
@@ -757,22 +759,29 @@ int ipan(int fd, FILE *outfile) {
 #endif
       {0, NULL} } ;
    const struct sockopt *optname;
-   int opttype;
-   socklen_t optlen = sizeof(opttype);
+   int optproto;
+   socklen_t optlen = sizeof(optproto);
    
    optname = ipopts; while (optname->so) {
       sockoptan(fd, optname, SOL_IP, outfile);
       ++optname;
    }
-   /* want to pass the fd to the next layer protocol. dont know how to get the
-      protocol number from the fd? use TYPE to identify TCP. */
-   if (Getsockopt(fd, SOL_SOCKET, SO_TYPE, &opttype, &optlen) >= 0) {
-      switch (opttype) {
+   /* want to pass the fd to the next layer protocol. */
+#if defined(SO_PROTOCOL) || defined(SO_PROTOTYPE)
+   if (Getsockopt(fd, SOL_SOCKET,
+#ifdef SO_PROTOCOL
+		  SO_PROTOCOL,
+#elif defined(SO_PROTOTYPE)
+		  SO_PROTOTYPE,
+#endif
+		  &optproto, &optlen) >= 0) {
+      switch (optproto) {
 #if WITH_TCP
-      case SOCK_STREAM: tcpan(fd, outfile); break;
+      case IPPROTO_TCP: tcpan(fd, outfile); break;
 #endif
       }
    }
+#endif /* defined(SO_PROTOCOL) || defined(SO_PROTOTYPE) */
    return 0;
 }
 #endif /* WITH_IP */

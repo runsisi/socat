@@ -114,6 +114,12 @@
 /* Define if you have the getipnodebyname function.  */
 #undef HAVE_PROTOTYPE_LIB_getipnodebyname
 
+/* Define if you have the getprotobynumber_r function. */
+#undef HAVE_GETPROTOBYNUMBER_R
+
+/* Define if you have the getprotobynumber function. */
+#undef HAVE_GETPROTOBYNUMBER
+
 /* Define if you have the setgroups function. */
 #undef HAVE_SETGROUPS
 
