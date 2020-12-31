@@ -120,22 +120,24 @@ Testing:
 	* renamed testaddrs() to testfeats(), and introduced new testaddrs()
 
 New features:
-<<<<<<< HEAD
 	GOPEN and UNIX-CLIENT addresses now support sockets of type SEQPACKET.
 	Test: GOPENUNIXSEQPACKET
 	Feature suggested by vi0oss.
 
-Features:
 	The generic setsockopt-int and related options are, in case of
 	listening/accepting addresses, applied to the connected socket(s). To enable
 	setting options on the listening socket, a new option setsockopt-listen
 	has been implemented. See the documentation for info on data types.
 	Tests: SETSOCKOPT SETSOCKOPT_LISTEN
 	Thanks to Steven Danna and Korian Edeline for reporting this issue.
-=======
+
 	Filan option -S gives short description like -s but with improved
 	format
->>>>>>> 7cd82d9... Fixed filan -s, added -S
+
+	Socat OpenSSL client, when server was specified using IP address, did
+	not verify connection on certificates SubjectAltName IP entries.
+	Tests: OPENSSL_SERVERALTAUTH OPENSSL_SERVERALTIP4AUTH OPENSSL_SERVERALTIP6AUTH
+	Fixes Red Hat bug 1805132
 
 ####################### V 1.7.3.4:
 

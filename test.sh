@@ -99,6 +99,7 @@ REUSEADDR=reuseaddr 	# use this with LISTEN addresses and bind options
 # SSL certificate contents
 TESTCERT_CONF=testcert.conf
 TESTCERT6_CONF=testcert6.conf
+TESTALT_CONF=testalt.conf
 #
 TESTCERT_COMMONNAME="$LOCALHOST"
 TESTCERT_COMMONNAME6="$LOCALHOST6"
@@ -123,6 +124,7 @@ commonName=$TESTCERT_COMMONNAME
 O=$TESTCERT_ORGANIZATIONNAME
 OU=$TESTCERT_ORGANIZATIONALUNITNAME
 L=$TESTCERT_LOCALITYNAME
+
 EOF
 
 cat >$TESTCERT6_CONF <<EOF
@@ -138,6 +140,36 @@ commonName=$TESTCERT_COMMONNAME6
 O=$TESTCERT_ORGANIZATIONNAME
 OU=$TESTCERT_ORGANIZATIONALUNITNAME
 L=$TESTCERT_LOCALITYNAME
+
+EOF
+
+cat >$TESTALT_CONF <<EOF
+# config for generation of self signed certificate with IP addresses in
+# SubjectAltNames
+prompt=no
+
+[ req ]
+default_bits       = $RSABITS
+distinguished_name = subject
+x509_extensions    = x509_ext
+
+[ subject ]
+countryName=$TESTCERT_COUNTRYNAME
+commonName=servername
+O=$TESTCERT_ORGANIZATIONNAME
+OU=$TESTCERT_ORGANIZATIONALUNITNAME
+L=$TESTCERT_LOCALITYNAME
+
+[ x509_ext ]
+subjectAltName     = @alternate_names
+
+[ alternate_names ]
+DNS.1 = localhost
+DNS.2 = localhost4
+DNS.3 = localhost6
+IP.1  = 127.0.0.1
+IP.2  = ::1
+
 EOF
 
 # clean up from previous runs
@@ -145,7 +177,7 @@ rm -f testcli.{crt,key,pem}
 rm -f testsrv.{crt,key,pem}
 rm -f testcli6.{crt,key,pem}
 rm -f testsrv6.{crt,key,pem}
-
+rm -f testalt.{crt,key,pem}
 
 CAT=cat
 OD_C="od -c"
@@ -2402,6 +2434,7 @@ gentestcert () {
     fi
     if [ -s $name.key -a -s $name.crt -a -s $name.pem ]; then return; fi
     openssl genrsa $OPENSSL_RAND -out $name.key $RSABITS >/dev/null 2>&1
+    #openssl req -new -config $TESTCERT_CONF -key $name.key -x509 -out $name.crt -days 3653 -extensions v3_ca >/dev/null 2>&1
     openssl req -new -config $TESTCERT_CONF -key $name.key -x509 -out $name.crt -days 3653 >/dev/null 2>&1
     cat $name.key $name.crt testcert.dh >$name.pem
 }
@@ -2435,6 +2468,18 @@ gentestcert6 () {
     openssl genrsa $OPENSSL_RAND -out $name.key $RSABITS >/dev/null 2>&1
     openssl req -new -config $TESTCERT6_CONF -key $name.key -x509 -out $name.crt -days 3653 >/dev/null 2>&1
     cat $name.key $name.crt >$name.pem
+}
+
+# generate a server certificate and key with SubjectAltName
+gentestaltcert () {
+    local name="$1"
+    if ! [ -f testcert.dh ]; then
+	openssl dhparam -out testcert.dh $RSABITS
+    fi
+    if [ -s $name.key -a -s $name.crt -a -s $name.pem ]; then return; fi
+    openssl genrsa $OPENSSL_RAND -out $name.key $RSABITS >/dev/null 2>&1
+    openssl req -new -config $TESTALT_CONF -key $name.key -x509 -out $name.crt -days 3653 >/dev/null 2>&1
+    cat $name.key $name.crt testcert.dh >$name.pem
 }
 
 
@@ -4209,7 +4254,6 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
 CMD2="$TRACE $SOCAT $opts exec:'openssl s_server -accept "$PORT" -quiet -cert testsrv.pem' pipe"
-#! CMD="$TRACE $SOCAT $opts - openssl:$LOCALHOST:$PORT"
 CMD="$TRACE $SOCAT $opts - openssl:$LOCALHOST:$PORT,pf=ip4,verify=0,$SOCAT_EGD"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}1\" &"
@@ -4413,7 +4457,7 @@ OPENSSL6SERVER   OPENSSL tcp6 OPENSSL-LISTEN:\$PORT,pf=ip6,$SOCAT_EGD,cert=tests
 NAME=OPENSSL_SERVERAUTH
 case "$TESTS" in
 *%$N%*|*%functions%*|*%openssl%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
-TEST="$NAME: openssl server authentication"
+TEST="$NAME: OpenSSL server authentication (hostname)"
 if ! eval $NUMCOND; then :;
 elif ! testfeats openssl >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
@@ -4430,19 +4474,19 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD2="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,$REUSEADDR,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 pipe"
-CMD="$TRACE $SOCAT $opts - openssl:$LOCALHOST:$PORT,verify=1,cafile=testsrv.crt,$SOCAT_EGD"
+CMD0="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,$REUSEADDR,$SOCAT_EGD,cert=testsrv.crt,key=testsrv.key,verify=0 pipe"
+CMD1="$TRACE $SOCAT $opts - OPENSSL:$LOCALHOST:$PORT,verify=1,cafile=testsrv.crt,$SOCAT_EGD"
 printf "test $F_n $TEST... " $N
-eval "$CMD2 2>\"${te}1\" &"
+eval "$CMD0 2>\"${te}0\" &"
 pid=$!	# background process id
 waittcp4port $PORT
-echo "$da" |$CMD >$tf 2>"${te}2"
+echo "$da" |$CMD1 >$tf 2>"${te}1"
 if ! echo "$da" |diff - "$tf" >"$tdiff"; then
     $PRINTF "$FAILED: $TRACE $SOCAT:\n"
-    echo "$CMD2 &"
-    echo "$CMD"
+    echo "$CMD0 &"
+    cat "${te}0"
+    echo "$CMD1"
     cat "${te}1"
-    cat "${te}2"
     cat "$tdiff"
     numFAIL=$((numFAIL+1))
     listFAIL="$listFAIL $N"
@@ -14064,6 +14108,148 @@ else
 fi
 fi # NUMCOND
  ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
+NAME=OPENSSL_SERVERALTAUTH
+case "$TESTS" in
+*%$N%*|*%functions%*|*%openssl%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
+TEST="$NAME: OpenSSL server authentication with SubjectAltName (hostname)"
+if ! eval $NUMCOND; then :;
+elif ! testfeats openssl >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! testfeats listen tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+else
+gentestaltcert testalt
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,$REUSEADDR,$SOCAT_EGD,cert=testalt.crt,key=testalt.key,verify=0 pipe"
+CMD1="$TRACE $SOCAT $opts - OPENSSL:$LOCALHOST:$PORT,verify=1,cafile=testalt.crt,$SOCAT_EGD"
+printf "test $F_n $TEST... " $N
+eval "$CMD0 2>\"${te}0\" &"
+pid=$!	# background process id
+waittcp4port $PORT
+echo "$da" |$CMD1 >$tf 2>"${te}1"
+if ! echo "$da" |diff - "$tf" >"$tdiff"; then
+    $PRINTF "$FAILED: $TRACE $SOCAT:\n"
+    echo "$CMD0 &" >&2
+    cat "${te}0" >&2
+    echo "$CMD1" >&2
+    cat "${te}1" >&2
+    cat "$tdiff" >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
+   numOK=$((numOK+1))
+fi
+kill $pid 2>/dev/null
+wait
+fi ;; # NUMCOND, feats
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+NAME=OPENSSL_SERVERALTIP4AUTH
+case "$TESTS" in
+*%$N%*|*%functions%*|*%openssl%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%$NAME%*)
+TEST="$NAME: OpenSSL server authentication with SubjectAltName (IPv4 address)"
+if ! eval $NUMCOND; then :;
+elif ! testfeats openssl >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! testfeats listen tcp ip4 openssl >/dev/null || ! runsip4 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+else
+gentestaltcert testalt
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,$REUSEADDR,$SOCAT_EGD,cert=testalt.crt,key=testalt.key,verify=0 pipe"
+CMD1="$TRACE $SOCAT $opts - OPENSSL:127.0.0.1:$PORT,verify=1,cafile=testalt.crt,$SOCAT_EGD"
+printf "test $F_n $TEST... " $N
+eval "$CMD0 2>\"${te}0\" &"
+pid=$!	# background process id
+waittcp4port $PORT
+echo "$da" |$CMD1 >$tf 2>"${te}1"
+if ! echo "$da" |diff - "$tf" >"$tdiff"; then
+    $PRINTF "$FAILED: $TRACE $SOCAT:\n"
+    echo "$CMD0 &" >&2
+    cat "${te}0" >&2
+    echo "$CMD1" >&2
+    cat "${te}1" >&2
+    cat "$tdiff" >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
+   numOK=$((numOK+1))
+fi
+kill $pid 2>/dev/null
+wait
+fi ;; # NUMCOND, feats
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+NAME=OPENSSL_SERVERALTIP6AUTH
+case "$TESTS" in
+*%$N%*|*%functions%*|*%openssl%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%$NAME%*)
+TEST="$NAME: OpenSSL server authentication with SubjectAltName (IPv6 address)"
+if ! eval $NUMCOND; then :;
+elif ! testfeats openssl >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! testfeats listen tcp ip6 openssl >/dev/null || ! runsip6 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv6 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+else
+gentestaltcert testalt
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,pf=ip6,$REUSEADDR,$SOCAT_EGD,cert=testalt.crt,key=testalt.key,verify=0 pipe"
+CMD1="$TRACE $SOCAT $opts - OPENSSL:[::1]:$PORT,verify=1,cafile=testalt.crt,$SOCAT_EGD"
+printf "test $F_n $TEST... " $N
+eval "$CMD0 2>\"${te}0\" &"
+pid=$!	# background process id
+waittcp6port $PORT
+echo "$da" |$CMD1 >$tf 2>"${te}1"
+if ! echo "$da" |diff - "$tf" >"$tdiff"; then
+    $PRINTF "$FAILED: $TRACE $SOCAT:\n"
+    echo "$CMD0 &" >&2
+    cat "${te}0" >&2
+    echo "$CMD1" >&2
+    cat "${te}1" >&2
+    cat "$tdiff" >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+else
+   $PRINTF "$OK\n"
+   if [ -n "$debug" ]; then cat "${te}1" "${te}2"; fi
+   numOK=$((numOK+1))
+fi
+kill $pid 2>/dev/null
+wait
+fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
 N=$((N+1))

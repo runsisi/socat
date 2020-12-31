@@ -75,6 +75,32 @@ const struct optdesc opt_ipv6_recvtclass = { "ipv6-recvtclass", "recvtclass", OP
 const struct optdesc opt_ipv6_recvpathmtu = { "ipv6-recvpathmtu", "recvpathmtu", OPT_IPV6_RECVPATHMTU, GROUP_SOCK_IP6, PH_PASTSOCKET, TYPE_INT, OFUNC_SOCKOPT, SOL_IPV6, IPV6_RECVPATHMTU };
 #endif
 
+/* Returns canonical form of IPv6 address.
+   IPv6 address may bei enclose in brackets.
+   Returns STAT_OK on success, STAT_NORETRY on failure. */
+int xioip6_pton(const char *src, struct in6_addr *dst) {
+   union sockaddr_union sockaddr;
+   socklen_t sockaddrlen = sizeof(sockaddr);
+
+   if (src[0] == '[') {
+      char plainaddr[INET6_ADDRSTRLEN];
+      char *clos;
+
+      strncpy(plainaddr, src+1, INET6_ADDRSTRLEN);
+      plainaddr[INET6_ADDRSTRLEN-1] = '\0';
+      if ((clos = strchr(plainaddr, ']')) != NULL)
+	 *clos = '\0';
+      return xioip6_pton(plainaddr, dst);
+   }
+   if (xiogetaddrinfo(src, NULL, PF_INET6, 0, 0, &sockaddr, &sockaddrlen,
+		      0, 0)
+       != STAT_OK) {
+      return STAT_NORETRY;
+   }
+   *dst = sockaddr.ip6.sin6_addr;
+   return STAT_OK;
+}
+
 int xioparsenetwork_ip6(const char *rangename, struct xiorange *range) {
    char *delimpos;	/* absolute address of delimiter */
    size_t delimind;	/* index of delimiter in string */

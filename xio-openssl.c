@@ -16,6 +16,8 @@
 #include "xio-listen.h"
 #include "xio-udp.h"
 #include "xio-ipapp.h"
+#include "xio-ip6.h"
+
 #include "xio-openssl.h"
 
 /* the openssl library requires a file descriptor for external communications.
@@ -1534,31 +1536,30 @@ static int openssl_setenv_cert_fields(const char *field, X509_NAME *name) {
    supports wildcard cn like *.domain which matches domain and
    host.domain
    returns true on match */
-static bool openssl_check_name(const char *cn, const char *peername) {
+static bool openssl_check_name(const char *nametype, const char *cn, const char *peername) {
    const char *dotp;
    if (peername == NULL) {
-      Info1("commonName \"%s\": no peername", cn);
+      Info2("%s \"%s\": no peername", nametype, cn);
       return false;
    } else if (peername[0] == '\0') {
-      Info1("commonName \"%s\": matched by empty peername", cn);
+      Info2("%s \"%s\": matched by empty peername", nametype, cn);
       return true;
    }
    if (! (cn[0] == '*' && cn[1] == '.')) {
       /* normal server name - this is simple */
-      Debug1("commonName \"%s\" has no wildcard", cn);
       if (strcmp(cn, peername) == 0) {
-	 Debug2("commonName \"%s\" matches peername \"%s\"", cn, peername);
+	 Debug3("%s \"%s\" matches peername \"%s\"", nametype, cn, peername);
 	 return true;
       } else {
-	 Info2("commonName \"%s\" does not match peername \"%s\"", cn, peername);
+	 Info3("%s \"%s\" does not match peername \"%s\"", nametype, cn, peername);
 	 return false;
       }
    }
    /* wildcard cert */
-   Debug1("commonName \"%s\" is a wildcard name", cn);
+   Debug2("%s \"%s\" is a wildcard name", nametype, cn);
    /* case: just the base domain */
    if (strcmp(cn+2, peername) == 0) {
-      Debug2("wildcard commonName \"%s\" matches base domain \"%s\"", cn, peername);
+      Debug3("wildcard %s \"%s\" matches base domain \"%s\"", nametype, cn, peername);
       return true;
    }
    /* case: subdomain; only one level! */
@@ -1569,10 +1570,10 @@ static bool openssl_check_name(const char *cn, const char *peername) {
       return false;
    }
    if (strcmp(cn+1, dotp) != 0) {
-      Info2("commonName \"%s\" does not match subdomain peername \"%s\"", cn, peername);
+      Info3("%s \"%s\" does not match subdomain peername \"%s\"", nametype, cn, peername);
       return false;
    }
-   Debug2("commonName \"%s\" matches subdomain peername \"%s\"", cn, peername);
+   Debug3("%s \"%s\" matches subdomain peername \"%s\"", nametype, cn, peername);
    return true;
 }
 
@@ -1595,7 +1596,7 @@ static bool openssl_check_peername(X509_NAME *name, const char *peername) {
 #else
    text = ASN1_STRING_data(data);
 #endif
-   return openssl_check_name((const char *)text, peername);
+   return openssl_check_name("commonName", (const char *)text, peername);
 }
 
 /* retrieves certificate provided by peer, sets env vars containing
@@ -1605,6 +1606,9 @@ static bool openssl_check_peername(X509_NAME *name, const char *peername) {
    http://etutorials.org/Programming/secure+programming/Chapter+10.+Public+Key+Infrastructure/10.8+Adding+Hostname+Checking+to+Certificate+Verification/
    The code examples in this tutorial do not seem to have explicit license restrictions.
 */
+/* peername is, with OpenSSL client, the server name, or the value of option
+   commonname if provided;
+   With OpenSSL server, it is the value of option commonname */
 static int openssl_handle_peer_certificate(struct single *xfd,
 					   const char *peername,
 					   bool opt_ver, int level) {
@@ -1658,9 +1662,17 @@ static int openssl_handle_peer_certificate(struct single *xfd,
       openssl_setenv_cert_name("issuer", issuername);
    }
 
+   if (!opt_ver) {
+      Notice("option openssl-verify disabled, no check of certificate");
+      X509_free(peer_cert);
+      return STAT_OK;
+   }
+
    /* check peername against cert's subjectAltName DNS entries */
    /* this code is based on example from Gerhard Gappmeier in
       http://openssl.6102.n7.nabble.com/How-to-extract-subjectAltName-td17236.html
+      and the GEN_IPADD from
+      http://openssl.6102.n7.nabble.com/reading-IP-addresses-from-Subject-Alternate-Name-extension-td29245.html
    */
    if ((extcount = X509_get_ext_count(peer_cert)) > 0) {
       for (i = 0;  !ok && i < extcount;  ++i) {
@@ -1680,50 +1692,81 @@ static int openssl_handle_peer_certificate(struct single *xfd,
 	       /* get amount of alternatives, RFC2459 claims there MUST be at least one, but we don't depend on it... */
 	       numalts = sk_GENERAL_NAME_num ( names );
 	       /* loop through all alternatives */
-	       for ( i=0; ( i<numalts ); i++ ) {
+	       for (i = 0; i < numalts; ++i) {
 		  /* get a handle to alternative name number i */
-		  const GENERAL_NAME *pName = sk_GENERAL_NAME_value (names, i );
+		  const GENERAL_NAME *pName = sk_GENERAL_NAME_value (names, i);
 		  unsigned char *pBuffer;
-		  switch ( pName->type ) {
+		  switch (pName->type) {
 
 		  case GEN_DNS:
-		     ASN1_STRING_to_UTF8(&pBuffer, 
-pName->d.ia5);
+		     ASN1_STRING_to_UTF8(&pBuffer, pName->d.ia5);
 		     xiosetenv("OPENSSL_X509V3_SUBJECTALTNAME_DNS", (char *)pBuffer, 2, " // ");
 		     if (peername != NULL &&
-			 openssl_check_name((char *)pBuffer, /*const char*/peername)) {
+			 openssl_check_name("subjectAltName", (char *)pBuffer, /*const char*/peername)) {
 			ok = 1;
 		     }
 		     OPENSSL_free(pBuffer);
 		     break;
 
-		  default: continue;
+		  case GEN_IPADD:
+		     {
+			/* binary address format */
+			const unsigned char *data = pName->d.iPAddress->data;
+			size_t len = pName->d.iPAddress->length;
+			char aBuffer[INET6_ADDRSTRLEN]; 	/* canonical peername */
+			struct in6_addr ip6bin;
+
+			switch (len) {
+			case 4: /* IPv4 */
+			   snprintf(aBuffer, sizeof(aBuffer), "%u.%u.%u.%u", data[0], data[1], data[2], data[3]);
+			   if (peername != NULL &&
+			       openssl_check_name("subjectAltName", aBuffer, /*const char*/peername)) {
+			      ok = 1;
+			   }
+			   break;
+			case 16: /* IPv6 */
+			   inet_ntop(AF_INET6, data, aBuffer, sizeof(aBuffer));
+			   xioip6_pton(peername, &ip6bin);
+			   if (memcmp(data, &ip6bin, sizeof(ip6bin)) == 0) {
+			      Debug2("subjectAltName \"%s\" matches peername \"%s\"",
+				    aBuffer, peername);
+			      ok = 1;
+			   } else {
+			      Info2("subjectAltName \"%s\" does not match peername \"%s\"",
+				    aBuffer, peername);
+			   }			      
+			   break;
+			}
+			xiosetenv("OPENSSL_X509V3_SUBJECTALTNAME_IPADD", (char *)aBuffer, 2, " // ");
+		     }
+		     break;
+		  default: Warn3("Unknown subject type %d (GEN_DNS=%d, GEN_IPADD=%d",
+				 pName->type, GEN_DNS, GEN_IPADD);
+		     continue;
 		  }
+		  if (ok)  { break; }
 	       }
 	    }
 	 }
       }
    }
 
-   if (!opt_ver) {
-      Notice("option openssl-verify disabled, no check of certificate");
-      X509_free(peer_cert);
-      return STAT_OK;
-   }
-   if (peername == NULL || peername[0] == '\0') {
-      Notice("trusting certificate, no check of commonName");
-      X509_free(peer_cert);
-      return STAT_OK;
-   }
    if (ok) {
       Notice("trusting certificate, commonName matches");
       X509_free(peer_cert);
       return STAT_OK;
    }
 
+   if (peername == NULL || peername[0] == '\0') {
+      Notice("trusting certificate, no check of commonName");
+      X509_free(peer_cert);
+      return STAT_OK;
+   }
+
    /* here: all envs set; opt_ver, cert verified, no subjAltName match -> check subject CN */
    if (!openssl_check_peername(/*X509_NAME*/subjectname, /*const char*/peername)) {
-      Error("certificate is valid but its commonName does not match hostname");
+      Error1("certificate is valid but its commonName does not match hostname \"%s\"",
+	     peername);
       status = STAT_NORETRY;
    } else {
       Notice("trusting certificate, commonName matches");
