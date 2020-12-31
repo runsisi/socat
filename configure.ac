@@ -1484,6 +1484,7 @@ AC_CHECK_FUNC(DH_set0_pqg, AC_DEFINE(HAVE_DH_set0_pqg), AC_CHECK_LIB(crypt, DH_s
 AC_CHECK_FUNC(ASN1_STRING_get0_data, AC_DEFINE(HAVE_ASN1_STRING_get0_data), AC_CHECK_LIB(crypt, ASN1_STRING_get0_data, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(RAND_status, AC_DEFINE(HAVE_RAND_status))
 AC_CHECK_FUNC(SSL_CTX_clear_mode, AC_DEFINE(HAVE_SSL_CTX_clear_mode))
+AC_CHECK_FUNC(SSL_set_tlsext_host_name, AC_DEFINE(HAVE_SSL_set_tlsext_host_name))
 
 AC_MSG_CHECKING(for type EC_KEY)
 AC_CACHE_VAL(sc_cv_type_EC_TYPE,

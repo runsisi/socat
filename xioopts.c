@@ -964,6 +964,9 @@ const struct optname optionnames[] = {
 	IF_SOCKET ("no-check",	&opt_so_no_check)
 #endif
 	IF_TUN    ("no-pi",	&opt_iff_no_pi)
+#if defined(HAVE_SSL_set_tlsext_host_name) || defined(SSL_set_tlsext_host_name)
+	IF_OPENSSL("no-sni",	&opt_openssl_no_sni)
+#endif
 	IF_TUN    ("noarp",	&opt_iff_noarp)
 #ifdef O_NOATIME
 	IF_OPEN   ("noatime",	&opt_o_noatime)
@@ -1000,6 +1003,9 @@ const struct optname optionnames[] = {
 #ifdef SO_NOREUSEADDR	/* AIX 4.3.3 */
 	IF_SOCKET ("noreuseaddr",	&opt_so_noreuseaddr)
 #endif /* SO_NOREUSEADDR */
+#if defined(HAVE_SSL_set_tlsext_host_name) || defined(SSL_set_tlsext_host_name)
+	IF_OPENSSL("nosni",		&opt_openssl_no_sni)
+#endif
 	IF_TUN    ("notrailers",	&opt_iff_notrailers)
 #ifdef O_NSHARE
 	IF_OPEN   ("nshare",	&opt_o_nshare)
@@ -1165,7 +1171,13 @@ const struct optname optionnames[] = {
 #if HAVE_SSL_set_min_proto_version || defined(SSL_set_min_proto_version)
 	IF_OPENSSL("openssl-min-proto-version",	&opt_openssl_min_proto_version)
 #endif
+#if defined(HAVE_SSL_set_tlsext_host_name) || defined(SSL_set_tlsext_host_name)
+	IF_OPENSSL("openssl-no-sni",	&opt_openssl_no_sni)
+#endif
 	IF_OPENSSL("openssl-pseudo",	&opt_openssl_pseudo)
+#if defined(HAVE_SSL_set_tlsext_host_name) || defined(SSL_set_tlsext_host_name)
+	IF_OPENSSL("openssl-snihost",   &opt_openssl_snihost)
+#endif
 	IF_OPENSSL("openssl-verify",	&opt_openssl_verify)
 	IF_TERMIOS("opost",	&opt_opost)
 #if HAVE_TERMIOS_OSPEED
@@ -1433,6 +1445,9 @@ const struct optname optionnames[] = {
 	IF_SOCKET ("sndbuf-late",	&opt_so_sndbuf_late)
 #ifdef SO_SNDLOWAT
 	IF_SOCKET ("sndlowat",	&opt_so_sndlowat)
+#endif
+#if defined(HAVE_SSL_set_tlsext_host_name) || defined(SSL_set_tlsext_host_name)
+	IF_OPENSSL("snihost",    &opt_openssl_snihost)
 #endif
 #ifdef SO_ACCEPTCONN /* AIX433 */
 	IF_SOCKET ("so-acceptconn",	&opt_so_acceptconn)

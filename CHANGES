@@ -145,6 +145,12 @@ New features:
 	Added option ip-transparent (socket option IP_TRANSPARENT)
 	Thanks to Wang Shanker for sending a patch.
 
+	OPENSSL-CONNECT now automatically uses the SNI feature, option
+	openssl-no-sni turns it off. Option openssl-snihost overrides the value
+	of option openssl-commonname or the server name.
+	Tests: OPENSSL_SNI OPENSSL_NO_SNI
+	Thanks to Travis Burtrum for providing the initial patch
+
 ####################### V 1.7.3.4:
 
 Corrections:

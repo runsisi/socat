@@ -15,6 +15,7 @@ val_t=0.1
 NUMCOND=true
 #NUMCOND="test \$N -gt 70"
 VERBOSE=
+FOREIGN=
 while [ "$1" ]; do
     case "X$1" in
 	X-t?*) val_t="${1#-t}" ;;
@@ -25,6 +26,7 @@ while [ "$1" ]; do
 	X-N?*) NUMCOND="test \$N -gt ${1#-N}" ;;
 	X-N)   shift; NUMCOND="test \$N -ge $1" ;;
 	X-C)   rm -f testcert*.conf testcert.dh testcli*.* testsrv*.* ;;
+	X-foreign)	FOREIGN=1 ;; 	# allow access to 3rd party Internet hosts
 	*) break;
     esac
     shift
@@ -14302,6 +14304,101 @@ if ! echo "$da1" |diff - $tr1 >$tdiff1 || ! echo "$da2" |diff - $tr2 >$tdiff2; t
 else
     $PRINTF "$OK\n"
     numOK=$((numOK+1))
+fi
+fi # NUMCOND
+ ;;
+esac
+N=$((N+1))
+
+
+# Test the OpenSSL SNI feature
+NAME=OPENSSL_SNI
+case "$TESTS" in
+*%$N%*|*%functions%*|*%socket%*|*%openssl%*|*%$NAME%*)
+TEST="$NAME: Test the OpenSSL SNI feature"
+# Connect to a server that is known to use SNI. Use an SNI name, not the
+# certifications default name. When the TLS connection is established
+# the test succeeded.
+SNISERVER=badssl.com
+if ! eval $NUMCOND; then :;
+elif ! testaddrs openssl >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! feat=$(testoptions openssl-snihost); then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif [ -z "$FOREIGN" ]; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}use test.sh option -foreign${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts FILE:/dev/null OPENSSL-CONNECT:$SNISERVER:443"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0"
+rc0=$?
+if [ $rc0 -eq 0 ]; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0" >&2
+    cat "${te}0" >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
+esac
+N=$((N+1))
+
+
+# Test the openssl-no-sni option
+NAME=OPENSSL_NO_SNI
+case "$TESTS" in
+*%$N%*|*%functions%*|*%socket%*|*%openssl%*|*%$NAME%*)
+TEST="$NAME: Test the openssl-no-sni option"
+# Connect to a server that is known to use SNI. Use an SNI name, not the
+# certifications default name, and use option openssl-no-sni.
+# When the TLS connection failed the test succeeded.
+# Please note that this test is only relevant when test OPENSSL_SNI succeeded.
+SNISERVER=badssl.com
+if ! eval $NUMCOND; then :;
+elif ! testaddrs openssl >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! feat=$(testoptions openssl-no-sni); then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$feat not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif [ -z "$FOREIGN" ]; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}use test.sh option -foreign${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts FILE:/dev/null OPENSSL-CONNECT:$SNISERVER:443,openssl-no-sni"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0"
+rc0=$?
+if [ $rc0 -ne 0 ]; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0" >&2
+    cat "${te}0" >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
 fi
 fi # NUMCOND
  ;;

@@ -2777,6 +2777,17 @@ label(OPTION_OPENSSL_COMMONNAME)dit(bf(tt(commonname=<string>)))
    certificates commonname. This option has only meaning when option
    link(verify)(OPTION_OPENSSL_VERIFY) is not disabled and the chosen cipher
    provides a peer certificate.
+label(OPTION_OPENSSL_NO_SNI)dit(bf(tt(no-sni=<bool>)))
+   Do not use the client side Server Name Indication (SNI) feature that selects
+   the desired server certificate.nl()
+   Note: SNI is automatically used since socat() version 1.7.4.0 and uses
+   link(commonname)(OPTION_OPENSSL_COMMONNAME) or the given host name.
+label(OPTION_OPENSSL_SNIHOST)dit(bf(tt(snihost=<string>)))
+   Set the client side Server Name Indication (SNI) host name different from
+   the addressed server name or common name. This might be useful when the
+   server certificate has multiple host names or wildcard names because the
+   SNI host name is passed in cleartext to the server and might be eavesdropped;
+   with this option a mock name of the desired certificate may be transferred.
 label(OPTION_OPENSSL_FIPS)dit(bf(tt(fips)))
    Enables FIPS mode if compiled in. For info about the FIPS encryption
    implementation standard see lurl(http://oss-institute.org/fips-faq.html). 

@@ -508,6 +508,9 @@
 /* Define if you have the OpenSSL SSL_CTX_clear_mode macro or function */
 #undef HAVE_SSL_CTX_clear_mode
 
+/* Define if you have the OpenSSL SSL_set_tlsext_host_name define/function */
+#undef HAVE_SSL_set_tlsext_host_name
+
 /* Define if you have the flock function */
 #undef HAVE_FLOCK
 
