@@ -749,6 +749,7 @@ label(ADDRESS_SCTP_LISTEN)dit(bf(tt(SCTP-LISTEN:<port>)))
    link(pf)(OPTION_PROTOCOL_FAMILY),
    link(max-children)(OPTION_MAX_CHILDREN),
    link(backlog)(OPTION_BACKLOG),
+   link(accept-timeout)(OPTION_ACCEPT_TIMEOUT),
    link(sctp-maxseg)(OPTION_SCTP_MAXSEG),
    link(sctp-nodelay)(OPTION_SCTP_NODELAY),
    link(su)(OPTION_SUBSTUSER),
@@ -1015,6 +1016,7 @@ label(ADDRESS_TCP_LISTEN)dit(bf(tt(TCP-LISTEN:<port>)))
    link(pf)(OPTION_PROTOCOL_FAMILY),
    link(max-children)(OPTION_MAX_CHILDREN),
    link(backlog)(OPTION_BACKLOG),
+   link(accept-timeout)(OPTION_ACCEPT_TIMEOUT),
    link(mss)(OPTION_MSS),
    link(su)(OPTION_SUBSTUSER),
    link(reuseaddr)(OPTION_REUSEADDR),
@@ -2375,6 +2377,9 @@ startdit()
 label(OPTION_BACKLOG)dit(bf(tt(backlog=<count>)))
    Sets the backlog value passed with the code(listen()) system call to <count>
    [link(int)(TYPE_INT)]. Default is 5. 
+label(OPTION_ACCEPT_TIMEOUT)dit(bf(tt(accept-timeout=<seconds>)))
+   End waiting for a connection after <seconds> [link(timeval)(TYPE_TIMEVAL)]
+   with error status.
 label(OPTION_MAX_CHILDREN)dit(bf(tt(max-children=<count>)))
    Limits the number of concurrent child processes [link(int)(TYPE_INT)].
     Default is no limit. 

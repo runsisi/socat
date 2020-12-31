@@ -182,6 +182,9 @@ typedef struct single {
 #if _WITH_SOCKET
       struct {
 	 struct timeval connect_timeout; /* how long to hang in connect() */
+#if WITH_LISTEN
+	 struct timeval accept_timeout;  /* how long to wait for incoming connection */
+#endif
 	 union sockaddr_union la;	/* local socket address */
 	 bool null_eof;		/* with dgram: empty packet means EOF */
 	 bool dorange;

@@ -150,6 +150,7 @@ const struct optname optionnames[] = {
 #ifdef TCP_ABORT_THRESHOLD  /* HP_UX */
 	IF_TCP    ("abort-threshold",	&opt_tcp_abort_threshold)
 #endif
+	IF_SOCKET ("accept-timeout",	&opt_accept_timeout)
 #ifdef SO_ACCEPTCONN /* AIX433 */
 	IF_SOCKET ("acceptconn",	&opt_so_acceptconn)
 #endif /* SO_ACCEPTCONN */
@@ -875,6 +876,7 @@ const struct optname optionnames[] = {
 	IF_TCP    ("linger2",	&opt_tcp_linger2)
 #endif
 	IF_PTY    ("link",	&opt_symbolic_link)
+	IF_SOCKET ("listen-timeout",	&opt_accept_timeout)
 	IF_TERMIOS("lnext",	&opt_vlnext)
 #if defined(F_SETLKW)
 	IF_ANY    ("lock",	&opt_f_setlkw_wr)	/* POSIX, first choice */
@@ -2216,7 +2218,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	    }
 	    (*opts)[i].value.u_timeval.tv_sec  = val;
 	    (*opts)[i].value.u_timeval.tv_usec =
-	       (val-(*opts)[i].value.u_timeval.tv_sec) * 1000000;
+	       (val-(*opts)[i].value.u_timeval.tv_sec+0.0000005) * 1000000;
 	 }
 	 break;
 

@@ -151,6 +151,10 @@ New features:
 	Tests: OPENSSL_SNI OPENSSL_NO_SNI
 	Thanks to Travis Burtrum for providing the initial patch
 
+	New option accept-timeout (listen-timeout)
+	Test: ACCEPTTIMEOUT
+	Proposed by Roland
+
 ####################### V 1.7.3.4:
 
 Corrections:

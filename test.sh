@@ -6548,6 +6548,7 @@ esac
 N=$((N+1))
 
 
+# Test the connect-timeout address option
 NAME=CONNECTTIMEOUT
 case "$TESTS" in
 *%$N%*|*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%timeout%*|*%$NAME%*)
@@ -14402,6 +14403,64 @@ else
 fi
 fi # NUMCOND
  ;;
+esac
+N=$((N+1))
+
+
+# Test the accept-timeout (listen-timeout) address option
+NAME=ACCEPTTIMEOUT
+case "$TESTS" in
+*%$N%*|*%functions%*|*%ip4%*|*%ipapp%*|*%tcp%*|*%listen%*|*%timeout%*|*%$NAME%*)
+TEST="$NAME: test the accept-timeout option"
+if ! eval $NUMCOND; then :;
+elif ! feat=$(testaddrs tcp); then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! feat=$(testoptions accept-timeout); then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$(echo "$feat"| tr 'a-z' 'A-Z') not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+else
+# Just start a process with accept-timeout 1s and check if it still runs 2s later
+# but before this, we test if the process waits at all
+te1="$td/test$N.stderr1"
+tk1="$td/test$N.kill1"
+te2="$td/test$N.stderr2"
+tk2="$td/test$N.kill2"
+$PRINTF "test $F_n $TEST... " $N
+# First, try to make socat hang and see if it can be killed
+CMD1="$TRACE $SOCAT $opts TCP-LISTEN:$PORT,reuseaddr PIPE"
+$CMD1 >"$te1" 2>&1 </dev/null &
+pid1=$!
+sleep 1
+if ! kill $pid1 2>"$tk1"; then
+    $PRINTF "${YELLOW}does not hang${NORMAL}\n"
+    echo $CMD1 >&2
+    cat "$te1" >&2
+    cat "$tk1" >&2
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+else
+# Second, set accept-timeout and see if socat exits before kill
+CMD2="$TRACE $SOCAT $opts TCP-LISTEN:$PORT,reuseaddr,accept-timeout=1 PIPE" >"$te1" &
+$CMD2 >"$te1" 2>&1 </dev/null &
+pid2=$!
+sleep 1
+if kill $pid2 2>"$tk2"; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD2" >&2
+    cat "$te2" >&2
+    cat "$tk2" >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+else
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+fi
+fi
+wait
+fi ;; # testaddrs, NUMCOND
 esac
 N=$((N+1))
 

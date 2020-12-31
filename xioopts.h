@@ -436,6 +436,7 @@ enum e_optcode {
    OPT_IXANY,		/* termios.c_iflag */
    OPT_IXOFF,		/* termios.c_iflag */
    OPT_IXON,		/* termios.c_iflag */
+   OPT_ACCEPT_TIMEOUT,	/* listening socket */
    OPT_LOCKFILE,
    OPT_LOWPORT,
    OPT_MAX_CHILDREN,
