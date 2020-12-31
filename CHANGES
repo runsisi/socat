@@ -139,6 +139,9 @@ New features:
 	Tests: OPENSSL_SERVERALTAUTH OPENSSL_SERVERALTIP4AUTH OPENSSL_SERVERALTIP6AUTH
 	Fixes Red Hat bug 1805132
 
+	Added options -r and -R for raw dump of transferred data to files.
+	Test: OPTION_RAW_DUMP
+
 ####################### V 1.7.3.4:
 
 Corrections:

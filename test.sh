@@ -14255,6 +14255,60 @@ PORT=$((PORT+1))
 N=$((N+1))
 
 
+# Test the -r and -R options
+NAME=OPTION_RAW_DUMP
+case "$TESTS" in
+*%$N%*|*%functions%*|*%option%*|*%$NAME%*)
+TEST="$NAME: raw dump of transferred data"
+# Start Socat transferring data from left named pipe to right and from right
+# pipe to left, use options -r and -R, and check if dump files contain correct
+# data
+if ! eval $NUMCOND; then :;
+elif [ $($SOCAT -h |grep -e ' -[rR] ' |wc -l) -lt 2 ]; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}Options -r, -R not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+else
+tf="$td/test$N.stdout"
+te="$td/test$N.stderr"
+tp1="$td/test$N.pipe1"
+tp2="$td/test$N.pipe2"
+tr1="$td/test$N.raw1"
+tr2="$td/test$N.raw2"
+tdiff1="$td/test$N.diff1"
+tdiff2="$td/test$N.diff2"
+da1="test$N $(date) $RANDOM"
+da2="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts -r $tr1 -R $tr2 PIPE:$tp1!!/dev/null PIPE:$tp2!!/dev/null"
+printf "test $F_n $TEST... " $N
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+waitfile $tp1 1
+echo "$da1" >$tp1
+waitfile $tp2 1
+echo "$da2" >$tp2
+sleep 1
+kill $pid0 2>/dev/null; wait
+if ! echo "$da1" |diff - $tr1 >$tdiff1 || ! echo "$da2" |diff - $tr2 >$tdiff2; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &" >&2
+    cat "${te}0" >&2
+    echo "Left-to-right:" >&2
+    cat $tdiff1 >&2
+    echo "Right-to-left:" >&2
+    cat $tdiff2 >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+else
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+fi
+fi # NUMCOND
+ ;;
+esac
+N=$((N+1))
+
+
 ##################################################################################
 #=================================================================================
 # here come tests that might affect your systems integrity. Put normal tests
@@ -14377,10 +14431,10 @@ if [ !!! ]; then
     numOK=$((numOK+1))
 else
     $PRINTF "$FAILED\n"
-    echo "$CMD0 &"
-    echo "$CMD1"
-    cat "${te}0"
-    cat "${te}1"
+    echo "$CMD0 &" >&2
+    cat "${te}0" >&2
+    echo "$CMD1" >&2
+    cat "${te}1" >&2
     numFAIL=$((numFAIL+1))
     listFAIL="$listFAIL $N"
 fi

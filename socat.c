@@ -36,6 +36,8 @@ struct {
    char logopt;		/* y..syslog; s..stderr; f..file; m..mixed */
    bool lefttoright;	/* first addr ro, second addr wo */
    bool righttoleft;	/* first addr wo, second addr ro */
+   int sniffleft;	/* -1 or an FD for teeing data arriving on xfd1 */
+   int sniffright;	/* -1 or an FD for teeing data arriving on xfd2 */
    xiolock_t lock;	/* a lock file */
 } socat_opts = {
    8192,	/* bufsiz */
@@ -49,6 +51,8 @@ struct {
    's',		/* logopt */
    false,	/* lefttoright */
    false,	/* righttoleft */
+   -1,		/* sniffleft */
+   -1,		/* sniffright */
    { NULL, 0 },	/* lock */
 };
 
@@ -174,6 +178,30 @@ int main(int argc, const char *argv[]) {
 	 socat_opts.verbose = true; break;
       case 'x':  if (arg1[0][2])  { socat_opt_hint(stderr, arg1[0][1], arg1[0][2]); Exit(1); }
 	 socat_opts.verbhex = true; break;
+      case 'r': if (arg1[0][2]) {
+	    a = *arg1+2;
+	 } else {
+	    ++arg1, --argc;
+	    if ((a = *arg1) == NULL) {
+	       Error("option -r requires an argument; use option \"-h\" for help");
+	       break;
+	    }
+	 }
+	 if ((socat_opts.sniffleft = Open(a, O_CREAT|O_WRONLY|O_APPEND|O_LARGEFILE|O_NONBLOCK, 0664)) < 0)
+	    Error2("option -r \"%s\": %s", a, strerror(errno));
+	 break;
+      case 'R': if (arg1[0][2]) {
+	    a = *arg1+2;
+	 } else {
+	    ++arg1, --argc;
+	    if ((a = *arg1) == NULL) {
+	       Error("option -R requires an argument; use option \"-h\" for help");
+	       break;
+	    }
+	 }
+	 if ((socat_opts.sniffright = Open(a, O_CREAT|O_WRONLY|O_APPEND|O_LARGEFILE|O_NONBLOCK, 0664)) < 0)
+	    Error2("option -r \"%s\": %s", a, strerror(errno));
+	 break;
       case 'b': if (arg1[0][2]) {
 	    a = *arg1+2;
 	 } else {
@@ -364,8 +392,10 @@ void socat_usage(FILE *fd) {
    fputs("      -lp<progname>  set the program name used for logging\n", fd);
    fputs("      -lu            use microseconds for logging timestamps\n", fd);
    fputs("      -lh            add hostname to log messages\n", fd);
-   fputs("      -v     verbose data traffic, text\n", fd);
-   fputs("      -x     verbose data traffic, hexadecimal\n", fd);
+   fputs("      -v     verbose text dump of data traffic\n", fd);
+   fputs("      -x     verbose hexadecimal dump of data traffic\n", fd);
+   fputs("      -r <file>      raw dump of data flowing from left to right\n", fd);
+   fputs("      -R <file>      raw dump of data flowing from right to left\n", fd);
    fputs("      -b<size_t>     set data buffer size (8192)\n", fd);
    fputs("      -s     sloppy (continue on error)\n", fd);
    fputs("      -t<timeout>    wait seconds before closing second channel\n", fd);
@@ -1256,6 +1286,12 @@ int xiotransfer(xiofile_t *inpipe, xiofile_t *outpipe,
 	    }
 	    if (bytes == 0) {
 	       errno = EAGAIN;  return -1;
+	    }
+
+	    if (!righttoleft && socat_opts.sniffleft >= 0) {
+	       Write(socat_opts.sniffleft, buff, bytes);
+	    } else if (socat_opts.sniffright >= 0) {
+	       Write(socat_opts.sniffright, buff, bytes);
 	    }
 
 	    if (socat_opts.verbose && socat_opts.verbhex) {

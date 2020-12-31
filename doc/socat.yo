@@ -153,6 +153,12 @@ dit(bf(tt(-x)))
    Writes the transferred data not only to their target streams, but also to
    stderr. The output format is hexadecimal, prefixed with "> " or "< "
    indicating flow directions. Can be combined with code(-v).
+dit(bf(tt(-r <file>)))
+   Dumps the raw (binary) data flowing from left to right address to the given
+   file.
+dit(bf(tt(-R <file>)))
+   Dumps the raw (binary) data flowing from right to left address to the given
+   file.
 label(option_b)dit(bf(tt(-b))tt(<size>))
    Sets the data transfer block <size> [link(size_t)(TYPE_SIZE_T)].
    At most <size> bytes are transferred per step. Default is 8192 bytes. 
