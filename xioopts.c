@@ -1519,6 +1519,7 @@ const struct optname optionnames[] = {
 	IF_SOCKET ("so-priority",	&opt_so_priority)
 #endif
 #ifdef SO_PROTOTYPE
+	IF_SOCKET ("so-protocol",	&opt_so_prototype)
 	IF_SOCKET ("so-prototype",	&opt_so_prototype)
 #endif
 	IF_SOCKET ("so-rcvbuf",	&opt_so_rcvbuf)

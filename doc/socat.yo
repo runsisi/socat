@@ -1981,9 +1981,9 @@ label(OPTION_SO_TYPE)dit(bf(tt(type=<type>)))
    [link(int)(TYPE_INT)]. Address resolution is not affected by this option.
    Under Linux, 1 means stream oriented socket, 2 means datagram socket, and 3
    means raw socket.
-label(OPTION_SO_PROTOTYPE)dit(bf(tt(prototype)))
+label(OPTION_SO_PROTOCOL)dit(bf(tt(protocol)))
    Sets the protocol of the socket, specified as third argument to the
-   code(socket()) or code(socketpair()) calls, to <prototype>
+   code(socket()) or code(socketpair()) calls, to <protocol>
    [link(int)(TYPE_INT)]. Address resolution is not affected by this option.
    6 means TCP, 17 means UDP.
 COMMENT(label(OPTION_USELOOPBACK)dit(bf(tt(useloopback)))

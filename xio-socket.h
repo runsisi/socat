@@ -5,10 +5,18 @@
 #ifndef __xio_socket_h_included
 #define __xio_socket_h_included 1
 
-/* SO_PROTOTYPE is OS defined on Solaris, HP-UX; we lend this for a more
-   general purpose */ 
-#ifndef SO_PROTOTYPE
-#define SO_PROTOTYPE 0x9999
+/* SO_PROTOTYPE is defined on Solaris, HP-UX
+   SO_PROTOCOL in Linux, is the better name, but came much later */
+#ifdef SO_PROTOCOL
+#  undef SO_PROTOTYPE
+#    define SO_PROTOTYPE SO_PROTOCOL
+#else
+#  ifdef SO_PROTOTYPE
+#    define SO_PROTOCOL SO_PROTOTYPE
+#  else
+#    define SO_PROTOCOL 0x9999
+#    define SO_PROTOTYPE SO_PROTOCOL
+#  endif
 #endif
 
 extern const struct addrdesc xioaddr_socket_connect;

@@ -173,7 +173,7 @@ const struct optdesc opt_so_dontlinger = {"so-dontlinger", "dontlinger",  OPT_SO
 #endif
 /* the SO_PROTOTYPE is OS defined on Solaris, HP-UX; we lend this for a more
    general purpose */
-const struct optdesc opt_so_prototype  = {"so-prototype",  "prototype",   OPT_SO_PROTOTYPE,   GROUP_SOCKET,PH_SOCKET,    TYPE_INT,OFUNC_SPEC,   SOL_SOCKET,SO_PROTOTYPE };
+const struct optdesc opt_so_prototype  = {"so-protocol",  "protocol",   OPT_SO_PROTOTYPE,   GROUP_SOCKET,PH_SOCKET,    TYPE_INT,OFUNC_SPEC,   SOL_SOCKET,SO_PROTOCOL };
 #ifdef FIOSETOWN
 const struct optdesc opt_fiosetown   = { "fiosetown", NULL, OPT_FIOSETOWN,   GROUP_SOCKET, PH_PASTSOCKET, TYPE_INT,  OFUNC_IOCTL,  FIOSETOWN };
 #endif
