@@ -103,7 +103,9 @@ const struct addrdesc xioaddr_openssl_listen = {
 #endif /* WITH_LISTEN */
 
 const struct addrdesc xioaddr_openssl_dtls_client = { "openssl-dtls-client", 3, xioopen_openssl_connect, GROUP_FD|GROUP_SOCKET|GROUP_SOCK_IP4|GROUP_SOCK_IP6|GROUP_IP_UDP|GROUP_CHILD|GROUP_OPENSSL|GROUP_RETRY, 1, 0, 0  HELP(":<host>:<port>") } ;
+#if WITH_LISTEN
 const struct addrdesc xioaddr_openssl_dtls_server = { "openssl-dtls-server", 3, xioopen_openssl_listen, GROUP_FD|GROUP_SOCKET|GROUP_SOCK_IP4|GROUP_SOCK_IP6|GROUP_IP_UDP|GROUP_LISTEN|GROUP_CHILD|GROUP_RANGE|GROUP_OPENSSL|GROUP_RETRY, 1, 0, 0  HELP(":<port>") } ;
+#endif
 
 /* both client and server */
 const struct optdesc opt_openssl_cipherlist = { "openssl-cipherlist", "ciphers", OPT_OPENSSL_CIPHERLIST, GROUP_OPENSSL, PH_SPEC, TYPE_STRING, OFUNC_SPEC };
@@ -582,9 +584,11 @@ static int
 			       E_ERROR
 #endif /* WITH_RETRY */
 			       );
+#if WITH_UDP
       } else {
 	 result = _xioopen_ipdgram_listen(xfd, xioflags,
 		us, uslen, opts, pf, socktype, ipproto);
+#endif /* WITH_UDP */
       }
 	 /*! not sure if we should try again on retry/forever */
       switch (result) {
@@ -1165,12 +1169,12 @@ int
       if (sslver < 0)
 	 return STAT_NORETRY;
       if ((rc = SSL_CTX_set_min_proto_version(ctx, sslver)) <= 0) {
-	 Debug1("version: %d", SSL_CTX_get_min_proto_version(ctx));
+	 Debug1("version: %ld", SSL_CTX_get_min_proto_version(ctx));
 	 Error3("_xioopen_openssl_prepare(): SSL_CTX_set_min_proto_version(\"%s\"->%d): failed (%d)",
 		xfd->para.openssl.min_proto_version, sslver, rc);
 	 return STAT_NORETRY;
       }
-	 Debug1("version: %d", SSL_CTX_get_min_proto_version(ctx));
+	 Debug1("version: %ld", SSL_CTX_get_min_proto_version(ctx));
    }
 #endif /* HAVE_SSL_set_min_proto_version || defined(SSL_set_min_proto_version) */
 #if HAVE_SSL_CTX_set_max_proto_version || defined(SSL_CTX_set_max_proto_version)
@@ -1770,6 +1774,7 @@ static int openssl_handle_peer_certificate(struct single *xfd,
 			      ok = 1;
 			   }
 			   break;
+#if WITH_IP6
 			case 16: /* IPv6 */
 			   inet_ntop(AF_INET6, data, aBuffer, sizeof(aBuffer));
 			   xioip6_pton(peername, &ip6bin);
@@ -1782,6 +1787,7 @@ static int openssl_handle_peer_certificate(struct single *xfd,
 				    aBuffer, peername);
 			   }			      
 			   break;
+#endif
 			}
 			xiosetenv("OPENSSL_X509V3_SUBJECTALTNAME_IPADD", (char *)aBuffer, 2, " // ");
 		     }

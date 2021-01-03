@@ -255,7 +255,7 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
 	    while (1) {
 	       if (Select(xfd->fd+1, &rfd, NULL, NULL, &tmo) < 0) {
 		  if (errno != EINTR) {
-		     Error5("Select(%d, &0x%lx, NULL, NULL, {%ld.%ld}): %s", xfd->fd+1, 1<<(xfd->fd+1),
+		     Error5("Select(%d, &0x%lx, NULL, NULL, {%ld.%06ld}): %s", xfd->fd+1, 1L<<(xfd->fd+1),
 			    xfd->para.socket.accept_timeout.tv_sec, xfd->para.socket.accept_timeout.tv_usec,
 			    strerror(errno));
 		  }

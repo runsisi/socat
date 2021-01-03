@@ -429,7 +429,7 @@ ECHO="echo $E"
 PRINTF="printf"
 
 case "$TERM" in
-vt100|vt320|linux|xterm|cons25|dtterm|aixterm|sun-color|xterm-color|xterm-256color)
+vt100|vt320|linux|xterm|cons25|dtterm|aixterm|sun-color|xterm-color|xterm-256color|screen)
 	# there are different behaviours of printf (and echo)
 	# on some systems, echo behaves different than printf...
 	if [ $($PRINTF "\0101") = "A" ]; then
@@ -461,11 +461,47 @@ vt100|vt320|linux|xterm|cons25|dtterm|aixterm|sun-color|xterm-color|xterm-256col
 	;;
 esac
 
-
 if [ -x /usr/xpg4/bin/id ]; then
     # SunOS has rather useless tools in its default path
     PATH="/usr/xpg4/bin:$PATH"
 fi
+
+OPENSSL_S_CLIENT_4=
+OPENSSL_S_CLIENT_DTLS=
+init_openssl_s_client () {
+    if openssl s_client -help 2>&1 |grep -q ' -4 '; then
+	OPENSSL_S_CLIENT_4="-4"
+    else
+	OPENSSL_S_CLIENT_4=" "
+    fi
+    if openssl s_client -help 2>&1 | grep -q ' -dtls '; then
+	OPENSSL_S_CLIENT_DTLS=-dtls
+    else
+	OPENSSL_S_CLIENT_DTLS=-dtls1
+    fi
+}
+
+OPENSSL_S_SERVER_4=
+OPENSSL_S_SERVER_DTLS=
+OPENSSL_S_SERVER_NO_IGN_EOF=
+init_openssl_s_server () {
+    if openssl s_server -help 2>&1 |grep -q ' -4 '; then
+	OPENSSL_S_SERVER_4="-4"
+    else
+	OPENSSL_S_SERVER_4=" "
+    fi
+    if openssl s_server -help 2>&1 | grep -q ' -dtls '; then
+	OPENSSL_S_SERVER_DTLS="-dtls"
+    else
+	OPENSSL_S_SERVER_DTLS="-dtls1"
+    fi
+    if openssl s_server -help 2>&1 | grep -q ' -no-ign_eof '; then
+	OPENSSL_S_SERVER_NO_IGN_EOF="-no-ign_eof"
+    else
+	OPENSSL_S_SERVER_NO_IGN_EOF=" "
+    fi
+}
+
 
 [ -z "$TESTS" ] && TESTS="consistency functions filan"
 # use '%' as separation char
@@ -4265,7 +4301,8 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-CMD2="$TRACE $SOCAT $opts exec:'openssl s_server -accept "$PORT" -quiet -cert testsrv.pem' pipe"
+init_openssl_s_server
+CMD2="$TRACE $SOCAT $opts exec:'openssl s_server $OPENSSL_S_SERVER_4 -accept "$PORT" -quiet -cert testsrv.pem' pipe"
 CMD="$TRACE $SOCAT $opts - openssl:$LOCALHOST:$PORT,pf=ip4,verify=0,$SOCAT_EGD"
 printf "test $F_n $TEST... " $N
 eval "$CMD2 2>\"${te}1\" &"
@@ -7172,6 +7209,8 @@ TEST="$NAME: TCP4 mapped into TCP6 address space"
 if ! eval $NUMCOND; then :;
 elif true; then
     $PRINTF "test $F_n $TEST... ${YELLOW}Feature removed${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
 elif ! testfeats tcp ip6 >/dev/null || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
@@ -11493,9 +11532,10 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
+init_openssl_s_client
 CMD0="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,$REUSEADDR,cert=testsrv.crt,key=testsrv.key,verify=0 PIPE"
 #CMD1="openssl s_client -port $PORT -verify 0" 	# not with openssl 1.1.0g
-CMD1="openssl s_client $OPENSSL_METHOD -port $PORT"
+CMD1="openssl s_client $OPENSSL_S_CLIENT_4 $OPENSSL_METHOD -port $PORT"
 printf "test $F_n $TEST... " $N
 $CMD0 >/dev/null 2>"${te}0" &
 pid0=$!
@@ -11553,9 +11593,10 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
+init_openssl_s_client
 CMD0="$TRACE $SOCAT $opts OPENSSL-LISTEN:$PORT,$REUSEADDR,cert=testsrv.crt,key=testsrv.key,verify=0 SYSTEM:\"sleep 1; echo \\\\\\\"\\\"$da\\\"\\\\\\\"; sleep 1\"!!STDIO"
 #CMD1="openssl s_client -port $PORT -verify 0" 	# not with openssl 1.1.0g
-CMD1="openssl s_client $OPENSSL_METHOD -port $PORT"
+CMD1="openssl s_client $OPENSSL_S_CLIENT_4 $OPENSSL_METHOD -port $PORT"
 printf "test $F_n $TEST... " $N
 eval "$CMD0 >/dev/null 2>\"${te}0\" &"
 pid0=$!
@@ -14018,21 +14059,8 @@ te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 #set -vx
 da="test$N $(date) $RANDOM"
-S_SERVER_4=
-if openssl s_server -help 2>&1 | grep -q ' -4 '; then
-    S_SERVER_4="-4"
-fi
-if openssl s_server -help 2>&1 | grep -q ' -dtls '; then
-    S_SERVER_DTLS=-dtls
-else
-    S_SERVER_DTLS=-dtls1
-fi
-if openssl s_server -help 2>&1 | grep -q ' -no-ign_eof '; then
-    S_SERVER_NO_IGN_EOF=-no-ign_eof
-else
-    S_SERVER_NO_IGN_EOF=
-fi
-CMD1="$TRACE openssl s_server $S_SERVER_4 $S_SERVER_DTLS -accept $PORT -quiet $S_SERVER_NO_IGN_EOF -cert testsrv.pem"
+init_openssl_s_server
+CMD1="$TRACE openssl s_server $OPENSSL_S_SERVER_4 $OPENSSL_S_SERVER_DTLS -accept $PORT -quiet $S_SERVER_NO_IGN_EOF -cert testsrv.pem"
 CMD="$TRACE $SOCAT $opts -T 1 - OPENSSL-DTLS-CLIENT:$LOCALHOST:$PORT,pf=ip4,verify=0,$SOCAT_EGD"
 printf "test $F_n $TEST... " $N
 ( sleep 2; echo "$da"; sleep 1 ) |$CMD1 2>"${te}1" &
@@ -14094,13 +14122,9 @@ tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
 tdiff="$td/test$N.diff"
 da="test$N $(date) $RANDOM"
-if openssl s_server -help 2>&1 | grep -q ' -dtls '; then
-    S_SERVER_DTLS=-dtls
-else
-    S_SERVER_DTLS=-dtls1
-fi
+init_openssl_s_client
 CMD1="$TRACE $SOCAT $opts OPENSSL-DTLS-SERVER:$PORT,$REUSEADDR,cert=testsrv.crt,key=testsrv.key,verify=0 PIPE"
-CMD="openssl s_client -host $LOCALHOST -port $PORT $S_SERVER_DTLS"
+CMD="openssl s_client $OPENSSL_S_CLIENT_4 -host $LOCALHOST -port $PORT $OPENSSL_S_CLIENT_DTLS"
 printf "test $F_n $TEST... " $N
 $CMD1 >/dev/null 2>"${te}1" &
 pid1=$!
@@ -14503,6 +14527,7 @@ pid0=$!
 waitudp4port $PORT 1
 echo "$da" |$CMD1 >"${tf}1" 2>"${te}1"
 rc1=$?
+sleep 0.1
 kill $pid0 2>/dev/null; wait
 if [ -f ${tf}0 ] && echo "$da" |diff - ${tf}0 >$tdiff; then
     $PRINTF "$OK\n"

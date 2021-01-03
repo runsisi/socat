@@ -157,7 +157,7 @@ const struct optname optionnames[] = {
 #ifdef TCP_ABORT_THRESHOLD  /* HP_UX */
 	IF_TCP    ("abort-threshold",	&opt_tcp_abort_threshold)
 #endif
-	IF_SOCKET ("accept-timeout",	&opt_accept_timeout)
+	IF_LISTEN ("accept-timeout",	&opt_accept_timeout)
 #ifdef SO_ACCEPTCONN /* AIX433 */
 	IF_SOCKET ("acceptconn",	&opt_so_acceptconn)
 #endif /* SO_ACCEPTCONN */
@@ -889,7 +889,7 @@ const struct optname optionnames[] = {
 	IF_TCP    ("linger2",	&opt_tcp_linger2)
 #endif
 	IF_PTY    ("link",	&opt_symbolic_link)
-	IF_SOCKET ("listen-timeout",	&opt_accept_timeout)
+	IF_LISTEN ("listen-timeout",	&opt_accept_timeout)
 	IF_TERMIOS("lnext",	&opt_vlnext)
 #if defined(F_SETLKW)
 	IF_ANY    ("lock",	&opt_f_setlkw_wr)	/* POSIX, first choice */
@@ -2507,9 +2507,11 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	 break;
 #endif /* defined(HAVE_STRUCT_IP_MREQ) || defined (HAVE_STRUCT_IP_MREQN) */
 
+#if HAVE_STRUCT_IP_MREQ_SOURCE
       case TYPE_IP_MREQ_SOURCE:
 	 xiotype_ip_add_source_membership(token, ent, opt);
 	 break;
+#endif
 
 #if WITH_IP4
       case TYPE_IP4NAME:

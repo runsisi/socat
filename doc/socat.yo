@@ -982,7 +982,7 @@ label(ADDRESS_TCP_CONNECT)dit(bf(tt(TCP:<host>:<port>)))
    link(tos)(OPTION_TOS),
    link(mtudiscover)(OPTION_MTUDISCOVER),
    link(mss)(OPTION_MSS),
-   link(nodelay)(OPTION_NODELAY),
+   link(nodelay)(OPTION_TCP_NODELAY),
    link(nonblock)(OPTION_NONBLOCK),
    link(sourceport)(OPTION_SOURCEPORT),
    link(retry)(OPTION_RETRY),
@@ -3766,7 +3766,7 @@ standard specifications available on the Internet for free.
 label(VERSION)
 manpagesection(VERSION)
 
-This man page describes version 1.7.3 of socat().
+This man page describes version 1.7.4 of socat().
 
 
 label(BUGS)

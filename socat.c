@@ -187,7 +187,11 @@ int main(int argc, const char *argv[]) {
 	       break;
 	    }
 	 }
-	 if ((socat_opts.sniffleft = Open(a, O_CREAT|O_WRONLY|O_APPEND|O_LARGEFILE|O_NONBLOCK, 0664)) < 0)
+	 if ((socat_opts.sniffleft = Open(a, O_CREAT|O_WRONLY|O_APPEND|
+#ifdef O_LARGEFILE
+					  O_LARGEFILE|
+#endif
+					  O_NONBLOCK, 0664)) < 0)
 	    Error2("option -r \"%s\": %s", a, strerror(errno));
 	 break;
       case 'R': if (arg1[0][2]) {
@@ -199,7 +203,11 @@ int main(int argc, const char *argv[]) {
 	       break;
 	    }
 	 }
-	 if ((socat_opts.sniffright = Open(a, O_CREAT|O_WRONLY|O_APPEND|O_LARGEFILE|O_NONBLOCK, 0664)) < 0)
+	 if ((socat_opts.sniffright = Open(a, O_CREAT|O_WRONLY|O_APPEND|
+#ifdef O_LARGEFILE
+					   O_LARGEFILE|
+#endif
+					   O_NONBLOCK, 0664)) < 0)
 	    Error2("option -r \"%s\": %s", a, strerror(errno));
 	 break;
       case 'b': if (arg1[0][2]) {

@@ -542,6 +542,11 @@ if test -n "$WITH_OPENSSL"; then
  fi
 fi	# end checking for openssl/ssl.h
 #
+
+#if test -n "$WITH_OPENSSL"; then
+#  AC_CHECK_FUNCS(OPENSSL_init_ssl, SSL_library_init)
+#fi
+
 if test -n "$WITH_OPENSSL" -a "$sc_cv_have_openssl_ssl_h" = 'yes'; then
   # next, we search for the openssl library (libssl.*)
   # interesting: Linux only requires -lssl, FreeBSD requires -lssl -lcrypto
@@ -555,11 +560,12 @@ if test -n "$WITH_OPENSSL" -a "$sc_cv_have_openssl_ssl_h" = 'yes'; then
 	LIBS="$LIBS -lssl -lcrypto"
       fi
       AC_TRY_LINK([#include <openssl/ssl.h>],
-	[OPENSSL_init_ssl(0,NULL)],
-	[sc_cv_have_libssl='yes'; sc_cv_have_OPENSSL_init_ssl='yes'; AC_DEFINE(HAVE_OPENSSL_init_ssl)],
-	[AC_TRY_LINK([#include <openssl/ssl.h>],
-	  [SSL_library_init()],
-	  [sc_cv_have_libssl='yes'; sc_cv_have_SSL_library_init='yes'; AC_DEFINE(HAVE_SSL_library_init)],
+       [SSL_library_init();ERR_error_string()],
+       [sc_cv_have_libssl='yes'],
+       [ LIBS="$LIBS -lcrypto"
+       AC_TRY_LINK([#include <openssl/ssl.h>],
+       [SSL_library_init()],
+	  [sc_cv_have_libssl='yes'],
 	  [sc_cv_have_libssl='no'])
         ])
       if test "$sc_cv_have_libssl" != 'yes'; then
@@ -601,6 +607,18 @@ if test -n "$WITH_OPENSSL"; then
     AC_MSG_WARN([not all components of OpenSSL found, disabling it]);
   fi
 fi
+
+AC_CHECK_FUNCS(OPENSSL_init_ssl SSL_library_init)
+
+#; sc_cv_have_SSL_library_init='yes'; AC_DEFINE(HAVE_SSL_library_init)
+#if test -n "$WITH_OPENSSL"; then
+#     AC_CHECK_LIB(crypto, CRYPTO_new_ex_data, [], [AC_MSG_ERROR([library 'crypto' is required for OpenSSL])])
+#     FOUND_SSL_LIB="no"
+#     AC_CHECK_LIB(ssl, OPENSSL_init_ssl, [FOUND_SSL_LIB="yes"])
+#     AC_CHECK_LIB(ssl, SSL_library_init, [FOUND_SSL_LIB="yes"])
+#     AS_IF([test "x$FOUND_SSL_LIB" = xno], [AC_MSG_ERROR([library 'ssl' is required for OpenSSL; WITH_OPENSSL=])])
+#     AS_IF([test "x$FOUND_SSL_LIB" = xyes], [LIBS="$LIBS -L$L -lssl -lcrypto"])
+#fi
 
 if test -n "$WITH_OPENSSL"; then
 AC_MSG_CHECKING(whether to include OpenSSL method option)
@@ -795,7 +813,6 @@ AC_CHECK_FUNCS(putenv select pselect poll socket strtod strtol)
 AC_CHECK_FUNCS(strtoul uname getpgid getsid gethostbyname getaddrinfo)
 AC_CHECK_FUNCS(getprotobynumber getprotobynumber_r)
 AC_CHECK_FUNCS(setgroups inet_aton)
-AC_CHECK_FUNCS()
 
 AC_CHECK_FUNCS(grantpt unlockpt)
 
@@ -1151,7 +1168,8 @@ AC_MSG_RESULT($sc_cv_struct_linger)
 # struct ip (for IPv4 header info)
 AC_MSG_CHECKING(for struct ip)
 AC_CACHE_VAL(sc_cv_struct_ip,
-[AC_TRY_COMPILE([#include <netinet/ip.h>],[struct ip s;],
+[AC_TRY_COMPILE([#include <netinet/in.h>
+#include <netinet/ip.h>],[struct ip s;],
 [sc_cv_struct_ip=yes],
 [sc_cv_struct_ip=no])])
 if test $sc_cv_struct_ip = yes; then
@@ -1177,6 +1195,7 @@ AC_MSG_CHECKING(for struct ip_mreqn)
 AC_CACHE_VAL(sc_cv_struct_ip_mreqn,
 [AC_TRY_COMPILE([#include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
 #include <netinet/ip.h>],[struct ip_mreqn s;],
 [sc_cv_struct_ip_mreqn=yes],
 [sc_cv_struct_ip_mreqn=no])])
@@ -1203,6 +1222,7 @@ AC_MSG_CHECKING(for struct ip_mreq_source)
 AC_CACHE_VAL(sc_cv_struct_ip_mreq_source,
 [AC_TRY_COMPILE([#include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
 #include <netinet/ip.h>],[struct ip_mreq_source s;],
 [sc_cv_struct_ip_mreq_source=yes],
 [sc_cv_struct_ip_mreq_source=no])])
@@ -1486,8 +1506,6 @@ AC_CHECK_FUNC(setenv, AC_DEFINE(HAVE_SETENV),
 dnl Search for unsetenv()
 AC_CHECK_FUNC(unsetenv, AC_DEFINE(HAVE_UNSETENV))
 
-AC_CHECK_FUNC(SSL_CTX_set_min_proto_version, AC_DEFINE(HAVE_SSL_CTX_set_min_proto_version))
-AC_CHECK_FUNC(SSL_CTX_set_max_proto_version, AC_DEFINE(HAVE_SSL_CTX_set_max_proto_version))
 AC_CHECK_FUNC(TLS_client_method, AC_DEFINE(HAVE_TLS_client_method) ac_cv_have_tls_client_method=yes, AC_CHECK_LIB(crypt, TLS_client_method, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(TLS_server_method, AC_DEFINE(HAVE_TLS_server_method) ac_cv_have_tls_server_method=yes, AC_CHECK_LIB(crypt, TLS_server_method, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(DTLS_client_method, AC_DEFINE(HAVE_DTLS_client_method), AC_CHECK_LIB(crypt, DTLS_client_method, [LIBS=-lcrypt $LIBS]))
@@ -1910,7 +1928,6 @@ struct rlimit, rlim_max, HAVE_TYPEOF_RLIM_MAX, sc_cv_type_rlimit_rlimmax_basic)
 # Fedora-19 doc says it is socklen_t which is equivalent to unsigned int, but it is equivalent to size_t (x86_64)
 AC_TYPEOF_COMPONENT([#include "sysincludes.h"], struct cmsghdr, cmsg_len, HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN, sc_cv_typeof_struct_cmsghdr_cmsg_len)
 ### snprintf, vsnprintf
-
 
 AC_MSG_CHECKING(for /dev/ptmx)
 if test -c /dev/ptmx; then

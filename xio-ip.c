@@ -667,11 +667,11 @@ int xiotype_ip_add_source_membership(char *token, const struct optname *ent, str
    *buffp++ = '\0';
    opt->value.u_ip_mreq_source.srcaddr = strdup(buff); /*!!! NULL */
 
-   Info4("setting option \"%s\" to {0x%08x,0x%08x,0x08x}",
+   Info4("setting option \"%s\" to {0x%08x,0x%08x,0x%08x}",
 	 ent->desc->defname,
-	 opt->value.u_ip_mreq_source.mcaddr,
-	 opt->value.u_ip_mreq_source.ifaddr,
-	 opt->value.u_ip_mreq_source.srcaddr);
+	 ntohl(*(unsigned int *)opt->value.u_ip_mreq_source.mcaddr),
+	 ntohl(*(unsigned int *)opt->value.u_ip_mreq_source.ifaddr),
+	 ntohl(*(unsigned int *)opt->value.u_ip_mreq_source.srcaddr));
    return 0;
 }
 
@@ -708,9 +708,9 @@ int xioapply_ip_add_source_membership(struct single *xfd, struct opt *opt) {
 		  &ip4_mreq_src, sizeof(ip4_mreq_src)) < 0) {
       Error8("setsockopt(%d, %d, %d, {0x%08x,0x%08x,0x%08x}, "F_Zu"): %s",
 	     xfd->fd, opt->desc->major, opt->desc->minor,
-	     ip4_mreq_src.imr_multiaddr,
-	     ip4_mreq_src.imr_interface,
-	     ip4_mreq_src.imr_sourceaddr,
+	     htonl((uint32_t)ip4_mreq_src.imr_multiaddr.s_addr),
+	     ip4_mreq_src.imr_interface.s_addr,
+	     ip4_mreq_src.imr_sourceaddr.s_addr,
 	     sizeof(struct ip_mreq_source),
 	     strerror(errno));
       opt->desc = ODESC_ERROR;

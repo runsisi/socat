@@ -448,10 +448,10 @@
 #endif
 
 /* Define if you have the OPENSSL_init_ssl function */
-#undef HAVE_OPENSSL_init_ssl
+#undef HAVE_OPENSSL_INIT_SSL
 
 /* Define if you have the SSL_library_init function */
-#undef HAVE_SSL_library_init
+#undef HAVE_SSL_LIBRARY_INIT
 
 /* Define if you have the SSLv2 client and server method functions. not in new openssl */
 #undef HAVE_SSLv2_client_method

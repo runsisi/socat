@@ -715,9 +715,11 @@ int _xioopen_connect(struct single *xfd, union sockaddr_union *us, size_t uslen,
    int _errno;
    int result;
 
+#if WITH_UNIX
    if (pf == PF_UNIX && us != NULL) {
       applyopts_named(us->un.sun_path, opts, PH_EARLY);
    }
+#endif
 
    if ((xfd->fd = xiosocket(opts, pf, socktype, protocol, level)) < 0) {
       return STAT_RETRYLATER;	    
@@ -729,9 +731,11 @@ int _xioopen_connect(struct single *xfd, union sockaddr_union *us, size_t uslen,
 
    applyopts_cloexec(xfd->fd, opts);
 
+#if WITH_UNIX
    if (pf == PF_UNIX && us != NULL) {
       applyopts_named(us->un.sun_path, opts, PH_PREOPEN);
    }
+#endif
    applyopts(xfd->fd, opts, PH_PREBIND);
    applyopts(xfd->fd, opts, PH_BIND);
 #if WITH_TCP || WITH_UDP
@@ -812,9 +816,11 @@ int _xioopen_connect(struct single *xfd, union sockaddr_union *us, size_t uslen,
 #endif /* WITH_TCP || WITH_UDP */
 
    if (us) {
+#if WITH_UNIX
       if (pf == PF_UNIX && us != NULL) {
 	 applyopts_named(us->un.sun_path, opts, PH_PREOPEN);
       }
+#endif
       if (Bind(xfd->fd, &us->soa, uslen) < 0) {
 	 Msg4(level, "bind(%d, {%s}, "F_Zd"): %s",
 	      xfd->fd, sockaddr_info(&us->soa, uslen, infobuff, sizeof(infobuff)),
@@ -823,9 +829,11 @@ int _xioopen_connect(struct single *xfd, union sockaddr_union *us, size_t uslen,
 	 return STAT_RETRYLATER;
       }
    }
+#if WITH_UNIX
    if (pf == PF_UNIX && us != NULL) {
       applyopts_named(us->un.sun_path, opts, PH_PASTOPEN);
    }
+#endif
 
    applyopts(xfd->fd, opts, PH_PASTBIND);
 
@@ -924,9 +932,11 @@ int _xioopen_connect(struct single *xfd, union sockaddr_union *us, size_t uslen,
 
    applyopts_fchown(xfd->fd, opts);	/* OPT_USER, OPT_GROUP */
    applyopts(xfd->fd, opts, PH_CONNECTED);
+#if WITH_UNIX
    if (pf == PF_UNIX && us != NULL) {
       applyopts_named(us->un.sun_path, opts, PH_LATE);
    }
+#endif
    applyopts(xfd->fd, opts, PH_LATE);
 
    return STAT_OK;
@@ -1051,9 +1061,11 @@ int _xioopen_dgram_sendto(/* them is already in xfd->peersa */
    union sockaddr_union la; socklen_t lalen = sizeof(la);
    char infobuff[256];
 
+#if WITH_UNIX
    if (pf == PF_UNIX && us != NULL) {
       applyopts_named(us->un.sun_path, opts, PH_EARLY);
    }
+#endif
 
    if ((xfd->fd = xiosocket(opts, pf, socktype, ipproto, level)) < 0) {
       return STAT_RETRYLATER;	    
@@ -1066,9 +1078,11 @@ int _xioopen_dgram_sendto(/* them is already in xfd->peersa */
 
    applyopts_cloexec(xfd->fd, opts);
 
+#if WITH_UNIX
    if (pf == PF_UNIX && us != NULL) {
       applyopts_named(us->un.sun_path, opts, PH_PREOPEN);
    }
+#endif
    applyopts(xfd->fd, opts, PH_PREBIND);
    applyopts(xfd->fd, opts, PH_BIND);
 
@@ -1081,9 +1095,11 @@ int _xioopen_dgram_sendto(/* them is already in xfd->peersa */
 	 return STAT_RETRYLATER;
       }
    }
+#if WITH_UNIX
    if (pf == PF_UNIX && us != NULL) {
       applyopts_named(us->un.sun_path, opts, PH_PASTOPEN);
    }
+#endif
 
    applyopts(xfd->fd, opts, PH_PASTBIND);
 
@@ -1096,9 +1112,11 @@ int _xioopen_dgram_sendto(/* them is already in xfd->peersa */
 
    applyopts_fchown(xfd->fd, opts);
    applyopts(xfd->fd, opts, PH_CONNECTED);
+#if WITH_UNIX
    if (pf == PF_UNIX && us != NULL) {
       applyopts_named(us->un.sun_path, opts, PH_LATE);
    }
+#endif
    applyopts(xfd->fd, opts, PH_LATE);
 
    /* xfd->dtype = DATA_RECVFROM; *//* no, the caller must set this (ev _SKIPIP) */

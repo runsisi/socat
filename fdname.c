@@ -319,10 +319,10 @@ int sockname(int fd, FILE *outfile, char style) {
 		optacceptconn?"(listening)":
 #endif
 		"");
-#endif /* WITH_UNIX */
 	break;
      }
      break;
+#endif /* WITH_UNIX */
 #if WITH_IP4
    case AF_INET:
      switch (style) {
