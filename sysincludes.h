@@ -184,6 +184,8 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <openssl/rand.h>
+#include <openssl/dh.h>
+#include <openssl/bn.h>
 #endif
 #if HAVE_LINUX_VM_SOCKETS_H
 #include <linux/vm_sockets.h>

@@ -21,12 +21,25 @@
 #include "sysutils.h"
 #include "sycls.h"
 
+#if HAVE_OPENSSL_init_ssl
+int sycOPENSSL_init_ssl(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings) {
+   int result;
+   Debug2("OPENSSL_init_ssl("F_uint64_t", %p)", opts, settings);
+   result = OPENSSL_init_ssl(opts, settings);
+   Debug1("OPENSSL_init_ssl() -> %d", result);
+   return result;
+}
+#endif
+
+#if !HAVE_OPENSSL_init_ssl
 void sycSSL_load_error_strings(void) {
    Debug("SSL_load_error_strings()");
    SSL_load_error_strings();
    Debug("SSL_load_error_strings() ->");
 }
+#endif
 
+#if !HAVE_OPENSSL_init_ssl
 int sycSSL_library_init(void) {
    int result;
    Debug("SSL_library_init()");
@@ -34,6 +47,7 @@ int sycSSL_library_init(void) {
    Debug1("SSL_library_init() -> %d", result);
    return result;
 }
+#endif
 
 #if HAVE_TLS_client_method
 const SSL_METHOD *sycTLS_client_method(void) {

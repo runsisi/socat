@@ -956,14 +956,21 @@ int
 
    openssl_delete_cert_info();
 
+   /* OpenSSL preparation */
+#if HAVE_OPENSSL_init_ssl
+   {
+      OPENSSL_INIT_SETTINGS *settings;
+      settings = OPENSSL_INIT_new();
+      sycOPENSSL_init_ssl(0, settings);
+   }
+#else
+   sycSSL_library_init();
    OpenSSL_add_all_algorithms();
    OpenSSL_add_all_ciphers();
    OpenSSL_add_all_digests();
    sycSSL_load_error_strings();
+#endif
 
-   /* OpenSSL preparation */
-   sycSSL_library_init();
-   
    /*! actions_to_seed_PRNG();*/
 
    if (!server) {

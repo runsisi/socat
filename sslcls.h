@@ -8,6 +8,7 @@
 #if WITH_SYCLS
 #if WITH_OPENSSL
 
+int sycOPENSSL_init_ssl(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings);
 void sycSSL_load_error_strings(void);
 int sycSSL_library_init(void);
 const SSL_METHOD *sycTLS_client_method(void);
@@ -73,6 +74,7 @@ const char *sycSSL_COMP_get_name(const COMP_METHOD *comp);
 
 #if WITH_OPENSSL
 
+#define sycOPENSSL_init_ssl(o,s) OPENSSL_init_ssl(o,s)
 #define sycSSL_load_error_strings() SSL_load_error_strings()
 #define sycSSL_library_init() SSL_library_init()
 #define sycTLS_client_method() TLS_client_method()

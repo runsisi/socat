@@ -101,6 +101,13 @@ Porting:
 	OpenSSL set-macros and substitute deprecated version-specific methods.
 	Test: OPENSSL_MIN_VERSION
 
+	With OpenSSL use OPENSSL_init_SSL when available, instead of deprecated
+	SSL_library_init.
+
+	With OPENSSL_API_COMPAT=0x10000000L the files openssl/dh.h, openssl/bn.h
+	must explicitely be included.
+	Thanks to Rosen Penev for reporting and sending a patch.
+
 Testing:
 	test.sh now produces a list of tests that could not be performed for
 	any reason. This helps to analyse these cases.

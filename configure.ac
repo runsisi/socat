@@ -550,17 +550,16 @@ if test -n "$WITH_OPENSSL" -a "$sc_cv_have_openssl_ssl_h" = 'yes'; then
   AC_CACHE_VAL(sc_cv_have_libssl,
     [ LIBS0="$LIBS"
       if test -n "$OPENSSL_BASE"; then
-	L="$OPENSSL_BASE/lib"; LIBS="$LIBS -L$L -lssl"
+	L="$OPENSSL_BASE/lib"; LIBS="$LIBS -L$L -lssl -lcrypto"
       else
-	LIBS="$LIBS -lssl"
+	LIBS="$LIBS -lssl -lcrypto"
       fi
       AC_TRY_LINK([#include <openssl/ssl.h>],
-	[SSL_library_init();ERR_error_string()],
-	[sc_cv_have_libssl='yes'],
-	[ LIBS="$LIBS -lcrypto"
-	  AC_TRY_LINK([#include <openssl/ssl.h>],
+	[OPENSSL_init_ssl(0,NULL)],
+	[sc_cv_have_libssl='yes'; sc_cv_have_OPENSSL_init_ssl='yes'; AC_DEFINE(HAVE_OPENSSL_init_ssl)],
+	[AC_TRY_LINK([#include <openssl/ssl.h>],
 	  [SSL_library_init()],
-	  [sc_cv_have_libssl='yes'],
+	  [sc_cv_have_libssl='yes'; sc_cv_have_SSL_library_init='yes'; AC_DEFINE(HAVE_SSL_library_init)],
 	  [sc_cv_have_libssl='no'])
         ])
       if test "$sc_cv_have_libssl" != 'yes'; then
@@ -1521,6 +1520,8 @@ AC_CHECK_FUNC(ASN1_STRING_get0_data, AC_DEFINE(HAVE_ASN1_STRING_get0_data), AC_C
 AC_CHECK_FUNC(RAND_status, AC_DEFINE(HAVE_RAND_status))
 AC_CHECK_FUNC(SSL_CTX_clear_mode, AC_DEFINE(HAVE_SSL_CTX_clear_mode))
 AC_CHECK_FUNC(SSL_set_tlsext_host_name, AC_DEFINE(HAVE_SSL_set_tlsext_host_name))
+AC_CHECK_FUNC(SSL_library_init, AC_DEFINE(HAVE_SSL_library_init))
+AC_CHECK_FUNC(ERR_error_string, AC_DEFINE(HAVE_ERR_error_string))
 
 AC_MSG_CHECKING(for type EC_KEY)
 AC_CACHE_VAL(sc_cv_type_EC_TYPE,
