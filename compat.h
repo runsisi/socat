@@ -94,6 +94,93 @@ typedef int sig_atomic_t;
 #  define SOL_IPV6 IPPROTO_IPV6
 #endif
 
+#define F_uint8_t "%hu"
+#define F_int8_t  "%hd"
+
+#ifndef F_uint16_t
+#  if HAVE_BASIC_UINT16_T==0
+#    define F_uint16_t "%hu"
+#  elif HAVE_BASIC_UINT16_T==2
+#    define F_uint16_t "%hu"
+#  elif HAVE_BASIC_UINT16_T==4
+#    define F_uint16_t "%u"
+#  elif HAVE_BASIC_UINT16_T==6
+#    define F_uint16_t "%lu"
+#  else
+#    error "HAVE_BASIC_UINT16_T is out of range:" HAVE_BASIC_UINT16_T
+#  endif
+#endif
+
+#ifndef F_uint32_t
+#  if HAVE_BASIC_UINT32_T==0
+#    define F_uint32_t "%hu"
+#  elif HAVE_BASIC_UINT32_T==2
+#    define F_uint32_t "%hu"
+#  elif HAVE_BASIC_UINT32_T==4
+#    define F_uint32_t "%u"
+#  elif HAVE_BASIC_UINT32_T==6
+#    define F_uint32_t "%lu"
+#  else
+#    error "HAVE_BASIC_UINT32_T is out of range:" HAVE_BASIC_UINT32_T
+#  endif
+#endif
+
+#ifndef F_uint64_t
+#  if HAVE_BASIC_UINT64_T==0
+#    define F_uint64_t "%hu"
+#  elif HAVE_BASIC_UINT64_T==2
+#    define F_uint64_t "%hu"
+#  elif HAVE_BASIC_UINT64_T==4
+#    define F_uint64_t "%u"
+#  elif HAVE_BASIC_UINT64_T==6
+#    define F_uint64_t "%lu"
+#  else
+#    error "HAVE_BASIC_UINT64_T is out of range:" HAVE_BASIC_UINT64_T
+#  endif
+#endif
+
+#ifndef F_int16_t
+#  if HAVE_BASIC_INT16_T==0
+#    define F_int16_t "%hd"
+#  elif HAVE_BASIC_INT16_T==1
+#    define F_int16_t "%hd"
+#  elif HAVE_BASIC_INT16_T==3
+#    define F_int16_t "%d"
+#  elif HAVE_BASIC_INT16_T==5
+#    define F_int16_t "%l"
+#  else
+#    error "HAVE_BASIC_INT16_T is out of range:" HAVE_BASIC_INT16_T
+#  endif
+#endif
+
+#ifndef F_int32_t
+#  if HAVE_BASIC_INT32_T==0
+#    define F_int32_t "%hd"
+#  elif HAVE_BASIC_INT32_T==1
+#    define F_int32_t "%hd"
+#  elif HAVE_BASIC_INT32_T==3
+#    define F_int32_t "%d"
+#  elif HAVE_BASIC_INT32_T==5
+#    define F_int32_t "%l"
+#  else
+#    error "HAVE_BASIC_INT32_T is out of range:" HAVE_BASIC_INT32_T
+#  endif
+#endif
+
+#ifndef F_int64_t
+#  if HAVE_BASIC_INT64_T==0
+#    define F_int64_t "%hd"
+#  elif HAVE_BASIC_INT64_T==1
+#    define F_int64_t "%hd"
+#  elif HAVE_BASIC_INT64_T==3
+#    define F_int64_t "%d"
+#  elif HAVE_BASIC_INT64_T==5
+#    define F_int64_t "%l"
+#  else
+#    error "HAVE_BASIC_INT64_T is out of range:" HAVE_BASIC_INT64_T
+#  endif
+#endif
+
 /* all unsigned */
 #if !defined(HAVE_BASIC_SIZE_T) || !HAVE_BASIC_SIZE_T
 #  undef HAVE_BASIC_SIZE_T
@@ -708,6 +795,17 @@ typedef unsigned long T_sigset;
 #define F_cmsg_len "%""Lu"
 #  else
 #error "HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN is out of range:" HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN
+#  endif
+#endif
+
+/* basic type of struct timeval tv_usec */
+#ifndef F_tv_usec
+#  if TYPEOF_STRUCT_TIMEVAL_TV_USEC==1
+#     define F_tv_usec "%hu"
+#  elif TYPEOF_STRUCT_TIMEVAL_TV_USEC==3
+#     define F_tv_usec "%u"
+#  elif TYPEOF_STRUCT_TIMEVAL_TV_USEC==5
+#     define F_tv_usec "%lu"
 #  endif
 #endif
 

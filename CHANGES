@@ -182,6 +182,9 @@ New features:
 	Added AF_VSOCK support with VSOCK-CONNECT and VSOCK-LISTEN addresses.
 	Developed by Stefano Garzarella.
 
+Coding:
+	Added printf formats for uint16_t etc.
+
 Documentation:
 	Address UDP-RECV does not support option fork.
 	Thanks to Fulvio Scapin for reporting that mistake in docu.

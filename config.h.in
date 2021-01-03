@@ -598,6 +598,13 @@
 #endif
 
 /* 1..short, 3..int, 5..long; 2,4,6..unsigned */
+#undef HAVE_BASIC_UINT16_T
+#undef HAVE_BASIC_UINT32_T
+#undef HAVE_BASIC_UINT64_T
+#undef HAVE_BASIC_INT16_T
+#undef HAVE_BASIC_INT32_T
+#undef HAVE_BASIC_INT64_T
+
 #undef HAVE_BASIC_SIZE_T
 #undef HAVE_BASIC_MODE_T
 #undef HAVE_BASIC_PID_T

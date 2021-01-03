@@ -1844,6 +1844,12 @@ define(AC_TYPEOF_COMPONENT,[
    fi
 ])
 
+AC_BASIC_TYPE([#include <stdint.h>], uint16_t, HAVE_BASIC_UINT16_T, sc_cv_type_uint16_basic)
+AC_BASIC_TYPE([#include <stdint.h>], uint32_t, HAVE_BASIC_UINT32_T, sc_cv_type_uint32_basic)
+AC_BASIC_TYPE([#include <stdint.h>], uint64_t, HAVE_BASIC_UINT64_T, sc_cv_type_uint64_basic)
+AC_BASIC_TYPE([#include <stdint.h>], int16_t,  HAVE_BASIC_INT16_T,  sc_cv_type_int16_basic)
+AC_BASIC_TYPE([#include <stdint.h>], int32_t,  HAVE_BASIC_INT32_T,  sc_cv_type_int32_basic)
+AC_BASIC_TYPE([#include <stdint.h>], int64_t,  HAVE_BASIC_INT64_T,  sc_cv_type_int64_basic)
 AC_BASIC_TYPE([#include <stdlib.h>], size_t, HAVE_BASIC_SIZE_T, sc_cv_type_sizet_basic)
 AC_BASIC_TYPE([#include <sys/types.h>
 #include <sys/stat.h>
