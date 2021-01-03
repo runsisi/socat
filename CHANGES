@@ -1,4 +1,6 @@
 ﻿
+####################### V 1.7.4.0:
+
 Security:
 	Buffer size option (-b) is internally doubled for CR-CRLF conversion,
 	but not	checked for integer overflow. This could lead to heap based
