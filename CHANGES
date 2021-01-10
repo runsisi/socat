@@ -1,4 +1,6 @@
 ﻿
+####################### V 1.7.4.1:
+
 Corrections:
 	Socat 1.7.4.0 failed to compile especially on 32 bit systems.
 	Thanks to Wang Mingyu and others for sending a patch or reporting this
