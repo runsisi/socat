@@ -1303,7 +1303,7 @@ cont_out:
       mode = SSL_CTX_get_mode(ctx);
       if (mode & SSL_MODE_AUTO_RETRY) {
 	 Info("SSL_CTX mode has SSL_MODE_AUTO_RETRY set. Correcting..");
-	 Debug1("SSL_CTX_clean_mode(%p, SSL_MODE_AUTO_RETRY)", ctx);
+	 Debug1("SSL_CTX_clear_mode(%p, SSL_MODE_AUTO_RETRY)", ctx);
 	 SSL_CTX_clear_mode(ctx, SSL_MODE_AUTO_RETRY);
       }
    }
@@ -2023,5 +2023,19 @@ ssize_t xiowrite_openssl(struct single *pipe, const void *buff, size_t bufsiz) {
    return ret;
 }
 
+int xioshutdown_openssl(struct single *sfd, int how)
+{
+   int rc;
+
+   if ((rc = sycSSL_shutdown(sfd->para.openssl.ssl)) < 0) {
+      Warn1("xioshutdown_openssl(): SSL_shutdown() -> %d", rc);
+   }
+   if (sfd->tag == XIO_TAG_WRONLY) {
+      char buff[1];
+      /* give peer time to read all data before closing socket */
+      xioread_openssl(sfd, buff, 1);
+   }
+   return 0;
+}
 
 #endif /* WITH_OPENSSL */

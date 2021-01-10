@@ -51,7 +51,7 @@ extern int
 			   const char *opt_commonname,
 			   SSL_CTX *ctx, int level);
 extern int xioclose_openssl(xiofile_t *xfd);
-extern int xioshutdown_openssl(xiofile_t *xfd, int how);
+extern int xioshutdown_openssl(struct single *sfd, int how);
 extern ssize_t xioread_openssl(struct single *file, void *buff, size_t bufsiz);
 extern ssize_t xiopending_openssl(struct single *pipe);
 extern ssize_t xiowrite_openssl(struct single *file, const void *buff, size_t bufsiz);

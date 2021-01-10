@@ -4,6 +4,16 @@ Corrections:
 	Thanks to Wang Mingyu and others for sending a patch or reporting this
 	issue.
 
+	Under certain conditions OpenSSL stream connections, in particular bulk
+	data transfer in unidirectional mode, failed during transfer or near
+	its with Connection reset by peer on receiver side.
+	This happened with Socat versions 1.7.3.3 to 1.7.4.0. Reasons were
+	lazy SSL shutdown handling on the sender side in combination with
+	SSL_MODE_AUTO_RETRY turned off.
+	Fix: After SSH_shutdown but before socket shutdown call SSL_read()
+	Test: OPENSSL_STREAM_TO_SERVER
+	Fixes Red Hat issue 1870279.
+
 ####################### V 1.7.4.0:
 
 Security:

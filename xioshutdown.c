@@ -8,6 +8,8 @@
 #include "xiosysincludes.h"
 #include "xioopen.h"
 
+#include "xio-openssl.h"
+
 static pid_t socat_kill_pid;	/* here we pass the pid to be killed in sighandler */
 
 static void signal_kill_pid(int dummy) {
@@ -68,8 +70,7 @@ int xioshutdown(xiofile_t *sock, int how) {
       ;
 #if WITH_OPENSSL
    } else if ((sock->stream.dtype & XIODATA_MASK) == XIODATA_OPENSSL) {
-      sycSSL_shutdown (sock->stream.para.openssl.ssl);
-      /*! what about half/full close? */
+      xioshutdown_openssl(&sock->stream, how);
 #endif /* WITH_OPENSSL */
 
    } else if ((sock->stream.dtype & XIODATA_MASK) == XIODATA_PIPE) {

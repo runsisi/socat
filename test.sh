@@ -45,6 +45,7 @@ case "X$val_t" in
 esac
 MICROS=${S}${uS}
 MICROS=${MICROS##0000}; MICROS=${MICROS##00}; MICROS=${MICROS##0}
+#echo MICROS=$MICROS >&2
 #
 _MICROS=$((MICROS+999999)); SECONDs="${_MICROS%??????}"
 [ -z "$SECONDs" ] && SECONDs=0
@@ -4437,11 +4438,12 @@ TESTADDR=$(eval echo $TESTTMPL)
 PEERADDR=$(eval echo $PEERTMPL)
 WAITCMD=$(eval echo $WAITTMPL)
 TESTKEYW=${TESTADDR%%:*}
+feat=$(tolower $FEAT)
 
 # does our address implementation support halfclose?
 NAME=${NAMEKEYW}_HALFCLOSE
 case "$TESTS" in
-*%$N%*|*%functions%*|*%$FEAT%*|*%socket%*|*%halfclose%*|*%$NAME%*)
+*%$N%*|*%functions%*|*%$feat%*|*%socket%*|*%halfclose%*|*%$NAME%*)
 TEST="$NAME: $TESTKEYW half close"
 # have a "peer" socat "peer" that executes "$OD_C" and see if EOF on the
 # connecting socat  brings the result of od
@@ -5241,7 +5243,7 @@ TEST="$NAME: for bug with address options on both stdin/out in unidirectional mo
 if ! eval $NUMCOND; then :; else
 tf="$td/test$N.stdout"
 te="$td/test$N.stderr"
-ff="$td/file$N"
+ff="$td/test$N.file"
 printf "test $F_n $TEST... " $N
 >"$ff"
 #$TRACE $SOCAT $opts -u /dev/null -,setlk <"$ff"  2>"$te"
@@ -14672,6 +14674,297 @@ PORT=$((PORT+1))
 N=$((N+1))
 
 
+# File transfer with OpenSSL stream connection was incomplete
+# Test file transfer from client to server
+NAME=OPENSSL_STREAM_TO_SERVER
+case "$TESTS" in
+*%$N%*|*%functions%*|*%bugs%*|*%openssl%*|*%tcp%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: OpenSSL stream from client to server"
+# Start a unidirectional OpenSSL server and stream receiver
+# Start a unidirectional OpenSSL client that connects to the server and sends
+# data
+# Test succeeded when the data received and stored by server is the same as
+# sent by the client
+if ! eval $NUMCOND; then :;
+elif ! a=$(testfeats ip4 tcp openssl); then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$a not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! a=$(testaddrs openssl-listen openssl-connect); then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$a not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! runsip4 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}IPv4 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+else
+gentestcert testsrv
+ti="$td/test$N.datain"
+to="$td/test$N.dataout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts -u OPENSSL-LISTEN:$PORT,$REUSEADDR,cert=testsrv.pem,verify=0 CREAT:$to"
+CMD1="$TRACE $SOCAT $opts -u OPEN:$ti OPENSSL-CONNECT:$LOCALHOST:$PORT,cafile=testsrv.crt"
+printf "test $F_n $TEST... " $N
+i=0; while [ $i -lt 100000 ]; do printf "%9u %9u %9u %9u %9u %9u %9u %9u %9u %9u\n" $i $i $i $i $i $i $i $i $i $i; let i+=100; done >$ti
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+waittcp4port $PORT 1
+$CMD1 >"${tf}1" 2>"${te}1"
+rc1=$?
+usleep $MICROS
+kill $pid0 2>/dev/null; wait
+if [ $rc1 -ne 0 ]; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &" >&2
+    cat "${te}0" >&2
+    echo "$CMD1" >&2
+    cat "${te}1" >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+elif diff $ti $to >$tdiff; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &" >&2
+    cat "${te}0" >&2
+    echo "$CMD1" >&2
+    cat "${te}1" >&2
+    echo "diff:" >&2
+    head -n 2 $tdiff >&2
+    echo ... >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+# File transfer with OpenSSL stream connection was incomplete
+# Test file transfer from server to client
+NAME=OPENSSL_STREAM_TO_CLIENT
+case "$TESTS" in
+*%$N%*|*%functions%*|*%bugs%*|*%openssl%*|*%tcp%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: OpenSSL stream from server to client"
+# Start a unidirectional OpenSSL server and stream sender
+# Start a unidirectional OpenSSL client that connects to the server and receives
+# data
+# Test succeeded when the data received and stored by client is the same as
+# sent by the server
+if ! eval $NUMCOND; then :;
+elif ! a=$(testfeats ip4 tcp openssl); then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$a not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! a=$(testaddrs openssl-listen openssl-connect); then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$a not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! runsip4 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}IPv4 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+else
+gentestcert testsrv
+ti="$td/test$N.datain"
+to="$td/test$N.dataout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts -U OPENSSL-LISTEN:$PORT,$REUSEADDR,cert=testsrv.pem,verify=0 OPEN:$ti"
+CMD1="$TRACE $SOCAT $opts -u OPENSSL-CONNECT:$LOCALHOST:$PORT,cafile=testsrv.crt CREAT:$to"
+printf "test $F_n $TEST... " $N
+i=0; while [ $i -lt 100000 ]; do printf "%9u %9u %9u %9u %9u %9u %9u %9u %9u %9u\n" $i $i $i $i $i $i $i $i $i $i; let i+=100; done >$ti
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+waittcp4port $PORT 1
+$CMD1 >"${tf}1" 2>"${te}1"
+rc1=$?
+usleep $MICROS
+kill $pid0 2>/dev/null; wait
+if [ $rc1 -ne 0 ]; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &" >&2
+    cat "${te}0" >&2
+    echo "$CMD1" >&2
+    cat "${te}1" >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+elif diff $ti $to >$tdiff; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &" >&2
+    cat "${te}0" >&2
+    echo "$CMD1" >&2
+    cat "${te}1" >&2
+    echo "diff:" >&2
+    head -n 2 $tdiff >&2
+    echo ... >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+# Test file transfer from client to server using DTLS
+NAME=OPENSSL_DTLS_TO_SERVER
+case "$TESTS" in
+*%$N%*|*%functions%*|*%bugs%*|*%openssl%*|*%dtls%*|*%udp%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: OpenSSL DTLS transfer from client to server"
+# Start a unidirectional OpenSSL DTLS server/receiver
+# Start a unidirectional OpenSSL DTLS client that connects to the server and
+# sends data
+# Test succeeded when the data received and stored by server is the same as
+# sent by the client
+if ! eval $NUMCOND; then :;
+elif ! a=$(testfeats ip4 udp openssl); then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$a not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! a=$(testaddrs openssl-dtls-listen openssl-dtls-connect); then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$a not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! runsip4 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}IPv4 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif [[ $(openssl version |awk '{print($2);}') =~ 0.9.8[a-c] ]]; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}openssl s_client might hang${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+else
+gentestcert testsrv
+ti="$td/test$N.datain"
+to="$td/test$N.dataout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts -u OPENSSL-DTLS-LISTEN:$PORT,cert=testsrv.pem,verify=0 CREAT:$to"
+CMD1="$TRACE $SOCAT $opts -u OPEN:$ti OPENSSL-DTLS-CONNECT:$LOCALHOST:$PORT,cafile=testsrv.crt"
+printf "test $F_n $TEST... " $N
+i=0; while [ $i -lt 100000 ]; do printf "%9u %9u %9u %9u %9u %9u %9u %9u %9u %9u\n" $i $i $i $i $i $i $i $i $i $i; let i+=100; done >$ti
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+waitudp4port $PORT 1
+$CMD1 >"${tf}1" 2>"${te}1"
+rc1=$?
+usleep $MICROS
+kill $pid0 2>/dev/null; wait
+if [ $rc1 -ne 0 ]; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &" >&2
+    cat "${te}0" >&2
+    echo "$CMD1" >&2
+    cat "${te}1" >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+elif diff $ti $to >$tdiff; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &" >&2
+    cat "${te}0" >&2
+    echo "$CMD1" >&2
+    cat "${te}1" >&2
+    echo "diff:" >&2
+    head -n 2 $tdiff >&2
+    echo ... >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+# Test file transfer from server to client using DTLS
+NAME=OPENSSL_DTLS_TO_CLIENT
+case "$TESTS" in
+*%$N%*|*%functions%*|*%bugs%*|*%openssl%*|*%dtls%*|*%udp%*|*%socket%*|*%$NAME%*)
+TEST="$NAME: OpenSSL DTLS transfer from server to client"
+# Start a unidirectional OpenSSL DTLS server/sender
+# Start a unidirectional OpenSSL DTLS client that connects to the server and
+# receives data
+# Test succeeded when the data received and stored by client is the same as
+# sent by the server
+if ! eval $NUMCOND; then :;
+elif ! a=$(testfeats ip4 udp openssl); then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$a not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! a=$(testaddrs openssl-dtls-listen openssl-dtls-connect); then
+    $PRINTF "test $F_n $TEST... ${YELLOW}$a not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif ! runsip4 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}IPv4 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+elif [[ $(openssl version |awk '{print($2);}') =~ 0.9.8[a-c] ]]; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}openssl s_client might hang${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+    listCANT="$listCANT $N"
+else
+gentestcert testsrv
+ti="$td/test$N.datain"
+to="$td/test$N.dataout"
+te="$td/test$N.stderr"
+tdiff="$td/test$N.diff"
+da="test$N $(date) $RANDOM"
+CMD0="$TRACE $SOCAT $opts -U OPENSSL-DTLS-LISTEN:$PORT,cert=testsrv.pem,verify=0 OPEN:$ti"
+CMD1="$TRACE $SOCAT $opts -u OPENSSL-DTLS-CONNECT:$LOCALHOST:$PORT,cafile=testsrv.crt CREAT:$to"
+printf "test $F_n $TEST... " $N
+i=0; while [ $i -lt 100000 ]; do printf "%9u %9u %9u %9u %9u %9u %9u %9u %9u %9u\n" $i $i $i $i $i $i $i $i $i $i; let i+=100; done >$ti
+$CMD0 >/dev/null 2>"${te}0" &
+pid0=$!
+waitudp4port $PORT 1
+$CMD1 >"${tf}1" 2>"${te}1"
+rc1=$?
+usleep $MICROS
+kill $pid0 2>/dev/null; wait
+if [ $rc1 -ne 0 ]; then
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &" >&2
+    cat "${te}0" >&2
+    echo "$CMD1" >&2
+    cat "${te}1" >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+elif diff $ti $to >$tdiff; then
+    $PRINTF "$OK\n"
+    numOK=$((numOK+1))
+else
+    $PRINTF "$FAILED\n"
+    echo "$CMD0 &" >&2
+    cat "${te}0" >&2
+    echo "$CMD1" >&2
+    cat "${te}1" >&2
+    echo "diff:" >&2
+    head -n 2 $tdiff >&2
+    echo ... >&2
+    numFAIL=$((numFAIL+1))
+    listFAIL="$listFAIL $N"
+fi
+fi # NUMCOND
+ ;;
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+
 ##################################################################################
 #=================================================================================
 # here come tests that might affect your systems integrity. Put normal tests
@@ -14768,6 +15061,7 @@ wait
 
 exit
 
+#==============================================================================
 # test template
 
 # give a description of what is tested (a bugfix, a new feature...)
