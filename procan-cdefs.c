@@ -159,6 +159,8 @@ int procan_cdefs(FILE *outfile) {
 #ifdef SO_REUSEADDR
    fprintf(outfile, "#define SO_REUSEADDR %d\n", SO_REUSEADDR);
 #endif
-
+#ifdef TCP_MAXSEG
+   fprintf(outfile, "#define TCP_MAXSEG %d\n",   TCP_MAXSEG);
+#endif
    return 0;
 }

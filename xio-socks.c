@@ -126,7 +126,7 @@ static int xioopen_socks4_connect(int argc, const char *argv[], struct opt *opts
       /* this cannot fork because we retrieved fork option above */
       result =
 	 _xioopen_connect (xfd,
-			   needbind?(struct sockaddr *)us:NULL, sizeof(*us),
+			   needbind?us:NULL, sizeof(*us),
 			   (struct sockaddr *)them, themlen,
 			   opts, pf, socktype, IPPROTO_TCP, lowport, level);
       switch (result) {

@@ -10,11 +10,15 @@
 #define SSLIO_BASE 0x53530000	/* "SSxx" */
 #define SSLIO_MASK 0xffff0000
 
-extern const struct addrdesc addr_openssl;
-extern const struct addrdesc addr_openssl_listen;
+extern const struct addrdesc xioaddr_openssl;
+extern const struct addrdesc xioaddr_openssl_listen;
+extern const struct addrdesc xioaddr_openssl_dtls_client;
+extern const struct addrdesc xioaddr_openssl_dtls_server;
 
 extern const struct optdesc opt_openssl_cipherlist;
 extern const struct optdesc opt_openssl_method;
+extern const struct optdesc opt_openssl_min_proto_version;
+extern const struct optdesc opt_openssl_max_proto_version;
 extern const struct optdesc opt_openssl_verify;
 extern const struct optdesc opt_openssl_certificate;
 extern const struct optdesc opt_openssl_key;
@@ -30,21 +34,24 @@ extern const struct optdesc opt_openssl_compress;
 extern const struct optdesc opt_openssl_fips;
 #endif
 extern const struct optdesc opt_openssl_commonname;
+extern const struct optdesc opt_openssl_no_sni;
+extern const struct optdesc opt_openssl_snihost;
 
 extern int
    _xioopen_openssl_prepare(struct opt *opts, struct single *xfd,
 			    bool server, bool *opt_ver, const char *opt_cert,
-			    SSL_CTX **ctx);
+			    SSL_CTX **ctx, bool *use_dtls);
 extern int
    _xioopen_openssl_connect(struct single *xfd,  bool opt_ver,
 			    const char *opt_commonname,
+			    bool no_sni, const char *snihost,
 			    SSL_CTX *ctx, int level);
 extern int
    _xioopen_openssl_listen(struct single *xfd, bool opt_ver,
 			   const char *opt_commonname,
 			   SSL_CTX *ctx, int level);
 extern int xioclose_openssl(xiofile_t *xfd);
-extern int xioshutdown_openssl(xiofile_t *xfd, int how);
+extern int xioshutdown_openssl(struct single *sfd, int how);
 extern ssize_t xioread_openssl(struct single *file, void *buff, size_t bufsiz);
 extern ssize_t xiopending_openssl(struct single *pipe);
 extern ssize_t xiowrite_openssl(struct single *file, const void *buff, size_t bufsiz);

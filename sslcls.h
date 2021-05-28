@@ -8,8 +8,13 @@
 #if WITH_SYCLS
 #if WITH_OPENSSL
 
+#if HAVE_OPENSSL_init_ssl
+int sycOPENSSL_init_ssl(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings);
+#endif
 void sycSSL_load_error_strings(void);
 int sycSSL_library_init(void);
+const SSL_METHOD *sycTLS_client_method(void);
+const SSL_METHOD *sycTLS_server_method(void);
 const SSL_METHOD *sycSSLv2_client_method(void);
 const SSL_METHOD *sycSSLv2_server_method(void);
 const SSL_METHOD *sycSSLv3_client_method(void);
@@ -22,8 +27,12 @@ const SSL_METHOD *sycTLSv1_1_client_method(void);
 const SSL_METHOD *sycTLSv1_1_server_method(void);
 const SSL_METHOD *sycTLSv1_2_client_method(void);
 const SSL_METHOD *sycTLSv1_2_server_method(void);
+const SSL_METHOD *sycDTLS_client_method(void);
+const SSL_METHOD *sycDTLS_server_method(void);
 const SSL_METHOD *sycDTLSv1_client_method(void);
 const SSL_METHOD *sycDTLSv1_server_method(void);
+const SSL_METHOD *sycDTLSv1_2_client_method(void);
+const SSL_METHOD *sycDTLSv1_2_server_method(void);
 SSL_CTX *sycSSL_CTX_new(const SSL_METHOD *method);
 SSL *sycSSL_new(SSL_CTX *ctx);
 int sycSSL_CTX_load_verify_locations(SSL_CTX *ctx, const char *CAfile,
@@ -67,8 +76,11 @@ const char *sycSSL_COMP_get_name(const COMP_METHOD *comp);
 
 #if WITH_OPENSSL
 
+#define sycOPENSSL_init_ssl(o,s) OPENSSL_init_ssl(o,s)
 #define sycSSL_load_error_strings() SSL_load_error_strings()
 #define sycSSL_library_init() SSL_library_init()
+#define sycTLS_client_method() TLS_client_method()
+#define sycTLS_server_method() TLS_server_method()
 #define sycSSLv2_client_method() SSLv2_client_method()
 #define sycSSLv2_server_method() SSLv2_server_method()
 #define sycSSLv3_client_method() SSLv3_client_method()
@@ -81,8 +93,12 @@ const char *sycSSL_COMP_get_name(const COMP_METHOD *comp);
 #define sycTLSv1_1_server_method() TLSv1_1_server_method()
 #define sycTLSv1_2_client_method() TLSv1_2_client_method()
 #define sycTLSv1_2_server_method() TLSv1_2_server_method()
+#define sycDTLS_client_method() DTLS_client_method()
+#define sycDTLS_server_method() DTLS_server_method()
 #define sycDTLSv1_client_method() DTLSv1_client_method()
 #define sycDTLSv1_server_method() DTLSv1_server_method()
+#define sycDTLSv1_2_client_method() DTLSv1_2_client_method()
+#define sycDTLSv1_2_server_method() DTLSv1_2_server_method()
 #define sycSSL_CTX_new(m) SSL_CTX_new(m)
 #define sycSSL_new(c) SSL_new(c)
 #define sycSSL_CTX_load_verify_locations(c,f,p) SSL_CTX_load_verify_locations(c,f,p)

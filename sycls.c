@@ -23,6 +23,16 @@
 
 #if WITH_SYCLS
 
+#if HAVE_PROTOTYPE_LIB_posix_memalign
+int Posix_memalign(void **memptr, size_t alignment, size_t size) {
+   int result;
+   Debug3("posix_memalign(%p, "F_Zu", "F_Zu")", memptr, alignment, size);
+   result = posix_memalign(memptr, alignment, size);
+   Debug1("posix_memalign(...) -> %d", result);
+   return result;
+}
+#endif /* HAVE_PROTOTYPE_LIB_posix_memalign */
+
 mode_t Umask(mode_t mask) {
    mode_t result;
    int _errno;
@@ -848,6 +858,50 @@ int Select(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
    return result;
 }
 
+#if HAVE_PSELECT
+/* we only show the first word of the fd_set's; hope this is enough for most
+   cases. */
+int Pselect(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
+	    const struct timespec *timeout, const sigset_t *sigmask) {
+   int result, _errno;
+   if (!diag_in_handler) diag_flush();
+#if WITH_SYCLS
+#if HAVE_FDS_BITS
+   Debug8("pselect(%d, &0x%lx, &0x%lx, &0x%lx, %s%lu."F_tv_nsec", "F_sigset")",
+	  n, readfds?readfds->fds_bits[0]:0, writefds?writefds->fds_bits[0]:0,
+	  exceptfds?exceptfds->fds_bits[0]:0,
+	  timeout?"&":"NULL/", timeout?timeout->tv_sec:0,
+	  timeout?timeout->tv_nsec:0, *(T_sigset *)sigmask);
+#else
+   Debug8("pselect(%d, &0x%lx, &0x%lx, &0x%lx, %s%lu.%06u)",
+	  n, readfds?readfds->__fds_bits[0]:0, writefds?writefds->__fds_bits[0]:0,
+	  exceptfds?exceptfds->__fds_bits[0]:0,
+	  timeout?"&":"NULL/", timeout?timeout->tv_sec:0,
+	  timeout?timeout->tv_nsec:0);
+#endif
+#endif /* WITH_SYCLS */
+   result = pselect(n, readfds, writefds, exceptfds, timeout, sigmask);
+   _errno = errno;
+   if (!diag_in_handler) diag_flush();
+#if WITH_SYCLS
+#if HAVE_FDS_BITS
+   Debug5("pselect -> (, 0x%lx, 0x%lx, 0x%lx), "F_sigset", %d",
+	  readfds?readfds->fds_bits[0]:0, writefds?writefds->fds_bits[0]:0,
+	  exceptfds?exceptfds->fds_bits[0]:0, *(T_sigset *)sigmask,
+	  result);
+#else
+   Debug6("pselect -> (, 0x%lx, 0x%lx, 0x%lx), %d",
+	  readfds?readfds->__fds_bits[0]:0, writefds?writefds->__fds_bits[0]:0,
+	  exceptfds?exceptfds->__fds_bits[0]:0,
+	  result);
+#endif
+#endif /* WITH_SYCLS */
+   errno = _errno;
+
+   return result;
+}
+#endif /* HAVE_PSELECT */
+
 #if WITH_SYCLS
 
 pid_t Fork(void) {
@@ -906,9 +960,15 @@ int Sigaction(int signum, const struct sigaction *act,
 
 int Sigprocmask(int how, const sigset_t *set, sigset_t *oset) {
    int retval;
-   Debug3("sigprocmask(%d, %p, %p)", how, set, oset);
+   if (set)
+      Debug3("sigprocmask(%d, "F_sigset", %p)", how, *(T_sigset *)set, oset);
+   else
+      Debug2("sigprocmask(%d, NULL, %p)", how, oset);
    retval = sigprocmask(how, set, oset);
-   Debug1("sigprocmask() -> %d", retval);
+   if (oset)
+      Debug2("sigprocmask() -> {,, "F_sigset"} %d", *(T_sigset *)oset, retval);
+   else
+      Debug1("sigprocmask() -> %d", retval);
    return retval;
 }
 
@@ -1327,14 +1387,6 @@ unsigned int Sleep(unsigned int seconds) {
    retval = sleep(seconds);
    Debug1("sleep() -> %u", retval);
    return retval;
-}
-
-/* obsolete by POSIX.1-2001 */
-void Usleep(unsigned long usec) {
-   Debug1("usleep(%lu)", usec);
-   usleep(usec);
-   Debug("usleep() ->");
-   return;
 }
 
 #if HAVE_NANOSLEEP

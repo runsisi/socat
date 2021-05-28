@@ -64,6 +64,7 @@ enum e_types {
    TYPE_INT_INT_INT,	/* 3 params: first and second are int, 3rd is int */
    TYPE_INT_INT_BIN,	/* 3 params: first and second are int, 3rd is binary */
    TYPE_INT_INT_STRING,	/* 3 params: first and second are int, 3rd is string */
+   TYPE_INT_INT_GENERIC,	/* 3 params: first and second are int, 3rd is specified by value (dalan syntax) */
 
    TYPE_IP4NAME,	/* IPv4 hostname or address */
 #if HAVE_STRUCT_LINGER
@@ -72,6 +73,11 @@ enum e_types {
 #if HAVE_STRUCT_IP_MREQ || HAVE_STRUCT_IP_MREQN
    TYPE_IP_MREQN,	/* for  struct ip_mreq  or  struct ip_mreqn */
 #endif
+#if HAVE_STRUCT_IP_MREQ_SOURCE
+   TYPE_IP_MREQ_SOURCE,	/* for  struct ip_mreq_source */
+#endif
+
+   TYPE_GENERIC, 	/* type is determined from (text) data provided (dalan syntax) */
 } ;
 
 enum e_func {
@@ -276,18 +282,6 @@ enum e_optcode {
 #endif
    OPT_END_CLOSE,	/* xfd.stream.howtoend = END_CLOSE */
    OPT_ESCAPE,
-   OPT_EXT2_SECRM,
-   OPT_EXT2_UNRM,
-   OPT_EXT2_COMPR,
-   OPT_EXT2_SYNC,
-   OPT_EXT2_IMMUTABLE,
-   OPT_EXT2_APPEND,
-   OPT_EXT2_NODUMP,
-   OPT_EXT2_NOATIME,
-   OPT_EXT2_JOURNAL_DATA,
-   OPT_EXT2_NOTAIL,
-   OPT_EXT2_DIRSYNC,
-   OPT_EXT2_TOPDIR,
    OPT_FDIN,
    OPT_FDOUT,
 #ifdef FFDLY
@@ -310,6 +304,18 @@ enum e_optcode {
    /*0 OPT_FORCE,*/
    OPT_FOREVER,
    OPT_FORK,
+   OPT_FS_APPEND,
+   OPT_FS_COMPR,
+   OPT_FS_DIRSYNC,
+   OPT_FS_IMMUTABLE,
+   OPT_FS_JOURNAL_DATA,
+   OPT_FS_NOATIME,
+   OPT_FS_NODUMP,
+   OPT_FS_NOTAIL,
+   OPT_FS_SECRM,
+   OPT_FS_SYNC,
+   OPT_FS_TOPDIR,
+   OPT_FS_UNRM,
    OPT_FTRUNCATE32,	/* ftruncate() */
    OPT_FTRUNCATE64,	/* ftruncate64() */
    OPT_F_SETLKW_RD,	/* fcntl with struct flock - read-lock, wait */
@@ -378,6 +384,7 @@ enum e_optcode {
    OPT_IOCTL_STRING,	/* generic ioctl with integer value (pointed to) */
    OPT_IOCTL_VOID,	/* generic ioctl without value */
    OPT_IP_ADD_MEMBERSHIP,
+   OPT_IP_ADD_SOURCE_MEMBERSHIP,
 #ifdef IP_HDRINCL
    OPT_IP_HDRINCL,
 #endif
@@ -421,6 +428,9 @@ enum e_optcode {
    OPT_IP_ROUTER_ALERT,
 #endif
    OPT_IP_TOS,
+#ifdef IP_TRANSPARENT
+   OPT_IP_TRANSPARENT,
+#endif
    OPT_IP_TTL,
    OPT_ISIG,		/* termios.c_lflag */
    OPT_ISPEED,		/* termios.c_ispeed */
@@ -431,6 +441,7 @@ enum e_optcode {
    OPT_IXANY,		/* termios.c_iflag */
    OPT_IXOFF,		/* termios.c_iflag */
    OPT_IXON,		/* termios.c_iflag */
+   OPT_ACCEPT_TIMEOUT,	/* listening socket */
    OPT_LOCKFILE,
    OPT_LOWPORT,
    OPT_MAX_CHILDREN,
@@ -482,8 +493,12 @@ enum e_optcode {
    OPT_OPENSSL_EGD,
    OPT_OPENSSL_FIPS,
    OPT_OPENSSL_KEY,
+   OPT_OPENSSL_MAX_PROTO_VERSION,
    OPT_OPENSSL_METHOD,
+   OPT_OPENSSL_MIN_PROTO_VERSION,
+   OPT_OPENSSL_NO_SNI,
    OPT_OPENSSL_PSEUDO,
+   OPT_OPENSSL_SNIHOST,
    OPT_OPENSSL_VERIFY,
    OPT_OPOST,		/* termios.c_oflag */
    OPT_OSPEED,		/* termios.c_ospeed */
@@ -559,6 +574,7 @@ enum e_optcode {
    OPT_PROTOCOL_FAMILY,	/* 1=PF_UNIX, 2=PF_INET, 10=PF_INET6 */
    OPT_PROXYPORT,
    OPT_PROXY_AUTHORIZATION,
+   OPT_PROXY_AUTHORIZATION_FILE,
    OPT_PROXY_RESOLVE,
 #if HAVE_DEV_PTMX || HAVE_DEV_PTC
    OPT_PTMX,
@@ -595,6 +611,7 @@ enum e_optcode {
    OPT_SETSID,
    OPT_SETSOCKOPT_BIN,
    OPT_SETSOCKOPT_INT,
+   OPT_SETSOCKOPT_LISTEN,
    OPT_SETSOCKOPT_STRING,
    OPT_SETUID,
    OPT_SETUID_EARLY,
@@ -934,6 +951,8 @@ extern int parseopts(const char **a, unsigned int groups, struct opt **opts);
 extern int parseopts_table(const char **a, unsigned int groups,
 			   struct opt **opts,
 			 const struct optname optionnames[], size_t optionnum);
+extern const struct opt *searchopt(const struct opt *opts, unsigned int groups, enum e_phase from, enum e_phase to,
+				   enum e_func func);
 extern struct opt *copyopts(const struct opt *opts, unsigned int groups);
 extern struct opt *moveopts(struct opt *opts, unsigned int groups);
 extern int leftopts(const struct opt *opts);

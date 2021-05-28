@@ -14,7 +14,10 @@
 #include "xio-fd.h"
 #include "xio-socket.h"	/* _xioopen_connect() */
 #include "xio-listen.h"
+#include "xio-udp.h"
 #include "xio-ipapp.h"
+#include "xio-ip6.h"
+
 #include "xio-openssl.h"
 
 /* the openssl library requires a file descriptor for external communications.
@@ -58,7 +61,7 @@ static int openssl_delete_cert_info(void);
 
 
 /* description record for ssl connect */
-const struct addrdesc addr_openssl = {
+const struct addrdesc xioaddr_openssl = {
    "openssl",	/* keyword for selecting this address type in xioopen calls
 		   (canonical or main name) */
    3,		/* data flow directions this address supports on API layer:
@@ -67,7 +70,7 @@ const struct addrdesc addr_openssl = {
    GROUP_FD|GROUP_SOCKET|GROUP_SOCK_IP4|GROUP_SOCK_IP6|GROUP_IP_TCP|GROUP_CHILD|GROUP_OPENSSL|GROUP_RETRY,	/* bitwise OR of address groups this address belongs to.
 		   You might have to specify a new group in xioopts.h */
    0,		/* an integer passed to xioopen_openssl; makes it possible to
-		   use the same xioopen_openssl function for slightly different
+		   use the xioopen_openssl_connect function for slightly different
 		   address types. */
    0,		/* like previous argument */
    0		/* like previous arguments, but pointer type.
@@ -79,7 +82,7 @@ const struct addrdesc addr_openssl = {
 
 #if WITH_LISTEN
 /* description record for ssl listen */
-const struct addrdesc addr_openssl_listen = {
+const struct addrdesc xioaddr_openssl_listen = {
    "openssl-listen",	/* keyword for selecting this address type in xioopen calls
 		   (canonical or main name) */
    3,		/* data flow directions this address supports on API layer:
@@ -88,7 +91,7 @@ const struct addrdesc addr_openssl_listen = {
    GROUP_FD|GROUP_SOCKET|GROUP_SOCK_IP4|GROUP_SOCK_IP6|GROUP_IP_TCP|GROUP_LISTEN|GROUP_CHILD|GROUP_RANGE|GROUP_OPENSSL|GROUP_RETRY,	/* bitwise OR of address groups this address belongs to.
 		   You might have to specify a new group in xioopts.h */
    0,		/* an integer passed to xioopen_openssl_listen; makes it possible to
-		   use the same xioopen_openssl_listen function for slightly different
+		   use the xioopen_openssl_listen function for slightly different
 		   address types. */
    0,		/* like previous argument */
    0		/* like previous arguments, but pointer type.
@@ -99,10 +102,21 @@ const struct addrdesc addr_openssl_listen = {
 } ;
 #endif /* WITH_LISTEN */
 
+const struct addrdesc xioaddr_openssl_dtls_client = { "openssl-dtls-client", 3, xioopen_openssl_connect, GROUP_FD|GROUP_SOCKET|GROUP_SOCK_IP4|GROUP_SOCK_IP6|GROUP_IP_UDP|GROUP_CHILD|GROUP_OPENSSL|GROUP_RETRY, 1, 0, 0  HELP(":<host>:<port>") } ;
+#if WITH_LISTEN
+const struct addrdesc xioaddr_openssl_dtls_server = { "openssl-dtls-server", 3, xioopen_openssl_listen, GROUP_FD|GROUP_SOCKET|GROUP_SOCK_IP4|GROUP_SOCK_IP6|GROUP_IP_UDP|GROUP_LISTEN|GROUP_CHILD|GROUP_RANGE|GROUP_OPENSSL|GROUP_RETRY, 1, 0, 0  HELP(":<port>") } ;
+#endif
+
 /* both client and server */
 const struct optdesc opt_openssl_cipherlist = { "openssl-cipherlist", "ciphers", OPT_OPENSSL_CIPHERLIST, GROUP_OPENSSL, PH_SPEC, TYPE_STRING, OFUNC_SPEC };
 #if WITH_OPENSSL_METHOD
 const struct optdesc opt_openssl_method     = { "openssl-method",     "method",  OPT_OPENSSL_METHOD,     GROUP_OPENSSL, PH_SPEC, TYPE_STRING, OFUNC_SPEC };
+#endif
+#if HAVE_SSL_CTX_set_min_proto_version || defined(SSL_CTX_set_min_proto_version)
+const struct optdesc opt_openssl_min_proto_version = { "openssl-min-proto-version", "min-version", OPT_OPENSSL_MIN_PROTO_VERSION, GROUP_OPENSSL, PH_INIT, TYPE_STRING, OFUNC_OFFSET, XIO_OFFSETOF(para.openssl.min_proto_version) };
+#endif
+#if HAVE_SSL_CTX_set_max_proto_version || defined(SSL_CTX_set_max_proto_version)
+const struct optdesc opt_openssl_max_proto_version = { "openssl-max-proto-version", "max-version", OPT_OPENSSL_MAX_PROTO_VERSION, GROUP_OPENSSL, PH_INIT, TYPE_STRING, OFUNC_OFFSET, XIO_OFFSETOF(para.openssl.max_proto_version) };
 #endif
 const struct optdesc opt_openssl_verify     = { "openssl-verify",     "verify",  OPT_OPENSSL_VERIFY,     GROUP_OPENSSL, PH_SPEC, TYPE_BOOL,   OFUNC_SPEC };
 const struct optdesc opt_openssl_certificate = { "openssl-certificate", "cert",  OPT_OPENSSL_CERTIFICATE, GROUP_OPENSSL, PH_SPEC, TYPE_FILENAME, OFUNC_SPEC };
@@ -119,6 +133,10 @@ const struct optdesc opt_openssl_compress    = { "openssl-compress",   "compress
 const struct optdesc opt_openssl_fips        = { "openssl-fips",       "fips",   OPT_OPENSSL_FIPS,        GROUP_OPENSSL, PH_SPEC, TYPE_BOOL,     OFUNC_SPEC };
 #endif
 const struct optdesc opt_openssl_commonname  = { "openssl-commonname", "cn",     OPT_OPENSSL_COMMONNAME,  GROUP_OPENSSL, PH_SPEC, TYPE_STRING,   OFUNC_SPEC };
+#if defined(HAVE_SSL_set_tlsext_host_name) || defined(SSL_set_tlsext_host_name)
+const struct optdesc opt_openssl_no_sni      = { "openssl-no-sni",    "nosni",   OPT_OPENSSL_NO_SNI,      GROUP_OPENSSL, PH_SPEC, TYPE_BOOL,     OFUNC_SPEC };
+const struct optdesc opt_openssl_snihost     = { "openssl-snihost",   "snihost", OPT_OPENSSL_SNIHOST,     GROUP_OPENSSL, PH_SPEC, TYPE_STRING,   OFUNC_SPEC };
+#endif
 
 
 /* If FIPS is compiled in, we need to track if the user asked for FIPS mode.
@@ -147,7 +165,15 @@ int xio_reset_fips_mode(void) {
 #endif
 
 static void openssl_conn_loginfo(SSL *ssl) {
-   Notice1("SSL connection using %s", SSL_get_cipher(ssl));
+   const char *string;
+
+   string = SSL_get_cipher_version(ssl);
+   Notice1("SSL proto version used: %s", string);
+   xiosetenv("OPENSSL_PROTO_VERSION", string, 1, NULL);
+
+   string = SSL_get_cipher(ssl);
+   Notice1("SSL connection using %s", string);
+   xiosetenv("OPENSSL_CIPHER", string, 1, NULL);
 
 #if OPENSSL_VERSION_NUMBER >= 0x00908000L && !defined(OPENSSL_NO_COMP)
    {
@@ -174,7 +200,7 @@ static int
 		   xiofile_t *xxfd,	/* a xio file descriptor structure,
 				   already allocated */
 		   unsigned groups,	/* the matching address groups... */
-		   int dummy1,	/* first transparent integer value from
+		   int protogrp,	/* first transparent integer value from
 				   addr_openssl */
 		   int dummy2,	/* second transparent integer value from
 				   addr_openssl */
@@ -185,8 +211,9 @@ static int
    struct opt *opts0 = NULL;
    const char *hostname, *portname;
    int pf = PF_UNSPEC;
-   int ipproto = IPPROTO_TCP;
+   bool use_dtls = (protogrp != 0);
    int socktype = SOCK_STREAM;
+   int ipproto = IPPROTO_TCP;
    bool dofork = false;
    union sockaddr_union us_sa,  *us = &us_sa;
    union sockaddr_union them_sa, *them = &them_sa;
@@ -199,6 +226,8 @@ static int
    bool opt_ver = true;	/* verify peer certificate */
    char *opt_cert = NULL;	/* file name of client certificate */
    const char *opt_commonname = NULL;	/* for checking peer certificate */
+   bool        opt_no_sni;
+   const char *opt_snihost = NULL;	/* for SNI host */
    int result;
 
    if (!(xioflags & XIO_MAYCONVERT)) {
@@ -228,14 +257,37 @@ static int
 
    retropt_string(opts, OPT_OPENSSL_CERTIFICATE, &opt_cert);
    retropt_string(opts, OPT_OPENSSL_COMMONNAME, (char **)&opt_commonname);
+#if defined(HAVE_SSL_set_tlsext_host_name) || defined(SSL_set_tlsext_host_name)
+   retropt_bool(opts, OPT_OPENSSL_NO_SNI, &opt_no_sni);
+   retropt_string(opts, OPT_OPENSSL_SNIHOST, (char **)&opt_snihost);
+#endif
    
    if (opt_commonname == NULL) {
-      opt_commonname = hostname;
+      opt_commonname = strdup(hostname);
+      if (opt_commonname == NULL) {
+	 Error1("strdup("F_Zu"): out of memory", strlen(hostname)+1);
+      }
    }
 
+#if defined(HAVE_SSL_set_tlsext_host_name) || defined(SSL_set_tlsext_host_name)
+   if (opt_snihost == NULL) {
+      opt_snihost = strdup(opt_commonname);
+      if (opt_snihost == NULL) {
+	 Error1("strdup("F_Zu"): out of memory", strlen(opt_commonname)+1);
+      }
+   }
+#endif
+
    result =
-      _xioopen_openssl_prepare(opts, xfd, false, &opt_ver, opt_cert, &ctx);
+      _xioopen_openssl_prepare(opts, xfd, false, &opt_ver, opt_cert, &ctx, (bool *)&use_dtls);
    if (result != STAT_OK)  return STAT_NORETRY;
+
+   if (use_dtls) {
+      socktype = SOCK_DGRAM;
+      ipproto = IPPROTO_UDP;
+   }
+   retropt_int(opts, OPT_SO_TYPE,      &socktype);
+   retropt_int(opts, OPT_SO_PROTOTYPE, &ipproto);
 
    result =
       _xioopen_ipapp_prepare(opts, &opts0, hostname, portname, &pf, ipproto,
@@ -264,7 +316,7 @@ static int
       /* this cannot fork because we retrieved fork option above */
       result =
 	 _xioopen_connect(xfd,
-			  needbind?(struct sockaddr *)us:NULL, uslen,
+			  needbind?us:NULL, uslen,
 			  (struct sockaddr *)them, themlen,
 			  opts, pf, socktype, ipproto, lowport, level);
       switch (result) {
@@ -291,7 +343,8 @@ static int
 	 return result;
       }
 
-      result = _xioopen_openssl_connect(xfd, opt_ver, opt_commonname, ctx, level);
+      result = _xioopen_openssl_connect(xfd, opt_ver, opt_commonname,
+			opt_no_sni, opt_snihost, ctx, level);
       switch (result) {
       case STAT_OK: break;
 #if WITH_RETRY
@@ -348,6 +401,9 @@ static int
 
    openssl_conn_loginfo(xfd->para.openssl.ssl);
 
+   free((void *)opt_commonname);
+   free((void *)opt_snihost);
+
    /* fill in the fd structure */
    return STAT_OK;
 }
@@ -360,6 +416,8 @@ static int
 int _xioopen_openssl_connect(struct single *xfd,
 			     bool opt_ver,
 			     const char *opt_commonname,
+			     bool no_sni,
+			     const char *snihost,
 			     SSL_CTX *ctx,
 			     int level) {
    SSL *ssl;
@@ -383,6 +441,17 @@ int _xioopen_openssl_connect(struct single *xfd,
       xfd->para.openssl.ssl = NULL;
       return result;
    }
+
+#if defined(HAVE_SSL_set_tlsext_host_name) || defined(SSL_set_tlsext_host_name)
+   if (!no_sni) {
+      if (!SSL_set_tlsext_host_name(ssl, snihost)) {
+	 Error1("Failed to set SNI host \"%s\"", snihost);
+	 sycSSL_free(xfd->para.openssl.ssl);
+	 xfd->para.openssl.ssl = NULL;
+	 return STAT_NORETRY;
+      }
+   }
+#endif
 
    result = xioSSL_connect(xfd, opt_commonname, opt_ver, level);
    if (result != STAT_OK) {
@@ -414,7 +483,7 @@ static int
 		   xiofile_t *xxfd,	/* a xio file descriptor structure,
 				   already allocated */
 		   unsigned groups,	/* the matching address groups... */
-		   int dummy1,	/* first transparent integer value from
+		   int protogrp,	/* first transparent integer value from
 				   addr_openssl */
 		   int dummy2,	/* second transparent integer value from
 				   addr_openssl */
@@ -427,6 +496,7 @@ static int
    union sockaddr_union us_sa, *us = &us_sa;
    socklen_t uslen = sizeof(us_sa);
    int pf;
+   bool use_dtls = (protogrp != 0);
    int socktype = SOCK_STREAM;
    int ipproto = IPPROTO_TCP;
    /*! lowport? */
@@ -472,8 +542,15 @@ static int
    applyopts(-1, opts, PH_EARLY);
 
    result =
-      _xioopen_openssl_prepare(opts, xfd, true, &opt_ver, opt_cert, &ctx);
+      _xioopen_openssl_prepare(opts, xfd, true, &opt_ver, opt_cert, &ctx, &use_dtls);
    if (result != STAT_OK)  return STAT_NORETRY;
+
+   if (use_dtls) {
+      socktype = SOCK_DGRAM;
+      ipproto = IPPROTO_UDP;
+   }
+   retropt_int(opts, OPT_SO_TYPE,      &socktype);
+   retropt_int(opts, OPT_SO_PROTOTYPE, &ipproto);
 
    if (_xioopen_ipapp_listen_prepare(opts, &opts0, portname, &pf, ipproto,
 				     xfd->para.socket.ip.res_opts[1],
@@ -483,7 +560,7 @@ static int
       return STAT_NORETRY;
    }
 
-   xfd->addr  = &addr_openssl_listen;
+   xfd->addr  = &xioaddr_openssl_listen;
    xfd->dtype = XIODATA_OPENSSL;
 
    while (true) {	/* loop over failed attempts */
@@ -495,17 +572,24 @@ static int
 #endif /* WITH_RETRY */
 	 level = E_ERROR;
 
-      /* tcp listen; this can fork() for us; it only returns on error or on
-	 successful establishment of tcp connection */
-      result = _xioopen_listen(xfd, xioflags,
+      /* this can fork() for us; it only returns on error or on
+	 successful establishment of connection */
+      if (ipproto == IPPROTO_TCP) {
+	 result = _xioopen_listen(xfd, xioflags,
 			       (struct sockaddr *)us, uslen,
-			       opts, pf, socktype, IPPROTO_TCP,
+			       opts, pf, socktype, ipproto,
 #if WITH_RETRY
 			       (xfd->retry||xfd->forever)?E_INFO:E_ERROR
 #else
 			       E_ERROR
 #endif /* WITH_RETRY */
 			       );
+#if WITH_UDP
+      } else {
+	 result = _xioopen_ipdgram_listen(xfd, xioflags,
+		us, uslen, opts, pf, socktype, ipproto);
+#endif /* WITH_UDP */
+      }
 	 /*! not sure if we should try again on retry/forever */
       switch (result) {
       case STAT_OK: break;
@@ -706,6 +790,116 @@ static int openssl_setup_compression(SSL_CTX *ctx, char *method)
 #endif
 
 
+#if HAVE_CTX_SSL_set_min_proto_version || defined(SSL_CTX_set_min_proto_version) || \
+   HAVE_SSL_CTX_set_max_proto_version || defined(SSL_CTX_set_max_proto_version)
+#define XIO_OPENSSL_VERSIONGROUP_TLS 1
+#define XIO_OPENSSL_VERSIONGROUP_DTLS 2
+
+static struct wordent _xio_openssl_versions[] = {
+#ifdef DTLS1_VERSION
+   { "DTLS1",		(void *)DTLS1_VERSION },
+   { "DTLS1.0",		(void *)DTLS1_VERSION },
+#endif
+#ifdef DTLS1_2_VERSION
+   { "DTLS1.2",		(void *)DTLS1_2_VERSION },
+#endif
+#ifdef DTLS1_VERSION
+   { "DTLSv1",		(void *)DTLS1_VERSION },
+   { "DTLSv1.0",	(void *)DTLS1_VERSION },
+#endif
+#ifdef DTLS1_2_VERSION
+   { "DTLSv1.2",	(void *)DTLS1_2_VERSION },
+#endif
+#ifdef SSL2_VERSION
+   { "SSL2",		(void *)SSL2_VERSION },
+#endif
+#ifdef SSL3_VERSION
+   { "SSL3",		(void *)SSL3_VERSION },
+#endif
+#ifdef SSL2_VERSION
+   { "SSLv2",		(void *)SSL2_VERSION },
+#endif
+#ifdef SSL3_VERSION
+   { "SSLv3",		(void *)SSL3_VERSION },
+#endif
+#ifdef TLS1_VERSION
+   { "TLS1",		(void *)TLS1_VERSION },
+   { "TLS1.0",		(void *)TLS1_VERSION },
+#endif
+#ifdef TLS1_1_VERSION
+   { "TLS1.1",		(void *)TLS1_1_VERSION },
+#endif
+#ifdef TLS1_2_VERSION
+   { "TLS1.2",		(void *)TLS1_2_VERSION },
+#endif
+#ifdef TLS1_3_VERSION
+   { "TLS1.3",		(void *)TLS1_3_VERSION },
+#endif
+#ifdef TLS1_VERSION
+   { "TLSv1",		(void *)TLS1_VERSION },
+   { "TLSv1.0",		(void *)TLS1_VERSION },
+#endif
+#ifdef TLS1_1_VERSION
+   { "TLSv1.1",		(void *)TLS1_1_VERSION },
+#endif
+#ifdef TLS1_2_VERSION
+   { "TLSv1.2",		(void *)TLS1_2_VERSION },
+#endif
+#ifdef TLS1_3_VERSION
+   { "TLSv1.3",		(void *)TLS1_3_VERSION },
+#endif
+} ;
+
+static int _xio_openssl_parse_version(const char *verstring, int vergroups) {
+   int sslver;
+   const struct wordent *we;
+   we = keyw(_xio_openssl_versions, verstring,
+	     sizeof(_xio_openssl_versions)/sizeof(struct wordent));
+   if (we == 0) {
+      Error1("Unknown SSL/TLS version \"%s\"", verstring);
+      return -1;
+   }
+   sslver = (size_t)we->desc;
+   switch (sslver) {
+#ifdef SSL2_VERSION
+   case SSL2_VERSION:
+#endif
+#ifdef SSL3_VERSION
+   case SSL3_VERSION:
+#endif
+#ifdef TLS1_VERSION
+   case TLS1_VERSION:
+#endif
+#ifdef TLS1_1_VERSION
+   case TLS1_1_VERSION:
+#endif
+#ifdef TLS1_2_VERSION
+   case TLS1_2_VERSION:
+#endif
+#ifdef TLS1_3_VERSION
+   case TLS1_3_VERSION:
+#endif
+      if (!(vergroups & XIO_OPENSSL_VERSIONGROUP_TLS)) {
+	 Error1("Wrong type of TLS/DTLS version \"%s\"", verstring);
+	 return -1;
+      }
+#ifdef DTLS1_VERSION
+   case DTLS1_VERSION:
+#endif
+#ifdef DTLS1_2_VERSION
+   case DTLS1_2_VERSION:
+#endif
+      if (!(vergroups & XIO_OPENSSL_VERSIONGROUP_DTLS)) {
+	 Error1("Wrong type of TLS/DTLS version \"%s\"", verstring);
+	 return -1;
+      }
+      break;
+   }
+   return sslver;
+}
+#endif /* defined(SSL_CTX_set_min_proto_version) || defined(SSL_CTX_set_max_proto_version) */
+
+
 int
    _xioopen_openssl_prepare(struct opt *opts,
 			    struct single *xfd,/* a xio file descriptor
@@ -714,8 +908,10 @@ int
 			    bool server,	/* SSL client: false */
 			    bool *opt_ver,
 			    const char *opt_cert,
-			    SSL_CTX **ctx)
+			    SSL_CTX **ctxp,
+			    bool *use_dtls)	/* checked,overwritten with true if DTLS-method */
 {
+   SSL_CTX *ctx;
    bool opt_fips = false;
    const SSL_METHOD *method = NULL;
    char *me_str = NULL;	/* method string */
@@ -732,7 +928,9 @@ int
    unsigned long err;
    int result;
 
-   xfd->addr  = &addr_openssl;
+   //*ipproto = IPPROTO_TCP;
+
+   xfd->addr  = &xioaddr_openssl;
    xfd->dtype = XIODATA_OPENSSL;
 
    retropt_bool(opts, OPT_OPENSSL_FIPS, &opt_fips);
@@ -762,14 +960,21 @@ int
 
    openssl_delete_cert_info();
 
+   /* OpenSSL preparation */
+#if HAVE_OPENSSL_init_ssl
+   {
+      OPENSSL_INIT_SETTINGS *settings;
+      settings = OPENSSL_INIT_new();
+      sycOPENSSL_init_ssl(0, settings);
+   }
+#else
+   sycSSL_library_init();
    OpenSSL_add_all_algorithms();
    OpenSSL_add_all_ciphers();
    OpenSSL_add_all_digests();
    sycSSL_load_error_strings();
+#endif
 
-   /* OpenSSL preparation */
-   sycSSL_library_init();
-   
    /*! actions_to_seed_PRNG();*/
 
    if (!server) {
@@ -801,15 +1006,21 @@ int
 	    method = sycTLSv1_2_client_method();
 #endif
 #if HAVE_DTLSv1_client_method
-	 } else if (!strcasecmp(me_str, "DTLS") || !strcasecmp(me_str, "DTLS1")) {
+	 } else if (!strcasecmp(me_str, "DTLS1") || !strcasecmp(me_str, "DTLS1.0")) {
 	    method = sycDTLSv1_client_method();
+	    *use_dtls = true;
+#endif
+#if HAVE_DTLSv1_2_client_method
+	 } else if (!strcasecmp(me_str, "DTLS1.2")) {
+	    method = sycDTLSv1_2_client_method();
+	 *use_dtls = true;
 #endif
 	 } else {
 	    Error1("openssl-method=\"%s\": method unknown or not provided by library", me_str);
 	 }
-      } else {
+      } else if (!*use_dtls) {
 #if   HAVE_TLS_client_method
-	 method = TLS_client_method();
+	 method = sycTLS_client_method();
 #elif HAVE_SSLv23_client_method
 	 method = sycSSLv23_client_method();
 #elif HAVE_TLSv1_2_client_method
@@ -823,8 +1034,19 @@ int
 #elif HAVE_SSLv2_client_method
 	 method = sycSSLv2_client_method();
 #else
-#        error "OpenSSL does not seem to provide client methods"
+#        error "OpenSSL does not seem to provide SSL/TLS client methods"
 #endif
+      } else {
+#if   HAVE_DTLS_client_method
+	 method = sycDTLS_client_method();
+#elif HAVE_DTLSv1_2_client_method
+	 method = sycDTLSv1_2_client_method();
+#elif HAVE_DTLSv1_client_method
+	 method = sycDTLSv1_client_method();
+#else
+#        error "OpenSSL does not seem to provide DTLS client methods"
+#endif
+	 *use_dtls = true;
       }
    } else /* server */ {
       if (me_str != 0) {
@@ -855,15 +1077,21 @@ int
 	    method = sycTLSv1_2_server_method();
 #endif
 #if HAVE_DTLSv1_server_method
-	 } else if (!strcasecmp(me_str, "DTLS") || !strcasecmp(me_str, "DTLS1")) {
+	 } else if (!strcasecmp(me_str, "DTLS1") || !strcasecmp(me_str, "DTLS1.0")) {
 	    method = sycDTLSv1_server_method();
+	    *use_dtls = true;
+#endif
+#if HAVE_DTLSv1_2_server_method
+	 } else if (!strcasecmp(me_str, "DTLS1.2")) {
+	    method = sycDTLSv1_2_server_method();
+	 *use_dtls = true;
 #endif
 	 } else {
 	    Error1("openssl-method=\"%s\": method unknown or not provided by library", me_str);
 	 }
-      } else {
+      } else if (!*use_dtls) {
 #if   HAVE_TLS_server_method
-	 method = TLS_server_method();
+	 method = sycTLS_server_method();
 #elif HAVE_SSLv23_server_method
 	 method = sycSSLv23_server_method();
 #elif HAVE_TLSv1_2_server_method
@@ -877,8 +1105,19 @@ int
 #elif HAVE_SSLv2_server_method
 	 method = sycSSLv2_server_method();
 #else
-#        error "OpenSSL does not seem to provide client methods"
+#        error "OpenSSL does not seem to provide SSL/TLS server methods"
 #endif
+      } else {
+#if   HAVE_DTLS_server_method
+	 method = sycDTLS_server_method();
+#elif HAVE_DTLSv1_2_server_method
+	 method = sycDTLSv1_2_server_method();
+#elif HAVE_DTLSv1_server_method
+	 method = sycDTLSv1_server_method();
+#else
+#        error "OpenSSL does not seem to provide DTLS server methods"
+#endif
+	 *use_dtls = true;
       }
    }
 
@@ -910,7 +1149,7 @@ int
       }
    }
 
-   if ((*ctx = sycSSL_CTX_new(method)) == NULL) {
+   if ((ctx = sycSSL_CTX_new(method)) == NULL) {
       if (ERR_peek_error() == 0) Error("SSL_CTX_new()");
       while (err = ERR_get_error()) {
 	 Error1("SSL_CTX_new(): %s", ERR_error_string(err, NULL));
@@ -919,6 +1158,39 @@ int
       /*ERR_clear_error;*/
       return STAT_RETRYLATER;
    }
+   xfd->para.openssl.ctx = ctx;
+   *ctxp = ctx;
+
+#if HAVE_SSL_CTX_set_min_proto_version || defined(SSL_CTX_set_min_proto_version)
+   if (xfd->para.openssl.min_proto_version != NULL) {
+      int sslver, rc;
+      sslver = _xio_openssl_parse_version(xfd->para.openssl.min_proto_version,
+					  XIO_OPENSSL_VERSIONGROUP_TLS|XIO_OPENSSL_VERSIONGROUP_DTLS);
+      if (sslver < 0)
+	 return STAT_NORETRY;
+      if ((rc = SSL_CTX_set_min_proto_version(ctx, sslver)) <= 0) {
+	 Debug1("version: %ld", SSL_CTX_get_min_proto_version(ctx));
+	 Error3("_xioopen_openssl_prepare(): SSL_CTX_set_min_proto_version(\"%s\"->%d): failed (%d)",
+		xfd->para.openssl.min_proto_version, sslver, rc);
+	 return STAT_NORETRY;
+      }
+	 Debug1("version: %ld", SSL_CTX_get_min_proto_version(ctx));
+   }
+#endif /* HAVE_SSL_set_min_proto_version || defined(SSL_set_min_proto_version) */
+#if HAVE_SSL_CTX_set_max_proto_version || defined(SSL_CTX_set_max_proto_version)
+   if (xfd->para.openssl.max_proto_version != NULL) {
+      int sslver;
+      sslver = _xio_openssl_parse_version(xfd->para.openssl.max_proto_version,
+					  XIO_OPENSSL_VERSIONGROUP_TLS|XIO_OPENSSL_VERSIONGROUP_DTLS);
+      if (sslver < 0)
+	 return STAT_NORETRY;
+      if (SSL_CTX_set_max_proto_version(ctx, sslver) <= 0) {
+	 Error2("_xioopen_openssl_prepare(): SSL_CTX_set_max_proto_version(\"%s\"->%d): failed",
+		xfd->para.openssl.max_proto_version, sslver);
+	 return STAT_NORETRY;
+      }
+   }
+#endif /* HAVE_SSL_set_max_proto_version || defined(SSL_set_max_proto_version) */
 
    {
       static unsigned char dh2048_p[] = {
@@ -976,12 +1248,12 @@ int
       dh->p = p;
       dh->g = g;
 #endif /* HAVE_DH_set0_pqg */
-      if (sycSSL_CTX_set_tmp_dh(*ctx, dh) <= 0) {
+      if (sycSSL_CTX_set_tmp_dh(ctx, dh) <= 0) {
          while (err = ERR_get_error()) {
-            Warn3("SSL_CTX_set_tmp_dh(%p, %p): %s", *ctx, dh,
+            Warn3("SSL_CTX_set_tmp_dh(%p, %p): %s", ctx, dh,
                   ERR_error_string(err, NULL));
          }
-         Error2("SSL_CTX_set_tmp_dh(%p, %p) failed", *ctx, dh);
+         Error2("SSL_CTX_set_tmp_dh(%p, %p) failed", ctx, dh);
       }
       /* p & g are freed by DH_free() once attached */
       DH_free(dh);
@@ -1009,34 +1281,36 @@ cont_out:
 	 return -1;
       }
 
-      SSL_CTX_set_tmp_ecdh(*ctx, ecdh);
+      SSL_CTX_set_tmp_ecdh(ctx, ecdh);
    }
 #endif /* HAVE_TYPE_EC_KEY */
 
 #if OPENSSL_VERSION_NUMBER >= 0x00908000L
    if (opt_compress) {
       int result;
-      result = openssl_setup_compression(*ctx, opt_compress);
+      result = openssl_setup_compression(ctx, opt_compress);
       if (result != STAT_OK) {
 	return result;
       }
    }
 #endif
 
+#if defined(HAVE_SSL_CTX_clear_mode) || defined(SSL_CTX_clear_mode)
    /* It seems that OpenSSL-1.1.1 presets the mode differently.
       Without correction socat might hang in SSL_read() */
    {
       long mode = 0;
-      mode = SSL_CTX_get_mode(*ctx);
+      mode = SSL_CTX_get_mode(ctx);
       if (mode & SSL_MODE_AUTO_RETRY) {
 	 Info("SSL_CTX mode has SSL_MODE_AUTO_RETRY set. Correcting..");
-	 Debug1("SSL_CTX_clean_mode(%p, SSL_MODE_AUTO_RETRY)", *ctx);
-	 SSL_CTX_clear_mode(*ctx, SSL_MODE_AUTO_RETRY);
+	 Debug1("SSL_CTX_clear_mode(%p, SSL_MODE_AUTO_RETRY)", ctx);
+	 SSL_CTX_clear_mode(ctx, SSL_MODE_AUTO_RETRY);
       }
    }
+#endif /* defined(HAVE_SSL_CTX_clear_mode) || defined(SSL_CTX_clear_mode) */
 
    if (opt_cafile != NULL || opt_capath != NULL) {
-      if (sycSSL_CTX_load_verify_locations(*ctx, opt_cafile, opt_capath) != 1) {
+      if (sycSSL_CTX_load_verify_locations(ctx, opt_cafile, opt_capath) != 1) {
 	 int result;
 
 	 if ((result =
@@ -1048,7 +1322,7 @@ cont_out:
       }
 #ifdef HAVE_SSL_CTX_set_default_verify_paths
    } else {
-      SSL_CTX_set_default_verify_paths(*ctx);
+      SSL_CTX_set_default_verify_paths(ctx);
 #endif
    }
 
@@ -1056,12 +1330,12 @@ cont_out:
       BIO *bio;
       DH *dh;
 
-      if (sycSSL_CTX_use_certificate_chain_file(*ctx, opt_cert) <= 0) {
+      if (sycSSL_CTX_use_certificate_chain_file(ctx, opt_cert) <= 0) {
 	 /*! trace functions */
 	 /*0 ERR_print_errors_fp(stderr);*/
 	 if (ERR_peek_error() == 0)
 	    Error2("SSL_CTX_use_certificate_file(%p, \"%s\", SSL_FILETYPE_PEM) failed",
-		 *ctx, opt_cert);
+		 ctx, opt_cert);
 	 while (err = ERR_get_error()) {
 	    Error1("SSL_CTX_use_certificate_file(): %s",
 		   ERR_error_string(err, NULL));
@@ -1069,7 +1343,7 @@ cont_out:
 	 return STAT_RETRYLATER;
       }
 
-      if (sycSSL_CTX_use_PrivateKey_file(*ctx, opt_key?opt_key:opt_cert, SSL_FILETYPE_PEM) <= 0) {
+      if (sycSSL_CTX_use_PrivateKey_file(ctx, opt_key?opt_key:opt_cert, SSL_FILETYPE_PEM) <= 0) {
 	 /*ERR_print_errors_fp(stderr);*/
 	 openssl_SSL_ERROR_SSL(E_ERROR/*!*/, "SSL_CTX_use_PrivateKey_file");
 	 return STAT_RETRYLATER;
@@ -1086,12 +1360,12 @@ cont_out:
 	    Info1("PEM_read_bio_DHparams(%p, NULL, NULL, NULL): error", bio);
 	 } else {
 	    BIO_free(bio);
-	    if (sycSSL_CTX_set_tmp_dh(*ctx, dh) <= 0) {
+	    if (sycSSL_CTX_set_tmp_dh(ctx, dh) <= 0) {
 	       while (err = ERR_get_error()) {
-		  Warn3("SSL_CTX_set_tmp_dh(%p, %p): %s", *ctx, dh,
+		  Warn3("SSL_CTX_set_tmp_dh(%p, %p): %s", ctx, dh,
 			ERR_error_string(err, NULL));
 	       }
-	       Error2("SSL_CTX_set_tmp_dh(%p, %p): error", *ctx, dh);
+	       Error2("SSL_CTX_set_tmp_dh(%p, %p): error", ctx, dh);
 	    }
 	 }
       }
@@ -1100,7 +1374,7 @@ cont_out:
    /* set pre openssl-connect options */
    /* SSL_CIPHERS */
    if (ci_str != NULL) {
-      if (sycSSL_CTX_set_cipher_list(*ctx, ci_str) <= 0) {
+      if (sycSSL_CTX_set_cipher_list(ctx, ci_str) <= 0) {
 	 if (ERR_peek_error() == 0)
 	    Error1("SSL_set_cipher_list(, \"%s\") failed", ci_str);
 	 while (err = ERR_get_error()) {
@@ -1113,11 +1387,11 @@ cont_out:
    }
 
    if (*opt_ver) {
-      sycSSL_CTX_set_verify(*ctx,
+      sycSSL_CTX_set_verify(ctx,
 			    SSL_VERIFY_PEER| SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
 			    NULL);
    } else {
-      sycSSL_CTX_set_verify(*ctx,
+      sycSSL_CTX_set_verify(ctx,
 			    SSL_VERIFY_NONE,
 			    NULL);
    }
@@ -1241,7 +1515,9 @@ static int openssl_delete_cert_info(void) {
 	 const char *eq = strchr(*entry, '=');
 	 if (eq == NULL)  eq = *entry + strlen(*entry);
 	 envname[0] = '\0'; strncat(envname, *entry, eq-*entry);
+#if HAVE_UNSETENV
 	 Unsetenv(envname);
+#endif
       } else {
 	 ++entry;
       }
@@ -1310,31 +1586,30 @@ static int openssl_setenv_cert_fields(const char *field, X509_NAME *name) {
    supports wildcard cn like *.domain which matches domain and
    host.domain
    returns true on match */
-static bool openssl_check_name(const char *cn, const char *peername) {
+static bool openssl_check_name(const char *nametype, const char *cn, const char *peername) {
    const char *dotp;
    if (peername == NULL) {
-      Info1("commonName \"%s\": no peername", cn);
+      Info2("%s \"%s\": no peername", nametype, cn);
       return false;
    } else if (peername[0] == '\0') {
-      Info1("commonName \"%s\": matched by empty peername", cn);
+      Info2("%s \"%s\": matched by empty peername", nametype, cn);
       return true;
    }
    if (! (cn[0] == '*' && cn[1] == '.')) {
       /* normal server name - this is simple */
-      Debug1("commonName \"%s\" has no wildcard", cn);
       if (strcmp(cn, peername) == 0) {
-	 Debug2("commonName \"%s\" matches peername \"%s\"", cn, peername);
+	 Debug3("%s \"%s\" matches peername \"%s\"", nametype, cn, peername);
 	 return true;
       } else {
-	 Info2("commonName \"%s\" does not match peername \"%s\"", cn, peername);
+	 Info3("%s \"%s\" does not match peername \"%s\"", nametype, cn, peername);
 	 return false;
       }
    }
    /* wildcard cert */
-   Debug1("commonName \"%s\" is a wildcard name", cn);
+   Debug2("%s \"%s\" is a wildcard name", nametype, cn);
    /* case: just the base domain */
    if (strcmp(cn+2, peername) == 0) {
-      Debug2("wildcard commonName \"%s\" matches base domain \"%s\"", cn, peername);
+      Debug3("wildcard %s \"%s\" matches base domain \"%s\"", nametype, cn, peername);
       return true;
    }
    /* case: subdomain; only one level! */
@@ -1345,10 +1620,10 @@ static bool openssl_check_name(const char *cn, const char *peername) {
       return false;
    }
    if (strcmp(cn+1, dotp) != 0) {
-      Info2("commonName \"%s\" does not match subdomain peername \"%s\"", cn, peername);
+      Info3("%s \"%s\" does not match subdomain peername \"%s\"", nametype, cn, peername);
       return false;
    }
-   Debug2("commonName \"%s\" matches subdomain peername \"%s\"", cn, peername);
+   Debug3("%s \"%s\" matches subdomain peername \"%s\"", nametype, cn, peername);
    return true;
 }
 
@@ -1371,7 +1646,7 @@ static bool openssl_check_peername(X509_NAME *name, const char *peername) {
 #else
    text = ASN1_STRING_data(data);
 #endif
-   return openssl_check_name((const char *)text, peername);
+   return openssl_check_name("commonName", (const char *)text, peername);
 }
 
 /* retrieves certificate provided by peer, sets env vars containing
@@ -1381,6 +1656,9 @@ static bool openssl_check_peername(X509_NAME *name, const char *peername) {
    http://etutorials.org/Programming/secure+programming/Chapter+10.+Public+Key+Infrastructure/10.8+Adding+Hostname+Checking+to+Certificate+Verification/
    The code examples in this tutorial do not seem to have explicit license restrictions.
 */
+/* peername is, with OpenSSL client, the server name, or the value of option
+   commonname if provided;
+   With OpenSSL server, it is the value of option commonname */
 static int openssl_handle_peer_certificate(struct single *xfd,
 					   const char *peername,
 					   bool opt_ver, int level) {
@@ -1434,9 +1712,17 @@ static int openssl_handle_peer_certificate(struct single *xfd,
       openssl_setenv_cert_name("issuer", issuername);
    }
 
+   if (!opt_ver) {
+      Notice("option openssl-verify disabled, no check of certificate");
+      X509_free(peer_cert);
+      return STAT_OK;
+   }
+
    /* check peername against cert's subjectAltName DNS entries */
    /* this code is based on example from Gerhard Gappmeier in
       http://openssl.6102.n7.nabble.com/How-to-extract-subjectAltName-td17236.html
+      and the GEN_IPADD from
+      http://openssl.6102.n7.nabble.com/reading-IP-addresses-from-Subject-Alternate-Name-extension-td29245.html
    */
    if ((extcount = X509_get_ext_count(peer_cert)) > 0) {
       for (i = 0;  !ok && i < extcount;  ++i) {
@@ -1456,50 +1742,83 @@ static int openssl_handle_peer_certificate(struct single *xfd,
 	       /* get amount of alternatives, RFC2459 claims there MUST be at least one, but we don't depend on it... */
 	       numalts = sk_GENERAL_NAME_num ( names );
 	       /* loop through all alternatives */
-	       for ( i=0; ( i<numalts ); i++ ) {
+	       for (i = 0; i < numalts; ++i) {
 		  /* get a handle to alternative name number i */
-		  const GENERAL_NAME *pName = sk_GENERAL_NAME_value (names, i );
+		  const GENERAL_NAME *pName = sk_GENERAL_NAME_value (names, i);
 		  unsigned char *pBuffer;
-		  switch ( pName->type ) {
+		  switch (pName->type) {
 
 		  case GEN_DNS:
-		     ASN1_STRING_to_UTF8(&pBuffer, 
-pName->d.ia5);
+		     ASN1_STRING_to_UTF8(&pBuffer, pName->d.ia5);
 		     xiosetenv("OPENSSL_X509V3_SUBJECTALTNAME_DNS", (char *)pBuffer, 2, " // ");
 		     if (peername != NULL &&
-			 openssl_check_name((char *)pBuffer, /*const char*/peername)) {
+			 openssl_check_name("subjectAltName", (char *)pBuffer, /*const char*/peername)) {
 			ok = 1;
 		     }
 		     OPENSSL_free(pBuffer);
 		     break;
 
-		  default: continue;
+		  case GEN_IPADD:
+		     {
+			/* binary address format */
+			const unsigned char *data = pName->d.iPAddress->data;
+			size_t len = pName->d.iPAddress->length;
+			char aBuffer[INET6_ADDRSTRLEN]; 	/* canonical peername */
+			struct in6_addr ip6bin;
+
+			switch (len) {
+			case 4: /* IPv4 */
+			   snprintf(aBuffer, sizeof(aBuffer), "%u.%u.%u.%u", data[0], data[1], data[2], data[3]);
+			   if (peername != NULL &&
+			       openssl_check_name("subjectAltName", aBuffer, /*const char*/peername)) {
+			      ok = 1;
+			   }
+			   break;
+#if WITH_IP6
+			case 16: /* IPv6 */
+			   inet_ntop(AF_INET6, data, aBuffer, sizeof(aBuffer));
+			   xioip6_pton(peername, &ip6bin);
+			   if (memcmp(data, &ip6bin, sizeof(ip6bin)) == 0) {
+			      Debug2("subjectAltName \"%s\" matches peername \"%s\"",
+				    aBuffer, peername);
+			      ok = 1;
+			   } else {
+			      Info2("subjectAltName \"%s\" does not match peername \"%s\"",
+				    aBuffer, peername);
+			   }			      
+			   break;
+#endif
+			}
+			xiosetenv("OPENSSL_X509V3_SUBJECTALTNAME_IPADD", (char *)aBuffer, 2, " // ");
+		     }
+		     break;
+		  default: Warn3("Unknown subject type %d (GEN_DNS=%d, GEN_IPADD=%d",
+				 pName->type, GEN_DNS, GEN_IPADD);
+		     continue;
 		  }
+		  if (ok)  { break; }
 	       }
 	    }
 	 }
       }
    }
 
-   if (!opt_ver) {
-      Notice("option openssl-verify disabled, no check of certificate");
-      X509_free(peer_cert);
-      return STAT_OK;
-   }
-   if (peername == NULL || peername[0] == '\0') {
-      Notice("trusting certificate, no check of commonName");
-      X509_free(peer_cert);
-      return STAT_OK;
-   }
    if (ok) {
       Notice("trusting certificate, commonName matches");
       X509_free(peer_cert);
       return STAT_OK;
    }
 
+   if (peername == NULL || peername[0] == '\0') {
+      Notice("trusting certificate, no check of commonName");
+      X509_free(peer_cert);
+      return STAT_OK;
+   }
+
    /* here: all envs set; opt_ver, cert verified, no subjAltName match -> check subject CN */
    if (!openssl_check_peername(/*X509_NAME*/subjectname, /*const char*/peername)) {
-      Error("certificate is valid but its commonName does not match hostname");
+      Error1("certificate is valid but its commonName does not match hostname \"%s\"",
+	     peername);
       status = STAT_NORETRY;
    } else {
       Notice("trusting certificate, commonName matches");
@@ -1633,7 +1952,7 @@ ssize_t xioread_openssl(struct single *pipe, void *buff, size_t bufsiz) {
 	 }
 	 break;
       case SSL_ERROR_SSL:
-	 openssl_SSL_ERROR_SSL(E_ERROR, "SSL_connect");
+	 openssl_SSL_ERROR_SSL(E_ERROR, "SSL_read");
 	 break;
       default:
 	 Error("unknown error");
@@ -1692,7 +2011,7 @@ ssize_t xiowrite_openssl(struct single *pipe, const void *buff, size_t bufsiz) {
 	 }
 	 break;
       case SSL_ERROR_SSL:
-	 openssl_SSL_ERROR_SSL(E_ERROR, "SSL_connect");
+	 openssl_SSL_ERROR_SSL(E_ERROR, "SSL_write");
 	 break;
       default:
 	 Error("unknown error");
@@ -1704,5 +2023,19 @@ ssize_t xiowrite_openssl(struct single *pipe, const void *buff, size_t bufsiz) {
    return ret;
 }
 
+int xioshutdown_openssl(struct single *sfd, int how)
+{
+   int rc;
+
+   if ((rc = sycSSL_shutdown(sfd->para.openssl.ssl)) < 0) {
+      Warn1("xioshutdown_openssl(): SSL_shutdown() -> %d", rc);
+   }
+   if (sfd->tag == XIO_TAG_WRONLY) {
+      char buff[1];
+      /* give peer time to read all data before closing socket */
+      xioread_openssl(sfd, buff, 1);
+   }
+   return 0;
+}
 
 #endif /* WITH_OPENSSL */

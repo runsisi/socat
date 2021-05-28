@@ -1,0 +1,2 @@
+
+Applying an openssl-max-proto-version lower than openssl-min-proto-version results in an OpenSSL internal error only as late as during handshake (openssl-1.1.1-1ubuntu2.amd64)

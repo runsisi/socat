@@ -19,10 +19,6 @@
 
 #include "procan.h"
 
-/* dirty workaround so we dont get an error on AIX when getting linked with
-   libwrap */
-int allow_severity, deny_severity;
-
 
 int procan(FILE *outfile) {
 
@@ -158,6 +154,9 @@ int procan(FILE *outfile) {
 		 "virtual memory (kbytes) %24"F_rlim_max"%24"F_rlim_max"\n",
 		 rlim.rlim_cur, rlim.rlim_max);
       }
+#endif
+#ifdef SIZE_MAX
+      fprintf(outfile, "SIZE_MAX                  = %-24lu\n", SIZE_MAX);
 #endif
    }
 

@@ -232,6 +232,20 @@ $ socat -d -d tcp:localhost:25,crlf,nodelay exec:'/usr/sbin/chat -v -s "\"220 \"
 
 # socat readline TCP6:[::1]:21	# if your inetd/ftp is listening on ip6
 
+//////////////////////////////////////////////////////////////////////////////
+// VSOCK
+# start a linux VM with cid=21
+#    qemu-system-x86_64 -m 1G -smp 2 -cpu host -M accel=kvm \
+#     -drive if=virtio,file=/path/to/fedora.img,format=qcow2  \
+#     -device vhost-vsock-pci,guest-cid=21
+
+# guest listens on port 1234 and host connects to it
+guest$ socat - vsock-listen:1234
+host$ socat - vsock-connect:21:1234
+
+# host (well know CID_HOST = 2) listens on port 4321 and guest connects to it
+host$ socat - vsock-listen:4321
+guest$ socat - vsock-connect:2:4321
 
 ///////////////////////////////////////////////////////////////////////////////
 // application server solutions

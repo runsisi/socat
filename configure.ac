@@ -349,6 +349,29 @@ else
 fi
 fi
 
+AC_MSG_CHECKING(whether to include vsock support)
+AC_ARG_ENABLE(vsock, [  --disable-vsock         disable vsock support],
+	      [case "$enableval" in
+	       no) AC_MSG_RESULT(no); WITH_VSOCK= ;;
+	       *) AC_MSG_RESULT(yes); WITH_VSOCK=1 ;;
+	       esac],
+	       [AC_MSG_RESULT(yes);  WITH_VSOCK=1 ])
+if test "$WITH_VSOCK"; then
+  AC_CHECK_HEADER(linux/vm_sockets.h,
+    AC_DEFINE(HAVE_LINUX_VM_SOCKETS_H),
+    [WITH_VSOCK=;
+     AC_MSG_WARN([include file linux/vm_sockets.h not found, disabling vsock])],
+    [AC_INCLUDES_DEFAULT
+    #if HAVE_SYS_SOCKET_H
+    #include <sys/socket.h>
+    #endif
+    ]
+ )
+fi
+if test "$WITH_VSOCK"; then
+   AC_DEFINE(WITH_VSOCK)
+fi
+
 AC_MSG_CHECKING(whether to include listen support)
 AC_ARG_ENABLE(listen, [  --disable-listen        disable listen support],
 	      [case "$enableval" in
@@ -405,13 +428,13 @@ AC_ARG_ENABLE(pty, [  --disable-pty           disable pty support],
 	       esac],
 	       [AC_DEFINE(WITH_PTY) AC_MSG_RESULT(yes)])
 
-AC_MSG_CHECKING(whether to include ext2 fs attributes support)
-AC_ARG_ENABLE(ext2, [  --disable-ext2          disable ext2 fs attributes support],
+AC_MSG_CHECKING(whether to include fs attributes support)
+AC_ARG_ENABLE(fs, [  --disable-fs            disable fs attributes support],
 	      [case "$enableval" in
 	       no) AC_MSG_RESULT(no);;
-	       *) AC_DEFINE(WITH_EXT2) AC_MSG_RESULT(yes);;
+	       *) AC_DEFINE(WITH_FS) AC_MSG_RESULT(yes);;
 	       esac],
-	       [AC_DEFINE(WITH_EXT2) AC_MSG_RESULT(yes)])
+	       [AC_DEFINE(WITH_FS) AC_MSG_RESULT(yes)])
 
 AC_MSG_CHECKING(whether to include readline support)
 AC_ARG_ENABLE(readline, [  --disable-readline      disable readline support],
@@ -481,22 +504,33 @@ AC_ARG_ENABLE(openssl, [  --disable-openssl       disable OpenSSL support],
     *) AC_MSG_RESULT(yes); WITH_OPENSSL=1 ;;
    esac],
    [ AC_MSG_RESULT(yes);   WITH_OPENSSL=1 ])
+AC_ARG_ENABLE(openssl_base, [  --enable-openssl-base   specify directory with include/ and lib/],
+    [ OPENSSL_BASE="$enableval" ],
+    [ unset OPENSSL_BASE ])
 #
 if test -n "$WITH_OPENSSL"; then
+ if test -n "$OPENSSL_BASE"; then
+    sc_cv_have_openssl_ssl_h=yes; OPENSSL_BASE="$D"
+ else
   AC_MSG_NOTICE(checking for components of OpenSSL)
   # first, we need to find the include file <openssl/ssl.h>
   AC_CACHE_VAL(sc_cv_have_openssl_ssl_h,
     [AC_TRY_COMPILE([#include <openssl/ssl.h>],[;],
-      [sc_cv_have_openssl_ssl_h=yes; OPENSSL_ROOT=""; ],
+      [sc_cv_have_openssl_ssl_h=yes; OPENSSL_BASE=""; ],
       [sc_cv_have_openssl_ssl_h=no
-       for D in "/sw" "/usr/local" "/opt/freeware" "/usr/sfw" "/usr/local/ssl"; do
+       if [ "$OPENSSL_BASE" ]; then
+	  s="$OPENSSL_BASE"
+       else
+          Ds="/sw /usr/local /opt/freeware /usr/sfw /usr/local/ssl"
+       fi
+       for D in $Ds; do
 	I="$D/include"
 	i="$I/openssl/ssl.h"
 	if test -r "$i"; then
 	  #V_INCL="$V_INCL -I$I"
 	  CPPFLAGS="$CPPFLAGS -I$I"
 	  AC_MSG_NOTICE(found $i)
-	  sc_cv_have_openssl_ssl_h=yes; OPENSSL_ROOT="$D"
+	  sc_cv_have_openssl_ssl_h=yes; OPENSSL_BASE="$D"
 	  break;
 	fi
       done])
@@ -505,26 +539,32 @@ if test -n "$WITH_OPENSSL"; then
     AC_DEFINE(HAVE_OPENSSL_SSL_H)
   fi
   AC_MSG_NOTICE(checked for openssl/ssl.h... $sc_cv_have_openssl_ssl_h)
+ fi
 fi	# end checking for openssl/ssl.h
 #
+
+#if test -n "$WITH_OPENSSL"; then
+#  AC_CHECK_FUNCS(OPENSSL_init_ssl, SSL_library_init)
+#fi
+
 if test -n "$WITH_OPENSSL" -a "$sc_cv_have_openssl_ssl_h" = 'yes'; then
   # next, we search for the openssl library (libssl.*)
   # interesting: Linux only requires -lssl, FreeBSD requires -lssl -lcrypto
-  # Note, version OpenSSL 0.9.7j requires -lcrypto even on Linux.
+  # Note, version OpenSSL 0.9.7j and higher requires -lcrypto even on Linux.
   AC_MSG_CHECKING(for libssl)
   AC_CACHE_VAL(sc_cv_have_libssl,
     [ LIBS0="$LIBS"
-      if test -n "$OPENSSL_ROOT"; then
-	L="$OPENSSL_ROOT/lib"; LIBS="$LIBS -L$L -lssl"
+      if test -n "$OPENSSL_BASE"; then
+	L="$OPENSSL_BASE/lib"; LIBS="$LIBS -L$L -lssl -lcrypto"
       else
-	LIBS="$LIBS -lssl"
+	LIBS="$LIBS -lssl -lcrypto"
       fi
       AC_TRY_LINK([#include <openssl/ssl.h>],
-	[SSL_library_init();ERR_error_string()],
-	[sc_cv_have_libssl='yes'],
-	[ LIBS="$LIBS -lcrypto"
-	  AC_TRY_LINK([#include <openssl/ssl.h>],
-	  [SSL_library_init()],
+       [SSL_library_init();ERR_error_string()],
+       [sc_cv_have_libssl='yes'],
+       [ LIBS="$LIBS -lcrypto"
+       AC_TRY_LINK([#include <openssl/ssl.h>],
+       [SSL_library_init()],
 	  [sc_cv_have_libssl='yes'],
 	  [sc_cv_have_libssl='no'])
         ])
@@ -567,6 +607,18 @@ if test -n "$WITH_OPENSSL"; then
     AC_MSG_WARN([not all components of OpenSSL found, disabling it]);
   fi
 fi
+
+AC_CHECK_FUNCS(OPENSSL_init_ssl SSL_library_init)
+
+#; sc_cv_have_SSL_library_init='yes'; AC_DEFINE(HAVE_SSL_library_init)
+#if test -n "$WITH_OPENSSL"; then
+#     AC_CHECK_LIB(crypto, CRYPTO_new_ex_data, [], [AC_MSG_ERROR([library 'crypto' is required for OpenSSL])])
+#     FOUND_SSL_LIB="no"
+#     AC_CHECK_LIB(ssl, OPENSSL_init_ssl, [FOUND_SSL_LIB="yes"])
+#     AC_CHECK_LIB(ssl, SSL_library_init, [FOUND_SSL_LIB="yes"])
+#     AS_IF([test "x$FOUND_SSL_LIB" = xno], [AC_MSG_ERROR([library 'ssl' is required for OpenSSL; WITH_OPENSSL=])])
+#     AS_IF([test "x$FOUND_SSL_LIB" = xyes], [LIBS="$LIBS -L$L -lssl -lcrypto"])
+#fi
 
 if test -n "$WITH_OPENSSL"; then
 AC_MSG_CHECKING(whether to include OpenSSL method option)
@@ -617,8 +669,8 @@ if test -n "$WITH_FIPS"; then
 #include <openssl/fips.h>],[;],
       [sc_cv_have_openssl_fips_h=yes; ],
       [sv_cv_have_openssl_fips_h=no
-        if test -n "$OPENSSL_ROOT"; then
-          I="$OPENSSL_ROOT/include"
+        if test -n "$OPENSSL_BASE"; then
+          I="$OPENSSL_BASE/include"
           i="$I/openssl/fips.h"
           if test -r "$i"; then
             AC_MSG_NOTICE(found $i)
@@ -641,8 +693,8 @@ if test -n "$WITH_FIPS" -a "$sc_cv_have_openssl_fips_h" = 'yes'; then
     [ LIBS0="$LIBS"
       echo $LIBS | grep -q "\-lcrypto"
       if test $? -ne 0; then
-        if test -n "$OPENSSL_ROOT"; then
-          L="$OPENSSL_ROOT/lib"; LIBS="$LIBS -L$L -lcrypto"
+        if test -n "$OPENSSL_BASE"; then
+          L="$OPENSSL_BASE/lib"; LIBS="$LIBS -L$L -lcrypto"
         else
           LIBS="$LIBS -lcrypto"
         fi
@@ -724,12 +776,12 @@ AC_ARG_ENABLE(retry, [  --disable-retry         disable retry support],
 AC_MSG_CHECKING(included message level)
 AC_ARG_ENABLE(msglevel, [  --enable-msglevel=N     set max verbosity to debug,info,notice,warn,error,fatal],
 	      [case "$enableval" in
-	       0|debug) AC_DEFINE(WITH_MSGLEVEL,0) AC_MSG_RESULT(debug);;
-	       1|info)  AC_DEFINE(WITH_MSGLEVEL,1) AC_MSG_RESULT(info);;
-	       2|notice) AC_DEFINE(WITH_MSGLEVEL,2) AC_MSG_RESULT(notice);;
-	       3|warn) AC_DEFINE(WITH_MSGLEVEL,3) AC_MSG_RESULT(warn);;
-	       4|error) AC_DEFINE(WITH_MSGLEVEL,4) AC_MSG_RESULT(error);;
-	       5|fatal) AC_DEFINE(WITH_MSGLEVEL,5) AC_MSG_RESULT(fatal);;
+	       0|DEBUG|Debug|debug) AC_DEFINE(WITH_MSGLEVEL,0) AC_MSG_RESULT(debug);;
+	       1|INFO|Info|info)  AC_DEFINE(WITH_MSGLEVEL,1) AC_MSG_RESULT(info);;
+	       2|NOTICE|Notice|notice) AC_DEFINE(WITH_MSGLEVEL,2) AC_MSG_RESULT(notice);;
+	       3|WARN|Warn|warn) AC_DEFINE(WITH_MSGLEVEL,3) AC_MSG_RESULT(warn);;
+	       4|ERROR|Error|error) AC_DEFINE(WITH_MSGLEVEL,4) AC_MSG_RESULT(error);;
+	       5|FATAL|Fatal|fatal) AC_DEFINE(WITH_MSGLEVEL,5) AC_MSG_RESULT(fatal);;
 	       *) AC_DEFINE(WITH_MSGLEVEL,0) AC_MSG_RESULT(debug);;
 	       esac],
 	       [AC_DEFINE(WITH_MSGLEVEL,0) AC_MSG_RESULT(debug)])
@@ -757,10 +809,10 @@ AC_PROG_GCC_TRADITIONAL
 AC_FUNC_MEMCMP
 AC_TYPE_SIGNAL
 AC_FUNC_STRFTIME
-AC_CHECK_FUNCS(putenv select poll socket strtod strtol)
+AC_CHECK_FUNCS(putenv select pselect poll socket strtod strtol)
 AC_CHECK_FUNCS(strtoul uname getpgid getsid gethostbyname getaddrinfo)
+AC_CHECK_FUNCS(getprotobynumber getprotobynumber_r)
 AC_CHECK_FUNCS(setgroups inet_aton)
-AC_CHECK_FUNCS()
 
 AC_CHECK_FUNCS(grantpt unlockpt)
 
@@ -773,14 +825,15 @@ AC_CHECK_FUNCS(cfsetispeed cfgetispeed cfsetospeed cfgetospeed)
 ###################################
 # check for prototype and existence of functions that return a pointer
 # defines in config.h: HAVE_PROTOTYPE_LIB_$1
+AC_CHECK_PROTOTYPE_LIB(posix_memalign)
 AC_CHECK_PROTOTYPE_LIB(strdup)
 AC_CHECK_PROTOTYPE_LIB(strerror)
 AC_CHECK_PROTOTYPE_LIB(strstr)
 AC_CHECK_PROTOTYPE_LIB(getipnodebyname)
+AC_CHECK_PROTOTYPE_LIB(strndup)
 AC_CHECK_PROTOTYPE_LIB(memrchr)
 AC_CHECK_PROTOTYPE_LIB(if_indextoname)
 AC_CHECK_PROTOTYPE_LIB(ptsname)
-
 
 AC_MSG_CHECKING(for long long)
 AC_CACHE_VAL(sc_cv_type_longlong,
@@ -1115,7 +1168,8 @@ AC_MSG_RESULT($sc_cv_struct_linger)
 # struct ip (for IPv4 header info)
 AC_MSG_CHECKING(for struct ip)
 AC_CACHE_VAL(sc_cv_struct_ip,
-[AC_TRY_COMPILE([#include <netinet/ip.h>],[struct ip s;],
+[AC_TRY_COMPILE([#include <netinet/in.h>
+#include <netinet/ip.h>],[struct ip s;],
 [sc_cv_struct_ip=yes],
 [sc_cv_struct_ip=no])])
 if test $sc_cv_struct_ip = yes; then
@@ -1141,6 +1195,7 @@ AC_MSG_CHECKING(for struct ip_mreqn)
 AC_CACHE_VAL(sc_cv_struct_ip_mreqn,
 [AC_TRY_COMPILE([#include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
 #include <netinet/ip.h>],[struct ip_mreqn s;],
 [sc_cv_struct_ip_mreqn=yes],
 [sc_cv_struct_ip_mreqn=no])])
@@ -1161,6 +1216,20 @@ if test $sc_cv_struct_ipv6_mreq = yes; then
    AC_DEFINE(HAVE_STRUCT_IPV6_MREQ)
 fi
 AC_MSG_RESULT($sc_cv_struct_ipv6_mreq)
+
+# struct ip_mreq_source (for multicasting options)
+AC_MSG_CHECKING(for struct ip_mreq_source)
+AC_CACHE_VAL(sc_cv_struct_ip_mreq_source,
+[AC_TRY_COMPILE([#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>],[struct ip_mreq_source s;],
+[sc_cv_struct_ip_mreq_source=yes],
+[sc_cv_struct_ip_mreq_source=no])])
+if test $sc_cv_struct_ip_mreq_source = yes; then
+   AC_DEFINE(HAVE_STRUCT_IP_MREQ_SOURCE)
+fi
+AC_MSG_RESULT($sc_cv_struct_ip_mreqn)
 
 
 # struct ifreq (for network interfaces)
@@ -1439,6 +1508,8 @@ AC_CHECK_FUNC(unsetenv, AC_DEFINE(HAVE_UNSETENV))
 
 AC_CHECK_FUNC(TLS_client_method, AC_DEFINE(HAVE_TLS_client_method) ac_cv_have_tls_client_method=yes, AC_CHECK_LIB(crypt, TLS_client_method, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(TLS_server_method, AC_DEFINE(HAVE_TLS_server_method) ac_cv_have_tls_server_method=yes, AC_CHECK_LIB(crypt, TLS_server_method, [LIBS=-lcrypt $LIBS]))
+AC_CHECK_FUNC(DTLS_client_method, AC_DEFINE(HAVE_DTLS_client_method), AC_CHECK_LIB(crypt, DTLS_client_method, [LIBS=-lcrypt $LIBS]))
+AC_CHECK_FUNC(DTLS_server_method, AC_DEFINE(HAVE_DTLS_server_method), AC_CHECK_LIB(crypt, DTLS_server_method, [LIBS=-lcrypt $LIBS]))
 if test -n "$WITH_OPENSSL_METHOD" -o -z "$ac_cv_have_tls_client_method" -o -z "$ac_cv_have_tls_server_method" ; then
 dnl Search for SSLv2_client_method, SSLv2_server_method
 AC_CHECK_FUNC(SSLv2_client_method, AC_DEFINE(HAVE_SSLv2_client_method), AC_CHECK_LIB(crypt, SSLv2_client_method, [LIBS=-lcrypt $LIBS]))
@@ -1456,6 +1527,8 @@ AC_CHECK_FUNC(TLSv1_2_client_method, AC_DEFINE(HAVE_TLSv1_2_client_method), AC_C
 AC_CHECK_FUNC(TLSv1_2_server_method, AC_DEFINE(HAVE_TLSv1_2_server_method), AC_CHECK_LIB(crypt, TLSv1_2_server_method, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(DTLSv1_client_method, AC_DEFINE(HAVE_DTLSv1_client_method), AC_CHECK_LIB(crypt, DTLSv1_client_method, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(DTLSv1_server_method, AC_DEFINE(HAVE_DTLSv1_server_method), AC_CHECK_LIB(crypt, DTLSv1_server_method, [LIBS=-lcrypt $LIBS]))
+AC_CHECK_FUNC(DTLSv1_2_client_method, AC_DEFINE(HAVE_DTLSv1_2_client_method), AC_CHECK_LIB(crypt, DTLSv1_2_client_method, [LIBS=-lcrypt $LIBS]))
+AC_CHECK_FUNC(DTLSv1_2_server_method, AC_DEFINE(HAVE_DTLSv1_2_server_method), AC_CHECK_LIB(crypt, DTLSv1_2_server_method, [LIBS=-lcrypt $LIBS]))
 fi # $WITH_OPENSSL_METHOD
 
 AC_CHECK_FUNC(SSL_CTX_set_default_verify_paths, AC_DEFINE(HAVE_SSL_CTX_set_default_verify_paths))
@@ -1463,6 +1536,10 @@ AC_CHECK_FUNC(RAND_egd, AC_DEFINE(HAVE_RAND_egd), AC_CHECK_LIB(crypt, RAND_egd, 
 AC_CHECK_FUNC(DH_set0_pqg, AC_DEFINE(HAVE_DH_set0_pqg), AC_CHECK_LIB(crypt, DH_set0_pqg, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(ASN1_STRING_get0_data, AC_DEFINE(HAVE_ASN1_STRING_get0_data), AC_CHECK_LIB(crypt, ASN1_STRING_get0_data, [LIBS=-lcrypt $LIBS]))
 AC_CHECK_FUNC(RAND_status, AC_DEFINE(HAVE_RAND_status))
+AC_CHECK_FUNC(SSL_CTX_clear_mode, AC_DEFINE(HAVE_SSL_CTX_clear_mode))
+AC_CHECK_FUNC(SSL_set_tlsext_host_name, AC_DEFINE(HAVE_SSL_set_tlsext_host_name))
+AC_CHECK_FUNC(SSL_library_init, AC_DEFINE(HAVE_SSL_library_init))
+AC_CHECK_FUNC(ERR_error_string, AC_DEFINE(HAVE_ERR_error_string))
 
 AC_MSG_CHECKING(for type EC_KEY)
 AC_CACHE_VAL(sc_cv_type_EC_TYPE,
@@ -1786,6 +1863,12 @@ define(AC_TYPEOF_COMPONENT,[
    fi
 ])
 
+AC_BASIC_TYPE([#include <stdint.h>], uint16_t, HAVE_BASIC_UINT16_T, sc_cv_type_uint16_basic)
+AC_BASIC_TYPE([#include <stdint.h>], uint32_t, HAVE_BASIC_UINT32_T, sc_cv_type_uint32_basic)
+AC_BASIC_TYPE([#include <stdint.h>], uint64_t, HAVE_BASIC_UINT64_T, sc_cv_type_uint64_basic)
+AC_BASIC_TYPE([#include <stdint.h>], int16_t,  HAVE_BASIC_INT16_T,  sc_cv_type_int16_basic)
+AC_BASIC_TYPE([#include <stdint.h>], int32_t,  HAVE_BASIC_INT32_T,  sc_cv_type_int32_basic)
+AC_BASIC_TYPE([#include <stdint.h>], int64_t,  HAVE_BASIC_INT64_T,  sc_cv_type_int64_basic)
 AC_BASIC_TYPE([#include <stdlib.h>], size_t, HAVE_BASIC_SIZE_T, sc_cv_type_sizet_basic)
 AC_BASIC_TYPE([#include <sys/types.h>
 #include <sys/stat.h>
@@ -1835,6 +1918,8 @@ fi
 
 AC_TYPEOF_COMPONENT([#include <sys/time.h>], struct timeval, tv_usec, HAVE_TYPEOF_STRUCT_TIMEVAL_TV_USEC, sc_cv_type_struct_timeval_tv_usec)
 
+AC_TYPEOF_COMPONENT([#include <sys/time.h>], struct timespec, tv_nsec, HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC, sc_cv_type_struct_timespec_tv_nsec)
+
 AC_TYPEOF_COMPONENT([#include <sys/types.h>
 #include <sys/time.h>
 #include <sys/resource.h>],
@@ -1843,7 +1928,6 @@ struct rlimit, rlim_max, HAVE_TYPEOF_RLIM_MAX, sc_cv_type_rlimit_rlimmax_basic)
 # Fedora-19 doc says it is socklen_t which is equivalent to unsigned int, but it is equivalent to size_t (x86_64)
 AC_TYPEOF_COMPONENT([#include "sysincludes.h"], struct cmsghdr, cmsg_len, HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN, sc_cv_typeof_struct_cmsghdr_cmsg_len)
 ### snprintf, vsnprintf
-
 
 AC_MSG_CHECKING(for /dev/ptmx)
 if test -c /dev/ptmx; then

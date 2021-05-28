@@ -11,6 +11,7 @@ struct utsname;
 struct flock;
 struct addrinfo;
 
+int Posix_memalign(void **memptr, size_t alignment, size_t size);
 mode_t Umask(mode_t mask);
 #endif /* WITH_SYCLS */
 int Open(const char *pathname, int flags, mode_t mode);
@@ -84,6 +85,8 @@ int Chmod(const char *path, mode_t mode);
 int Poll(struct pollfd *ufds, unsigned int nfds, int timeout);
 int Select(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
 	   struct timeval *timeout);
+int Pselect(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
+	    const struct timespec *timeout, const sigset_t *sigmask);
 #if WITH_SYCLS
 pid_t Fork(void);
 #endif /* WITH_SYCLS */
@@ -134,7 +137,6 @@ int Shutdown(int fd, int how);
 #endif /* _WITH_SOCKET */
 #if WITH_SYCLS
 unsigned int Sleep(unsigned int seconds);
-void Usleep(unsigned long usec);
 unsigned int Nanosleep(const struct timespec *req, struct timespec *rem);
 int Pause(void);
 struct hostent *Gethostbyname(const char *name);
@@ -176,6 +178,7 @@ void Add_history(const char *string);
 
 #else /* !WITH_SYCLS */
 
+#define Posix_memalign(m,a,s) posix_memalign(m,a,s)
 #define Umask(m) umask(m)
 #define Creat(p,m) creat(p,m)
 #define Lseek(f,o,w) lseek(f,o,w)
@@ -242,7 +245,6 @@ void Add_history(const char *string);
 #define Setsockopt(s,d,n,v,l) setsockopt(s,d,n,v,l)
 #define Shutdown(f,h) shutdown(f,h)
 #define Sleep(s) sleep(s)
-#define Usleep(u) usleep(u)
 #define Nanosleep(req,rem) nanosleep(req,rem)
 #define Pause() pause()
 #define Gethostbyname(n) gethostbyname(n)

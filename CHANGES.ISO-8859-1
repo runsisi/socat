@@ -1,223 +1,3 @@
-﻿
-####################### V 1.7.4.1:
-
-Corrections:
-	Socat 1.7.4.0 failed to compile especially on 32 bit systems.
-	Thanks to Wang Mingyu and others for sending a patch or reporting this
-	issue.
-
-	Under certain conditions OpenSSL stream connections, in particular bulk
-	data transfer in unidirectional mode, failed during transfer or near
-	its with Connection reset by peer on receiver side.
-	This happened with Socat versions 1.7.3.3 to 1.7.4.0. Reasons were
-	lazy SSL shutdown handling on the sender side in combination with
-	SSL_MODE_AUTO_RETRY turned off.
-	Fix: After SSH_shutdown but before socket shutdown call SSL_read()
-	Test: OPENSSL_STREAM_TO_SERVER
-	Fixes Red Hat issue 1870279.
-
-####################### V 1.7.4.0:
-
-Security:
-	Buffer size option (-b) is internally doubled for CR-CRLF conversion,
-	but not	checked for integer overflow. This could lead to heap based
-	buffer overflow, assuming the attacker could provide this parameter.
-	Test: BLKSIZE_INT_OVERFL
-	Thanks to Lê Hiếu Bùi for reporting this issue and sending an
-	example exploit.
-
-Corrections:
-	Socats address parser read over end of string when there were unbalanced
-	quotes
-	Test: UNBALANCED_QUOTE
-
-	Removed unused usleep() call from sycls.c
-
-	Unsetenv() was conditional in sysutils.c but not in xio-openssl.c thus
-	building failed on Solaris 9.
-	Thanks to Greg Earle for reporting this issue and providing a patch.
-
-	Mitigated race condition of quickly terminating SYSTEM or EXEC child
-	processes.
-
-	Option o-direct might require alignment of read/write buffer to, e.g.,
-	512 bytes, Socat now takes care of this when allocating the buffer.
-	With this fix read() succeeds, however, write() still might fail when
-	not writing complete pages.
-	Test: O_DIRECT
-
-	There was a race condition in the way Socat UDP-RECVFROM and similar
-	addresses with option fork prevents one packet from triggering
-	multiple processes. The symptom was that Socat master process seemed to
-	hang and did not process further packets. The fix makes use of
-	pselect() system call.
-	Thanks to Fulvio Scapin for reporting this issue.
-
-	UNIX domain client addresses applied file system entry options (group
-	NAMED) to the server socket instead of the client (bind) socket entry.
-	Tests: UNIX_SENDTO_UNLINK UNIX_CONNECT_UNLINK
-	Thanks to Nico Williams for reporting this major issue.
-
-	Length of single address options was limited to 511 bytes. This value
-	is now increased to 2047 bytes.
-	Change suggested by Mario Camou.
-
-	Addresses of type RECVFROM with option fork looped with an error
-	message in case that the second address failed before consuming the
-	packet. The fix makes RECVFROM drop the packet when the second address
-	failed before reading it. Use retry or forever option with the second
-	address if you want to avoid data loss.
-	Thanks to Chunmei Xu for reporting this issue and proving the patch.
-
-	Socats DTLS implementation has been reworked and appears to work now
-	reasonably over UDP.
-	New addresses: OPENSSL-DTLS-SERVER (DTLS-L),
-		OPENSSL-DTLS-CLIENT (DTLS)
-	Tests: OPENSSL_DTLS_CLIENT OPENSSL_DTLS_SERVER
-		OPENSSL_METHOD_DTLS1 OPENSSL_METHOD_DTLS1.2
-	Thanks to Brandon Carpenter, Qing Wan, and Pavel Nakonechnyi for
-	sending patches.
-
-	filan did not output the socket protocol.
-	filan -s assumed each stream socket to be TCP and each datagram socket
-	to be UDP. Now it uses SO_PROTOCOL and getprotoent() for correct output.
-
-	Help text showed two parameters for UDP4-RECVFROM address, but only
-	<port> is allowed.
-	Thanks to John the Scott for reporting this issue.
-
-	Error messages from SSL_read() and SSL_write() sometimes stated
-	SSL_connect instead of originating function name.
-
-	Fixed some more non functional minor issues.
-
-Porting:
-	In gcc version 10 the default changed from -fcommon to -fno-common.
-	Consequently, linking filan and procan failed with error
-	"multiple definition of `deny_severity'" and `allow_severity'
-	Fixed by removing definitions in filan.c and procan.c
-	Debian issue 957823
-	Thanks to László Böszörményi and others for reporting this issue.
-
-	Solaris 9 does not provide strndup(); added substitute code.
-	Thanks to Greg Earle for providing a patch.
-
-	Added configure option --enable-openssl-base to specify the location of
-	a non-OS OpenSSL installation
-
-	There are systems whose kernel understands SCTP but getaddrinfo does
-	not. As workaround after EIA_SOCKTYPE on name and service resolution
-	fall back to ai_socktype=0; if it fails with EAI_SERVICE, set
-	ai_protocol=0 and try again
-	Test: SCTP_SERVICENAME
-
-	Per file filesystem options were still name ext2-* and depended on
-	<linux/ext2_fs.h>. Now they are called fs-* and depend on <linux/fs.h>.
-	These fs-* options are also available on old systems with ext2_fs.h
-
-	New options openssl-min-proto-version (min-version) and
-	openssl-max-proto-version (max-version) give access to the related
-	OpenSSL set-macros and substitute deprecated version-specific methods.
-	Test: OPENSSL_MIN_VERSION
-
-	With OpenSSL use OPENSSL_init_SSL when available, instead of deprecated
-	SSL_library_init.
-
-	With OPENSSL_API_COMPAT=0x10000000L the files openssl/dh.h, openssl/bn.h
-	must explicitely be included.
-	Thanks to Rosen Penev for reporting and sending a patch.
-
-Testing:
-	test.sh now produces a list of tests that could not be performed for
-	any reason. This helps to analyse these cases.
-
-	OpenSSL s_server appearently started to neglect TCPs half close feature.
-	Test OPENSSL_TCP4 has been changed to tolerate this.
-
-	OpenSSL changed its behaviour when connection is rejected. Tests
-	OPENSSLCERTSERVER, OPENSSL_CN_CLIENT_SECURITY, and
-	OPENSSL_CN_SERVER_SECURITY now tolerate this.
-
-	OpenSSL no longer allows explicit renegotiation with TLSv1.3, thus the
-	appropriate tests failed.
-	Fix: use TLSv1.2 for renegotiation tests
-	Tests: OPENSSLRENEG1 OPENSSLRENEG2
-
-	Ubuntu 20.04 requires 2048 bit certificates with OpenSSL
-
-	Archlinux 2020 has not which command; its ip,ss commands have modified
-	version strings
-
-	More testing issues solved:
-	* ss to pipe might omit column separator
-	* UDP6MULTICAST_UNIDIR fails on newer Linux kernels
-	* do not use sort -V
-	* renamed testaddrs() to testfeats(), and introduced new testaddrs()
-
-New features:
-	GOPEN and UNIX-CLIENT addresses now support sockets of type SEQPACKET.
-	Test: GOPENUNIXSEQPACKET
-	Feature suggested by vi0oss.
-
-	The generic setsockopt-int and related options are, in case of
-	listening/accepting addresses, applied to the connected socket(s). To enable
-	setting options on the listening socket, a new option setsockopt-listen
-	has been implemented. See the documentation for info on data types.
-	Tests: SETSOCKOPT SETSOCKOPT_LISTEN
-	Thanks to Steven Danna and Korian Edeline for reporting this issue.
-
-	Filan option -S gives short description like -s but with improved
-	format
-
-	Socat OpenSSL client, when server was specified using IP address, did
-	not verify connection on certificates SubjectAltName IP entries.
-	Tests: OPENSSL_SERVERALTAUTH OPENSSL_SERVERALTIP4AUTH OPENSSL_SERVERALTIP6AUTH
-	Fixes Red Hat bug 1805132
-
-	Added options -r and -R for raw dump of transferred data to files.
-	Test: OPTION_RAW_DUMP
-
-	Added option ip-transparent (socket option IP_TRANSPARENT)
-	Thanks to Wang Shanker for sending a patch.
-
-	OPENSSL-CONNECT now automatically uses the SNI feature, option
-	openssl-no-sni turns it off. Option openssl-snihost overrides the value
-	of option openssl-commonname or the server name.
-	Tests: OPENSSL_SNI OPENSSL_NO_SNI
-	Thanks to Travis Burtrum for providing the initial patch
-
-	New option accept-timeout (listen-timeout)
-	Test: ACCEPTTIMEOUT
-	Proposed by Roland
-
-	New option ip-add-source-membership
-	Feature inspired by Brian (b f31415)
-
-	INCOMPATIBLE CHANGE: Address UDP-DATAGRAM now does not check peerport
-	of replies, as it did up to version 1.7.3.4. Use option sourceport when
-	you need the old behaviour.
-	Test: UDP_DATAGRAM_SOURCEPORT
-	Feature inspired by Hans Bueckler for SSDP inquiry (for UPnP)
-
-	New option proxy-authorization-file reads PROXY-CONNECT credentials
-	from file and makes it possible to hide this data from the process
-	table.
-	Test: PROXYAUTHFILE
-	Thanks to Charles Stephens for sending an initial patch.
-
-	Added AF_VSOCK support with VSOCK-CONNECT and VSOCK-LISTEN addresses.
-	Developed by Stefano Garzarella.
-
-Coding:
-	Added printf formats for uint16_t etc.
-
-Documentation:
-	Address UDP-RECV does not support option fork.
-	Thanks to Fulvio Scapin for reporting that mistake in docu.
-
-	TUN address documentation showed TCP for backend which may merge
-	consecutive packets which causes data loss.
-	Thanks to Tomasz Lakota for reporting this issue.
 
 ####################### V 1.7.3.4:
 
@@ -246,7 +26,7 @@ Corrections:
 	"ai_socktype not supported" when protocol 6 was addressed.
 	The fix removes the possibility to use service names with SCTP.
 	Test: IP_SENDTO_6
-	Thanks to Sören for sending an initial patch.
+	Thanks to S�ren for sending an initial patch.
 
 	Under certain circumstances, Socat printed the "socket ... is at EOF"
 	multiple times.
@@ -277,7 +57,7 @@ Corrections:
 	The async signal safe diagnostic system used FDs 3 and 4 internally, so
 	use of appropriate fdin or fdout led to failures.
 	Test: DIAG_FDIN
-	Problem reported by Onur Sentürk.
+	Problem reported by Onur Sent�rk.
 
 	The socket based mechanism for passing messages and signal information
 	from signal handler to process could reach and kill the wrong process.
@@ -382,9 +162,6 @@ Cosmetics:
 New features:
 	Permit combined -d options as -dd etc.
 
-porting:
-	ext2 options are now fs options.
-	
 ####################### V 1.7.3.2:
 
 corrections:
@@ -417,11 +194,11 @@ corrections:
 
 	AddressSanitizer reported a few buffer overflows (false positives).
 	Nevertheless fixed Socat source.
-	Issue reported by Hanno Böck.
+	Issue reported by Hanno B�ck.
 
 	Socat did not use option ipv6-join-group.
 	Test: USE_IPV6_JOIN_GROUP
-	Thanks to Linus Lüssing for sending a patch.
+	Thanks to Linus L�ssing for sending a patch.
 
 	UDP-LISTEN did not honor the max-children option.
 	Test: UDP4MAXCHILDREN UDP6MAXCHILDREN
@@ -970,7 +747,7 @@ security:
 	than 512 bytes.
 	Note that this could only be exploited when an attacker was able to
 	inject data into socat's command line.
-	Full credits to Felix Gröbert, Google Security Team, for finding and
+	Full credits to Felix Gr�bert, Google Security Team, for finding and
 	reporting this issue
 
 ####################### V 1.7.1.2:
@@ -1498,7 +1275,7 @@ new features:
 
 	new options "retry", "forever", and "intervall"
 
-	option "fork" for address TCP improves `gender changer´
+	option "fork" for address TCP improves `gender changer�
 
 	options "sigint", "sigquit", and "sighup" control passing of signals to
 	sub process (thanks to David Shea who contributed to this issue)
@@ -1911,7 +1688,7 @@ solved problems and bugs:
 new features:
 	address type UDP-LISTEN now supports option fork: it internally applies
 	socket option SO_REUSEADDR so a new UDP socket can bind to port after
-	`accepting´ a connection (child processes might live forever though)
+	`accepting� a connection (child processes might live forever though)
 	(suggestion from Damjan Lango)
 
 

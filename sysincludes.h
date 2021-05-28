@@ -167,7 +167,7 @@
 #include <regex.h>
 #endif
 #if HAVE_LINUX_FS_H
-#include <linux/fs.h>		/* somewhere required for ext2_fs.h */
+#include <linux/fs.h>		/* Linux filesystem definitions */
 #endif
 #if HAVE_LINUX_EXT2_FS_H
 #include <linux/ext2_fs.h>	/* Linux ext2 filesystem definitions */
@@ -184,6 +184,11 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <openssl/rand.h>
+#include <openssl/dh.h>
+#include <openssl/bn.h>
+#endif
+#if HAVE_LINUX_VM_SOCKETS_H
+#include <linux/vm_sockets.h>
 #endif
 
 #endif /* !defined(__sysincludes_h_included) */

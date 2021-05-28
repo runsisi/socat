@@ -210,13 +210,14 @@ static int xioopen_unix_connect(int argc, const char *argv[], struct opt *opts, 
    /* we expect the form: filename */
    const char *name;
    struct single *xfd = &xxfd->stream;
+   const struct opt *namedopt;
    int pf = PF_UNIX;
    int socktype = SOCK_STREAM;
    int protocol = 0;
    struct sockaddr_un them, us;
    socklen_t themlen, uslen = sizeof(us);
    bool needbind = false;
-   bool opt_unlink_close = false;
+   bool opt_unlink_close = true;
    int result;
 
    if (argc != 2) {
@@ -235,6 +236,7 @@ static int xioopen_unix_connect(int argc, const char *argv[], struct opt *opts, 
    applyopts(-1, opts, PH_EARLY);
 
    themlen = xiosetunix(pf, &them, name, abstract, xfd->para.socket.un.tight);
+
    if (!(ABSTRACT && abstract)) {
       /* only for non abstract because abstract do not work in file system */
       retropt_bool(opts, OPT_UNLINK_CLOSE, &opt_unlink_close);
@@ -244,8 +246,13 @@ static int xioopen_unix_connect(int argc, const char *argv[], struct opt *opts, 
       needbind = true;
    }
 
-   if (opt_unlink_close) {
-      if ((xfd->unlink_close = strdup(name)) == NULL) {
+   if (!needbind &&
+       (namedopt = searchopt(opts, GROUP_NAMED, 0, 0, 0))) {
+      Error1("Option \"%s\" only with bind option", namedopt->desc->defname);
+   }
+
+   if (opt_unlink_close && needbind) {
+      if ((xfd->unlink_close = strdup(us.sun_path)) == NULL) {
 	 Error1("strdup(\"%s\"): out of memory", name);
       }
       xfd->opt_unlink_close = true;
@@ -253,7 +260,7 @@ static int xioopen_unix_connect(int argc, const char *argv[], struct opt *opts, 
 
    if ((result =
 	xioopen_connect(xfd,
-			needbind?(struct sockaddr *)&us:NULL, uslen,
+			needbind?(union sockaddr_union *)&us:NULL, uslen,
 			(struct sockaddr *)&them, themlen,
 			opts, pf, socktype, protocol, false)) != 0) {
       return result;
@@ -269,13 +276,14 @@ static int xioopen_unix_sendto(int argc, const char *argv[], struct opt *opts, i
    /* we expect the form: filename */
    const char *name;
    xiosingle_t *xfd = &xxfd->stream;
+   const struct opt *namedopt;
    int pf = PF_UNIX;
    int socktype = SOCK_DGRAM;
    int protocol = 0;
    union sockaddr_union us;
    socklen_t uslen = sizeof(us);
    bool needbind = false;
-   bool opt_unlink_close = false;
+   bool opt_unlink_close = true;
 
    if (argc != 2) {
       Error2("%s: wrong number of parameters (%d instead of 1)",
@@ -303,8 +311,13 @@ static int xioopen_unix_sendto(int argc, const char *argv[], struct opt *opts, i
       needbind = true;
    }
 
-   if (opt_unlink_close) {
-      if ((xfd->unlink_close = strdup(name)) == NULL) {
+   if (!needbind &&
+       (namedopt = searchopt(opts, GROUP_NAMED, 0, 0, 0))) {
+      Error1("Option \"%s\" only with bind option", namedopt->desc->defname);
+   }
+
+   if (opt_unlink_close && needbind) {
+      if ((xfd->unlink_close = strdup(us.un.sun_path)) == NULL) {
 	 Error1("strdup(\"%s\"): out of memory", name);
       }
       xfd->opt_unlink_close = true;
@@ -511,6 +524,7 @@ static int xioopen_unix_client(int argc, const char *argv[], struct opt *opts, i
 int 
 _xioopen_unix_client(xiosingle_t *xfd, int xioflags, unsigned groups,
 		     int abstract, struct opt *opts, const char *name) {
+   const struct opt *namedopt;
    int pf = PF_UNIX;
    int socktype = 0;	/* to be determined by server socket type */
    int protocol = 0;
@@ -527,6 +541,8 @@ _xioopen_unix_client(xiosingle_t *xfd, int xioflags, unsigned groups,
    if (applyopts_single(xfd, opts, PH_INIT) < 0)  return STAT_NORETRY;
    applyopts(-1, opts, PH_INIT);
    applyopts_offset(xfd, opts);
+   retropt_int(opts, OPT_SO_TYPE, &socktype);
+   retropt_int(opts, OPT_SO_PROTOTYPE, &protocol);
    applyopts(-1, opts, PH_EARLY);
 
    themlen = xiosetunix(pf, &them.un, name, abstract, xfd->para.socket.un.tight);
@@ -540,6 +556,11 @@ _xioopen_unix_client(xiosingle_t *xfd, int xioflags, unsigned groups,
       needbind = true;
    }
 
+   if (!needbind &&
+       (namedopt = searchopt(opts, GROUP_NAMED, 0, 0, 0))) {
+      Error1("Option \"%s\" only with bind option", namedopt->desc->defname);
+   }
+
    if (opt_unlink_close) {
       if ((xfd->unlink_close = strdup(name)) == NULL) {
 	 Error1("strdup(\"%s\"): out of memory", name);
@@ -550,32 +571,56 @@ _xioopen_unix_client(xiosingle_t *xfd, int xioflags, unsigned groups,
    /* save options, because we might have to start again */
    opts0 = copyopts(opts, GROUP_ALL);
 
-   /* xfd->dtype = DATA_STREAM; // is default */
-   if ((result =
+   /* just a breakable block, helps to avoid goto */
+   do {
+      /* xfd->dtype = DATA_STREAM; // is default */
+      /* this function handles AF_UNIX with EPROTOTYPE specially for us */
+      if ((result =
 	xioopen_connect(xfd,
-			needbind?(struct sockaddr *)&us:NULL, uslen,
-			(struct sockaddr *)&them, themlen,
+			needbind?&us:NULL, uslen,
+			&them.soa, themlen,
 			opts, pf, socktype?socktype:SOCK_STREAM, protocol,
-			false)) != 0) {
-      if (errno == EPROTOTYPE) {
-	 if (needbind) {
-	    Unlink(us.un.sun_path);
-	 }
+			false)) == 0)
+	 break;
+      if (errno != EPROTOTYPE || socktype != 0)
+	 break;
+      if (needbind)
+	 Unlink(us.un.sun_path);
+      dropopts2(opts, PH_INIT, PH_SPEC); opts = opts0;
 
-	 dropopts2(opts, PH_INIT, PH_SPEC); opts = opts0;
+      socktype = SOCK_SEQPACKET;
+      if ((result =
+	xioopen_connect(xfd,
+			needbind?&us:NULL, uslen,
+			(struct sockaddr *)&them, themlen,
+			opts, pf, SOCK_SEQPACKET, protocol,
+			false)) == 0)
+	 break;
+      if (errno != EPROTOTYPE)
+	 break;
+      if (needbind)
+	 Unlink(us.un.sun_path);
+      dropopts2(opts, PH_INIT, PH_SPEC); opts = opts0;
 
-	 xfd->peersa = them;
-	 xfd->salen = sizeof(struct sockaddr_un);
-	 if ((result =
+      xfd->peersa = them;
+      xfd->salen = sizeof(struct sockaddr_un);
+      if ((result =
 	      _xioopen_dgram_sendto(needbind?&us:NULL, uslen,
 				    opts, xioflags, xfd, groups,
-				    pf, socktype?socktype:SOCK_DGRAM, protocol))
-	     != 0) {
-	    return result;
-	 }
+				    pf, SOCK_DGRAM, protocol))
+	  == 0) {
 	 xfd->dtype = XIODATA_RECVFROM;
+	 break;
       }
+   } while (0);
+
+   if (result != 0) {
+      if (needbind) {
+	 Unlink(us.un.sun_path);
+      }
+      return result;
    }
+
    if ((result = _xio_openlate(xfd, opts)) < 0) {
       return result;
    }

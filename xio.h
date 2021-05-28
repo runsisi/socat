@@ -129,7 +129,8 @@ typedef struct single {
    bool   ignoreeof;	/* option ignoreeof; do not pass eof condition to app*/
    int    eof;		/* 1..exec'd child has died, but no explicit eof
 			   occurred 
-			   2..fd0 has reached EOF (definitely; never with
+			   2..fd0 has reached EOF, but check for ignoreeof
+			   3..fd0 has reached EOF (definitely; never with
 			   ignoreeof! */
    size_t wsize;	/* write always this size; 0..all available */
    size_t readbytes;	/* read only so many bytes; 0...unlimited */
@@ -181,6 +182,9 @@ typedef struct single {
 #if _WITH_SOCKET
       struct {
 	 struct timeval connect_timeout; /* how long to hang in connect() */
+#if WITH_LISTEN
+	 struct timeval accept_timeout;  /* how long to wait for incoming connection */
+#endif
 	 union sockaddr_union la;	/* local socket address */
 	 bool null_eof;		/* with dgram: empty packet means EOF */
 	 bool dorange;
@@ -189,7 +193,7 @@ typedef struct single {
 	 struct {
 	    unsigned int res_opts[2];	/* bits to be set in _res.options are
 				       at [0], bits to be cleared are at [1] */
-	    bool   dosourceport;
+	    bool     dosourceport; 	/* check the source port of incoming connection or packets */
 	    uint16_t sourceport;	/* host byte order */
 	    bool     lowport;
 #if (WITH_TCP || WITH_UDP) && WITH_LIBWRAP
@@ -228,8 +232,14 @@ typedef struct single {
 #if WITH_OPENSSL
       struct {
 	 struct timeval connect_timeout; /* how long to hang in connect() */
+	 SSL_CTX* ctx; 	/* for freeing on close */
 	 SSL *ssl;
-	 SSL_CTX* ctx;
+#if HAVE_SSL_CTX_set_min_proto_version || defined(SSL_CTX_set_min_proto_version)
+	 char *min_proto_version;
+#endif
+#if HAVE_SSL_CTX_set_max_proto_version || defined(SSL_CTX_set_max_proto_version)
+	 char *max_proto_version;
+#endif
       } openssl;
 #endif /* WITH_OPENSSL */
 #if WITH_TUN
@@ -344,6 +354,13 @@ union integral {
 #endif
    } u_ip_mreq;
 #endif
+#if HAVE_STRUCT_IP_MREQ_SOURCE
+   struct {
+      char *mcaddr;
+      char *ifaddr;	/* address, interface */
+      char *srcaddr;	/* source address */
+   } u_ip_mreq_source;
+#endif
 #if WITH_IP4
    struct in_addr  u_ip4addr;
 #endif
@@ -415,6 +432,7 @@ extern pid_t diedunknown[NUMUNKNOWN];	/* child died before it is registered */
 #define diedunknown2 (diedunknown[1])
 #define diedunknown3 (diedunknown[2])
 #define diedunknown4 (diedunknown[3])
+extern int   statunknown[NUMUNKNOWN]; 	/* exit state of unknown dead child */
 
 extern int xiosetsigchild(xiofile_t *xfd, int (*callback)(struct single *));
 extern int xiosetchilddied(void);

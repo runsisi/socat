@@ -21,12 +21,25 @@
 #include "sysutils.h"
 #include "sycls.h"
 
+#if HAVE_OPENSSL_init_ssl
+int sycOPENSSL_init_ssl(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings) {
+   int result;
+   Debug2("OPENSSL_init_ssl("F_uint64_t", %p)", opts, settings);
+   result = OPENSSL_init_ssl(opts, settings);
+   Debug1("OPENSSL_init_ssl() -> %d", result);
+   return result;
+}
+#endif
+
+#if !HAVE_OPENSSL_init_ssl
 void sycSSL_load_error_strings(void) {
    Debug("SSL_load_error_strings()");
    SSL_load_error_strings();
    Debug("SSL_load_error_strings() ->");
 }
+#endif
 
+#if !HAVE_OPENSSL_init_ssl
 int sycSSL_library_init(void) {
    int result;
    Debug("SSL_library_init()");
@@ -34,6 +47,27 @@ int sycSSL_library_init(void) {
    Debug1("SSL_library_init() -> %d", result);
    return result;
 }
+#endif
+
+#if HAVE_TLS_client_method
+const SSL_METHOD *sycTLS_client_method(void) {
+   const SSL_METHOD *result;
+   Debug("TLS_client_method()");
+   result = TLS_client_method();
+   Debug1("TLS_client_method() -> %p", result);
+   return result;
+}
+#endif
+
+#if HAVE_TLS_server_method
+const SSL_METHOD *sycTLS_server_method(void) {
+   const SSL_METHOD *result;
+   Debug("TLS_server_method()");
+   result = TLS_server_method();
+   Debug1("TLS_server_method() -> %p", result);
+   return result;
+}
+#endif
 
 #if HAVE_SSLv2_client_method
 const SSL_METHOD *sycSSLv2_client_method(void) {
@@ -151,6 +185,26 @@ const SSL_METHOD *sycTLSv1_2_server_method(void) {
 }
 #endif
 
+#if HAVE_DTLS_client_method
+const SSL_METHOD *sycDTLS_client_method(void) {
+   const SSL_METHOD *result;
+   Debug("DTLS_client_method()");
+   result = DTLS_client_method();
+   Debug1("DTLS_client_method() -> %p", result);
+   return result;
+}
+#endif
+
+#if HAVE_DTLS_server_method
+const SSL_METHOD *sycDTLS_server_method(void) {
+   const SSL_METHOD *result;
+   Debug("DTLS_server_method()");
+   result = DTLS_server_method();
+   Debug1("DTLS_server_method() -> %p", result);
+   return result;
+}
+#endif
+
 #if HAVE_DTLSv1_client_method
 const SSL_METHOD *sycDTLSv1_client_method(void) {
    const SSL_METHOD *result;
@@ -167,6 +221,26 @@ const SSL_METHOD *sycDTLSv1_server_method(void) {
    Debug("DTLSv1_server_method()");
    result = DTLSv1_server_method();
    Debug1("DTLSv1_server_method() -> %p", result);
+   return result;
+}
+#endif
+
+#if HAVE_DTLSv1_2_client_method
+const SSL_METHOD *sycDTLSv1_2_client_method(void) {
+   const SSL_METHOD *result;
+   Debug("DTLSv1_2_client_method()");
+   result = DTLSv1_2_client_method();
+   Debug1("DTLSv1_2_client_method() -> %p", result);
+   return result;
+}
+#endif
+
+#if HAVE_DTLSv1_2_server_method
+const SSL_METHOD *sycDTLSv1_2_server_method(void) {
+   const SSL_METHOD *result;
+   Debug("DTLSv1_2_server_method()");
+   result = DTLSv1_2_server_method();
+   Debug1("DTLSv1_2_server_method() -> %p", result);
    return result;
 }
 #endif
