@@ -25,6 +25,6 @@ extern struct dalan_opts_s dalan_opts;
 
 extern void dalan_init(void);
 extern struct dalan_opts_s *dalan_props(void);
-extern int dalan(const char *line, char *data, size_t *p, size_t n);
+extern int dalan(const char *line, uint8_t *data, size_t *p, size_t n, char deflt);
 
 #endif /* !defined(__dalan_h_included) */

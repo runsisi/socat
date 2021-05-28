@@ -153,6 +153,12 @@ dit(bf(tt(-x)))
    Writes the transferred data not only to their target streams, but also to
    stderr. The output format is hexadecimal, prefixed with "> " or "< "
    indicating flow directions. Can be combined with code(-v).
+dit(bf(tt(-r <file>)))
+   Dumps the raw (binary) data flowing from left to right address to the given
+   file.
+dit(bf(tt(-R <file>)))
+   Dumps the raw (binary) data flowing from right to left address to the given
+   file.
 label(option_b)dit(bf(tt(-b))tt(<size>))
    Sets the data transfer block <size> [link(size_t)(TYPE_SIZE_T)].
    At most <size> bytes are transferred per step. Default is 8192 bytes. 
@@ -388,6 +394,7 @@ label(ADDRESS_IP_DATAGRAM)dit(bf(tt(IP-DATAGRAM:<address>:<protocol>)))
    link(ip-multicast-ttl)(OPTION_IP_MULTICAST_TTL),
    link(ip-multicast-if)(OPTION_IP_MULTICAST_IF),
    link(ip-add-membership)(OPTION_IP_ADD_MEMBERSHIP),
+   link(ip-add-source-membership)(OPTION_IP_ADD_SOURCE_MEMBERSHIP),
    link(ttl)(OPTION_TTL),
    link(tos)(OPTION_TOS),
    link(pf)(OPTION_PROTOCOL_FAMILY)nl()
@@ -419,6 +426,7 @@ label(ADDRESS_IP_RECVFROM)dit(bf(tt(IP-RECVFROM:<protocol>)))
    This address works well with IP-SENDTO address peers (see above).
    Protocol 255 uses the raw socket with the IP header being part of the
    data.nl()
+   See the link(note about RECVFROM addresses)(NOTE_RECVFROM).nl()
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4),link(IP6)(GROUP_IP6),link(CHILD)(GROUP_CHILD),link(RANGE)(GROUP_RANGE) nl()
    Useful options:
    link(pf)(OPTION_PROTOCOL_FAMILY),
@@ -486,6 +494,7 @@ label(ADDRESS_OPEN)dit(bf(tt(OPEN:<filename>)))
    link(CREATE)(ADDRESS_CREAT),
    link(GOPEN)(ADDRESS_GOPEN),
    link(UNIX-CONNECT)(ADDRESS_UNIX_CONNECT)
+
 label(ADDRESS_OPENSSL_CONNECT)dit(bf(tt(OPENSSL:<host>:<port>)))
    Tries to establish a SSL connection to <port> [link(TCP
    service)(TYPE_TCP_SERVICE)] on  
@@ -501,7 +510,7 @@ label(ADDRESS_OPENSSL_CONNECT)dit(bf(tt(OPENSSL:<host>:<port>)))
    <host> parameter or the value of the 
    link(openssl-commonname)(OPTION_OPENSSL_COMMONNAME) option.
    Socat tries to match it against the certificates subject commonName,
-   and the certifications extension subjectAltName DNS names. Wildcards in the
+   and the certificates extension subjectAltName DNS names. Wildcards in the
    certificate are supported.nl() 
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4),link(IP6)(GROUP_IP6),link(TCP)(GROUP_TCP),link(OPENSSL)(GROUP_OPENSSL),link(RETRY)(GROUP_RETRY) nl()
    Useful options:
@@ -521,6 +530,7 @@ label(ADDRESS_OPENSSL_CONNECT)dit(bf(tt(OPENSSL:<host>:<port>)))
    See also:
    link(OPENSSL-LISTEN)(ADDRESS_OPENSSL_LISTEN),
    link(TCP)(ADDRESS_TCP_CONNECT)
+
 label(ADDRESS_OPENSSL_LISTEN)dit(bf(tt(OPENSSL-LISTEN:<port>)))
    Listens on tcp <port> [link(TCP service)(TYPE_TCP_SERVICE)].
    The IP version is 4 or the one specified with
@@ -551,6 +561,71 @@ label(ADDRESS_OPENSSL_LISTEN)dit(bf(tt(OPENSSL-LISTEN:<port>)))
    See also:
    link(OPENSSL)(ADDRESS_OPENSSL_CONNECT),
    link(TCP-LISTEN)(ADDRESS_TCP_LISTEN)
+
+label(ADDRESS_OPENSSL_DTLS_CLIENT)dit(bf(tt(OPENSSL-DTLS-CLIENT:<host>:<port>)))
+   Tries to establish a DTLS connection to <port> [link(UDP
+   service)(TYPE_UDP_SERVICE)] on
+   <host> [link(IP address)(TYPE_IP_ADDRESS)] using UDP/IP version 4 or 6
+   depending on address specification, name resolution, or option
+   link(pf)(OPTION_PROTOCOL_FAMILY).nl()
+   Socat() checks the peer certificates subjectAltName or commonName against the addresses
+   option link(openssl-commonname)(OPTION_OPENSSL_COMMONNAME) or the host name.
+   Wildcards in the certificate are supported.nl()
+   Use socat() option link(-b)(option_b) to make datagrams small enough to fit with overhead
+   on the network. Use option link(-T)(option_T) to prevent indefinite hanging when peer went down quietly.nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4),link(IP6)(GROUP_IP6),COMMENT(link(UDP)(GROUP_UDP),)link(OPENSSL)(GROUP_OPENSSL),link(RETRY)(GROUP_RETRY) nl()
+   Useful options:
+   link(cipher)(OPTION_OPENSSL_CIPHERLIST),
+   link(verify)(OPTION_OPENSSL_VERIFY),
+   link(commonname)(OPTION_OPENSSL_COMMONNAME),
+   link(cafile)(OPTION_OPENSSL_CAFILE),
+   link(capath)(OPTION_OPENSSL_CAPATH),
+   link(certificate)(OPTION_OPENSSL_CERTIFICATE),
+   link(key)(OPTION_OPENSSL_KEY),
+   link(compress)(OPTION_OPENSSL_COMPRESS),
+   link(bind)(OPTION_BIND),
+   link(pf)(OPTION_PROTOCOL_FAMILY),
+   link(sourceport)(OPTION_SOURCEPORT),
+   link(retry)(OPTION_RETRY)nl()
+   See also:
+   link(OPENSSL-DTLS-SERVER)(ADDRESS_OPENSSL_DTLS_SERVER),
+   link(OPENSSL-CONNECT)(ADDRESS_OPENSSL_CONNECT),
+   link(UDP-CONNECT)(ADDRESS_UDP_CONNECT)
+
+label(ADDRESS_OPENSSL_DTLS_SERVER)dit(bf(tt(OPENSSL-DTLS-SERVER:<port>)))
+   Listens on UDP <port> [link(UDP service)(TYPE_UDP_SERVICE)].
+   The IP version is 4 or the one specified with
+   link(pf)(OPTION_PROTOCOL_FAMILY). When a
+   connection is accepted, this address behaves as DTLS server.nl()
+   Note: You probably want to use the link(certificate)(OPTION_OPENSSL_CERTIFICATE) option with this address.nl()
+   NOTE: The client certificate is only checked for validity against
+   link(cafile)(OPTION_OPENSSL_CAFILE) or link(capath)(OPTION_OPENSSL_CAPATH),
+   but not for match with the client's name or its IP address!
+   Use socat() option link(-b)(option_b) to make datagrams small enough to fit with overhead on the network.
+   Use option link(-T)(option_T) to prevent indefinite hanging when peer went down quietly.nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4),link(IP6)(GROUP_IP6),COMMENT(link(UDP)(GROUP_UDP),)link(LISTEN)(GROUP_LISTEN),link(OPENSSL)(GROUP_OPENSSL),link(CHILD)(GROUP_CHILD),link(RANGE)(GROUP_RANGE),link(RETRY)(GROUP_RETRY) nl()
+   Useful options:
+   link(pf)(OPTION_PROTOCOL_FAMILY),
+   link(cipher)(OPTION_OPENSSL_CIPHERLIST),
+   link(verify)(OPTION_OPENSSL_VERIFY),
+   link(commonname)(OPTION_OPENSSL_COMMONNAME),
+   link(cafile)(OPTION_OPENSSL_CAFILE),
+   link(capath)(OPTION_OPENSSL_CAPATH),
+   link(certificate)(OPTION_OPENSSL_CERTIFICATE),
+   link(key)(OPTION_OPENSSL_KEY),
+   link(compress)(OPTION_OPENSSL_COMPRESS),
+   link(fork)(OPTION_FORK),
+   link(bind)(OPTION_BIND),
+   link(range)(OPTION_RANGE),
+   link(tcpwrap)(OPTION_TCPWRAPPERS),
+   link(su)(OPTION_SUBSTUSER),
+   link(reuseaddr)(OPTION_REUSEADDR),
+   link(retry)(OPTION_RETRY)nl()
+   See also:
+   link(OPENSSL-DTLS-CLIENT)(ADDRESS_OPENSSL_DTLS_CLIENT),
+   link(OPENSSL-LISTEN)(ADDRESS_OPENSSL_LISTEN),
+   link(UDP-LISTEN)(ADDRESS_UDP_LISTEN)
+
 label(ADDRESS_NAMED_PIPE)dit(bf(tt(PIPE:<filename>)))
    If link(<filename>)(TYPE_FILENAME) already exists, it is opened.
    If it does not exist, a named pipe is created and opened. Beginning with
@@ -675,6 +750,7 @@ label(ADDRESS_SCTP_LISTEN)dit(bf(tt(SCTP-LISTEN:<port>)))
    link(pf)(OPTION_PROTOCOL_FAMILY),
    link(max-children)(OPTION_MAX_CHILDREN),
    link(backlog)(OPTION_BACKLOG),
+   link(accept-timeout)(OPTION_ACCEPT_TIMEOUT),
    link(sctp-maxseg)(OPTION_SCTP_MAXSEG),
    link(sctp-nodelay)(OPTION_SCTP_NODELAY),
    link(su)(OPTION_SUBSTUSER),
@@ -708,9 +784,7 @@ label(ADDRESS_SOCKET_CONNECT)dit(bf(tt(SOCKET-CONNECT:<domain>:<protocol>:<remot
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(CHILD)(GROUP_CHILD),link(RETRY)(GROUP_RETRY)nl()
    Useful options:
    link(bind)(OPTION_BIND),
-   link(setsockopt-int)(OPTION_SETSOCKOPT_INT),
-   link(setsockopt-bin)(OPTION_SETSOCKOPT_BIN),
-   link(setsockopt-string)(OPTION_SETSOCKOPT_STRING)
+   link(setsockopt)(OPTION_SETSOCKOPT),
    nl()
    See also:
    link(TCP)(ADDRESS_TCP_CONNECT),
@@ -733,9 +807,7 @@ label(ADDRESS_SOCKET_DATAGRAM)dit(bf(tt(SOCKET-DATAGRAM:<domain>:<type>:<protoco
    Useful options:
    link(bind)(OPTION_BIND),
    link(range)(OPTION_RANGE),
-   link(setsockopt-int)(OPTION_SETSOCKOPT_INT),
-   link(setsockopt-bin)(OPTION_SETSOCKOPT_BIN),
-   link(setsockopt-string)(OPTION_SETSOCKOPT_STRING)
+   link(setsockopt)(OPTION_SETSOCKOPT),
    nl()
    See also:
    link(UDP-DATAGRAM)(ADDRESS_UDP_DATAGRAM),
@@ -756,9 +828,8 @@ label(ADDRESS_SOCKET_LISTEN)dit(bf(tt(SOCKET-LISTEN:<domain>:<protocol>:<local-a
    link(-g)(option_g).nl()
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(LISTEN)(GROUP_LISTEN),link(RANGE)(GROUP_RANGE),link(CHILD)(GROUP_CHILD),link(RETRY)(GROUP_RETRY)nl()
    Useful options:
-   link(setsockopt-int)(OPTION_SETSOCKOPT_INT),
-   link(setsockopt-bin)(OPTION_SETSOCKOPT_BIN),
-   link(setsockopt-string)(OPTION_SETSOCKOPT_STRING)
+   link(setsockopt)(OPTION_SETSOCKOPT),
+   link(setsockopt-listen)(OPTION_SETSOCKOPT_LISTEN),
    nl()
    See also:
    link(TCP)(ADDRESS_TCP_LISTEN),
@@ -777,9 +848,8 @@ label(ADDRESS_SOCKET_RECV)dit(bf(tt(SOCKET-RECV:<domain>:<type>:<protocol>:<loca
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(RANGE)(GROUP_RANGE)nl()
    Useful options:
    link(range)(OPTION_RANGE),
-   link(setsockopt-int)(OPTION_SETSOCKOPT_INT),
-   link(setsockopt-bin)(OPTION_SETSOCKOPT_BIN),
-   link(setsockopt-string)(OPTION_SETSOCKOPT_STRING)
+   link(setsockopt)(OPTION_SETSOCKOPT),
+   link(setsockopt-listen)(OPTION_SETSOCKOPT_LISTEN)
    nl()
    See also:
    link(UDP-RECV)(ADDRESS_UDP_RECV),
@@ -796,13 +866,13 @@ label(ADDRESS_SOCKET_RECVFROM)dit(bf(tt(SOCKET-RECVFROM:<domain>:<type>:<protoco
    to find the appropriate values. The local-address must be the
    link(data)(TYPE_DATA) representation of a sockaddr structure without
    sa_family and (BSD) sa_len components.nl()
+   See the link(note about RECVFROM addresses)(NOTE_RECVFROM).nl()
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(CHILD)(GROUP_CHILD),link(RANGE)(GROUP_RANGE)nl()
    Useful options:
    link(fork)(OPTION_FORK),
    link(range)(OPTION_RANGE),
-   link(setsockopt-int)(OPTION_SETSOCKOPT_INT),
-   link(setsockopt-bin)(OPTION_SETSOCKOPT_BIN),
-   link(setsockopt-string)(OPTION_SETSOCKOPT_STRING)
+   link(setsockopt)(OPTION_SETSOCKOPT),
+   link(setsockopt-listen)(OPTION_SETSOCKOPT_LISTEN)
    nl()
    See also:
    link(UDP-RECVFROM)(ADDRESS_UDP_RECVFROM),
@@ -822,9 +892,8 @@ label(ADDRESS_SOCKET_SENDTO)dit(bf(tt(SOCKET-SENDTO:<domain>:<type>:<protocol>:<
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET)nl()
    Useful options:
    link(bind)(OPTION_BIND),
-   link(setsockopt-int)(OPTION_SETSOCKOPT_INT),
-   link(setsockopt-bin)(OPTION_SETSOCKOPT_BIN),
-   link(setsockopt-string)(OPTION_SETSOCKOPT_STRING)
+   link(setsockopt)(OPTION_SETSOCKOPT),
+   link(setsockopt-listen)(OPTION_SETSOCKOPT_LISTEN)
    nl()
    See also:
    link(UDP-SENDTO)(ADDRESS_UDP_SENDTO),
@@ -913,7 +982,7 @@ label(ADDRESS_TCP_CONNECT)dit(bf(tt(TCP:<host>:<port>)))
    link(tos)(OPTION_TOS),
    link(mtudiscover)(OPTION_MTUDISCOVER),
    link(mss)(OPTION_MSS),
-   link(nodelay)(OPTION_NODELAY),
+   link(nodelay)(OPTION_TCP_NODELAY),
    link(nonblock)(OPTION_NONBLOCK),
    link(sourceport)(OPTION_SOURCEPORT),
    link(retry)(OPTION_RETRY),
@@ -948,6 +1017,7 @@ label(ADDRESS_TCP_LISTEN)dit(bf(tt(TCP-LISTEN:<port>)))
    link(pf)(OPTION_PROTOCOL_FAMILY),
    link(max-children)(OPTION_MAX_CHILDREN),
    link(backlog)(OPTION_BACKLOG),
+   link(accept-timeout)(OPTION_ACCEPT_TIMEOUT),
    link(mss)(OPTION_MSS),
    link(su)(OPTION_SUBSTUSER),
    link(reuseaddr)(OPTION_REUSEADDR),
@@ -977,7 +1047,10 @@ label(ADDRESS_TUN)dit(bf(tt(TUN[:<if-addr>/<bits>])))
    ready for use by other processes; socat serves its "wire side". This address
    requires read and write access to the tunnel cloning device, usually
    code(/dev/net/tun), as well as permission to set some tt(ioctl()s).
-   bf(Option iff-up is required to immediately activate the interface!)nl() 
+   bf(Option iff-up is required to immediately activate the interface!)nl()
+   Note: If you intend to transfer packets between two Socat "wire sides" you
+   need a protocol that keeps packet boundaries, e.g.UDP; TCP might work with
+   option link(nodelay)(OPTION_TCP_NODELAY).nl()
    Option groups: link(FD)(GROUP_FD),link(NAMED)(GROUP_NAMED),link(OPEN)(GROUP_OPEN),link(TUN)(GROUP_TUN) nl()
    Useful options:
    link(iff-up)(OPTION_IFF_UP),
@@ -1018,7 +1091,7 @@ label(ADDRESS_UDP6_CONNECT)dit(bf(tt(UDP6:<host>:<port>)))
 label(ADDRESS_UDP_DATAGRAM)dit(bf(tt(UDP-DATAGRAM:<address>:<port>)))
    Sends outgoing data to the specified address which may in particular be a
    broadcast or multicast address. Packets arriving on the local socket are
-   checked for the correct remote port and if their source addresses match
+   checked for the correct remote port only when option link(sourceport)(OPTION_SOURCEPORT) is used (this is a change with Socat() version 1.7.4.0) and if their source addresses match
    link(RANGE)(OPTION_RANGE) or link(TCPWRAP)(OPTION_TCPWRAPPERS)
    options. This address type can for example be used for implementing
    symmetric or asymmetric broadcast or multicast communications.nl()
@@ -1032,6 +1105,7 @@ label(ADDRESS_UDP_DATAGRAM)dit(bf(tt(UDP-DATAGRAM:<address>:<port>)))
    link(ip-multicast-ttl)(OPTION_IP_MULTICAST_TTL),
    link(ip-multicast-if)(OPTION_IP_MULTICAST_IF),
    link(ip-add-membership)(OPTION_IP_ADD_MEMBERSHIP),
+   link(ip-add-source-membership)(OPTION_IP_ADD_SOURCE_MEMBERSHIP),
    link(ttl)(OPTION_TTL),
    link(tos)(OPTION_TOS),
    link(sourceport)(OPTION_SOURCEPORT),
@@ -1121,11 +1195,15 @@ label(ADDRESS_UDP_RECVFROM)dit(bf(tt(UDP-RECVFROM:<port>)))
    UDP/IP version 4 or 6 
    depending on option link(pf)(OPTION_PROTOCOL_FAMILY).
    It receives one packet from an unspecified peer and may send one or more
-   answer packets to that peer. This mode is particularly useful with fork
-   option 
+   answer packets to that peer. This mode is particularly useful with
+   link(fork)(OPTION_FORK) option 
    where each arriving packet - from arbitrary peers - is handled by its own sub
    process. This allows a behaviour similar to typical UDP based servers like ntpd
    or named. This address works well with socat UDP-SENDTO address peers.nl()
+   label(NOTE_RECVFROM)Note: When the second address fails before entering the transfer loop the
+   packet is dropped. Use option link(retry)(OPTION_RETRY) or
+   link(forever)(OPTION_FOREVER) on the second address to avoid data loss.
+   nl()
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4),link(IP6)(GROUP_IP6),link(CHILD)(GROUP_CHILD),link(RANGE)(GROUP_RANGE) nl()
    Useful options:
    link(fork)(OPTION_FORK),
@@ -1154,10 +1232,10 @@ label(ADDRESS_UDP_RECV)dit(bf(tt(UDP-RECV:<port>)))
    Creates a UDP socket on <port> [link(UDP service)(TYPE_UDP_SERVICE)] using UDP/IP version 4 or 6
    depending on option link(pf)(OPTION_PROTOCOL_FAMILY).
    It receives packets from multiple unspecified peers and merges the data.
-   No replies are possible. It works well with, e.g., socat UDP-SENDTO address peers; it behaves similar to a syslog server.nl()
+   No replies are possible. It works well with, e.g., socat link(UDP-SENDTO)(ADDRESS_UDP_SENDTO) address peers; it behaves similar to a syslog server.nl()
+   Note: if you need the link(fork)(OPTION_FORK) option, use link(UDP-RECVFROM)(ADDRESS_UDP_RECVFROM) in unidirectional mode (with link(option -u)(option_u)) instead.nl()
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(IP4)(GROUP_IP4),link(IP6)(GROUP_IP6),link(RANGE)(GROUP_RANGE) nl()
    Useful options:
-   link(fork)(OPTION_FORK),
    link(pf)(OPTION_PROTOCOL_FAMILY),
    link(bind)(OPTION_BIND),
    link(sourceport)(OPTION_SOURCEPORT),
@@ -1241,6 +1319,7 @@ label(ADDRESS_UNIX_RECVFROM)dit(bf(tt(UNIX-RECVFROM:<filename>)))
    This mode is particularly useful with fork option where each arriving packet - from arbitrary peers - is handled by its own sub process.
    This address works well with socat UNIX-SENDTO address peers.nl()
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(NAMED)(GROUP_NAMED),link(CHILD)(GROUP_CHILD),link(UNIX)(GROUP_SOCK_UNIX) nl()
+   See the link(note about RECVFROM addresses)(NOTE_RECVFROM).nl()
    Useful options:
    link(fork)(OPTION_FORK)nl()
    See also:
@@ -1254,7 +1333,7 @@ label(ADDRESS_UNIX_RECV)dit(bf(tt(UNIX-RECV:<filename>)))
    Creates a unixdomain() datagram socket [link(<filename>)(TYPE_FILENAME)].
    Receives packets from multiple unspecified peers and merges the data.
    No replies are possible. It can be, e.g., addressed by socat UNIX-SENDTO address peers.
-   It behaves similar to a syslog server.
+   It behaves similar to a syslog server.nl()
    Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(NAMED)(GROUP_NAMED),link(UNIX)(GROUP_SOCK_UNIX) nl()
    See also:
    link(UNIX-SENDTO)(ADDRESS_UNIX_SENDTO),
@@ -1275,6 +1354,37 @@ label(ADDRESS_UNIX_CLIENT)dit(bf(tt(UNIX-CLIENT:<filename>)))
    link(UNIX-CONNECT)(ADDRESS_UNIX_CONNECT),
    link(UNIX-SENDTO)(ADDRESS_UNIX_SENDTO),
    link(GOPEN)(ADDRESS_GOPEN)
+
+label(ADDRESS_VSOCK_CONNECT)dit(bf(tt(VSOCK-CONNECT:<cid>:<port>)))
+   Establishes a VSOCK stream connection to the specified <cid> [link(VSOCK
+   cid)(TYPE_VSOCK_ADDRESS)] and <port> [link(VSOCK port)(TYPE_VSOCK_PORT)].nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(CHILD)(GROUP_CHILD),link(RETRY)(GROUP_RETRY) nl()
+   Useful options:
+   link(bind)(OPTION_BIND),
+   link(pf)(OPTION_PROTOCOL_FAMILY),
+   link(connect-timeout)(OPTION_CONNECT_TIMEOUT),
+   link(retry)(OPTION_RETRY),
+   link(readbytes)(OPTION_READBYTES)nl()
+   See also:
+   link(VSOCK-LISTEN)(ADDRESS_VSOCK_LISTEN),
+
+label(ADDRESS_VSOCK_LISTEN)dit(bf(tt(VSOCK-LISTEN:<port>)))
+   Listens on <port> [link(VSOCK port)(TYPE_VSOCK_PORT)] and accepts a
+   VSOCK connection.
+   Note that opening this address usually blocks until a client connects.nl()
+   Option groups: link(FD)(GROUP_FD),link(SOCKET)(GROUP_SOCKET),link(LISTEN)(GROUP_LISTEN),link(CHILD)(GROUP_CHILD),link(RETRY)(GROUP_RETRY) nl()
+   Useful options:
+   link(fork)(OPTION_FORK),
+   link(bind)(OPTION_BIND),
+   link(pf)(OPTION_PROTOCOL_FAMILY),
+   link(max-children)(OPTION_MAX_CHILDREN),
+   link(backlog)(OPTION_BACKLOG),
+   link(su)(OPTION_SUBSTUSER),
+   link(reuseaddr)(OPTION_REUSEADDR),
+   link(retry)(OPTION_RETRY),
+   link(cool-write)(OPTION_COOL_WRITE)nl()
+   See also:
+   link(VSOCK-CONNECT)(ADDRESS_VSOCK_CONNECT)
 
 dit(bf(tt(ABSTRACT-CONNECT:<string>)))
 dit(bf(tt(ABSTRACT-LISTEN:<string>)))
@@ -1541,6 +1651,8 @@ startdit()enddit()nl()
 label(GROUP_NAMED)em(bf(NAMED option group))
 
 These options work on file system entries.nl()
+Please note that, with UNIX domain client addresses, this means the bind entry,
+not the target/peer entry.nl()
 See also options link(user)(OPTION_USER), link(group)(OPTION_GROUP), and
 link(mode)(OPTION_MODE).
 
@@ -1575,12 +1687,11 @@ label(OPTION_UNLINK_LATE)dit(bf(tt(unlink-late)))
 label(OPTION_UNLINK_CLOSE)dit(bf(tt(unlink-close)))
    Removes the addresses file system entry when closing the address.
    For link(named pipes)(ADDRESS_NAMED_PIPE),
-   link(listening unix domain sockets)(ADDRESS_UNIX_LISTEN),
+   link(UNIX domain sockets)(ADDRESS_UNIX_LISTEN),
    and the link(symbolic links)(OPTION_SYMBOLIC_LINK) of link(pty addresses)(ADDRESS_PTY),
    the default is 1; for link(created files)(ADDRESS_CREAT),
-   link(opened files)(ADDRESS_OPEN),
-   link(generic opened files)(ADDRESS_GOPEN), and
-   link(client unix domain sockets)(ADDRESS_UNIX_CONNECT) the default is 0.
+   link(opened files)(ADDRESS_OPEN), and
+   link(generic opened files)(ADDRESS_GOPEN) the default is 0.
 enddit()
 
 startdit()enddit()nl()
@@ -1663,22 +1774,22 @@ label(OPTION_FTRUNCATE)dit(bf(tt(ftruncate=<offset>)))
    link(off64_t)(TYPE_OFF64)]. Please note that a missing value defaults to 1,
    not 0.
 
-label(OPTION_EXT2_SECRM_FL)dit(bf(tt(secrm=<bool>)))
-label(OPTION_EXT2_UNRM)dit(bf(tt(unrm=<bool>)))
-label(OPTION_EXT2_COMPR)dit(bf(tt(compr=<bool>)))
-label(OPTION_EXT2_SYNC)dit(bf(tt(ext2-sync=<bool>)))
-label(OPTION_EXT2_IMMUTABLE)dit(bf(tt(immutable=<bool>)))
-label(OPTION_EXT2_APPEND)dit(bf(tt(ext2-append=<bool>)))
-label(OPTION_EXT2_NODUMP)dit(bf(tt(nodump=<bool>)))
-label(OPTION_EXT2_NOATIME)dit(bf(tt(ext2-noatime=<bool>)))
-label(OPTION_EXT2_JOURNAL_DATA)dit(bf(tt(journal-data=<bool>)))
-label(OPTION_EXT2_NOTAIL)dit(bf(tt(notail=<bool>)))
-label(OPTION_EXT2_DIRSYNC)dit(bf(tt(dirsync=<bool>)))
+label(OPTION_FS_SECRM_FL)dit(bf(tt(secrm=<bool>)))
+label(OPTION_FS_UNRM)dit(bf(tt(unrm=<bool>)))
+label(OPTION_FS_COMPR)dit(bf(tt(compr=<bool>)))
+label(OPTION_FS_SYNC)dit(bf(tt(fs-sync=<bool>)))
+label(OPTION_FS_IMMUTABLE)dit(bf(tt(immutable=<bool>)))
+label(OPTION_FS_APPEND)dit(bf(tt(fs-append=<bool>)))
+label(OPTION_FS_NODUMP)dit(bf(tt(nodump=<bool>)))
+label(OPTION_FS_NOATIME)dit(bf(tt(fs-noatime=<bool>)))
+label(OPTION_FS_JOURNAL_DATA)dit(bf(tt(journal-data=<bool>)))
+label(OPTION_FS_NOTAIL)dit(bf(tt(notail=<bool>)))
+label(OPTION_FS_DIRSYNC)dit(bf(tt(dirsync=<bool>)))
    These options change non standard file attributes on operating systems and
-   file systems that support these features, like Linux with ext2fs,
-   ext3fs, or reiserfs. See man 1 chattr for information on these options.
-   Please note that there might be a race condition between creating the file
-   and applying these options.
+   file systems that support these features, like Linux with ext2fs and
+   successors, xfs, or reiserfs. See man 1 chattr for information on these
+   options. Please note that there might be a race condition between creating
+   the file and applying these options.
 enddit()
 
 startdit()enddit()nl()
@@ -1808,7 +1919,8 @@ label(OPTION_BIND)dit(bf(tt(bind=<sockname>)))
    Binds the socket to the given socket address using the code(bind()) system
    call. The form of <sockname> is socket domain dependent:
    IP4 and IP6 allow the form [hostname|hostaddress][:(service|port)] (link(example)(EXAMPLE_OPTION_BIND_TCP4)),
-   unixdomain() sockets require link(<filename>)(TYPE_FILENAME).
+   unixdomain() sockets require link(<filename>)(TYPE_FILENAME),
+   VSOCK allow the form [cid][:(port)].
 label(OPTION_CONNECT_TIMEOUT)dit(bf(tt(connect-timeout=<seconds>)))
    Abort the connection attempt after <seconds> [link(timeval)(TYPE_TIMEVAL)]
    with error status.
@@ -1872,9 +1984,9 @@ label(OPTION_SO_TYPE)dit(bf(tt(type=<type>)))
    [link(int)(TYPE_INT)]. Address resolution is not affected by this option.
    Under Linux, 1 means stream oriented socket, 2 means datagram socket, and 3
    means raw socket.
-label(OPTION_SO_PROTOTYPE)dit(bf(tt(prototype)))
+label(OPTION_SO_PROTOCOL)dit(bf(tt(protocol)))
    Sets the protocol of the socket, specified as third argument to the
-   code(socket()) or code(socketpair()) calls, to <prototype>
+   code(socket()) or code(socketpair()) calls, to <protocol>
    [link(int)(TYPE_INT)]. Address resolution is not affected by this option.
    6 means TCP, 17 means UDP.
 COMMENT(label(OPTION_USELOOPBACK)dit(bf(tt(useloopback)))
@@ -1920,22 +2032,24 @@ COMMENT(label(OPTION_USEIFBUFS)dit(bf(tt(useifbufs)))
 label(OPTION_SO_TIMESTAMP)dit(bf(tt(so-timestamp)))
    Sets the SO_TIMESTAMP socket option. This enables receiving and logging of
    timestamp ancillary messages.
-label(OPTION_SETSOCKOPT_INT)dit(bf(tt(setsockopt-int=<level>:<optname>:<optval>)))
+label(OPTION_SETSOCKOPT)dit(bf(tt(setsockopt=<level>:<optname>:<optval>)))
    Invokes tt(setsockopt()) for the socket with the given parameters. tt(level)
    [link(int)(TYPE_INT)] is used as second argument to tt(setsockopt()) and
    specifies the layer, e.g. SOL_TCP for TCP (6 on Linux), or SOL_SOCKET for
    the socket layer (1 on Linux). tt(optname) [link(int)(TYPE_INT)] is the
    third argument to tt(setsockopt()) and tells which socket option is to be
    set. For the actual numbers you might have to look up the appropriate include
-   files of your system. The 4th tt(setsockopt()) parameter, tt(value)
-   [link(int)(TYPE_INT)], is passed to the function per pointer, and for the
-   length parameter NOEXPAND(sizeof(int)) is taken implicitely.
-label(OPTION_SETSOCKOPT_BIN)dit(bf(tt(setsockopt-bin=<level>:<optname>:<optval>)))
-   Like tt(setsockopt-int), but <optval> must be provided in
-   link(dalan)(TYPE_DATA) format and specifies an arbitrary sequence of bytes;
-   the length parameter is automatically derived from the data.
+   files of your system. For the 4th and 5th tt(setsockopt()) parameters,
+   tt(value) [link(dalan)(TYPE_DATA)] specifies an arbitrary sequence of bytes
+   that are passed to the function per pointer, with the automatically derived
+   length parameter.
+label(OPTION_SETSOCKOPT_INT)dit(bf(tt(setsockopt-int=<level>:<optname>:<optval>)))
+   Like tt(setsockopt), but <optval> is a pointer to int [link(int)(TYPE_INT)]
+label(OPTION_SETSOCKOPT_LISTEN)dit(bf(tt(setsockopt-listen=<level>:<optname>:<optval>)))
+   Like tt(setsockopt), but for listen type addresses it is applied to the
+   listening socket instead of the connected socket.
 label(OPTION_SETSOCKOPT_STRING)dit(bf(tt(setsockopt-string=<level>:<optname>:<optval>)))
-   Like tt(setsockopt-int), but <optval> must be a link(string)(TYPE_STRING).
+   Like tt(setsockopt), but <optval> is a link(string)(TYPE_STRING).
    This string is passed to the function with trailing null character, and the
    length parameter is automatically derived from the data.
 enddit()
@@ -2031,6 +2145,11 @@ dit(bf(tt(ip-add-membership=<multicast-address:interface-address:interface-index
    provide tt(struct mreqn) (Linux).nl()
    The indices of active network interfaces can be shown using the utility
    procan().
+label(OPTION_IP_ADD_SOURCE_MEMBERSHIP)
+dit(bf(tt(ip-add-source-membership=<multicast-address:interface-address:source-address>)))
+   Makes the socket member of the specified multicast group for the specified
+   source, i.e. only multicast traffic from this address is to be delivered.
+   This is currently only implemented for IPv4.nl()
 label(OPTION_IP_MULTICAST_IF)
 dit(bf(tt(ip-multicast-if=<hostname>)))
    Specifies hostname or address of the network interface to be used for
@@ -2041,6 +2160,10 @@ dit(bf(tt(ip-multicast-loop=<bool>)))
 label(OPTION_IP_MULTICAST_TTL)
 dit(bf(tt(ip-multicast-ttl=<byte>)))
    Sets the TTL used for outgoing multicast traffic. Default is 1.
+label(OPTOIN_IP_TRANSPARENT)
+dit(bf(tt(ip-transparent)))
+   Sets the IP_TRANSPARENT socket option.
+   This option might require root privilege.
 label(OPTION_RES_DEBUG)dit(bf(tt(res-debug)))
 label(OPTION_RES_AAONLY)dit(bf(tt(res-aaonly)))
 label(OPTION_RES_USEVC)dit(bf(tt(res-usevc)))
@@ -2103,7 +2226,7 @@ label(GROUP_TCP)em(bf(TCP option group))
 
 These options may be applied to TCP sockets. They work by invoking code(setsockopt()) with the appropriate parameters.
 startdit()
-label(OPTION_CORK)dit(bf(tt(cork)))
+label(OPTION_TCP_CORK)dit(bf(tt(cork)))
    Doesn't send packets smaller than MSS (maximal segment size).
 label(OPTION_DEFER-ACCEPT)dit(bf(tt(defer-accept)))
    While listening, accepts connections only when data from the peer arrived.
@@ -2127,7 +2250,7 @@ label(OPTION_MSS)dit(bf(tt(mss=<bytes>)))
 label(OPTION_MSS_LATE)dit(bf(tt(mss-late=<bytes>)))
    Sets the MSS of the socket after connection has been established to <bytes>
    [link(int)(TYPE_INT)].
-label(OPTION_NODELAY)dit(bf(tt(nodelay)))
+label(OPTION_TCP_NODELAY)dit(bf(tt(nodelay)))
    Turns off the Nagle algorithm for measuring the RTT (round trip time).
 label(OPTION_RFC1323)dit(bf(tt(rfc1323)))
    Enables RFC1323 TCP options: TCP window scale, round-trip time measurement
@@ -2172,6 +2295,20 @@ enddit()
 startdit()enddit()nl()
 
 
+label(GROUP_UDP)em(bf(UDP option group))
+
+This option may be applied to UDP datagram sockets.
+
+startdit()
+label(OPTION_UDP_IGNORE_PEERPORT)dit(bf(tt(udp-ignore-peerport>)))
+   Address UDP-DATAGRAM expects incoming responses to come from the port
+   specified in its second parameter. With this option, it accepts packets
+   coming from any port.
+enddit()
+
+startdit()enddit()nl()
+
+
 label(GROUP_SCTP)em(bf(SCTP option group))
 
 These options may be applied to SCTP stream sockets.
@@ -2186,7 +2323,7 @@ enddit()
 startdit()enddit()nl()
 
 
-em(bf(UDP, TCP, and SCTP option groups))
+em(bf(UDP, TCP, and SCTP option group))
 
 Here we find options that are related to the network port mechanism and thus
 can be used with UDP, TCP, and SCTP client and server addresses.
@@ -2195,7 +2332,10 @@ label(OPTION_SOURCEPORT)dit(bf(tt(sourceport=<port>)))
    For outgoing (client) TCP and UDP connections, it sets the source
    link(<port>)(TYPE_PORT) using an extra code(bind()) call.
    With TCP or UDP listen addresses, socat immediately shuts down the
-   connection if the client does not use this sourceport (link(example)(EXAMPLE_OPTION_SOURCEPORT)).
+   connection if the client does not use this sourceport. UDP-RECV,
+   UDP-RECVFROM, UDP-SENDTO, and UDP-DATAGRAM addresses ignore the packet when
+   it does not match.
+   (link(example)(EXAMPLE_OPTION_SOURCEPORT)).
 label(OPTION_LOWPORT)dit(bf(tt(lowport)))
    Outgoing (client) TCP and UDP connections with this option use
    an unused random source port between 640 and 1023 incl. On UNIX class operating
@@ -2238,13 +2378,17 @@ label(OPTION_IGNORECR)dit(bf(tt(ignorecr)))
    server violates this standard, socat might not understand its answer. 
    This option directs socat to interprete NL as line terminator and
    to ignore CR in the answer. Nevertheless, socat sends CR+NL to the proxy.
-label(OPTION_PROXY_AUTHORIZATION)dit(bf(tt(proxyauth=<username>:<password>)))
+label(OPTION_PROXY_AUTHORIZATION)dit(bf(tt(proxy-authorization=<username>:<password>)))
    Provide "basic" authentication to the proxy server. The argument to the
-   option is used with a "Proxy-Authorization: Base" header in base64 encoded
+   option is used with a "Proxy-Authorization: Basic" header in base64 encoded
    form.nl() 
    Note: username and password are visible for every user on the local machine
    in the process list; username and password are transferred to the proxy
    server unencrypted (base64 encoded) and might be sniffed.
+label(OPTION_PROXY_AUTHORIZATION_FILE)dit(bf(tt(proxy-authorization-file=<filename>)))
+   Like option link(proxy-authorization)(OPTION_PROXY_AUTHORIZATION), but the
+   credentials are read from the file and therefore not visible in the process
+   list.nl() 
 label(OPTION_PROXY_RESOLVE)dit(bf(tt(resolve)))
    Per default, socat sends to the proxy a CONNECT request containing the
    target hostname. With this option, socat resolves the hostname locally and
@@ -2296,6 +2440,9 @@ startdit()
 label(OPTION_BACKLOG)dit(bf(tt(backlog=<count>)))
    Sets the backlog value passed with the code(listen()) system call to <count>
    [link(int)(TYPE_INT)]. Default is 5. 
+label(OPTION_ACCEPT_TIMEOUT)dit(bf(tt(accept-timeout=<seconds>)))
+   End waiting for a connection after <seconds> [link(timeval)(TYPE_TIMEVAL)]
+   with error status.
 label(OPTION_MAX_CHILDREN)dit(bf(tt(max-children=<count>)))
    Limits the number of concurrent child processes [link(int)(TYPE_INT)].
     Default is no limit. 
@@ -2315,7 +2462,8 @@ label(OPTION_FORK)dit(bf(tt(fork)))
    child:
    OPENSSL-LISTEN forks em(before) the SSL handshake, while OPENSSL-CONNECT
    forks em(afterwards).
-   RETRY and FOREVER options are not inherited by the child process.nl()
+   link(retry)(OPTION_RETRY) and link(forever)(OPTION_FOREVER) options are not
+   inherited by the child process.nl()
    On some operating systems (e.g. FreeBSD) this option does not work for
    UDP-LISTEN addresses.nl()
 enddit()
@@ -2697,6 +2845,17 @@ label(OPTION_OPENSSL_COMMONNAME)dit(bf(tt(commonname=<string>)))
    certificates commonname. This option has only meaning when option
    link(verify)(OPTION_OPENSSL_VERIFY) is not disabled and the chosen cipher
    provides a peer certificate.
+label(OPTION_OPENSSL_NO_SNI)dit(bf(tt(no-sni=<bool>)))
+   Do not use the client side Server Name Indication (SNI) feature that selects
+   the desired server certificate.nl()
+   Note: SNI is automatically used since socat() version 1.7.4.0 and uses
+   link(commonname)(OPTION_OPENSSL_COMMONNAME) or the given host name.
+label(OPTION_OPENSSL_SNIHOST)dit(bf(tt(snihost=<string>)))
+   Set the client side Server Name Indication (SNI) host name different from
+   the addressed server name or common name. This might be useful when the
+   server certificate has multiple host names or wildcard names because the
+   SNI host name is passed in cleartext to the server and might be eavesdropped;
+   with this option a mock name of the desired certificate may be transferred.
 label(OPTION_OPENSSL_FIPS)dit(bf(tt(fips)))
    Enables FIPS mode if compiled in. For info about the FIPS encryption
    implementation standard see lurl(http://oss-institute.org/fips-faq.html). 
@@ -2804,9 +2963,36 @@ label(TYPE_COMMAND_LINE)dit(command-line)
    A string specifying a program name and its arguments, separated by single
    spaces. 
 label(TYPE_DATA)dit(data)
-   A raw data specification following em(dalan) syntax. Currently the only
-   valid form is a string starting with 'x' followed by an even number of hex
-   digits, specifying a sequence of bytes.
+   This is a more general data specification. The given text string contains
+   information about the target data type and value. Generally a leading
+   character specifies the type of the following data item. In its specific
+   context a default data type may exist.nl()
+   Currently only the following specifications are implemented:nl()
+   description(
+   dit(i)  A signed integer number, stored in host byte order.nl()
+   Example:    bf(i-1000)    (Integer number -1000)
+   dit(I)  An unsigned integer number, stored in host byte order.nl()
+   dit(l)  A signed long integer number, stored in host byte order.nl()
+   dit(L)  An unsigned long integer number, stored in host byte order.nl()
+   dit(s)  A signed short integer number, stored in host byte order.nl()
+   dit(S)  An unsigned short integer number, stored in host byte order.nl()
+   dit(b)  A signed byte (signed char).nl()
+   dit(B)  An unsigned byte (unsigned char).nl()
+   dit(x)  Following is an even number of hex digits, stored as sequence of
+   bytes.nl()
+   Example:    bf(x7f000001) (IP address 127.0.0.1)
+   dit(")  Following is a string that is used with the common conversions 
+   \n \r \t \f \b \a \e \0; the string must be closed with '"'. Please note
+   that the quotes and backslashes need to be escaped from shell and socat()
+   conversion.nl()
+   Example:    bf("Hello world!\n")
+   dit(')  A single char, with the usual conversions. Please note that the
+   quotes and backslashes need to be escaped from shell and socat() conversion.
+   nl()
+   Example:    bf('a')
+   )
+   Data items may be separated with white space without need to repeat the type
+   specifier again.
 label(TYPE_DIRECTORY)dit(directory)
    A string with usual unix() directory name semantics.
 label(TYPE_FACILITY)dit(facility)
@@ -2837,7 +3023,7 @@ label(TYPE_IPV4_ADDRESS)dit(IPv4 address)
    an IPv4 address.nl()
    Examples: 127.0.0.1, www.dest-unreach.org, dns2
 label(TYPE_IPV6_ADDRESS)dit(IPv6 address)
-   An iPv6 address in hexnumbers-and-colons notation enclosed in brackets, or a
+   An IPv6 address in hexnumbers-and-colons notation enclosed in brackets, or a
    hostname that resolves to an IPv6 address.nl()
    Examples: [::1], [1234:5678:9abc:def0:1234:5678:9abc:def0],
    ip6name.domain.org 
@@ -2890,6 +3076,14 @@ label(TYPE_USER)dit(user)
    If the first character is a decimal digit, the value is read with
    code(strtoul()) as unsigned integer specifying a user id. Otherwise, it must
    be an existing user name.
+label(TYPE_VSOCK_ADDRESS)dit(VSOCK cid)
+   A uint32_t (32 bit unsigned number) specifying a VSOCK Context Identifier
+   (CID), read with code(strtoul()).
+   There are several special addresses: VMADDR_CID_ANY (-1U) means any address
+   for binding; VMADDR_CID_HOST (2) is the well-known address of the host.
+label(TYPE_VSOCK_PORT)dit(VSOCK port)
+   A uint32_t (32 bit unsigned number) specifying a VSOCK port, read
+   with code(strtoul()).
 enddit()
 
 
@@ -3284,13 +3478,52 @@ operating system, bridges, or a badly configured switch.
 
 
 label(EXAMPLE_ADDRESS_TUN)
-dit(bf(tt(socat TCP:host2:4443 TUN:192.168.255.1/24,up)))
+dit(bf(tt(socat UDP:host2:4443 TUN:192.168.255.1/24,up)))
 
 establishes one side of a virtual (but not private!) network with host2 where a
 similar process might run, with UDP-L and tun address 192.168.255.2. They can
 reach each other using the addresses 192.168.255.1 and 192.168.255.2. Note that
-streaming eg. via TCP or SSL does not guarantee to retain packet boundaries and
-may thus cause packet loss.
+streaming eg.via TCP or SSL does not guarantee to retain packet boundaries and
+might thus cause packet loss.
+
+
+label(EXAMPLE_ADDRESS_VSOCK)
+dit(bf(tt(socat - VSOCK-CONNECT:2:1234)))
+
+establishes a VSOCK connection with the host (host is always reachable with
+the well-know CID=2) on 1234 port.
+
+
+dit(bf(tt(socat - VSOCK-LISTEN:1234)))
+
+listens for a VSOCK connection on 1234 port.
+
+
+dit(bf(tt(socat - VSOCK-CONNECT:31:4321,bind:5555)))
+
+establishes a VSOCK connection with the guest that have CID=31 on 1234 port,
+binding the local socket to the 5555 port.
+
+
+dit(bf(tt(socat VSOCK-LISTEN:3333,reuseaddr,fork VSOCK-CONNECT:42,3333)))
+
+starts a forwarder that accepts VSOCK connections on port 3333, and directs
+them to the guest with CID=42 on the same port.
+
+
+dit(bf(tt(socat VSOCK-LISTEN:22,reuseaddr,fork TCP:localhost:22)))
+
+forwards VSOCK connections from 22 port to the local SSH server.
+Running this in a VM allows you to connect via SSH from the host using VSOCK,
+as in the example below.
+
+
+dit(bf(tt(socat TCP4-LISTEN:22222,reuseaddr,fork VSOCK-CONNECT:33:22)))
+
+forwards TCP connections from 22222 port to the guest with CID=33 listening on
+VSOCK port 22.
+Running this in the host, allows you to connect via SSH running
+"ssh -p 22222 user@localhost", if the guest runs the example above.
 
 
 label(EXAMPLE_INTERFACE)
@@ -3321,6 +3554,12 @@ link(tt(ip-pktinfo))(OPTION_IP_PKTINFO) with link(tt(ip-recvdstaddr))(OPTION_IP_
 SOCAT_IP_DSTADDR: it contains the target address of the packet which may be a
 unicast, multicast, or broadcast address.
 
+
+label(EXAMPLE_SSD)
+dit(bf(tt(echo -e "M-SEARCH * HTTP/1.1\nHOST: 239.255.255.250:1900\nMAN: \"ssdp:discover\"\nMX: 4\nST: \"ssdp:all\"\n" |./socat - UDP-DATAGRAM:239.255.255.250:1900,crlf)))
+
+sends an SSDP (Simple Service Discovery Protocol) query to the local network
+and collects and outputs the answers received.
 
 dit(bf(tt()))
 
@@ -3527,7 +3766,7 @@ standard specifications available on the Internet for free.
 label(VERSION)
 manpagesection(VERSION)
 
-This man page describes version 1.7.3 of socat().
+This man page describes version 1.7.4 of socat().
 
 
 label(BUGS)

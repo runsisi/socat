@@ -40,9 +40,5 @@ extern int _xioopen_ipapp_listen_prepare(struct opt *opts, struct opt **opts0,
 				  unsigned long res_opts1,
 				   union sockaddr_union *us, socklen_t *uslen,
 					  int socktype);
-extern int xioopen_ip6app_connect(int argc, const char *argv[], struct opt *opts,
-				  int rw, xiofile_t *fd,
-			 unsigned groups, int socktype, int ipproto,
-			 void *protname);
 
 #endif /* !defined(__xio_ipapp_h_included) */

@@ -7,6 +7,10 @@
 
 #if WITH_IP6
 
+#ifndef INET6_ADDRSTRLEN
+#  define INET6_ADDRSTRLEN 46
+#endif
+
 extern const struct optdesc opt_ipv6_v6only;
 extern const struct optdesc opt_ipv6_join_group;
 extern const struct optdesc opt_ipv6_pktinfo;
@@ -27,6 +31,7 @@ extern const struct optdesc opt_ipv6_tclass;
 extern const struct optdesc opt_ipv6_recvtclass;
 extern const struct optdesc opt_ipv6_recvpathmtu;
 
+extern int xioip6_pton(const char *src, struct in6_addr *dst);
 extern
 int xioparsenetwork_ip6(const char *rangename, struct xiorange *range);
 extern int xiorange_ip6andmask(struct xiorange *range);

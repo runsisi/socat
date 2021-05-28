@@ -7,6 +7,7 @@
 #include "xiosysincludes.h"
 #include "xioopen.h"
 #include "xio-unix.h"
+#include "xio-ip.h"
 
 #include "xiomodes.h"
 #include "xiolockfile.h"
@@ -80,6 +81,12 @@ bool xioopts_ignoregroups;
 #  define IF_TCP(a,b) {a,b},
 #else
 #  define IF_TCP(a,b) 
+#endif
+
+#if WITH_UDP
+#  define IF_UDP(a,b) {a,b},
+#else
+#  define IF_UDP(a,b) 
 #endif
 
 #if WITH_SCTP
@@ -156,11 +163,15 @@ const struct optname optionnames[] = {
 #ifdef TCP_ABORT_THRESHOLD  /* HP_UX */
 	IF_TCP    ("abort-threshold",	&opt_tcp_abort_threshold)
 #endif
+	IF_LISTEN ("accept-timeout",	&opt_accept_timeout)
 #ifdef SO_ACCEPTCONN /* AIX433 */
 	IF_SOCKET ("acceptconn",	&opt_so_acceptconn)
 #endif /* SO_ACCEPTCONN */
 #ifdef IP_ADD_MEMBERSHIP
 	IF_IP     ("add-membership",	&opt_ip_add_membership)
+#endif
+#ifdef IP_ADD_SOURCE_MEMBERSHIP
+	IF_IP     ("add-source-membership",	&opt_ip_add_source_membership)
 #endif
 	IF_TUN    ("allmulti",	&opt_iff_allmulti)
 #if WITH_LIBWRAP && defined(HAVE_HOSTS_ALLOW_TABLE)
@@ -299,8 +310,8 @@ const struct optname optionnames[] = {
 	IF_ANY    ("close",	&opt_end_close)
 	IF_OPENSSL("cn",		&opt_openssl_commonname)
 	IF_OPENSSL("commonname",	&opt_openssl_commonname)
-#if WITH_EXT2 && defined(EXT2_COMPR_FL)
-	IF_ANY    ("compr",	&opt_ext2_compr)
+#if WITH_FS && defined(FS_COMPR_FL)
+	IF_ANY    ("compr",	&opt_fs_compr)
 #endif
 #if OPENSSL_VERSION_NUMBER >= 0x00908000L && !defined(OPENSSL_NO_COMP)
 	IF_OPENSSL("compress",	&opt_openssl_compress)
@@ -388,8 +399,8 @@ const struct optname optionnames[] = {
 #ifdef O_DIRECTORY
 	IF_OPEN   ("directory",	&opt_o_directory)
 #endif
-#if WITH_EXT2 && defined(EXT2_DIRSYNC_FL)
-	IF_ANY    ("dirsync",	&opt_ext2_dirsync)
+#if WITH_FS && defined(FS_DIRSYNC_FL)
+	IF_ANY    ("dirsync",	&opt_fs_dirsync)
 #endif
 #ifdef VDISCARD
 	IF_TERMIOS("discard",	&opt_vdiscard)
@@ -428,77 +439,77 @@ const struct optname optionnames[] = {
 	IF_SOCKET ("error",	&opt_so_error)
 	IF_ANY    ("escape",	&opt_escape)
 	IF_OPEN   ("excl",	&opt_o_excl)
-#if WITH_EXT2 && defined(EXT2_APPEND_FL)
-	IF_ANY    ("ext2-append",	&opt_ext2_append)
+#if WITH_FS && defined(FS_APPEND_FL)
+	IF_ANY    ("ext2-append",	&opt_fs_append)
 #endif
-#if WITH_EXT2 && defined(EXT2_COMPR_FL)
-	IF_ANY    ("ext2-compr",	&opt_ext2_compr)
+#if WITH_FS && defined(FS_COMPR_FL)
+	IF_ANY    ("ext2-compr",	&opt_fs_compr)
 #endif
-#if WITH_EXT2 && defined(EXT2_DIRSYNC_FL)
-	IF_ANY    ("ext2-dirsync",	&opt_ext2_dirsync)
+#if WITH_FS && defined(FS_DIRSYNC_FL)
+	IF_ANY    ("ext2-dirsync",	&opt_fs_dirsync)
 #endif
-#if WITH_EXT2 && defined(EXT2_IMMUTABLE_FL)
-	IF_ANY    ("ext2-immutable",	&opt_ext2_immutable)
+#if WITH_FS && defined(FS_IMMUTABLE_FL)
+	IF_ANY    ("ext2-immutable",	&opt_fs_immutable)
 #endif
-#if WITH_EXT2 && defined(EXT2_JOURNAL_DATA_FL)
-	IF_ANY    ("ext2-journal-data",	&opt_ext2_journal_data)
+#if WITH_FS && defined(FS_JOURNAL_DATA_FL)
+	IF_ANY    ("ext2-journal-data",	&opt_fs_journal_data)
 #endif
-#if WITH_EXT2 && defined(EXT2_NOATIME_FL)
-	IF_ANY    ("ext2-noatime",	&opt_ext2_noatime)
+#if WITH_FS && defined(FS_NOATIME_FL)
+	IF_ANY    ("ext2-noatime",	&opt_fs_noatime)
 #endif
-#if WITH_EXT2 && defined(EXT2_NODUMP_FL)
-	IF_ANY    ("ext2-nodump",	&opt_ext2_nodump)
+#if WITH_FS && defined(FS_NODUMP_FL)
+	IF_ANY    ("ext2-nodump",	&opt_fs_nodump)
 #endif
-#if WITH_EXT2 && defined(EXT2_NOTAIL_FL)
-	IF_ANY    ("ext2-notail",	&opt_ext2_notail)
+#if WITH_FS && defined(FS_NOTAIL_FL)
+	IF_ANY    ("ext2-notail",	&opt_fs_notail)
 #endif
-#if WITH_EXT2 && defined(EXT2_SECRM_FL)
-	IF_ANY    ("ext2-secrm",	&opt_ext2_secrm)
+#if WITH_FS && defined(FS_SECRM_FL)
+	IF_ANY    ("ext2-secrm",	&opt_fs_secrm)
 #endif
-#if WITH_EXT2 && defined(EXT2_SYNC_FL)
-	IF_ANY    ("ext2-sync",		&opt_ext2_sync)
+#if WITH_FS && defined(FS_SYNC_FL)
+	IF_ANY    ("ext2-sync",		&opt_fs_sync)
 #endif
-#if WITH_EXT2 && defined(EXT2_TOPDIR_FL)
-	IF_ANY    ("ext2-topdir",	&opt_ext2_topdir)
+#if WITH_FS && defined(FS_TOPDIR_FL)
+	IF_ANY    ("ext2-topdir",	&opt_fs_topdir)
 #endif
-#if WITH_EXT2 && defined(EXT2_UNRM_FL)
-	IF_ANY    ("ext2-unrm",		&opt_ext2_unrm)
+#if WITH_FS && defined(FS_UNRM_FL)
+	IF_ANY    ("ext2-unrm",		&opt_fs_unrm)
 #endif
-#if WITH_EXT2 && defined(EXT2_APPEND_FL)
-	IF_ANY    ("ext3-append",	&opt_ext2_append)
+#if WITH_FS && defined(FS_APPEND_FL)
+	IF_ANY    ("ext3-append",	&opt_fs_append)
 #endif
-#if WITH_EXT2 && defined(EXT2_COMPR_FL)
-	IF_ANY    ("ext3-compr",	&opt_ext2_compr)
+#if WITH_FS && defined(FS_COMPR_FL)
+	IF_ANY    ("ext3-compr",	&opt_fs_compr)
 #endif
-#if WITH_EXT2 && defined(EXT2_DIRSYNC_FL)
-	IF_ANY    ("ext3-dirsync",	&opt_ext2_dirsync)
+#if WITH_FS && defined(FS_DIRSYNC_FL)
+	IF_ANY    ("ext3-dirsync",	&opt_fs_dirsync)
 #endif
-#if WITH_EXT2 && defined(EXT2_IMMUTABLE_FL)
-	IF_ANY    ("ext3-immutable",	&opt_ext2_immutable)
+#if WITH_FS && defined(FS_IMMUTABLE_FL)
+	IF_ANY    ("ext3-immutable",	&opt_fs_immutable)
 #endif
-#if WITH_EXT2 && defined(EXT2_JOURNAL_DATA_FL)
-	IF_ANY    ("ext3-journal-data",	&opt_ext2_journal_data)
+#if WITH_FS && defined(FS_JOURNAL_DATA_FL)
+	IF_ANY    ("ext3-journal-data",	&opt_fs_journal_data)
 #endif
-#if WITH_EXT2 && defined(EXT2_NOATIME_FL)
-	IF_ANY    ("ext3-noatime",	&opt_ext2_noatime)
+#if WITH_FS && defined(FS_NOATIME_FL)
+	IF_ANY    ("ext3-noatime",	&opt_fs_noatime)
 #endif
-#if WITH_EXT2 && defined(EXT2_NODUMP_FL)
-	IF_ANY    ("ext3-nodump",	&opt_ext2_nodump)
+#if WITH_FS && defined(FS_NODUMP_FL)
+	IF_ANY    ("ext3-nodump",	&opt_fs_nodump)
 #endif
-#if WITH_EXT2 && defined(EXT2_NOTAIL_FL)
-	IF_ANY    ("ext3-notail",	&opt_ext2_notail)
+#if WITH_FS && defined(FS_NOTAIL_FL)
+	IF_ANY    ("ext3-notail",	&opt_fs_notail)
 #endif
-#if WITH_EXT2 && defined(EXT2_SECRM_FL)
-	IF_ANY    ("ext3-secrm",	&opt_ext2_secrm)
+#if WITH_FS && defined(FS_SECRM_FL)
+	IF_ANY    ("ext3-secrm",	&opt_fs_secrm)
 #endif
-#if WITH_EXT2 && defined(EXT2_SYNC_FL)
-	IF_ANY    ("ext3-sync",		&opt_ext2_sync)
+#if WITH_FS && defined(FS_SYNC_FL)
+	IF_ANY    ("ext3-sync",		&opt_fs_sync)
 #endif
-#if WITH_EXT2 && defined(EXT2_TOPDIR_FL)
-	IF_ANY    ("ext3-topdir",	&opt_ext2_topdir)
+#if WITH_FS && defined(FS_TOPDIR_FL)
+	IF_ANY    ("ext3-topdir",	&opt_fs_topdir)
 #endif
-#if WITH_EXT2 && defined(EXT2_UNRM_FL)
-	IF_ANY    ("ext3-unrm",		&opt_ext2_unrm)
+#if WITH_FS && defined(FS_UNRM_FL)
+	IF_ANY    ("ext3-unrm",		&opt_fs_unrm)
 #endif
 	IF_ANY 	  ("f-setlk",	&opt_f_setlk_wr)
 	IF_ANY 	  ("f-setlk-rd",	&opt_f_setlk_rd)
@@ -539,6 +550,42 @@ const struct optname optionnames[] = {
 	IF_LISTEN ("fork",	&opt_fork)
 #ifdef IP_FREEBIND
 	IF_IP     ("freebind",	&opt_ip_freebind)
+#endif
+#if WITH_FS && defined(FS_APPEND_FL)
+	IF_ANY    ("fs-append",	&opt_fs_append)
+#endif
+#if WITH_FS && defined(FS_COMPR_FL)
+	IF_ANY    ("fs-compr",	&opt_fs_compr)
+#endif
+#if WITH_FS && defined(FS_DIRSYNC_FL)
+	IF_ANY    ("fs-dirsync",	&opt_fs_dirsync)
+#endif
+#if WITH_FS && defined(FS_IMMUTABLE_FL)
+	IF_ANY    ("fs-immutable",	&opt_fs_immutable)
+#endif
+#if WITH_FS && defined(FS_JOURNAL_DATA_FL)
+	IF_ANY    ("fs-journal-data",	&opt_fs_journal_data)
+#endif
+#if WITH_FS && defined(FS_NOATIME_FL)
+	IF_ANY    ("fs-noatime",	&opt_fs_noatime)
+#endif
+#if WITH_FS && defined(FS_NODUMP_FL)
+	IF_ANY    ("fs-nodump",	&opt_fs_nodump)
+#endif
+#if WITH_FS && defined(FS_NOTAIL_FL)
+	IF_ANY    ("fs-notail",	&opt_fs_notail)
+#endif
+#if WITH_FS && defined(FS_SECRM_FL)
+	IF_ANY    ("fs-secrm",	&opt_fs_secrm)
+#endif
+#if WITH_FS && defined(FS_SYNC_FL)
+	IF_ANY    ("fs-sync",		&opt_fs_sync)
+#endif
+#if WITH_FS && defined(FS_TOPDIR_FL)
+	IF_ANY    ("fs-topdir",	&opt_fs_topdir)
+#endif
+#if WITH_FS && defined(FS_UNRM_FL)
+	IF_ANY    ("fs-unrm",		&opt_fs_unrm)
 #endif
 #if HAVE_FTRUNCATE64
 	IF_ANY    ("ftruncate",	&opt_ftruncate64)
@@ -614,8 +661,8 @@ const struct optname optionnames[] = {
 	IF_IP     ("igntc",	&opt_res_igntc)
 #endif /* HAVE_RESOLV_H */
 	IF_TERMIOS("imaxbel",	&opt_imaxbel)
-#if WITH_EXT2 && defined(EXT2_IMMUTABLE_FL)
-	IF_ANY    ("immutable",	&opt_ext2_immutable)
+#if WITH_FS && defined(FS_IMMUTABLE_FL)
+	IF_ANY    ("immutable",	&opt_fs_immutable)
 #endif
 #ifdef TCP_INFO	/* Linux 2.4.0 */
 	IF_TCP    ("info",	&opt_tcp_info)
@@ -636,6 +683,9 @@ const struct optname optionnames[] = {
 	IF_ANY    ("ioctl-void",	&opt_ioctl_void)
 #ifdef IP_ADD_MEMBERSHIP
 	IF_IP     ("ip-add-membership",	&opt_ip_add_membership)
+#endif
+#ifdef IP_ADD_SOURCE_MEMBERSHIP
+	IF_IP     ("ip-add-source-membership",	&opt_ip_add_source_membership)
 #endif
 #ifdef IP_FREEBIND
 	IF_IP     ("ip-freebind",	&opt_ip_freebind)
@@ -689,6 +739,9 @@ const struct optname optionnames[] = {
 	IF_IP     ("ip-router-alert",	&opt_ip_router_alert)
 #endif
 	IF_IP     ("ip-tos",	&opt_ip_tos)
+#ifdef IP_TRANSPARENT
+	IF_IP     ("ip-transparent",    &opt_ip_transparent)
+#endif
 	IF_IP     ("ip-ttl",	&opt_ip_ttl)
 #ifdef IP_FREEBIND
 	IF_IP     ("ipfreebind",	&opt_ip_freebind)
@@ -809,9 +862,9 @@ const struct optname optionnames[] = {
 #ifdef IPV6_JOIN_GROUP
 	IF_IP6    ("join-group",	&opt_ipv6_join_group)
 #endif
-#if WITH_EXT2 && defined(EXT2_JOURNAL_DATA_FL)
-	IF_ANY    ("journal",		&opt_ext2_journal_data)
-	IF_ANY    ("journal-data",	&opt_ext2_journal_data)
+#if WITH_FS && defined(FS_JOURNAL_DATA_FL)
+	IF_ANY    ("journal",		&opt_fs_journal_data)
+	IF_ANY    ("journal-data",	&opt_fs_journal_data)
 #endif
 	IF_SOCKET ("keepalive",	&opt_so_keepalive)
 #ifdef TCP_KEEPCNT	/* Linux 2.4.0 */
@@ -842,6 +895,7 @@ const struct optname optionnames[] = {
 	IF_TCP    ("linger2",	&opt_tcp_linger2)
 #endif
 	IF_PTY    ("link",	&opt_symbolic_link)
+	IF_LISTEN ("listen-timeout",	&opt_accept_timeout)
 	IF_TERMIOS("lnext",	&opt_vlnext)
 #if defined(F_SETLKW)
 	IF_ANY    ("lock",	&opt_f_setlkw_wr)	/* POSIX, first choice */
@@ -874,6 +928,9 @@ const struct optname optionnames[] = {
 #endif
 	IF_TUN    ("master",	&opt_iff_master)
 	IF_LISTEN ("max-children",	&opt_max_children)
+#if HAVE_SSL_set_max_proto_version || defined(SSL_set_max_proto_version)
+	IF_OPENSSL("max-version",	&opt_openssl_max_proto_version)
+#endif
 	IF_LISTEN ("maxchildren",	&opt_max_children)
 #ifdef TCP_MAXSEG
 	IF_TCP    ("maxseg",	&opt_tcp_maxseg)
@@ -889,6 +946,9 @@ const struct optname optionnames[] = {
 	IF_OPENSSL("method",	&opt_openssl_method)
 #endif
 	IF_TERMIOS("min",	&opt_vmin)
+#if HAVE_SSL_set_min_proto_version || defined(SSL_set_min_proto_version)
+	IF_OPENSSL("min-version",	&opt_openssl_min_proto_version)
+#endif
 	IF_ANY    ("mode",	&opt_perm)
 #ifdef TCP_MAXSEG
 	IF_TCP    ("mss",	&opt_tcp_maxseg)
@@ -925,6 +985,9 @@ const struct optname optionnames[] = {
 	IF_SOCKET ("no-check",	&opt_so_no_check)
 #endif
 	IF_TUN    ("no-pi",	&opt_iff_no_pi)
+#if defined(HAVE_SSL_set_tlsext_host_name) || defined(SSL_set_tlsext_host_name)
+	IF_OPENSSL("no-sni",	&opt_openssl_no_sni)
+#endif
 	IF_TUN    ("noarp",	&opt_iff_noarp)
 #ifdef O_NOATIME
 	IF_OPEN   ("noatime",	&opt_o_noatime)
@@ -936,8 +999,8 @@ const struct optname optionnames[] = {
 #ifdef TCP_NODELAY
 	IF_TCP    ("nodelay",	&opt_tcp_nodelay)
 #endif
-#if WITH_EXT2 && defined(EXT2_NODUMP_FL)
-	IF_ANY    ("nodump",	&opt_ext2_nodump)
+#if WITH_FS && defined(FS_NODUMP_FL)
+	IF_ANY    ("nodump",	&opt_fs_nodump)
 #endif
 #if HAVE_REGEX_H
 	IF_READLINE("noecho",	&opt_noecho)
@@ -961,6 +1024,9 @@ const struct optname optionnames[] = {
 #ifdef SO_NOREUSEADDR	/* AIX 4.3.3 */
 	IF_SOCKET ("noreuseaddr",	&opt_so_noreuseaddr)
 #endif /* SO_NOREUSEADDR */
+#if defined(HAVE_SSL_set_tlsext_host_name) || defined(SSL_set_tlsext_host_name)
+	IF_OPENSSL("nosni",		&opt_openssl_no_sni)
+#endif
 	IF_TUN    ("notrailers",	&opt_iff_notrailers)
 #ifdef O_NSHARE
 	IF_OPEN   ("nshare",	&opt_o_nshare)
@@ -1117,10 +1183,22 @@ const struct optname optionnames[] = {
 	IF_OPENSSL("openssl-fips",	&opt_openssl_fips)
 #endif
 	IF_OPENSSL("openssl-key",	&opt_openssl_key)
+#if HAVE_SSL_set_max_proto_version || defined(SSL_set_max_proto_version)
+	IF_OPENSSL("openssl-max-proto-version",	&opt_openssl_max_proto_version)
+#endif
 #if WITH_OPENSSL_METHOD
 	IF_OPENSSL("openssl-method",	&opt_openssl_method)
 #endif
+#if HAVE_SSL_set_min_proto_version || defined(SSL_set_min_proto_version)
+	IF_OPENSSL("openssl-min-proto-version",	&opt_openssl_min_proto_version)
+#endif
+#if defined(HAVE_SSL_set_tlsext_host_name) || defined(SSL_set_tlsext_host_name)
+	IF_OPENSSL("openssl-no-sni",	&opt_openssl_no_sni)
+#endif
 	IF_OPENSSL("openssl-pseudo",	&opt_openssl_pseudo)
+#if defined(HAVE_SSL_set_tlsext_host_name) || defined(SSL_set_tlsext_host_name)
+	IF_OPENSSL("openssl-snihost",   &opt_openssl_snihost)
+#endif
 	IF_OPENSSL("openssl-verify",	&opt_openssl_verify)
 	IF_TERMIOS("opost",	&opt_opost)
 #if HAVE_TERMIOS_OSPEED
@@ -1182,8 +1260,10 @@ const struct optname optionnames[] = {
 #endif
 	IF_PROXY  ("proxy-auth",	&opt_proxy_authorization)
 	IF_PROXY  ("proxy-authorization",	&opt_proxy_authorization)
+	IF_PROXY  ("proxy-authorization-file",	&opt_proxy_authorization_file)
 	IF_PROXY  ("proxy-resolve",	&opt_proxy_resolve)
 	IF_PROXY  ("proxyauth",	&opt_proxy_authorization)
+	IF_PROXY  ("proxyauthfile",	&opt_proxy_authorization_file)
 	IF_PROXY  ("proxyport",	&opt_proxyport)
 #ifdef ECHOPRT
 	IF_TERMIOS("prterase",	&opt_echoprt)
@@ -1316,8 +1396,8 @@ const struct optname optionnames[] = {
 #ifdef SCTP_NODELAY
 	IF_SCTP   ("sctp-nodelay",	&opt_sctp_nodelay)
 #endif
-#if WITH_EXT2 && defined(EXT2_SECRM_FL)
-	IF_ANY    ("secrm",	&opt_ext2_secrm)
+#if WITH_FS && defined(FS_SECRM_FL)
+	IF_ANY    ("secrm",	&opt_fs_secrm)
 #endif
 #ifdef SO_SECURITY_AUTHENTICATION
 	IF_SOCKET ("security-authentication",	&opt_so_security_authentication)
@@ -1360,8 +1440,10 @@ const struct optname optionnames[] = {
 #if WITH_EXEC || WITH_SYSTEM
 	IF_EXEC   ("setsid",	&opt_setsid)
 #endif
+	IF_SOCKET ("setsockopt",	&opt_setsockopt)
 	IF_SOCKET ("setsockopt-bin",	&opt_setsockopt_bin)
 	IF_SOCKET ("setsockopt-int",	&opt_setsockopt_int)
+	IF_SOCKET ("setsockopt-listen",	&opt_setsockopt_listen)
 	IF_SOCKET ("setsockopt-string",	&opt_setsockopt_string)
 	IF_ANY    ("setuid",	&opt_setuid)
 	IF_ANY    ("setuid-early",	&opt_setuid_early)
@@ -1386,6 +1468,9 @@ const struct optname optionnames[] = {
 	IF_SOCKET ("sndbuf-late",	&opt_so_sndbuf_late)
 #ifdef SO_SNDLOWAT
 	IF_SOCKET ("sndlowat",	&opt_so_sndlowat)
+#endif
+#if defined(HAVE_SSL_set_tlsext_host_name) || defined(SSL_set_tlsext_host_name)
+	IF_OPENSSL("snihost",    &opt_openssl_snihost)
 #endif
 #ifdef SO_ACCEPTCONN /* AIX433 */
 	IF_SOCKET ("so-acceptconn",	&opt_so_acceptconn)
@@ -1440,6 +1525,7 @@ const struct optname optionnames[] = {
 	IF_SOCKET ("so-priority",	&opt_so_priority)
 #endif
 #ifdef SO_PROTOTYPE
+	IF_SOCKET ("so-protocol",	&opt_so_prototype)
 	IF_SOCKET ("so-prototype",	&opt_so_prototype)
 #endif
 	IF_SOCKET ("so-rcvbuf",	&opt_so_rcvbuf)
@@ -1475,8 +1561,10 @@ const struct optname optionnames[] = {
 #ifdef SO_USELOOPBACK /* AIX433, Solaris */
 	IF_SOCKET ("so-useloopback",	&opt_so_useloopback)
 #endif /* SO_USELOOPBACK */
+	IF_SOCKET ("sockopt",		&opt_setsockopt)
 	IF_SOCKET ("sockopt-bin",	&opt_setsockopt_bin)
 	IF_SOCKET ("sockopt-int",	&opt_setsockopt_int)
+	IF_SOCKET ("sockopt-listen",	&opt_setsockopt_listen)
 	IF_SOCKET ("sockopt-string",	&opt_setsockopt_string)
 	IF_SOCKS5 ("socks5pass", &opt_socks5_password)          // sorted by key!!!
 	IF_SOCKS5 ("socks5port", &opt_socks5_port)
@@ -1484,6 +1572,9 @@ const struct optname optionnames[] = {
 	IF_SOCKS4 ("socksport",	&opt_socksport)
 	IF_SOCKS4 ("socksuser",	&opt_socksuser)
 	IF_SOCKET ("socktype",	&opt_so_type)
+#ifdef IP_ADD_SOURCE_MEMBERSHIP
+	IF_IP     ("source-membership",	&opt_ip_add_source_membership)
+#endif
 	IF_IPAPP  ("sourceport",	&opt_sourceport)
 	IF_IPAPP  ("sp",	&opt_sourceport)
 	IF_TERMIOS("start",	&opt_vstart)
@@ -1519,8 +1610,8 @@ const struct optname optionnames[] = {
 	IF_PTY    ("symbolic-link",	&opt_symbolic_link)
 #ifdef O_SYNC
 	IF_OPEN   ("sync",	&opt_o_sync)
-#elif EXT2_SYNC_FL
-	IF_ANY    ("sync",	&opt_ext2_sync)
+#elif FS_SYNC_FL
+	IF_ANY    ("sync",	&opt_fs_sync)
 #endif
 #ifdef TCP_SYNCNT
 	IF_TCP    ("syncnt",	&opt_tcp_syncnt)
@@ -1643,11 +1734,14 @@ const struct optname optionnames[] = {
 	IF_SOCKET ("timestamp",	&opt_so_timestamp)
 #endif
 	IF_TERMIOS("tiocsctty",	&opt_tiocsctty)
-#if WITH_EXT2 && defined(EXT2_TOPDIR_FL)
-	IF_ANY    ("topdir",	&opt_ext2_topdir)
+#if WITH_FS && defined(FS_TOPDIR_FL)
+	IF_ANY    ("topdir",	&opt_fs_topdir)
 #endif
 	IF_IP     ("tos",	&opt_ip_tos)
 	IF_TERMIOS("tostop",	&opt_tostop)
+#ifdef IP_TRANSPARENT
+	IF_IP     ("transparent",    &opt_ip_transparent)
+#endif
 	IF_OPEN   ("trunc",	&opt_o_trunc)
 #if HAVE_FTRUNCATE64
 	IF_ANY    ("truncate",	&opt_ftruncate64)
@@ -1673,8 +1767,8 @@ const struct optname optionnames[] = {
 	IF_NAMED  ("unlink-close",	&opt_unlink_close)
 	IF_NAMED  ("unlink-early",	&opt_unlink_early)
 	IF_NAMED  ("unlink-late",	&opt_unlink_late)
-#if WITH_EXT2 && defined(EXT2_UNRM_FL)
-	IF_ANY    ("unrm",		&opt_ext2_unrm)
+#if WITH_FS && defined(FS_UNRM_FL)
+	IF_ANY    ("unrm",		&opt_fs_unrm)
 #endif
 	IF_TUN    ("up",	&opt_iff_up)
 #ifdef SO_USE_IFBUFS
@@ -1782,10 +1876,10 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
    unsigned long ulongval;
    long slongval;
    long long slonglongval;
-   char token[512], *tokp;  size_t len;
+   char token[2048], *tokp;  size_t len;
    int parsres;
    int result;
-   char optbuf[256];  size_t optlen;
+   uint8_t optbuf[256];  size_t optlen;
    const char *endkey[6+1];
    const char *endval[5+1];
    const char *assign_str = "=";
@@ -1856,15 +1950,15 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
       ent = (struct optname *)
 	 keyw((struct wordent *)optionnames, token, optionnum);
       if (ent == NULL) {
-	 Error1("parseopts(): unknown option \"%s\"", token);
+	 Error1("parseopts_table(): unknown option \"%s\"", token);
 	 continue;
       }
 
       if (!(ent->desc->group & groups) && !(ent->desc->group & GROUP_ANY) &&
 	  !xioopts_ignoregroups) {
-	 Error1("parseopts(): option \"%s\" not supported with this address type",
+	 Error1("parseopts_table(): option \"%s\" not supported with this address type",
 		token /*a0*/);
-	 Info2("parseopts()  groups=%08x, ent->group=%08x",
+	 Info2("parseopts_table()  groups=%08x, ent->group=%08x",
 	       groups, ent->desc->group);
 #if 0
 	 continue;
@@ -1907,8 +2001,8 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	 if (!assign) { Error1("option \"%s\": value required", a0);
 	    continue; }
 	 optlen = 0;
-	 if ((result = dalan(token, optbuf, &optlen, sizeof(optbuf))) != 0) {
-	    Error1("parseopts(): problem with \"%s\" data", token);
+	 if ((result = dalan(token, optbuf, &optlen, sizeof(optbuf), 'i')) != 0) {
+	    Error1("parseopts_table(): problem with \"%s\" data", token);
 	    continue;
 	 }
 	 if (((*opts)[i].value.u_bin.b_data = memdup(optbuf, optlen)) == NULL) {
@@ -1923,7 +2017,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	  char *rest;
 	  ul = strtoul(token, &rest/*!*/, 0);
 	  if (ul > UCHAR_MAX) {
-	    Error3("parseopts(%s): byte value exceeds limit (%lu vs. %u), using max",
+	    Error3("parseopts_table(%s): byte value exceeds limit (%lu vs. %u), using max",
 		   a0, ul, UCHAR_MAX);
 	    (*opts)[i].value.u_byte = UCHAR_MAX;
 	  } else {
@@ -1972,7 +2066,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	    char *rest;
 	    ulongval = strtoul(token, &rest/*!*/, 0);
 	    if (ulongval > UINT_MAX) {
-	       Error3("parseopts(%s): unsigned int value exceeds limit (%lu vs. %u), using max",
+	       Error3("parseopts_table(%s): unsigned int value exceeds limit (%lu vs. %u), using max",
 		      a0, ulongval, UINT_MAX);
 	    }
 	    (*opts)[i].value.u_uint = ulongval;
@@ -1991,7 +2085,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	    char *rest;
 	    ulongval = strtoul(token, &rest/*!*/, 0);
 	    if (ulongval > USHRT_MAX) {
-	       Error3("parseopts(%s): unsigned short value exceeds limit (%lu vs. %u), using max",
+	       Error3("parseopts_table(%s): unsigned short value exceeds limit (%lu vs. %u), using max",
 		      a0, ulongval, USHRT_MAX);
 	    }
 	    (*opts)[i].value.u_ushort = ulongval;
@@ -2152,7 +2246,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	    }
 	    (*opts)[i].value.u_timeval.tv_sec  = val;
 	    (*opts)[i].value.u_timeval.tv_usec =
-	       (val-(*opts)[i].value.u_timeval.tv_sec) * 1000000;
+	       (val-(*opts)[i].value.u_timeval.tv_sec+0.0000005) * 1000000;
 	 }
 	 break;
 
@@ -2227,8 +2321,8 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	    }
 	    ++rest;
 	    optlen = 0;
-	    if ((result = dalan(rest, optbuf, &optlen, sizeof(optbuf))) != 0) {
-	       Error1("parseopts(): problem with \"%s\" data", rest);
+	    if ((result = dalan(rest, optbuf, &optlen, sizeof(optbuf), 'i')) != 0) {
+	       Error1("parseopts_table(): problem with \"%s\" data", rest);
 	       continue;
 	    }
 	    if (((*opts)[i].value2.u_bin.b_data = memdup(optbuf, optlen)) == NULL) {
@@ -2288,6 +2382,7 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	 break;
 
       case TYPE_INT_INT_BIN:
+      case TYPE_INT_INT_GENERIC:
 	 if (!assign) {
 	    Error1("option \"%s\": values required", a0);
 	    continue;
@@ -2307,8 +2402,8 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	    }
 	    ++rest;
 	    optlen = 0;
-	    if ((result = dalan(rest, optbuf, &optlen, sizeof(optbuf))) != 0) {
-	       Error1("parseopts(): problem with \"%s\" data", rest);
+	    if ((result = dalan(rest, optbuf, &optlen, sizeof(optbuf), 'i')) != 0) {
+	       Error1("parseopts_table(): problem with \"%s\" data", rest);
 	       continue;
 	    }
 	    if (((*opts)[i].value3.u_bin.b_data = memdup(optbuf, optlen)) == NULL) {
@@ -2421,6 +2516,12 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	 break;
 #endif /* defined(HAVE_STRUCT_IP_MREQ) || defined (HAVE_STRUCT_IP_MREQN) */
 
+#if HAVE_STRUCT_IP_MREQ_SOURCE
+      case TYPE_IP_MREQ_SOURCE:
+	 xiotype_ip_add_source_membership(token, ent, opt);
+	 break;
+#endif
+
 #if WITH_IP4
       case TYPE_IP4NAME:
 	 {
@@ -2455,8 +2556,25 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
 	 break;
 #endif /* defined(WITH_IP4) */
 
+      case TYPE_GENERIC:
+	 if (!assign) {
+	    (*opts)[i].value.u_int = 1;
+	 } else {
+	    int rc;
+	    size_t binlen = 64; 	/*!!!*/
+	    if (((*opts[i]).value.u_bin.b_data = Malloc(binlen)) == NULL) Error("!!!");
+	    (*opts)[i].value.u_bin.b_len = 0;
+	    rc = dalan(token, (*opts)[i].value.u_bin.b_data,
+		       &(*opts)[i].value.u_bin.b_len, binlen, 'i');
+	    if (rc != 0) {
+	       Error("!!!");
+	    }
+	    //(*opts)[i].value.u_bin.b_len
+	 }	 
+	 break;
+
       default:
-	 Error2("parseopts(): internal error on option \"%s\": unimplemented type %d",
+	 Error2("parseopts_table(): internal error on option \"%s\": unimplemented type %d",
 		ent->desc->defname, ent->desc->type);
 	 continue;
       }
@@ -2473,6 +2591,31 @@ int parseopts_table(const char **a, unsigned int groups, struct opt **opts,
    /*(*opts)[i+1].desc = ODESC_END;*/
    (*opts)[i].desc = ODESC_END;
    return 0;
+}
+
+
+/* look for an option with the given properties
+   return a pointer to the first matching valid option in the list
+   Returns NULL when no matching option found */
+const struct opt *searchopt(const struct opt *opts, unsigned int groups, enum e_phase from, enum e_phase to,
+		      enum e_func func) {
+   int i;
+
+   if (!opts)  return NULL;
+
+   /* remember: struct opt are in an array */
+   i = 0;
+   while (opts[i].desc != ODESC_END) {
+      if (opts[i].desc != ODESC_DONE &&
+	  (groups == 0 || (groups && (opts[i].desc->group&groups))) &&
+	  (from == 0 || (from <= opts[i].desc->phase)) &&
+	  (to   == 0 || (opts[i].desc->phase <= to)) &&
+	  (func == 0 || (opts[i].desc->func == func))) {
+	 return &opts[i];
+      }
+      ++i;
+   }
+   return NULL;
 }
 
 /* copy the already parsed options for repeated application, but only those
@@ -2900,7 +3043,7 @@ int retropt_bind(struct opt *opts,
    case AF_UNSPEC:
       {
 	 size_t p = 0;
-	 dalan(bindname, (char *)sa->sa_data, &p, *salen-sizeof(sa->sa_family));
+	 dalan(bindname, (uint8_t *)sa->sa_data, &p, *salen-sizeof(sa->sa_family), 'i');
 	 *salen = p + sizeof(sa->sa_family);
 	 *salen = p +
 #if HAVE_STRUCT_SOCKADDR_SALEN
@@ -2913,7 +3056,10 @@ int retropt_bind(struct opt *opts,
       }
       break;
 
-#if WITH_IP4 || WITH_IP6
+#if WITH_IP4 || WITH_IP6 || WITH_VSOCK
+#if WITH_VSOCK
+   case AF_VSOCK:
+#endif
 #if WITH_IP4
    case AF_INET:
 #endif
@@ -3590,7 +3736,7 @@ int applyopts(int fd, struct opt *opts, enum e_phase phase) {
    }
 
 #if WITH_TERMIOS
-   if (phase == PH_FD) {
+   if (phase == PH_FD || phase == PH_ALL) {
       xiotermios_flush(fd);
    }
 #endif /* WITH_TERMIOS */
@@ -3948,7 +4094,13 @@ mc:addr
 	   break;
 #endif /* WITH_IP4 && (defined(HAVE_STRUCT_IP_MREQ) || defined (HAVE_STRUCT_IP_MREQN)) */
 
-
+#if WITH_IP4 && defined(HAVE_STRUCT_IP_MREQ_SOURCE) && defined(IP_ADD_SOURCE_MEMBERSHIP)
+	 case OPT_IP_ADD_SOURCE_MEMBERSHIP:
+	    if (xioapply_ip_add_source_membership(xfd, opt) < 0) {
+	       continue;
+	    }
+	   break;
+#endif /* WITH_IP4 && defined(HAVE_STRUCT_IP_MREQ_SOURCE) && defined(IP_ADD_SOURCE_MEMBERSHIP) */
 
 #if WITH_IP6 && defined(HAVE_STRUCT_IPV6_MREQ)
 	 case OPT_IPV6_JOIN_GROUP:

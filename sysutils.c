@@ -205,6 +205,10 @@ char *sockaddr_info(const struct sockaddr *sa, socklen_t salen, char *buff, size
    case AF_INET6: sockaddr_inet6_info(&sau->ip6, cp, blen);
       break;
 #endif
+#if WITH_VSOCK
+   case AF_VSOCK: sockaddr_vm_info(&sau->vm, cp, blen);
+      break;
+#endif
    default:
       n = xio_snprintf(cp, blen, "AF=%d ", sa->sa_family);
       if (n < 0 || n >= blen) {
@@ -294,6 +298,43 @@ char *sockaddr_inet4_info(const struct sockaddr_in *sa, char *buff, size_t blen)
       buff[blen-1] = '\0';
    }
    return buff;
+}
+#endif /* WITH_IP4 */
+
+#if WITH_VSOCK
+char *sockaddr_vm_info(const struct sockaddr_vm *sa, char *buff, size_t blen) {
+   if (xio_snprintf(buff, blen, "cid:%u port:%u", sa->svm_cid, sa->svm_port) >= blen) {
+      Warn("sockaddr_vm_info(): buffer too short");
+      buff[blen-1] = '\0';
+   }
+   return buff;
+}
+
+int sockaddr_vm_parse(struct sockaddr_vm *sa, const char *cid_str,
+                      const char *port_str)
+{
+   char *garbage = NULL;
+   if (!cid_str) {
+      sa->svm_cid = VMADDR_CID_ANY;
+   } else {
+      sa->svm_cid = strtoul(cid_str, &garbage, 0);
+      if (*garbage != '\0') {
+         Error1("sockaddr_vm - garbage in cid: \"%s\"", garbage);
+         return -EINVAL;
+      }
+   }
+
+   if (!port_str) {
+      sa->svm_port = VMADDR_PORT_ANY;
+   } else {
+      sa->svm_port = strtoul(port_str, &garbage, 0);
+      if (*garbage != '\0') {
+         Error1("sockaddr_vm - garbage in port: \"%s\"", garbage);
+         return -EINVAL;
+      }
+   }
+
+   return 0;
 }
 #endif /* WITH_IP4 */
 
@@ -538,8 +579,8 @@ int xiopoll(struct pollfd fds[], unsigned long nfds, struct timeval *timeout) {
       }
       return result;
    }
-#if HAVE_POLL
    {
+#if HAVE_POLL
       int ms = 0;
       if (timeout == NULL) {
 	 ms = -1;
@@ -549,7 +590,6 @@ int xiopoll(struct pollfd fds[], unsigned long nfds, struct timeval *timeout) {
       /*! timeout */
       return Poll(fds, nfds, ms);
 #else /* HAVE_POLL */
-   } else {
       Error("poll() not available");
       return -1;
 #endif /* !HAVE_POLL */

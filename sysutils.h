@@ -27,6 +27,9 @@ union sockaddr_union {
 #if WITH_IP6
    struct sockaddr_in6 ip6;
 #endif /* WITH_IP6 */
+#if WITH_VSOCK
+   struct sockaddr_vm vm;
+#endif /* WITH_IP6 */
 #if WITH_INTERFACE
    struct sockaddr_ll ll;
 #endif
@@ -68,6 +71,11 @@ extern char *sockaddr_inet4_info(const struct sockaddr_in *sa, char *buff, size_
 #if WITH_IP6
 extern char *sockaddr_inet6_info(const struct sockaddr_in6 *sa, char *buff, size_t blen);
 #endif /* WITH_IP6 */
+#if WITH_VSOCK
+extern char *sockaddr_vm_info(const struct sockaddr_vm *sa, char *buff, size_t blen);
+extern int sockaddr_vm_parse(struct sockaddr_vm *sa, const char *cid_str,
+                             const char *port_str);
+#endif /* WITH_VSOCK */
 #if !HAVE_INET_NTOP
 extern const char *inet_ntop(int pf, const void *binaddr,
 			     char *addrtext, socklen_t textlen);

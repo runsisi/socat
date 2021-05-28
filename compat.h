@@ -94,6 +94,97 @@ typedef int sig_atomic_t;
 #  define SOL_IPV6 IPPROTO_IPV6
 #endif
 
+#define F_uint8_t "%hu"
+#define F_int8_t  "%hd"
+
+#ifndef F_uint16_t
+#  if HAVE_BASIC_UINT16_T==0
+#    define F_uint16_t "%hu"
+#  elif HAVE_BASIC_UINT16_T==2
+#    define F_uint16_t "%hu"
+#  elif HAVE_BASIC_UINT16_T==4
+#    define F_uint16_t "%u"
+#  elif HAVE_BASIC_UINT16_T==6
+#    define F_uint16_t "%lu"
+#  else
+#    error "HAVE_BASIC_UINT16_T is out of range:" HAVE_BASIC_UINT16_T
+#  endif
+#endif
+
+#ifndef F_uint32_t
+#  if HAVE_BASIC_UINT32_T==0
+#    define F_uint32_t "%hu"
+#  elif HAVE_BASIC_UINT32_T==2
+#    define F_uint32_t "%hu"
+#  elif HAVE_BASIC_UINT32_T==4
+#    define F_uint32_t "%u"
+#  elif HAVE_BASIC_UINT32_T==6
+#    define F_uint32_t "%lu"
+#  else
+#    error "HAVE_BASIC_UINT32_T is out of range:" HAVE_BASIC_UINT32_T
+#  endif
+#endif
+
+#ifndef F_uint64_t
+#  if HAVE_BASIC_UINT64_T==0
+#    define F_uint64_t "%hu"
+#  elif HAVE_BASIC_UINT64_T==2
+#    define F_uint64_t "%hu"
+#  elif HAVE_BASIC_UINT64_T==4
+#    define F_uint64_t "%u"
+#  elif HAVE_BASIC_UINT64_T==6
+#    define F_uint64_t "%lu"
+#  elif HAVE_BASIC_UINT64_T==8
+#    define F_uint64_t "%llu"
+#  else
+#    error "HAVE_BASIC_UINT64_T is out of range:" HAVE_BASIC_UINT64_T
+#  endif
+#endif
+
+#ifndef F_int16_t
+#  if HAVE_BASIC_INT16_T==0
+#    define F_int16_t "%hd"
+#  elif HAVE_BASIC_INT16_T==1
+#    define F_int16_t "%hd"
+#  elif HAVE_BASIC_INT16_T==3
+#    define F_int16_t "%d"
+#  elif HAVE_BASIC_INT16_T==5
+#    define F_int16_t "%ld"
+#  else
+#    error "HAVE_BASIC_INT16_T is out of range:" HAVE_BASIC_INT16_T
+#  endif
+#endif
+
+#ifndef F_int32_t
+#  if HAVE_BASIC_INT32_T==0
+#    define F_int32_t "%hd"
+#  elif HAVE_BASIC_INT32_T==1
+#    define F_int32_t "%hd"
+#  elif HAVE_BASIC_INT32_T==3
+#    define F_int32_t "%d"
+#  elif HAVE_BASIC_INT32_T==5
+#    define F_int32_t "%ld"
+#  else
+#    error "HAVE_BASIC_INT32_T is out of range:" HAVE_BASIC_INT32_T
+#  endif
+#endif
+
+#ifndef F_int64_t
+#  if HAVE_BASIC_INT64_T==0
+#    define F_int64_t "%hd"
+#  elif HAVE_BASIC_INT64_T==1
+#    define F_int64_t "%hd"
+#  elif HAVE_BASIC_INT64_T==3
+#    define F_int64_t "%d"
+#  elif HAVE_BASIC_INT64_T==5
+#    define F_int64_t "%ld"
+#  elif HAVE_BASIC_INT64_T==7
+#    define F_int64_t "%lld"
+#  else
+#    error "HAVE_BASIC_INT64_T is out of range:" HAVE_BASIC_INT64_T
+#  endif
+#endif
+
 /* all unsigned */
 #if !defined(HAVE_BASIC_SIZE_T) || !HAVE_BASIC_SIZE_T
 #  undef HAVE_BASIC_SIZE_T
@@ -627,6 +718,33 @@ typedef int sig_atomic_t;
 #endif
 
 /* default: long */
+#if !defined(HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC) || !HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC
+#  undef HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC
+#  define HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC 5
+#endif
+#ifndef F_tv_nsec
+#  if HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC==1
+#define F_tv_nsec "%09hd"
+#  elif HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC==2
+#define F_tv_nsec "%09hu"
+#  elif HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC==3
+#define F_tv_nsec "%09d"
+#  elif HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC==4
+#define F_tv_nsec "%09u"
+#  elif HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC==5
+#define F_tv_nsec "%09ld"
+#  elif HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC==6
+#define F_tv_nsec "%09lu"
+#  elif HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC==7
+#define F_tv_nsec "%09Ld"
+#  elif HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC==8
+#define F_tv_nsec "%09Lu"
+#  else
+#error "HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC is out of range:" HAVE_TYPEOF_STRUCT_TIMESPEC_TV_NSEC
+#  endif
+#endif
+
+/* default: long */
 #if !defined(HAVE_TYPEOF_RLIM_MAX) || !HAVE_TYPEOF_RLIM_MAX
 #  undef HAVE_TYPEOF_RLIM_MAX
 #  define HAVE_TYPEOF_RLIM_MAX 5
@@ -652,6 +770,10 @@ typedef int sig_atomic_t;
 #error "HAVE_TYPEOF_RLIM_MAX is out of range:" HAVE_TYPEOF_RLIM_MAX
 #  endif
 #endif
+
+/* sigset_t printing - not an exact solution yet */
+#define F_sigset "0x%06lx"
+typedef unsigned long T_sigset;
 
 /* default: socklen_t */
 #if !defined(HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN) || !HAVE_TYPEOF_STRUCT_CMSGHDR_CMSG_LEN
@@ -680,6 +802,17 @@ typedef int sig_atomic_t;
 #  endif
 #endif
 
+/* basic type of struct timeval tv_usec */
+#ifndef F_tv_usec
+#  if TYPEOF_STRUCT_TIMEVAL_TV_USEC==1
+#     define F_tv_usec "%hu"
+#  elif TYPEOF_STRUCT_TIMEVAL_TV_USEC==3
+#     define F_tv_usec "%u"
+#  elif TYPEOF_STRUCT_TIMEVAL_TV_USEC==5
+#     define F_tv_usec "%lu"
+#  endif
+#endif
+
 /* Cygwin 1.3.22 has the prototypes, but not the type... */
 #ifndef HAVE_TYPE_STAT64
 #  undef HAVE_STAT64
@@ -702,6 +835,10 @@ typedef int sig_atomic_t;
 #if !HAVE_PROTOTYPE_HSTRERROR
 /* with MacOSX this is  char *  */
 extern const char *hstrerror(int);
+#endif
+
+#if !HAVE_PROTOTYPE_LIB_strndup
+extern char *strndup (const char *s, size_t n);
 #endif
 
 #endif /* !defined(__compat_h_included) */

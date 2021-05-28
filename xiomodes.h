@@ -33,6 +33,7 @@
 #include "xio-socks.h"
 #include "xio-socks5.h"
 #include "xio-proxy.h"
+#include "xio-vsock.h"
 #endif /* _WITH_SOCKET */
 #include "xio-progcall.h"
 #include "xio-exec.h"
@@ -42,7 +43,7 @@
 #include "xio-pty.h"
 #include "xio-openssl.h"
 #include "xio-tcpwrap.h"
-#include "xio-ext2.h"
+#include "xio-fs.h"
 #include "xio-tun.h"
 #include "xio-streams.h"
 

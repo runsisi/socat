@@ -24,6 +24,7 @@ const struct optdesc opt_max_children = { "max-children",      NULL, OPT_MAX_CHI
 #if (WITH_UDP || WITH_TCP)
 const struct optdesc opt_range   = { "range",     NULL, OPT_RANGE,       GROUP_RANGE,  PH_ACCEPT, TYPE_STRING, OFUNC_SPEC };
 #endif
+const struct optdesc opt_accept_timeout = { "accept-timeout", "listen-timeout", OPT_ACCEPT_TIMEOUT, GROUP_LISTEN, PH_LISTEN, TYPE_TIMEVAL, OFUNC_OFFSET, XIO_OFFSETOF(para.socket.accept_timeout) };
 
 
 /*
@@ -146,8 +147,22 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
    if ((xfd->fd = xiosocket(opts, us->sa_family, socktype, proto, level)) < 0) {
       return STAT_RETRYLATER;
    }
+   applyopts(xfd->fd, opts, PH_PASTSOCKET);
 
+   applyopts_offset(xfd, opts);
    applyopts_cloexec(xfd->fd, opts);
+
+#if defined(WITH_VSOCK) && defined(IOCTL_VM_SOCKETS_GET_LOCAL_CID)
+   {
+      unsigned int cid;
+      if (Ioctl(xfd->fd, IOCTL_VM_SOCKETS_GET_LOCAL_CID, &cid) < 0) {
+	 Warn2("ioctl(%d, IOCTL_VM_SOCKETS_GET_LOCAL_CID, ...): %s",
+	       xfd->fd, strerror(errno));
+      } else {
+	 Notice1("VSOCK CID=%u", cid);
+      }
+   }
+#endif
 
    applyopts(xfd->fd, opts, PH_PREBIND);
    applyopts(xfd->fd, opts, PH_BIND);
@@ -206,6 +221,7 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
 
    applyopts(xfd->fd, opts, PH_PRELISTEN);
    retropt_int(opts, OPT_BACKLOG, &backlog);
+   applyopts(xfd->fd, opts, PH_LISTEN);
    if (Listen(xfd->fd, backlog) < 0) {
       Error3("listen(%d, %d): %s", xfd->fd, backlog, strerror(errno));
       return STAT_RETRYLATER;
@@ -228,6 +244,51 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
       do {
 	 /*? int level = E_ERROR;*/
 	 Notice1("listening on %s", sockaddr_info(us, uslen, lisname, sizeof(lisname)));
+	 if (xfd->para.socket.accept_timeout.tv_sec > 0 ||
+	     xfd->para.socket.accept_timeout.tv_usec > 0) {
+	    fd_set rfd;
+	    struct timeval tmo;
+	    FD_ZERO(&rfd);
+	    FD_SET(xfd->fd, &rfd);
+	    tmo.tv_sec = xfd->para.socket.accept_timeout.tv_sec;
+	    tmo.tv_usec = xfd->para.socket.accept_timeout.tv_usec;
+	    while (1) {
+	       if (Select(xfd->fd+1, &rfd, NULL, NULL, &tmo) < 0) {
+		  if (errno != EINTR) {
+		     Error5("Select(%d, &0x%lx, NULL, NULL, {%ld.%06ld}): %s", xfd->fd+1, 1L<<(xfd->fd+1),
+			    xfd->para.socket.accept_timeout.tv_sec, xfd->para.socket.accept_timeout.tv_usec,
+			    strerror(errno));
+		  }
+	       } else {
+		  break;
+	       }
+	    }
+	    if (!FD_ISSET(xfd->fd, &rfd)) {
+	       struct sigaction act;
+
+	       Warn1("accept: %s", strerror(ETIMEDOUT));
+	       Close(xfd->fd);
+	       Notice("Waiting for child processes to terminate");
+	       memset(&act, 0, sizeof(struct sigaction));
+	       act.sa_flags   = SA_NOCLDSTOP/*|SA_RESTART*/
+#ifdef SA_SIGINFO /* not on Linux 2.0(.33) */
+		  |SA_SIGINFO
+#endif
+#ifdef SA_NOMASK
+		  |SA_NOMASK
+#endif
+		  ;
+#if HAVE_STRUCT_SIGACTION_SA_SIGACTION && defined(SA_SIGINFO)
+	       act.sa_sigaction = 0;
+#else /* Linux 2.0(.33) does not have sigaction.sa_sigaction */
+	       act.sa_handler = 0;
+#endif
+	       sigemptyset(&act.sa_mask);
+	       Sigaction(SIGCHLD, &act, NULL);
+	       wait(NULL);
+	       Exit(0);
+	    }
+	 }
 	 ps = Accept(xfd->fd, (struct sockaddr *)&sa, &salen);
 	 if (ps >= 0) {
 	    /*0 Info4("accept(%d, %p, {"F_Zu"}) -> %d", xfd->fd, &sa, salen, ps);*/

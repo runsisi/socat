@@ -9,6 +9,7 @@ extern const struct optdesc opt_backlog;
 extern const struct optdesc opt_fork;
 extern const struct optdesc opt_max_children;
 extern const struct optdesc opt_range;
+extern const struct optdesc opt_accept_timeout;
 
 int
    xioopen_listen(struct single *xfd, int xioflags,

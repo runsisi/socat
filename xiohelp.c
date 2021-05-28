@@ -21,6 +21,7 @@ static const char *optiontypenames[] = {
 	"DOUBLE",	"STRING-NULL",	"LONG-LONG",	"OFF_T",
 	"OFF64_T",	"INT:INT",	"INT:INTP",	"INT:BIN",
 	"INT:STRING",	"INT:INT:INT",	"INT:INT:BIN",	"INT:INT:STRING",
+	"INT:INT:GENERIC",
 	"IP4NAME",
 
 #if HAVE_STRUCT_LINGER
@@ -31,6 +32,10 @@ static const char *optiontypenames[] = {
 #elif HAVE_STRUCT_IP_MREQ
 					"STRUCT-IP_MREQ",
 #endif
+#if HAVE_STRUCT_IP_MREQ_SOURCE
+	"IP-MREQ-SOURCE",
+#endif
+	"GENERIC",
 } ;
 
 

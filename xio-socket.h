@@ -5,10 +5,18 @@
 #ifndef __xio_socket_h_included
 #define __xio_socket_h_included 1
 
-/* SO_PROTOTYPE is OS defined on Solaris, HP-UX; we lend this for a more
-   general purpose */ 
-#ifndef SO_PROTOTYPE
-#define SO_PROTOTYPE 0x9999
+/* SO_PROTOTYPE is defined on Solaris, HP-UX
+   SO_PROTOCOL in Linux, is the better name, but came much later */
+#ifdef SO_PROTOCOL
+#  undef SO_PROTOTYPE
+#    define SO_PROTOTYPE SO_PROTOCOL
+#else
+#  ifdef SO_PROTOTYPE
+#    define SO_PROTOCOL SO_PROTOTYPE
+#  else
+#    define SO_PROTOCOL 0x9999
+#    define SO_PROTOTYPE SO_PROTOCOL
+#  endif
 #endif
 
 extern const struct addrdesc xioaddr_socket_connect;
@@ -62,9 +70,11 @@ extern const struct optdesc opt_fiosetown;
 extern const struct optdesc opt_siocspgrp;
 extern const struct optdesc opt_bind;
 extern const struct optdesc opt_protocol_family;
+extern const struct optdesc opt_setsockopt;
 extern const struct optdesc opt_setsockopt_int;
 extern const struct optdesc opt_setsockopt_bin;
 extern const struct optdesc opt_setsockopt_string;
+extern const struct optdesc opt_setsockopt_listen;
 extern const struct optdesc opt_null_eof;
 
 
@@ -74,13 +84,13 @@ char *xiogetifname(int ind, char *val, int ins);
 extern int retropt_socket_pf(struct opt *opts, int *pf);
 
 extern int xioopen_connect(struct single *fd,
-			    struct sockaddr *us, size_t uslen,
+			    union sockaddr_union *us, size_t uslen,
 			    struct sockaddr *them, size_t themlen,
 			    struct opt *opts,
 			   int pf, int socktype, int protocol,
 			    bool alt);
 extern int _xioopen_connect(struct single *fd,
-			    struct sockaddr *us, size_t uslen,
+			    union sockaddr_union *us, size_t uslen,
 			    struct sockaddr *them, size_t themlen,
 			    struct opt *opts,
 			    int pf, int socktype, int protocol,
